@@ -1,0 +1,1532 @@
+basePath: /
+definitions:
+  input.AdminChangePasswordReq:
+    properties:
+      newPassword:
+        description: 新密码
+        example: "654321"
+        maxLength: 32
+        minLength: 6
+        type: string
+      oldPassword:
+        description: 旧密码
+        example: "123456"
+        maxLength: 32
+        minLength: 6
+        type: string
+    required:
+    - newPassword
+    - oldPassword
+    type: object
+  input.AdminDeleteReq:
+    properties:
+      id:
+        description: 管理员ID
+        example: 2
+        type: integer
+    required:
+    - id
+    type: object
+  input.AdminListPageReq:
+    properties:
+      enable:
+        description: 是否启用
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      gender:
+        description: 性别
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        type: integer
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      username:
+        description: 用户名，支持模糊搜索
+        example: admin
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
+  input.AdminLoginReq:
+    properties:
+      captcha:
+        description: 验证码
+        type: string
+      password:
+        description: 密码
+        example: "123456"
+        maxLength: 32
+        minLength: 6
+        type: string
+      username:
+        description: 账号
+        example: admin
+        minLength: 1
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  input.AdminRefreshReq:
+    properties:
+      token:
+        description: refresh token
+        example: Bearer xxxxxxxxxx
+        type: string
+    required:
+    - token
+    type: object
+  input.AdminResetAdminPasswordReq:
+    properties:
+      id:
+        description: 管理员ID
+        example: 1
+        type: integer
+      password:
+        description: 密码
+        example: "123456"
+        maxLength: 32
+        minLength: 6
+        type: string
+    required:
+    - id
+    - password
+    type: object
+  input.AdminSaveReq:
+    properties:
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      id:
+        description: 管理员ID
+        example: 1
+        type: integer
+      password:
+        description: 密码
+        example: "123456"
+        type: string
+      roleIds:
+        description: 角色ID组
+        example:
+        - 1
+        - 2
+        items:
+          type: integer
+        type: array
+      username:
+        description: 账号
+        example: admin
+        minLength: 1
+        type: string
+    required:
+    - username
+    type: object
+  input.AdminSwitchRoleReq:
+    properties:
+      code:
+        description: 角色标识
+        example: SUPER_ADMIN
+        type: string
+    required:
+    - code
+    type: object
+  input.AdminUpdateProfileReq:
+    properties:
+      address:
+        description: 居住地址
+        example: xxxxxxx
+        type: string
+      avatar:
+        description: 头像地址
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      email:
+        description: email
+        example: xxxxx@xxx.com
+        type: string
+      gender:
+        description: 性别
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        type: integer
+      id:
+        description: 管理员ID
+        example: 1
+        type: integer
+      nickName:
+        description: 名称
+        example: test name
+        type: string
+    required:
+    - id
+    type: object
+  input.MenuButtonsReq:
+    properties:
+      parentId:
+        description: 菜单ID（作为父级ID进行查询）
+        example: 0
+        type: integer
+    required:
+    - parentId
+    type: object
+  input.MenuDeleteReq:
+    properties:
+      id:
+        description: 菜单ID
+        example: 1
+        type: integer
+    required:
+    - id
+    type: object
+  input.MenuSaveReq:
+    properties:
+      code:
+        description: 菜单标识
+        example: Base
+        minLength: 1
+        type: string
+      component:
+        description: 组件路径
+        example: /src/list/list.vue
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      icon:
+        description: 菜单图标
+        example: i-fe:list
+        type: string
+      id:
+        description: 菜单ID
+        example: 1
+        type: integer
+      keepAlive:
+        description: 保持活跃
+        example: false
+        type: boolean
+      layout:
+        description: 布局
+        example: full
+        type: string
+      name:
+        description: 菜单名称
+        example: 基础菜单
+        minLength: 1
+        type: string
+      order:
+        description: 排序（从小到大）
+        example: 0
+        type: integer
+      parentId:
+        description: 父级ID
+        example: 0
+        type: integer
+      path:
+        description: 菜单路径
+        example: /path/url
+        type: string
+      show:
+        description: 显示状态
+        example: true
+        type: boolean
+      type:
+        description: 菜单类型
+        enum:
+        - BUTTON
+        - MENU
+        example: MENU
+        minLength: 1
+        type: string
+    required:
+    - code
+    - name
+    - type
+    type: object
+  input.MenuToggleReq:
+    properties:
+      id:
+        description: 菜单ID
+        example: 1
+        type: integer
+    required:
+    - id
+    type: object
+  input.MenuValidateReq:
+    properties:
+      path:
+        description: 菜单路径
+        example: /path/url
+        minLength: 1
+        type: string
+    required:
+    - path
+    type: object
+  input.RoleAddRoleUsersReq:
+    properties:
+      adminIds:
+        description: 管理员ID（支持多个）
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+      roleId:
+        description: 角色ID
+        example: 2
+        type: integer
+    required:
+    - adminIds
+    - roleId
+    type: object
+  input.RoleDeleteReq:
+    properties:
+      id:
+        description: 角色ID
+        example: 2
+        type: integer
+    required:
+    - id
+    type: object
+  input.RoleListPageReq:
+    properties:
+      enable:
+        description: 状态
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        description: 名称，支持模糊搜索
+        example: 超级
+        type: string
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+    required:
+    - pageNo
+    - pageSize
+    type: object
+  input.RoleRemoveRoleUsersReq:
+    properties:
+      adminIds:
+        description: 管理员ID（支持多个）
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+      roleId:
+        description: 角色ID
+        example: 2
+        type: integer
+    required:
+    - adminIds
+    - roleId
+    type: object
+  input.RoleSaveReq:
+    properties:
+      code:
+        description: 角色标识
+        example: TestAdmin
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      id:
+        description: 角色ID
+        example: 2
+        type: integer
+      name:
+        description: 角色名称
+        example: 测试管理员
+        type: string
+      permissionIds:
+        description: 角色绑定菜单ID
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+    type: object
+  resp.AdminCaptchaResp:
+    properties:
+      enabled:
+        description: 是否启用验证码
+        example: true
+        type: boolean
+    type: object
+  resp.AdminDetailsProfileItem:
+    properties:
+      address:
+        description: 居住地址
+        example: xxxxxxx
+        type: string
+      avatar:
+        description: 头像
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      email:
+        description: email
+        example: xxxxx@xxx.com
+        type: string
+      gender:
+        description: 性别
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        type: integer
+      id:
+        description: 管理员ID
+        example: 1
+        type: integer
+      nickName:
+        description: 名称
+        example: test name
+        type: string
+    type: object
+  resp.AdminDetailsResp:
+    properties:
+      createdAt:
+        description: 创建时间
+        example: "2026-03-25 12:00:00"
+        type: string
+      currentRole:
+        allOf:
+        - $ref: '#/definitions/resp.AdminDetailsRoleItem'
+        description: 当前角色信息
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      id:
+        description: 管理员ID
+        example: 1
+        type: integer
+      profile:
+        allOf:
+        - $ref: '#/definitions/resp.AdminDetailsProfileItem'
+        description: 个人资料
+      roles:
+        description: 拥有角色列表
+        items:
+          $ref: '#/definitions/resp.AdminDetailsRoleItem'
+        type: array
+      updatedAt:
+        description: 更新时间
+        example: "2026-03-25 12:00:00"
+        type: string
+      username:
+        description: 账号
+        example: admin
+        type: string
+    type: object
+  resp.AdminDetailsRoleItem:
+    properties:
+      code:
+        description: 角色标识
+        example: SUPER_ADMIN
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      id:
+        description: 角色ID
+        example: 1
+        type: integer
+      name:
+        description: 角色名称
+        example: 超级管理员
+        type: string
+    type: object
+  resp.AdminListPageItem:
+    properties:
+      address:
+        description: 居住地址
+        example: xxxxxxx
+        type: string
+      avatar:
+        description: 头像地址
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      createdAt:
+        description: 创建时间
+        type: string
+      email:
+        description: email
+        example: xxxxx@xxx.com
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      gender:
+        description: 性别
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        type: integer
+      id:
+        description: 管理员ID
+        example: 1
+        type: integer
+      roles:
+        description: 拥有角色列表
+        items:
+          $ref: '#/definitions/resp.AdminDetailsRoleItem'
+        type: array
+      updatedAt:
+        description: 更新时间
+        type: string
+      username:
+        description: 账号
+        example: admin
+        type: string
+    type: object
+  resp.AdminListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.AdminListPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
+  resp.AdminLoginResp:
+    properties:
+      accessToken:
+        description: access token
+        example: Bearer xxxxxxxxxx
+        type: string
+      refreshToken:
+        description: refresh token
+        example: Bearer xxxxxxxxxx
+        type: string
+    type: object
+  resp.MenuButtonsResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.MenuItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
+  resp.MenuItem:
+    properties:
+      children:
+        description: 子菜单
+        items:
+          $ref: '#/definitions/resp.MenuItem'
+        type: array
+      code:
+        description: 菜单标识
+        example: Base
+        type: string
+      component:
+        description: 组件路径
+        example: /src/list/list.vue
+        type: string
+      description:
+        description: 描述
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      icon:
+        description: 菜单图标
+        example: i-fe:list
+        type: string
+      id:
+        description: 菜单ID
+        example: 1
+        type: integer
+      keepAlive:
+        description: 保持活跃
+        example: false
+        type: boolean
+      layout:
+        description: 布局
+        example: full
+        type: string
+      method:
+        description: 方法
+        type: string
+      name:
+        description: 菜单名称
+        example: 基础菜单
+        type: string
+      order:
+        description: 排序（从小到大）
+        example: 0
+        type: integer
+      parentId:
+        description: 父级ID
+        example: 0
+        type: integer
+      path:
+        description: 菜单路径
+        example: /path/url
+        type: string
+      redirect:
+        description: 重定向
+        type: string
+      show:
+        description: 显示状态
+        example: true
+        type: boolean
+      type:
+        description: 菜单类型
+        enum:
+        - BUTTON
+        - MENU
+        example: MENU
+        type: string
+    type: object
+  resp.MenuListResp:
+    properties:
+      menu:
+        description: 菜单列表
+        items:
+          $ref: '#/definitions/resp.MenuItem'
+        type: array
+    type: object
+  resp.MenuValidateResp:
+    properties:
+      has:
+        description: 是否存在
+        example: true
+        type: boolean
+    type: object
+  resp.RoleListAllItem:
+    properties:
+      code:
+        description: 角色标识
+        example: SUPER_ADMIN
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      id:
+        description: 角色ID
+        example: 1
+        type: integer
+      name:
+        description: 角色名称
+        example: 超级管理员
+        type: string
+    type: object
+  resp.RoleListAllResp:
+    properties:
+      list:
+        description: 角色列表
+        items:
+          $ref: '#/definitions/resp.RoleListAllItem'
+        type: array
+    type: object
+  resp.RoleListPageItem:
+    properties:
+      code:
+        description: 角色标识
+        example: SUPER_ADMIN
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      id:
+        description: 角色ID
+        example: 1
+        type: integer
+      name:
+        description: 角色名称
+        example: 超级管理员
+        type: string
+      permissionIds:
+        description: 角色绑定菜单ID
+        items:
+          type: integer
+        type: array
+    type: object
+  resp.RoleListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.RoleListPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
+  resp.RoleMenuItem:
+    properties:
+      children:
+        description: 子菜单
+        items:
+          $ref: '#/definitions/resp.RoleMenuItem'
+        type: array
+      code:
+        description: 菜单标识
+        example: Base
+        type: string
+      component:
+        description: 组件路径
+        example: /src/list/list.vue
+        type: string
+      description:
+        description: 描述
+        type: string
+      enable:
+        description: 状态
+        example: true
+        type: boolean
+      icon:
+        description: 菜单图标
+        example: i-fe:list
+        type: string
+      id:
+        description: 菜单ID
+        example: 1
+        type: integer
+      keepAlive:
+        description: 保持活跃
+        example: false
+        type: boolean
+      layout:
+        description: 布局
+        example: full
+        type: string
+      method:
+        description: 方法
+        type: string
+      name:
+        description: 菜单名称
+        example: 基础菜单
+        type: string
+      order:
+        description: 排序（从小到大）
+        example: 0
+        type: integer
+      parentId:
+        description: 父级ID
+        example: 0
+        type: integer
+      path:
+        description: 菜单路径
+        example: /path/url
+        type: string
+      redirect:
+        description: 重定向
+        type: string
+      show:
+        description: 显示状态
+        example: true
+        type: boolean
+      type:
+        description: 菜单类型
+        enum:
+        - BUTTON
+        - MENU
+        example: MENU
+        type: string
+    type: object
+  resp.RolePermissionsResp:
+    properties:
+      menu:
+        items:
+          $ref: '#/definitions/resp.RoleMenuItem'
+        type: array
+    type: object
+  response.Response:
+    properties:
+      code:
+        description: 响应code
+        example: 0
+        type: integer
+      data:
+        description: 响应数据
+      msg:
+        description: 响应信息
+        example: success
+        type: string
+    type: object
+info:
+  contact:
+    email: junjie.he.925@gmail.com
+    name: 何俊杰
+  description: GoAdminKit 系统接口文档
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: GoAdminKit API
+  version: "1.0"
+paths:
+  /api/admin/admin/delete:
+    post:
+      description: 根据管理员 ID 删除管理员账号（通常不允许删除当前登录管理员）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 删除参数（管理员 ID）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminDeleteReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除管理员
+      tags:
+      - 管理员
+  /api/admin/admin/list:
+    post:
+      description: 分页获取管理员列表，支持按用户名、性别、启用状态进行筛选
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AdminListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询管理员列表
+      tags:
+      - 管理员
+  /api/admin/admin/save:
+    post:
+      description: 根据是否传入 ID 创建或更新管理员账号：未传 ID 时为创建，传入 ID 时为更新，同时可设置账号状态及绑定角色
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 管理员保存参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminSaveReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建或更新管理员
+      tags:
+      - 管理员
+  /api/admin/admin/update-password:
+    post:
+      description: 管理员根据管理员 ID 重置指定账号的登录密码（无需旧密码，通常需要具备管理员管理权限）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 重置密码参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminResetAdminPasswordReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 重置管理员密码
+      tags:
+      - 管理员
+  /api/admin/admin/update-profile:
+    post:
+      description: 管理员更新个人资料信息（如昵称、头像、性别、邮箱等），支持部分字段更新
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 管理员个人资料参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminUpdateProfileReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新管理员个人资料
+      tags:
+      - 管理员
+  /api/admin/auth/captcha:
+    post:
+      description: 获取当前系统是否已配置并启用了 altcha 验证码，前端可根据此状态决定是否展示验证码组件
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AdminCaptchaResp'
+              type: object
+      summary: 获取验证码启用状态
+      tags:
+      - 认证
+  /api/admin/auth/change-password:
+    post:
+      description: 管理员在已登录状态下通过旧密码验证后修改登录密码，修改成功后建议重新登录以获取新的凭证
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 修改密码参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminChangePasswordReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 修改登录密码
+      tags:
+      - 认证
+  /api/admin/auth/detail:
+    post:
+      description: 获取当前登录管理员的详细信息，包括基础信息、个人资料、拥有角色列表及当前角色信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AdminDetailsResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取当前管理员信息
+      tags:
+      - 认证
+  /api/admin/auth/login:
+    post:
+      description: 管理员通过账号和密码登录系统，登录成功后返回 access_token 和 refresh_token，用于后续接口鉴权
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 登录参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminLoginReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AdminLoginResp'
+              type: object
+      summary: 管理员登录
+      tags:
+      - 认证
+  /api/admin/auth/logout:
+    post:
+      description: 管理员退出当前登录状态，使当前 access_token 失效（通常用于前端主动登出）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 管理员退出登录
+      tags:
+      - 认证
+  /api/admin/auth/refresh:
+    post:
+      description: 使用 refresh_token 刷新登录状态，获取新的 access_token 和 refresh_token，用于延长会话有效期
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 刷新凭证参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminRefreshReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AdminLoginResp'
+              type: object
+      summary: 刷新登录凭证
+      tags:
+      - 认证
+  /api/admin/auth/switch-role:
+    post:
+      description: 管理员在已登录状态下切换当前角色，根据目标角色重新生成 access_token 和 refresh_token，用于更新权限上下文
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 切换角色参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdminSwitchRoleReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AdminLoginResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 切换管理员角色
+      tags:
+      - 认证
+  /api/admin/menu/buttons:
+    post:
+      description: 根据菜单 ID 获取其下的按钮权限列表（按钮类型菜单），用于前端页面按钮级权限控制
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 查询参数（父级菜单 ID）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.MenuButtonsReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.MenuButtonsResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取菜单下的按钮权限
+      tags:
+      - 菜单
+  /api/admin/menu/delete:
+    post:
+      description: 根据菜单 ID 删除菜单（通常不允许删除存在子菜单或已绑定权限的菜单）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 删除参数（菜单 ID）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.MenuDeleteReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除菜单
+      tags:
+      - 菜单
+  /api/admin/menu/list:
+    post:
+      description: 获取系统完整菜单树结构（包含菜单及按钮权限），用于前端动态路由生成和权限控制
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.MenuListResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取菜单列表
+      tags:
+      - 菜单
+  /api/admin/menu/save:
+    post:
+      description: 根据是否传入 ID 创建或更新菜单信息：未传 ID 时为创建，传入 ID 时为更新，支持菜单及按钮类型（MENU / BUTTON），用于构建系统菜单结构和权限控制
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 菜单保存参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.MenuSaveReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建或更新菜单
+      tags:
+      - 菜单
+  /api/admin/menu/toggle:
+    post:
+      description: 根据菜单 ID 切换菜单的启用状态（启用/禁用），常用于后台列表中的快速开关操作
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 切换参数（菜单 ID）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.MenuToggleReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 切换菜单启用状态
+      tags:
+      - 菜单
+  /api/admin/menu/validate:
+    post:
+      description: 根据菜单路径校验菜单是否已存在，常用于前端需要对菜单进行校验时
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 校验参数（菜单路径）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.MenuValidateReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.MenuValidateResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 校验菜单路径是否存在
+      tags:
+      - 菜单
+  /api/admin/roles/add-role-users:
+    post:
+      description: 将指定角色批量分配给管理员（建立管理员与角色的关联关系）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 分配参数（角色ID + 管理员ID列表）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.RoleAddRoleUsersReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 为角色分配管理员
+      tags:
+      - 角色
+  /api/admin/roles/all:
+    post:
+      description: 获取系统所有角色的简要信息（不分页），用于下拉选择或管理员绑定角色
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.RoleListAllResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取全部角色列表
+      tags:
+      - 角色
+  /api/admin/roles/delete:
+    post:
+      description: 根据角色 ID 删除角色（通常不允许删除已绑定管理员或正在使用的角色）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 删除参数（角色 ID）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.RoleDeleteReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除角色
+      tags:
+      - 角色
+  /api/admin/roles/list:
+    post:
+      description: 获取角色分页列表，支持按角色名称模糊搜索及状态筛选，用于后台角色管理与权限分配
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 分页查询参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.RoleListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.RoleListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取角色列表（分页）
+      tags:
+      - 角色
+  /api/admin/roles/permissions:
+    post:
+      description: 获取当前登录管理员在当前角色下的菜单及按钮权限树（已按权限过滤），用于前端动态路由及权限控制
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.RolePermissionsResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取当前管理员权限菜单树
+      tags:
+      - 角色
+  /api/admin/roles/remove-role-users:
+    post:
+      description: 将指定管理员从角色中批量移除（解除管理员与角色的关联关系）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 移除参数（角色ID + 管理员ID列表）
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.RoleRemoveRoleUsersReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 从角色移除管理员
+      tags:
+      - 角色
+  /api/admin/roles/save:
+    post:
+      description: 根据是否传入 ID 创建或更新角色信息，同时可绑定菜单及按钮权限（权限ID集合）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 角色保存参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.RoleSaveReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建或更新角色
+      tags:
+      - 角色
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -1,0 +1,8 @@
+*.local
+node_modules
+dist
+stats.html
+package-lock.json
+pnpm-lock.yaml
+.git.bak/
+.env.production
