@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zxc7563598/GoAdminKit/internal/handler"
-	"github.com/zxc7563598/GoAdminKit/internal/response"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 )
 
 // RequireRole 角色权限校验中间件

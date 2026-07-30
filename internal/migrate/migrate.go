@@ -1,7 +1,7 @@
 package migrate
 
 import (
-	"github.com/zxc7563598/GoAdminKit/internal/model"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"gorm.io/gorm"
 )
 

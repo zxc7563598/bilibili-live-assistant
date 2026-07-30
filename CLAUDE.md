@@ -1,8 +1,8 @@
-# CLAUDE.md — GoAdminKit 项目总览
+# CLAUDE.md — BiliLive Assistant 项目总览
 
 ## 项目简介
 
-GoAdminKit 是一个前后端一体的后台管理系统开发框架：
+BiliLive Assistant 是一个前后端一体的后台管理系统开发框架：
 - **后端**：Go + Gin + GORM，采用 DDD 分层架构
 - **前端**：Vue 3 + Naive UI + Vite，基于 vue-naive-admin 二次开发
 - **数据库**：MySQL / PostgreSQL（任选其一）
@@ -78,7 +78,7 @@ make clean
 ### 初始化项目
 
 ```bash
-git clone https://github.com/zxc7563598/GoAdminKit ./oneadmin
+git clone https://github.com/zxc7563598/bilibili-live-assistant ./oneadmin
 cd oneadmin
 cp config.example.yaml config.yaml
 # 根据实际情况修改 config.yaml（数据库连接等）
@@ -100,7 +100,7 @@ make dev
 
 ```bash
 make build
-# 产物：./bin/GoAdminKit（已包含前端资源，无需额外部署）
+# 产物：./bin/BiliLiveAssistant（已包含前端资源，无需额外部署）
 ```
 
 ### 服务器部署
@@ -108,14 +108,14 @@ make build
 推荐目录结构：
 ```
 /opt/项目名称/
-├── GoAdminKit   # 可执行文件
+├── BiliLiveAssistant   # 可执行文件
 ├── config.yaml  # 配置文件
 └── logs/        # 日志目录
 ```
 
 启动：
 ```bash
-GIN_MODE=release ./GoAdminKit -config ./config.yaml -port 9000
+GIN_MODE=release ./BiliLiveAssistant -config ./config.yaml -port 9000
 ```
 
 推荐使用 systemd 管理服务。

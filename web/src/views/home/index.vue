@@ -16,7 +16,7 @@
         </div>
 
         <div class="mt-16 text-14 leading-relaxed opacity-70">
-          欢迎回到 GoAdminKit 控制台。这里是你的系统中枢，你可以在这里快速进入各项功能，
+          欢迎回到 BiliLive Assistant 控制台。这里是你的系统中枢，你可以在这里快速进入各项功能，
           管理系统、配置权限、构建属于你自己的后台世界。
         </div>
       </n-card>
@@ -24,7 +24,7 @@
       <!-- 右侧：项目信息 -->
       <n-card class="w-320" :bordered="false">
         <div class="text-16 font-semibold">
-          GoAdminKit
+          BiliLive Assistant
         </div>
         <div class="mt-8 text-13 opacity-60">
           开箱即用的全栈后台系统
@@ -68,7 +68,7 @@
       <!-- 项目介绍 -->
       <n-card class="flex-1" title="📦 项目介绍" segmented>
         <div class="text-14 leading-relaxed opacity-80">
-          GoAdminKit 是一个为“快速落地后台系统”而设计的全栈解决方案。
+          BiliLive Assistant 是一个为“快速落地后台系统”而设计的全栈解决方案。
           <br><br>
           它将 Go 后端与 Vue3 前端整合在同一个仓库中，并在构建阶段将前端资源嵌入到后端，
           最终只需交付一个二进制文件即可运行完整后台系统。
@@ -130,12 +130,12 @@ const links = [
   {
     title: 'GitHub',
     desc: '源码仓库',
-    link: 'https://github.com/zxc7563598/GoAdminKit',
+    link: 'https://github.com/zxc7563598/bilibili-live-assistant',
   },
   {
     title: 'AI解析',
     desc: '结构与代码解读',
-    link: 'https://zread.ai/zxc7563598/GoAdminKit',
+    link: 'https://zread.ai/zxc7563598/BiliLive Assistant',
   },
   {
     title: '个人网站',

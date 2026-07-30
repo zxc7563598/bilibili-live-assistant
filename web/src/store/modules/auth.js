@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', {
     },
   },
   persist: {
-    key: 'GoAdminKit_auth',
+    key: 'bilibili_live_assistant_auth',
     storage: sessionStorage,
   },
 })

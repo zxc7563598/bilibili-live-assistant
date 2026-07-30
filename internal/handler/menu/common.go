@@ -1,8 +1,8 @@
 package menu
 
 import (
-	"github.com/zxc7563598/GoAdminKit/internal/dto/resp"
-	"github.com/zxc7563598/GoAdminKit/internal/service/menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/menu"
 )
 
 func toMenuItem(list []menu.MenuItem) []resp.MenuItem {

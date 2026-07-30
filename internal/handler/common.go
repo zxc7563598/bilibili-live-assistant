@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zxc7563598/GoAdminKit/internal/validation"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/validation"
 	"go.uber.org/zap"
 )
 

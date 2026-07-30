@@ -1,8 +1,9 @@
-module github.com/zxc7563598/GoAdminKit
+module github.com/zxc7563598/bilibili-live-assistant
 
 go 1.25.0
 
 require (
+	github.com/altcha-org/altcha-lib-go/v2 v2.0.0-20260725115309-2c4fc27a7b2d
 	github.com/gin-gonic/gin v1.12.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-playground/validator/v10 v10.30.1
@@ -23,7 +24,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
-	github.com/altcha-org/altcha-lib-go/v2 v2.0.0-20260725115309-2c4fc27a7b2d // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect

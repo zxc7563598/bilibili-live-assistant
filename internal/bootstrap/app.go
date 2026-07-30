@@ -5,11 +5,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-	"github.com/zxc7563598/GoAdminKit/internal/config"
-	"github.com/zxc7563598/GoAdminKit/internal/i18n"
-	"github.com/zxc7563598/GoAdminKit/internal/logger"
-	"github.com/zxc7563598/GoAdminKit/internal/migrate"
-	"github.com/zxc7563598/GoAdminKit/pkg/jwt"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/migrate"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"gorm.io/gorm"
 )
 

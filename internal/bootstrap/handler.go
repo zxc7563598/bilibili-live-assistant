@@ -1,10 +1,10 @@
 package bootstrap
 
 import (
-	"github.com/zxc7563598/GoAdminKit/internal/handler/admin"
-	"github.com/zxc7563598/GoAdminKit/internal/handler/altcha"
-	"github.com/zxc7563598/GoAdminKit/internal/handler/menu"
-	"github.com/zxc7563598/GoAdminKit/internal/handler/role"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/admin"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/altcha"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/role"
 )
 
 type Handlers struct {

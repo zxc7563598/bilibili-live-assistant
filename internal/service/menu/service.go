@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/zxc7563598/GoAdminKit/internal/enum"
-	"github.com/zxc7563598/GoAdminKit/internal/repository/menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/menu"
 )
 
 type Service struct {

@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "GoAdminKit 系统接口文档",
-        "title": "GoAdminKit API",
+        "description": "BiliLive Assistant 系统接口文档",
+        "title": "BiliLive Assistant API",
         "contact": {
             "name": "何俊杰",
             "email": "junjie.he.925@gmail.com"

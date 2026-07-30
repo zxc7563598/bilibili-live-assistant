@@ -1,8 +1,8 @@
 package admin
 
 import (
-	"github.com/zxc7563598/GoAdminKit/internal/dto/resp"
-	"github.com/zxc7563598/GoAdminKit/internal/service/admin"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
 )
 
 func toAdminListItems(list []admin.ListPageItem) []resp.AdminListPageItem {

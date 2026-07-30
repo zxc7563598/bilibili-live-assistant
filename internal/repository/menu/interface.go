@@ -3,9 +3,9 @@ package menu
 import (
 	"context"
 
-	"github.com/zxc7563598/GoAdminKit/internal/enum"
-	"github.com/zxc7563598/GoAdminKit/internal/model"
-	"github.com/zxc7563598/GoAdminKit/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
 	"gorm.io/gorm"
 )
 

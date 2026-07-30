@@ -11,15 +11,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zxc7563598/GoAdminKit/docs"
-	"github.com/zxc7563598/GoAdminKit/internal/bootstrap"
-	"github.com/zxc7563598/GoAdminKit/internal/config"
-	"github.com/zxc7563598/GoAdminKit/internal/version"
+	"github.com/zxc7563598/bilibili-live-assistant/docs"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/bootstrap"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/version"
 )
 
-// @title GoAdminKit API
+// @title BiliLive Assistant API
 // @version 1.0
-// @description GoAdminKit 系统接口文档
+// @description BiliLive Assistant 系统接口文档
 // @contact.name 何俊杰
 // @contact.email junjie.he.925@gmail.com
 // @license.name MIT

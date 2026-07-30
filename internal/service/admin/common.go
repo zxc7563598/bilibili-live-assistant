@@ -3,12 +3,12 @@ package admin
 import (
 	"context"
 
-	"github.com/zxc7563598/GoAdminKit/internal/enum"
-	"github.com/zxc7563598/GoAdminKit/internal/model"
-	"github.com/zxc7563598/GoAdminKit/pkg/crypto"
-	"github.com/zxc7563598/GoAdminKit/pkg/jwt"
-	"github.com/zxc7563598/GoAdminKit/pkg/ptr"
-	"github.com/zxc7563598/GoAdminKit/pkg/timeutil"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
 

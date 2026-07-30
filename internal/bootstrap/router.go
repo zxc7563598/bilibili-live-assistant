@@ -9,9 +9,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"github.com/zxc7563598/GoAdminKit/internal/config"
-	"github.com/zxc7563598/GoAdminKit/internal/middleware"
-	"github.com/zxc7563598/GoAdminKit/internal/webui"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/middleware"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/webui"
 )
 
 func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg config.CORSConfig) *gin.Engine {

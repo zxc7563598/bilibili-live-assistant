@@ -2,11 +2,11 @@ package bootstrap
 
 import (
 	"github.com/redis/go-redis/v9"
-	"github.com/zxc7563598/GoAdminKit/internal/config"
-	"github.com/zxc7563598/GoAdminKit/internal/service/admin"
-	"github.com/zxc7563598/GoAdminKit/internal/service/altcha"
-	"github.com/zxc7563598/GoAdminKit/internal/service/menu"
-	"github.com/zxc7563598/GoAdminKit/internal/service/role"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
 	"gorm.io/gorm"
 )
 

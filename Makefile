@@ -1,5 +1,5 @@
 # 项目名称
-APP_NAME := GoAdminKit
+APP_NAME := BiliLiveAssistant
 
 # Go 参数
 GO := go
@@ -28,7 +28,7 @@ LDFLAGS := -ldflags "\
 ## 帮助
 help:
 	@echo ""
-	@echo "GoAdminKit Makefile"
+	@echo "BiliLiveAssistant Makefile"
 	@echo ""
 	@echo "开发命令:"
 	@echo "  make dev           启动开发环境 (Go + Web)"

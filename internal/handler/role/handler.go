@@ -2,13 +2,13 @@ package role
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zxc7563598/GoAdminKit/internal/dto/input"
-	"github.com/zxc7563598/GoAdminKit/internal/dto/resp"
-	"github.com/zxc7563598/GoAdminKit/internal/handler"
-	"github.com/zxc7563598/GoAdminKit/internal/i18n"
-	"github.com/zxc7563598/GoAdminKit/internal/logger"
-	"github.com/zxc7563598/GoAdminKit/internal/response"
-	"github.com/zxc7563598/GoAdminKit/internal/service/role"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
 	"go.uber.org/zap"
 )
 

@@ -1,6 +1,6 @@
 package model
 
-import "github.com/zxc7563598/GoAdminKit/internal/enum"
+import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 
 type Menu struct {
 	ID        uint64        `gorm:"primaryKey"`

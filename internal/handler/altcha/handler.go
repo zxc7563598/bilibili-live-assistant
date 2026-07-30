@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zxc7563598/GoAdminKit/internal/handler"
-	"github.com/zxc7563598/GoAdminKit/internal/logger"
-	"github.com/zxc7563598/GoAdminKit/internal/service/altcha"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
 	"go.uber.org/zap"
 )
 

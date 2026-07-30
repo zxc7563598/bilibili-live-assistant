@@ -4,8 +4,8 @@ import (
 	"context"
 	"sort"
 
-	"github.com/zxc7563598/GoAdminKit/internal/enum"
-	"github.com/zxc7563598/GoAdminKit/internal/model"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 )
 
 // buildTree 用于获取菜单权限树

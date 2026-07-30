@@ -1,6 +1,6 @@
 package enum
 
-import "github.com/zxc7563598/GoAdminKit/internal/i18n"
+import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 
 type Gender int
 

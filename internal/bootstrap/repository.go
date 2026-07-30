@@ -1,11 +1,11 @@
 package bootstrap
 
 import (
-	"github.com/zxc7563598/GoAdminKit/internal/repository/admin"
-	"github.com/zxc7563598/GoAdminKit/internal/repository/admin_role"
-	"github.com/zxc7563598/GoAdminKit/internal/repository/menu"
-	"github.com/zxc7563598/GoAdminKit/internal/repository/role"
-	"github.com/zxc7563598/GoAdminKit/internal/repository/role_menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/admin"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/admin_role"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/role"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/role_menu"
 	"gorm.io/gorm"
 )
 

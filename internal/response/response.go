@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zxc7563598/GoAdminKit/internal/i18n"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 )
 
 type Response struct {

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/zxc7563598/GoAdminKit/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 )
 
 var (

@@ -1,4 +1,4 @@
-# GoAdminKit
+# BiliLive Assistant
 
 开箱即用的全栈后台管理系统，基于 **Go + Vue 3** 构建，将 API 服务与前端界面整合为​**单一二进制部署**。
 
@@ -17,13 +17,13 @@
 ## 文档入口
 
 - 部署 / 开发文档（推荐）：[https://hejunjie.life/gak](https://hejunjie.life/gak)
-- 在线项目说明：[https://zread.ai/zxc7563598/GoAdminKit](https://zread.ai/zxc7563598/GoAdminKit)
+- 在线项目说明：[https://zread.ai/zxc7563598/bilibili-live-assistant](https://zread.ai/zxc7563598/bilibili-live-assistant)
 
 ---
 
 ## 项目介绍
 
-GoAdminKit 是一个为“​**快速落地后台系统**”而设计的全栈解决方案：
+BiliLive Assistant 是一个为“​**快速落地后台系统**”而设计的全栈解决方案：
 
 - 后端提供完整的 REST API 与鉴权能力
 - 前端提供开箱即用的管理后台界面
@@ -112,8 +112,8 @@ GoAdminKit 是一个为“​**快速落地后台系统**”而设计的全栈�
 ### 克隆并初始化配置
 
 ```bash
-git clone https://github.com/zxc7563598/GoAdminKit.git
-cd GoAdminKit
+git clone https://github.com/zxc7563598/bilibili-live-assistant.git
+cd bilibili-live-assistant
 cp config.example.yaml config.yaml
 ```
 
@@ -141,7 +141,7 @@ make dev
 
 ```bash
 make build
-GIN_MODE=release ./bin/GoAdminKit -config ./config.yaml -port 9000
+GIN_MODE=release ./bin/BiliLive Assistant -config ./config.yaml -port 9000
 ```
 
 支持通过 Nginx 做反向代理统一入口（详见文档）。

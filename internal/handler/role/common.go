@@ -1,8 +1,8 @@
 package role
 
 import (
-	"github.com/zxc7563598/GoAdminKit/internal/dto/resp"
-	"github.com/zxc7563598/GoAdminKit/internal/service/role"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
 )
 
 func toRoleListItems(list []role.ListPageItem) []resp.RoleListPageItem {

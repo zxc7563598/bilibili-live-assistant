@@ -799,11 +799,11 @@ info:
   contact:
     email: junjie.he.925@gmail.com
     name: 何俊杰
-  description: GoAdminKit 系统接口文档
+  description: BiliLive Assistant 系统接口文档
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-  title: GoAdminKit API
+  title: BiliLive Assistant API
   version: "1.0"
 paths:
   /api/admin/admin/delete:
