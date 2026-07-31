@@ -580,6 +580,352 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/live/listener/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "用于启动 WebSocket 监听，需要在机器人登录 \u0026 已设置直播间房间号 \u0026 未监听 WebSocket 的情况下使用，需要自行验证状态",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "启动 WebSocket 监听",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/live/listener/status": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "用于判断当前 WebSocket 状态，以及连接情况下的简易信息",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "获取 WebSocket 状态",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveListenerStatusResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/live/listener/stop": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "用于停止 WebSocket 监听",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "停止 WebSocket 监听",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/live/login/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "清除机器人登录信息，此为本系统的登录状态，并非代表 B 站状态",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "清除机器人登录信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/live/login/poll": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据获取二维码时得到的 qrcodeKey 查询二维码扫描状态，完成用户登录",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "轮询扫码状态",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "轮询扫码状态参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveQRCodePollReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LivePollQRCodeResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/live/login/qrcode": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取 B站 扫码登录二维码，返回的链接需要在前端转换为二维码由用户使用 B 站客户端进行扫码登陆",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "获取 B站 扫码登录二维码",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveQRCodeResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/live/login/status": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "简单获取当前登录的机器人信息，此为本系统的登录状态，并非代表 B 站状态",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "获取简易机器人信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveLoginStatusResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/live/room/update": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "用于设置监听的直播间房间号，当正在监听直播间时会自动重连，不会影响监听状态",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "添加/更换监听直播间房间号",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "房间号参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveRoomUpdateReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/menu/buttons": {
             "post": {
                 "security": [
@@ -1434,6 +1780,33 @@ const docTemplate = `{
                 }
             }
         },
+        "input.LiveQRCodePollReq": {
+            "type": "object",
+            "required": [
+                "qrcodeKey"
+            ],
+            "properties": {
+                "qrcodeKey": {
+                    "description": "扫码登录密钥",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxxxxxxxxx"
+                }
+            }
+        },
+        "input.LiveRoomUpdateReq": {
+            "type": "object",
+            "required": [
+                "roomId"
+            ],
+            "properties": {
+                "roomId": {
+                    "description": "房间ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 22384516
+                }
+            }
+        },
         "input.MenuButtonsReq": {
             "type": "object",
             "required": [
@@ -1921,6 +2294,116 @@ const docTemplate = `{
                     "description": "refresh token",
                     "type": "string",
                     "example": "Bearer xxxxxxxxxx"
+                }
+            }
+        },
+        "resp.LiveListenerStatusResp": {
+            "type": "object",
+            "properties": {
+                "danmuCount": {
+                    "description": "监听到弹幕数量",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "giftCount": {
+                    "description": "监听到礼物数量",
+                    "type": "integer",
+                    "example": 50
+                },
+                "isRunning": {
+                    "description": "是否正在监听",
+                    "type": "boolean",
+                    "example": true
+                },
+                "msgCount": {
+                    "description": "监听到消息数量",
+                    "type": "integer",
+                    "example": 1234
+                },
+                "roomId": {
+                    "description": "房间号",
+                    "type": "integer",
+                    "example": 22384516
+                },
+                "startTime": {
+                    "description": "开始监听事件",
+                    "type": "string",
+                    "example": "2026-07-30 12:00:00"
+                },
+                "uptime": {
+                    "description": "已监听时长",
+                    "type": "string",
+                    "example": "1h30m0s"
+                }
+            }
+        },
+        "resp.LiveLoginStatusResp": {
+            "type": "object",
+            "properties": {
+                "buvid": {
+                    "description": "账号Buvid3",
+                    "type": "string",
+                    "example": "XX-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                },
+                "isLoggedIn": {
+                    "description": "是否登录",
+                    "type": "boolean",
+                    "example": true
+                },
+                "uid": {
+                    "description": "机器人账号UID",
+                    "type": "integer",
+                    "example": 123456789
+                },
+                "username": {
+                    "description": "账号名称",
+                    "type": "string",
+                    "example": "你的B站昵称"
+                }
+            }
+        },
+        "resp.LivePollQRCodeResp": {
+            "type": "object",
+            "properties": {
+                "isExpired": {
+                    "description": "是否已过期",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isScanned": {
+                    "description": "是否已扫描",
+                    "type": "boolean",
+                    "example": false
+                },
+                "isSuccess": {
+                    "description": "是否登录成功",
+                    "type": "boolean",
+                    "example": false
+                },
+                "message": {
+                    "description": "返回的提示信息",
+                    "type": "string",
+                    "example": "等待扫描"
+                },
+                "status": {
+                    "description": "扫码code：0-扫码登录成功，86038-二维码已失效，86090-二维码已扫码未确认，86101-未扫码",
+                    "type": "integer",
+                    "example": 86101
+                }
+            }
+        },
+        "resp.LiveQRCodeResp": {
+            "type": "object",
+            "properties": {
+                "qrcodeKey": {
+                    "description": "扫码登录密钥",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxxxxxxxxx"
+                },
+                "url": {
+                    "description": "用以生成二维码的URL",
+                    "type": "string",
+                    "example": "https://api.bilibili.com/x/..."
                 }
             }
         },

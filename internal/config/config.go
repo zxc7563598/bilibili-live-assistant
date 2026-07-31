@@ -70,6 +70,10 @@ type DatabasePoolConfig struct {
 	ConnMaxIdleTime int `yaml:"conn_max_idle_time"`
 }
 
+type LiveConfig struct {
+	StateFile string `yaml:"state_file"`
+}
+
 type Config struct {
 	Server   ServerConfig       `yaml:"server"`
 	Database DatabaseConfig     `yaml:"database"`
@@ -78,6 +82,7 @@ type Config struct {
 	JWT      JWTConfig          `yaml:"jwt"`
 	CORS     CORSConfig         `yaml:"cors"`
 	Altcha   AltchaConfig       `yaml:"altcha"`
+	Live     LiveConfig         `yaml:"live"`
 }
 
 // LoadConfig 解析 YAML
@@ -167,6 +172,9 @@ func ValidateConfig(cfg *Config) error {
 		}
 	default:
 		return fmt.Errorf("不支持的数据库驱动程序: %s", cfg.Database.Driver)
+	}
+	if cfg.Live.StateFile == "" {
+		cfg.Live.StateFile = "bilibili_state.json"
 	}
 	if len(cfg.JWT.Secret) < 32 {
 		return fmt.Errorf("JWT 密钥长度不能低于 32 位")

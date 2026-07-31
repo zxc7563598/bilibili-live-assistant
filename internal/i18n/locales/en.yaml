@@ -45,6 +45,7 @@
 # 01 Admin Module
 # 02 Role Module
 # 03 Menu Module
+# 04 Live Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -141,6 +142,19 @@ error:
   60303: Operation failed, please try again later # Menu information change failed
   60304: Operation failed, please try again later # Menu status switching failed
   60305: Operation failed, please try again later # Menu deletion failed
+  10401: Invalid request parameters # Parameter validation failed (Live module)
+  10402: QR code key is required # QR code key cannot be empty
+  10403: Room ID is required # Room ID cannot be empty
+  10404: Invalid room ID format # Room ID format is invalid
+  40401: Not logged in to Bilibili, please scan QR code first # Not logged in to Bilibili
+  40402: Listener is already running # Listener already running
+  40403: Listener is not running # Listener not running
+  40404: Invalid room ID # Room ID invalid
+  40405: Login failed or QR code expired # Login failed / QR code expired
+  40406: Failed to start listener # Start listener failed
+  40407: Failed to stop listener # Stop listener failed
+  40408: Listener connection error # Listener connection error
+  60401: Bilibili API request failed, please try again later # Bilibili API request failed
 
 gender:
   female: female

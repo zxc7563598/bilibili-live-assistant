@@ -88,7 +88,10 @@ func main() {
 	)
 	<-quit
 	log.Println("关闭服务...")
-	// 优雅关闭
+	// 先停止 Live Listener（等待 WebSocket goroutine 退出，优雅断连）
+	app.LiveService.Shutdown()
+	log.Println("Live 服务已关闭")
+	// 再关闭 HTTP Server
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {

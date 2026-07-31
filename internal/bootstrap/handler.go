@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/altcha"
+	livehdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/menu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/role"
 )
@@ -12,6 +13,7 @@ type Handlers struct {
 	Menu   *menu.Handler
 	Role   *role.Handler
 	Altcha *altcha.Handler
+	Live   *livehdlr.Handler
 }
 
 func InitHandlers(svc *Services) *Handlers {
@@ -20,5 +22,6 @@ func InitHandlers(svc *Services) *Handlers {
 		Menu:   menu.New(&svc.Menu),
 		Role:   role.New(&svc.Role),
 		Altcha: altcha.New(&svc.Altcha),
+		Live:   livehdlr.New(svc.Live),
 	}
 }

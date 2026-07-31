@@ -67,6 +67,16 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/menu/save", middleware.AdminAuth(rdb), middleware.RequireRole("SUPER_ADMIN"), handlers.Menu.Save)
 	adminApi.POST("/menu/toggle", middleware.AdminAuth(rdb), middleware.RequireRole("SUPER_ADMIN"), handlers.Menu.Toggle)
 	adminApi.POST("/menu/delete", middleware.AdminAuth(rdb), middleware.RequireRole("SUPER_ADMIN"), handlers.Menu.Delete)
+	// 直播控制路由（所有登录用户可访问）
+	live := adminApi.Group("/live").Use(middleware.AdminAuth(rdb))
+	live.POST("/login/qrcode", handlers.Live.GetQRCode)
+	live.POST("/login/poll", handlers.Live.PollQRCode)
+	live.POST("/login/status", handlers.Live.GetLoginStatus)
+	live.POST("/login/logout", handlers.Live.Logout)
+	live.POST("/room/update", handlers.Live.UpdateRoom)
+	live.POST("/listener/start", handlers.Live.StartListener)
+	live.POST("/listener/stop", handlers.Live.StopListener)
+	live.POST("/listener/status", handlers.Live.GetListenerStatus)
 	return r
 }
 

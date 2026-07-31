@@ -48,3 +48,6 @@ cors: # CORS 跨域配置
 
 altcha: # altcha 验证码配置
   hmac_key: "your-secret-at-least-32-characters-long!!"
+
+live: # B站 直播监听配置
+  state_file: "bilibili_state.json" # B站 Cookie 持久化文件路径

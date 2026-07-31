@@ -9,15 +9,17 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/migrate"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"gorm.io/gorm"
 )
 
 // App 包含应用运行时依赖
 type App struct {
-	Engine *gin.Engine
-	DB     *gorm.DB
-	Redis  *redis.Client
+	Engine      *gin.Engine
+	DB          *gorm.DB
+	Redis       *redis.Client
+	LiveService *live.Service
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -61,8 +63,9 @@ func NewApp(cfg *config.Config) *App {
 	r := gin.New()
 	r = RouteRegister(r, rdb, handlers, cfg.CORS)
 	return &App{
-		Engine: r,
-		DB:     db,
-		Redis:  rdb,
+		Engine:      r,
+		DB:          db,
+		Redis:       rdb,
+		LiveService: services.Live,
 	}
 }

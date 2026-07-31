@@ -18,6 +18,7 @@ var (
 	RoleLogger   *zap.Logger
 	MenuLogger   *zap.Logger
 	AltchaLogger *zap.Logger
+	LiveLogger   *zap.Logger
 )
 
 // InitAll 初始化所有模块 logger
@@ -26,6 +27,7 @@ func InitAll() {
 	RoleLogger = InitLogger("role", zapcore.InfoLevel)
 	MenuLogger = InitLogger("menu", zapcore.InfoLevel)
 	AltchaLogger = InitLogger("altcha", zapcore.InfoLevel)
+	LiveLogger = InitLogger("live", zapcore.InfoLevel)
 }
 
 // InitLogger 初始化指定模块的 logger
