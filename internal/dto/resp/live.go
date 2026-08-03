@@ -42,7 +42,7 @@ type LiveListenerStatusResp struct {
 	IsRunning bool `json:"isRunning" example:"true"`
 	// 房间号
 	RoomID int64 `json:"roomId" example:"22384516"`
-	// 开始监听事件
+	// 开始监听时间
 	StartTime string `json:"startTime" example:"2026-07-30 12:00:00"`
 	// 已监听时长
 	Uptime string `json:"uptime" example:"1h30m0s"`
@@ -52,4 +52,16 @@ type LiveListenerStatusResp struct {
 	DanmuCount int64 `json:"danmuCount" example:"1000"`
 	// 监听到礼物数量
 	GiftCount int64 `json:"giftCount" example:"50"`
+	// 直播间主播ID
+	UID int64 `json:"uid" example:"617459493"`
+	// 直播间标题
+	Title string `json:"title" example:"小蒸蛋来喽！"`
+	// 直播状态：0=未开播, 1=直播中, 2=轮播中
+	LiveStatus int64 `json:"liveStatus" example:"1"`
+	// 在线观众数（人气值，非真实人数）
+	Online int64 `json:"online" example:"1000"`
+	// 关注数
+	Attention int64 `json:"attention" example:"1000"`
+	// 开播时间，格式如 "2025-01-01 12:00:00"
+	LiveTime string `json:"liveTime" example:"2026-07-30 12:00:00"`
 }

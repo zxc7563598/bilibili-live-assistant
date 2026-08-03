@@ -35,6 +35,12 @@ type ListenerStatusResp struct {
 	MsgCount   int64
 	DanmuCount int64
 	GiftCount  int64
+	UID        int64
+	Title      string
+	LiveStatus int
+	Online     int
+	Attention  int
+	LiveTime   string
 }
 
 // listenerStats 消息统计（内部使用）

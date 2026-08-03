@@ -218,6 +218,12 @@ func (h *Handler) GetListenerStatus(c *gin.Context) {
 		MsgCount:   svcResp.MsgCount,
 		DanmuCount: svcResp.DanmuCount,
 		GiftCount:  svcResp.GiftCount,
+		UID:        svcResp.UID,
+		Title:      svcResp.Title,
+		LiveStatus: int64(svcResp.LiveStatus),
+		Online:     int64(svcResp.Online),
+		Attention:  int64(svcResp.Attention),
+		LiveTime:   svcResp.LiveTime,
 	})
 }
 
