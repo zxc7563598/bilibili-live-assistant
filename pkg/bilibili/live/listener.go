@@ -230,6 +230,13 @@ func (l *Listener) IsRunning() bool {
 	return l.running
 }
 
+// Done 返回一个 channel，在监听器的 run() goroutine 退出时关闭
+//
+// 可用于判断监听器是否已完全停止（无论主动停止还是意外断开）
+func (l *Listener) Done() <-chan struct{} {
+	return l.done
+}
+
 // RoomID 返回监听的房间号
 func (l *Listener) RoomID() int64 {
 	return l.roomID
@@ -248,6 +255,7 @@ func (l *Listener) RoomID() int64 {
 //   - 启动心跳定时器和消息读取循环
 func (l *Listener) run(ctx context.Context, token string) {
 	defer close(l.done)
+	defer close(l.msgCh)
 	defer func() {
 		l.mu.Lock()
 		if l.conn != nil {
@@ -307,7 +315,7 @@ func (l *Listener) run(ctx context.Context, token string) {
 		case err := <-readErrCh:
 			if err != nil {
 				log.Printf("[live.Listener] 读取消息错误: %v", err)
-				// TODO: 实现自动重连逻辑
+				// TODO: Service 层实现重连逻辑
 				return
 			}
 			return

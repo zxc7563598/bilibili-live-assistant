@@ -260,10 +260,8 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 	// 启动消息处理 goroutine
 	s.procDone = make(chan struct{})
 	procDone := s.procDone
-	msgCh := listener.Messages()
-	lCtx := s.listenerCtx
 	s.mu.Unlock()
-	go s.processMessages(lCtx, msgCh, procDone, s.rawLogger)
+	go s.processMessages(listenerCtx, listener, procDone, s.rawLogger)
 	return 0, nil
 }
 
@@ -279,23 +277,18 @@ func (s *Service) StopListener() (int, error) {
 		s.mu.Unlock()
 		return 0, nil
 	}
-
 	cancel := s.listenerCancel
 	listener := s.listener
 	procDone := s.procDone
 	s.mu.Unlock()
-
-	// 1. 取消 context — 触发所有 goroutine 退出
+	// 取消 context — 触发所有 goroutine 退出
 	cancel()
-
-	// 2. 停止 listener — 关闭 WebSocket，等待 run() goroutine 退出
+	// 停止 listener — 关闭 WebSocket，等待 run() goroutine 退出
 	if err := listener.Stop(); err != nil {
 		return 40407, err
 	}
-
-	// 3. 等待消息处理 goroutine 退出
+	// 等待消息处理 goroutine 退出
 	<-procDone
-
 	// 清理状态
 	s.mu.Lock()
 	s.listener = nil
@@ -344,29 +337,5 @@ func (s *Service) Shutdown() {
 	// 关闭原始消息日志
 	if s.rawLogger != nil {
 		s.rawLogger.Close()
-	}
-}
-
-// processMessages 在后台 goroutine 中运行，从 listener 消费消息并更新统计
-// 当 ctx 被取消时退出，退出时关闭 done channel
-func (s *Service) processMessages(ctx context.Context, msgCh <-chan *live.Message, done chan struct{}, rawLogger *logger.RawMessageLogger) {
-	defer close(done)
-	for {
-		select {
-		case msg := <-msgCh:
-			// 原始消息日志（独立目录 logs/直播间监听原始信息/）
-			rawLogger.Log(string(msg.Cmd), msg.Raw)
-			s.mu.Lock()
-			s.stats.msgCount++
-			switch msg.Cmd {
-			case live.CmdDanmuMsg:
-				s.stats.danmuCount++
-			case live.CmdSendGift:
-				s.stats.giftCount++
-			}
-			s.mu.Unlock()
-		case <-ctx.Done():
-			return
-		}
 	}
 }
