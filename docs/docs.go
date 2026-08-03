@@ -882,6 +882,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/live/messages/stream": {
+            "get": {
+                "description": "建立 WebSocket 连接，实时推送直播间收到的消息（弹幕、礼物等）。连接时需通过 query 参数传递 token：?token=xxx",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "直播间实时消息推送",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "访问令牌（accessToken）",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols - WebSocket 连接建立成功"
+                    },
+                    "401": {
+                        "description": "未授权 — token 无效或缺失"
+                    }
+                }
+            }
+        },
         "/api/admin/live/room/send-danmu": {
             "post": {
                 "security": [
