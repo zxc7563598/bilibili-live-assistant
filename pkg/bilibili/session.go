@@ -5,5 +5,6 @@ package bilibili
 type Session struct {
 	UID      int64  `json:"uid"`
 	Username string `json:"username"`
+	Face     string `json:"face"`
 	Buvid    string `json:"buvid"`
 }

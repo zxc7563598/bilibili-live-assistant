@@ -22,6 +22,7 @@ type LoginStatusResp struct {
 	IsLoggedIn bool
 	UID        int64
 	Username   string
+	Face       string
 	Buvid      string
 }
 

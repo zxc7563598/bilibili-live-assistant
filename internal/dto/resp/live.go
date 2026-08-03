@@ -30,6 +30,8 @@ type LiveLoginStatusResp struct {
 	UID int64 `json:"uid" example:"123456789"`
 	// 账号名称
 	Username string `json:"username" example:"你的B站昵称"`
+	// 账号头像URL
+	Face string `json:"face" example:"https://i2.hdslb.com/bfs/face/99a3f6360dff7882059cced5f1912c51cb3dbd71.jpg"`
 	// 账号Buvid3
 	Buvid string `json:"buvid" example:"XX-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"`
 }

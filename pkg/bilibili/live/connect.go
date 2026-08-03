@@ -68,6 +68,7 @@ func NewListenerFromClient(ctx context.Context, client *bilibili.Client, roomID 
 		client.SetSession(&bilibili.Session{
 			UID:      session.UID,
 			Username: session.Username,
+			Face:     session.Face,
 			Buvid:    buvid3,
 		})
 	}

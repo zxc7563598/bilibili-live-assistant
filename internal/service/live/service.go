@@ -124,6 +124,7 @@ func (s *Service) PollQRCode(ctx context.Context, qrcodeKey string) (*PollQRCode
 		s.client.SetSession(&bilibili.Session{
 			UID:      userInfo.UID,
 			Username: userInfo.UName,
+			Face:     userInfo.Face,
 			Buvid:    buvidInfo.Buvid3,
 		})
 		// 持久化到磁盘
@@ -148,6 +149,7 @@ func (s *Service) GetLoginStatus(ctx context.Context) (*LoginStatusResp, int, er
 		IsLoggedIn: true,
 		UID:        session.UID,
 		Username:   session.Username,
+		Face:       session.Face,
 		Buvid:      session.Buvid,
 	}, 0, nil
 }

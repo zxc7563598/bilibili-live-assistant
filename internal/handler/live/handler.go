@@ -103,6 +103,7 @@ func (h *Handler) GetLoginStatus(c *gin.Context) {
 		IsLoggedIn: svcResp.IsLoggedIn,
 		UID:        svcResp.UID,
 		Username:   svcResp.Username,
+		Face:       svcResp.Face,
 		Buvid:      svcResp.Buvid,
 	})
 }

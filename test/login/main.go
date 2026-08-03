@@ -98,6 +98,7 @@ func main() {
 				client.SetSession(&bilibili.Session{
 					UID:      userInfo.UID,
 					Username: userInfo.UName,
+					Face:     userInfo.Face,
 					Buvid:    buvid,
 				})
 			}
