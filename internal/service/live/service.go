@@ -44,6 +44,8 @@ type Service struct {
 	// 弹幕发送
 	roomSvc *room.Service // 弹幕 API 服务
 	queue   *live.Queue   // 弹幕发送优先级队列（nil = 未创建）
+	// 前端 WebSocket 推送
+	hub *Hub // 前端消息推送中心
 }
 
 // New 创建直播服务
@@ -54,11 +56,14 @@ func New(cfg config.LiveConfig) *Service {
 	client := bilibili.NewClient(
 		bilibili.WithStateFile(cfg.StateFile),
 	)
+	hub := newHub()
+	go hub.Run(context.Background())
 	return &Service{
 		client:    client,
 		stateFile: cfg.StateFile,
 		rawLogger: logger.NewRawMessageLogger(),
 		roomSvc:   room.NewService(client),
+		hub:       hub,
 	}
 }
 
@@ -348,6 +353,11 @@ func (s *Service) EnqueueDanmu(msg string, priority int) {
 	}
 }
 
+// Hub 返回前端 WebSocket 消息推送中心，供 Handler 层注册客户端连接
+func (s *Service) Hub() *Hub {
+	return s.hub
+}
+
 // Shutdown 优雅停止服务（监听器 + 持久化），供 main.go 在进程退出前调用
 //
 // 如果监听器正在运行，先停止；然后保存 state 到磁盘
@@ -366,5 +376,9 @@ func (s *Service) Shutdown() {
 	// 关闭原始消息日志
 	if s.rawLogger != nil {
 		s.rawLogger.Close()
+	}
+	// 关闭所有前端 WebSocket 连接
+	if s.hub != nil {
+		s.hub.closeAllClients()
 	}
 }

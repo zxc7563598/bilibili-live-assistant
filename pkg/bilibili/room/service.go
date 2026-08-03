@@ -219,7 +219,6 @@ func (s *Service) SendDanmu(ctx context.Context, roomID int64, message string, c
 		"csrf_token": {csrfToken},
 		"csrf":       {csrfToken},
 	}
-
 	var resp api.Response
 	if err := s.client.PostForm(ctx, api.EndpointSendDanmu, form, &resp); err != nil {
 		return fmt.Errorf("room: send danmu: %w", err)

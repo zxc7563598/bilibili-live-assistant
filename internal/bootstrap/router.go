@@ -78,6 +78,11 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	live.POST("/listener/start", handlers.Live.StartListener)
 	live.POST("/listener/stop", handlers.Live.StopListener)
 	live.POST("/listener/status", handlers.Live.GetListenerStatus)
+	// 直播消息 WebSocket 推送
+	// 认证在 Handler 内部通过 query param（?token=xxx）处理，
+	// 因为浏览器 WebSocket API 不支持自定义请求头，无法使用 AdminAuth 中间件。
+	// 因此该路由注册在 adminApi 上而非 live Group 内，绕过 AdminAuth
+	adminApi.GET("/live/messages/stream", handlers.Live.MessageStream)
 	return r
 }
 

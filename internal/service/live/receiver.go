@@ -43,6 +43,8 @@ func (s *Service) processMessages(ctx context.Context, listener *live.Listener, 
 					s.stats.giftCount++
 				}
 				s.mu.Unlock()
+				// 广播到所有已连接的前端 WebSocket 客户端
+				s.hub.Broadcast(string(msg.Cmd), msg.Raw)
 			case <-ctx.Done():
 				return // 主动停止，退出整个函数
 			}

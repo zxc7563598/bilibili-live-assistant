@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"github.com/redis/go-redis/v9"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/altcha"
 	livehdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/live"
@@ -16,12 +17,12 @@ type Handlers struct {
 	Live   *livehdlr.Handler
 }
 
-func InitHandlers(svc *Services) *Handlers {
+func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 	return &Handlers{
 		Admin:  admin.New(&svc.Admin, &svc.Altcha),
 		Menu:   menu.New(&svc.Menu),
 		Role:   role.New(&svc.Role),
 		Altcha: altcha.New(&svc.Altcha),
-		Live:   livehdlr.New(svc.Live),
+		Live:   livehdlr.New(svc.Live, rdb),
 	}
 }

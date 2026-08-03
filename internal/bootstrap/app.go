@@ -54,7 +54,7 @@ func NewApp(cfg *config.Config) *App {
 	// service
 	services := InitServices(repos, db, rdb, cfg)
 	// handler
-	handlers := InitHandlers(services)
+	handlers := InitHandlers(services, rdb)
 	// i18n
 	if err := i18n.InitLocales(); err != nil {
 		log.Fatalf("无法初始化 i18n: %v", err)

@@ -1,7 +1,12 @@
 package live
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
@@ -9,16 +14,18 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	liveSvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 )
 
 // Handler 直播控制 HTTP 接口处理器
 type Handler struct {
 	liveSvc *liveSvc.Service
+	rdb     *redis.Client
 }
 
 // New 创建 Handler 实例
-func New(liveSvc *liveSvc.Service) *Handler {
-	return &Handler{liveSvc: liveSvc}
+func New(liveSvc *liveSvc.Service, rdb *redis.Client) *Handler {
+	return &Handler{liveSvc: liveSvc, rdb: rdb}
 }
 
 // @Summary 获取 B站 扫码登录二维码
@@ -232,4 +239,54 @@ func (h *Handler) SendDanmu(c *gin.Context) {
 	}
 	h.liveSvc.EnqueueDanmu(req.Message, 0)
 	response.Success(c, lang, nil)
+}
+
+// wsUpgrader 是 HTTP 到 WebSocket 的升级器
+//
+// CheckOrigin 允许所有来源，因为开发环境前后端运行在不同端口
+var wsUpgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+// @Summary 直播间实时消息推送
+// @Description 建立 WebSocket 连接，实时推送直播间收到的消息（弹幕、礼物等）。连接时需通过 query 参数传递 token：?token=xxx
+// @Tags 直播控制
+// @Param token query string true "访问令牌（accessToken）"
+// @Success 101 "Switching Protocols - WebSocket 连接建立成功"
+// @Failure 401 "未授权 — token 无效或缺失"
+// @Router /api/admin/live/messages/stream [get]
+func (h *Handler) MessageStream(c *gin.Context) {
+	// 从 query string 获取 token 并校验
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "缺少 token 参数"})
+		return
+	}
+	claims, err := jwt.ParseToken(token)
+	if err != nil || claims.Type != "access" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "token 无效或已过期"})
+		return
+	}
+	// Redis 单点登录校验（如果未启用 Redis 则跳过）
+	if h.rdb != nil {
+		key := jwt.AdminTokenKey(claims.ID)
+		redisToken, err := h.rdb.Get(c.Request.Context(), key).Result()
+		if err != nil || redisToken != token {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "token 已失效"})
+			return
+		}
+	}
+	// 升级为 WebSocket 连接
+	conn, err := wsUpgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return // Upgrade 失败时库内部已写响应，直接返回
+	}
+	// 创建 Client 并注册到 Hub，启动读写 goroutine
+	hub := h.liveSvc.Hub()
+	client := liveSvc.NewClient(hub, conn)
+	hub.RegisterClient(client)
+	go client.WritePump(context.Background())
+	go client.ReadPump()
 }
