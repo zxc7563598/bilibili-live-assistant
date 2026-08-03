@@ -11,3 +11,8 @@ type LiveRoomUpdateReq struct {
 	// 房间ID
 	RoomID int64 `json:"roomId" binding:"required,min=1" err:"required=10403,min=10404" example:"22384516"`
 }
+
+// SendDanmuReq
+type SendDanmuReq struct {
+	Message string `json:"message" binding:"required,min=1,max=40" err:"required=10405,min=10406,max=10407" example:"发送弹幕信息"`
+}

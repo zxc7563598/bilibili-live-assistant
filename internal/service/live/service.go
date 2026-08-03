@@ -11,6 +11,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/room"
 )
 
 // Service 管理 B站 直播 WebSocket 监听器的完整生命周期
@@ -40,6 +41,9 @@ type Service struct {
 	rawLogger *logger.RawMessageLogger
 	// procDone 在消息处理 goroutine 退出后关闭，供 StopListener 等待
 	procDone chan struct{}
+	// 弹幕发送
+	roomSvc *room.Service // 弹幕 API 服务
+	queue   *live.Queue   // 弹幕发送优先级队列（nil = 未创建）
 }
 
 // New 创建直播服务
@@ -54,6 +58,7 @@ func New(cfg config.LiveConfig) *Service {
 		client:    client,
 		stateFile: cfg.StateFile,
 		rawLogger: logger.NewRawMessageLogger(),
+		roomSvc:   room.NewService(client),
 	}
 }
 
@@ -261,6 +266,9 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 	s.procDone = make(chan struct{})
 	procDone := s.procDone
 	s.mu.Unlock()
+	// 创建并启动弹幕发送队列（与监听器同生命周期）
+	s.queue = live.NewQueue(s.listener.RoomID(), &danmuSender{roomSvc: s.roomSvc, client: s.client})
+	s.queue.Start(listenerCtx)
 	go s.processMessages(listenerCtx, listener, procDone, s.rawLogger)
 	return 0, nil
 }
@@ -280,7 +288,13 @@ func (s *Service) StopListener() (int, error) {
 	cancel := s.listenerCancel
 	listener := s.listener
 	procDone := s.procDone
+	queue := s.queue
 	s.mu.Unlock()
+	// 停止弹幕发送队列并清空待发送消息
+	if queue != nil {
+		queue.Stop()
+		queue.Clear()
+	}
 	// 取消 context — 触发所有 goroutine 退出
 	cancel()
 	// 停止 listener — 关闭 WebSocket，等待 run() goroutine 退出
@@ -295,8 +309,8 @@ func (s *Service) StopListener() (int, error) {
 	s.listenerCtx = nil
 	s.listenerCancel = nil
 	s.procDone = nil
+	s.queue = nil
 	s.mu.Unlock()
-
 	return 0, nil
 }
 
@@ -317,6 +331,21 @@ func (s *Service) GetListenerStatus(ctx context.Context) (*ListenerStatusResp, i
 		resp.Uptime = time.Since(s.stats.startTime).Truncate(time.Second).String()
 	}
 	return resp, 0, nil
+}
+
+// EnqueueDanmu 将弹幕加入发送队列
+//
+// priority 越小越优先发送，同优先级按入队顺序（FIFO）发送。
+// 即使监听器未启动也可以入队，消息会在 StartListener 后依次发送。
+//
+// 如果监听器未在运行（queue == nil），消息会被丢弃。
+func (s *Service) EnqueueDanmu(msg string, priority int) {
+	s.mu.Lock()
+	q := s.queue
+	s.mu.Unlock()
+	if q != nil {
+		q.Enqueue(msg, priority)
+	}
 }
 
 // Shutdown 优雅停止服务（监听器 + 持久化），供 main.go 在进程退出前调用

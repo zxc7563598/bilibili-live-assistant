@@ -882,6 +882,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/live/room/send-danmu": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "通常情况下无需调用，用来以最高优先级向连接直播间发送弹幕，用于后台人工介入操作",
+                "tags": [
+                    "直播控制"
+                ],
+                "summary": "发送弹幕信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "发送弹幕信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.SendDanmuReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/live/room/update": {
             "post": {
                 "security": [
@@ -2074,6 +2118,20 @@ const docTemplate = `{
                         2,
                         3
                     ]
+                }
+            }
+        },
+        "input.SendDanmuReq": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "minLength": 1,
+                    "example": "发送弹幕信息"
                 }
             }
         },

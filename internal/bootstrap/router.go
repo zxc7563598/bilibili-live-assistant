@@ -74,6 +74,7 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	live.POST("/login/status", handlers.Live.GetLoginStatus)
 	live.POST("/login/logout", handlers.Live.Logout)
 	live.POST("/room/update", handlers.Live.UpdateRoom)
+	live.POST("/room/send-danmu", handlers.Live.SendDanmu)
 	live.POST("/listener/start", handlers.Live.StartListener)
 	live.POST("/listener/stop", handlers.Live.StopListener)
 	live.POST("/listener/status", handlers.Live.GetListenerStatus)

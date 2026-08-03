@@ -55,7 +55,16 @@ func (s *Service) processMessages(ctx context.Context, listener *live.Listener, 
 		if ctx.Err() != nil {
 			return
 		}
-		// 意外断连，尝试重连
+		// 意外断连：停止弹幕发送队列并清空待发送消息
+		s.mu.Lock()
+		queue := s.queue
+		s.mu.Unlock()
+		if queue != nil {
+			queue.Stop()
+			queue.Clear()
+			log.Printf("[live.Service] B站 WebSocket 断连，弹幕发送队列已停止并清空")
+		}
+		// 尝试重连
 		newListener := s.reconnect(ctx)
 		if newListener == nil {
 			// 重连失败（超过最大重试次数），清理状态
@@ -63,11 +72,17 @@ func (s *Service) processMessages(ctx context.Context, listener *live.Listener, 
 			s.listener = nil
 			s.listenerCtx = nil
 			s.listenerCancel = nil
+			s.queue = nil
 			s.mu.Unlock()
 			// TODO: 发送邮件通知用户连接已断开且重连失败
 			// s.notifyConnectionLost()
 			log.Printf("[live.Service] B站 WebSocket 重连已达到最大重试次数（%d 次），已放弃监听，房间号: %d", 10, s.roomID)
 			return
+		}
+		// 重连成功，重新启动弹幕发送队列
+		if queue != nil {
+			queue.Start(ctx)
+			log.Printf("[live.Service] 弹幕发送队列已随重连重新启动")
 		}
 		listener = newListener // 用新 listener 继续外循环
 	}

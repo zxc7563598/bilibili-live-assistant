@@ -398,6 +398,16 @@ definitions:
           type: integer
         type: array
     type: object
+  input.SendDanmuReq:
+    properties:
+      message:
+        example: 发送弹幕信息
+        maxLength: 40
+        minLength: 1
+        type: string
+    required:
+    - message
+    type: object
   resp.AdminCaptchaResp:
     properties:
       enabled:
@@ -1429,6 +1439,34 @@ paths:
       security:
       - BearerAuth: []
       summary: 获取简易机器人信息
+      tags:
+      - 直播控制
+  /api/admin/live/room/send-danmu:
+    post:
+      description: 通常情况下无需调用，用来以最高优先级向连接直播间发送弹幕，用于后台人工介入操作
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 发送弹幕信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.SendDanmuReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 发送弹幕信息
       tags:
       - 直播控制
   /api/admin/live/room/update:

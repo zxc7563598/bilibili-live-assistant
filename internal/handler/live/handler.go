@@ -175,7 +175,6 @@ func (h *Handler) StartListener(c *gin.Context) {
 func (h *Handler) StopListener(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-
 	_ = ctx
 	errCode, err := h.liveSvc.StopListener()
 	if errCode != 0 {
@@ -212,4 +211,25 @@ func (h *Handler) GetListenerStatus(c *gin.Context) {
 		DanmuCount: svcResp.DanmuCount,
 		GiftCount:  svcResp.GiftCount,
 	})
+}
+
+// @Summary 发送弹幕信息
+// @Description 通常情况下无需调用，用来以最高优先级向连接直播间发送弹幕，用于后台人工介入操作
+// @Tags 直播控制
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.SendDanmuReq true "发送弹幕信息"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/live/room/send-danmu [post]
+func (h *Handler) SendDanmu(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	var req input.SendDanmuReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.LiveLogger, "SendDanmu 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	h.liveSvc.EnqueueDanmu(req.Message, 0)
+	response.Success(c, lang, nil)
 }
