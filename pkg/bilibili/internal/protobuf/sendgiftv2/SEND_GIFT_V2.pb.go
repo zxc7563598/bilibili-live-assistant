@@ -4,7 +4,7 @@
 // 	protoc        v5.29.3
 // source: SEND_GIFT_V2.proto
 
-package protobuf
+package sendgiftv2
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -656,7 +656,7 @@ type Medal struct {
 	ColorBorder        int64                  `protobuf:"varint,5,opt,name=color_border,json=colorBorder,proto3" json:"color_border,omitempty"`
 	Color              int64                  `protobuf:"varint,6,opt,name=color,proto3" json:"color,omitempty"`
 	Id                 int64                  `protobuf:"varint,7,opt,name=id,proto3" json:"id,omitempty"`
-	Typ                HaveMedalType          `protobuf:"varint,8,opt,name=typ,proto3,enum=HaveMedalType" json:"typ,omitempty"`
+	Typ                HaveMedalType          `protobuf:"varint,8,opt,name=typ,proto3,enum=bilibili.send_gift_v2.HaveMedalType" json:"typ,omitempty"`
 	IsLight            int64                  `protobuf:"varint,9,opt,name=is_light,json=isLight,proto3" json:"is_light,omitempty"`
 	Ruid               int64                  `protobuf:"varint,10,opt,name=ruid,proto3" json:"ruid,omitempty"`
 	GuardLevel         int64                  `protobuf:"varint,11,opt,name=guard_level,json=guardLevel,proto3" json:"guard_level,omitempty"`
@@ -1683,7 +1683,7 @@ var File_SEND_GIFT_V2_proto protoreflect.FileDescriptor
 
 const file_SEND_GIFT_V2_proto_rawDesc = "" +
 	"\n" +
-	"\x12SEND_GIFT_V2.proto\"\x8e\x04\n" +
+	"\x12SEND_GIFT_V2.proto\x12\x15bilibili.send_gift_v2\"\xa8\x05\n" +
 	"\n" +
 	"SendGiftV2\x12\x10\n" +
 	"\x03uid\x18\x01 \x01(\x03R\x03uid\x12\x14\n" +
@@ -1694,25 +1694,22 @@ const file_SEND_GIFT_V2_proto_rawDesc = "" +
 	"\vguard_level\x18\x05 \x01(\x03R\n" +
 	"guardLevel\x12\x1d\n" +
 	"\n" +
-	"svga_block\x18\x06 \x01(\x03R\tsvgaBlock\x12,\n" +
-	"\vsend_master\x18\a \x01(\v2\v.SendMasterR\n" +
-	"sendMaster\x12)\n" +
+	"svga_block\x18\x06 \x01(\x03R\tsvgaBlock\x12B\n" +
+	"\vsend_master\x18\a \x01(\v2!.bilibili.send_gift_v2.SendMasterR\n" +
+	"sendMaster\x12?\n" +
 	"\n" +
-	"medal_info\x18\b \x01(\v2\n" +
-	".MedalInfoR\tmedalInfo\x12)\n" +
+	"medal_info\x18\b \x01(\v2 .bilibili.send_gift_v2.MedalInfoR\tmedalInfo\x12?\n" +
 	"\n" +
-	"blind_gift\x18\t \x01(\v2\n" +
-	".BlindGiftR\tblindGift\x12&\n" +
+	"blind_gift\x18\t \x01(\v2 .bilibili.send_gift_v2.BlindGiftR\tblindGift\x12<\n" +
 	"\tgift_list\x18\n" +
-	" \x01(\v2\t.GiftItemR\bgiftList\x12\x16\n" +
+	" \x01(\v2\x1f.bilibili.send_gift_v2.GiftItemR\bgiftList\x12\x16\n" +
 	"\x06switch\x18\v \x01(\bR\x06switch\x12\x12\n" +
-	"\x04test\x18\f \x01(\x03R\x04test\x12,\n" +
-	"\vwealth_info\x18\r \x01(\v2\v.WealthInfoR\n" +
-	"wealthInfo\x121\n" +
-	"\vgroup_medal\x18\x0e \x01(\v2\x10.GroupMedalBriefR\n" +
-	"groupMedal\x12,\n" +
-	"\fsender_uinfo\x18\x0f \x01(\v2\t.UserInfoR\vsenderUinfo\"\xa1\n" +
-	"\n" +
+	"\x04test\x18\f \x01(\x03R\x04test\x12B\n" +
+	"\vwealth_info\x18\r \x01(\v2!.bilibili.send_gift_v2.WealthInfoR\n" +
+	"wealthInfo\x12G\n" +
+	"\vgroup_medal\x18\x0e \x01(\v2&.bilibili.send_gift_v2.GroupMedalBriefR\n" +
+	"groupMedal\x12B\n" +
+	"\fsender_uinfo\x18\x0f \x01(\v2\x1f.bilibili.send_gift_v2.UserInfoR\vsenderUinfo\"\x8f\v\n" +
 	"\bGiftItem\x12\x17\n" +
 	"\agift_id\x18\x01 \x01(\x03R\x06giftId\x12\x1b\n" +
 	"\tgift_name\x18\x02 \x01(\tR\bgiftName\x12\x10\n" +
@@ -1743,27 +1740,27 @@ const file_SEND_GIFT_V2_proto_rawDesc = "" +
 	"\x04test\x18\x19 \x01(\x03R\x04test\x12(\n" +
 	"\x10face_effect_type\x18\x1a \x01(\x03R\x0efaceEffectType\x12$\n" +
 	"\x0eface_effect_id\x18\x1b \x01(\x03R\ffaceEffectId\x12\x1b\n" +
-	"\tis_naming\x18\x1c \x01(\bR\bisNaming\x12<\n" +
-	"\x11receive_user_info\x18\x1d \x01(\v2\x10.ReceiveUserInfoR\x0freceiveUserInfo\x12(\n" +
-	"\x10is_join_receiver\x18\x1e \x01(\bR\x0eisJoinReceiver\x12'\n" +
-	"\bbag_gift\x18\x1f \x01(\v2\f.BagGiftInfoR\abagGift\x12\x19\n" +
-	"\bgift_tag\x18  \x03(\x03R\agiftTag\x120\n" +
-	"\x0ereceiver_uinfo\x18! \x01(\v2\t.UserInfoR\rreceiverUinfo\x123\n" +
-	"\x0eface_effect_v2\x18\" \x01(\v2\r.FaceEffectV2R\ffaceEffectV2\x122\n" +
-	"\tgift_info\x18# \x01(\v2\x15.GiftMaterialSnapShotR\bgiftInfo\x12$\n" +
-	"\x0egift_tip_price\x18$ \x01(\x03R\fgiftTipPrice\"\xaa\x02\n" +
+	"\tis_naming\x18\x1c \x01(\bR\bisNaming\x12R\n" +
+	"\x11receive_user_info\x18\x1d \x01(\v2&.bilibili.send_gift_v2.ReceiveUserInfoR\x0freceiveUserInfo\x12(\n" +
+	"\x10is_join_receiver\x18\x1e \x01(\bR\x0eisJoinReceiver\x12=\n" +
+	"\bbag_gift\x18\x1f \x01(\v2\".bilibili.send_gift_v2.BagGiftInfoR\abagGift\x12\x19\n" +
+	"\bgift_tag\x18  \x03(\x03R\agiftTag\x12F\n" +
+	"\x0ereceiver_uinfo\x18! \x01(\v2\x1f.bilibili.send_gift_v2.UserInfoR\rreceiverUinfo\x12I\n" +
+	"\x0eface_effect_v2\x18\" \x01(\v2#.bilibili.send_gift_v2.FaceEffectV2R\ffaceEffectV2\x12H\n" +
+	"\tgift_info\x18# \x01(\v2+.bilibili.send_gift_v2.GiftMaterialSnapShotR\bgiftInfo\x12$\n" +
+	"\x0egift_tip_price\x18$ \x01(\x03R\fgiftTipPrice\"\xec\x02\n" +
 	"\x04Base\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04face\x18\x02 \x01(\tR\x04face\x12\x1d\n" +
 	"\n" +
 	"name_color\x18\x03 \x01(\x05R\tnameColor\x12\x1d\n" +
 	"\n" +
-	"is_mystery\x18\x04 \x01(\bR\tisMystery\x123\n" +
-	"\x0erisk_ctrl_info\x18\x05 \x01(\v2\r.RiskCtrlInfoR\friskCtrlInfo\x12-\n" +
-	"\vorigin_info\x18\x06 \x01(\v2\f.AccountInfoR\n" +
-	"originInfo\x122\n" +
-	"\rofficial_info\x18\a \x01(\v2\r.OfficialInfoR\fofficialInfo\x12$\n" +
-	"\x0ename_color_str\x18\b \x01(\tR\fnameColorStr\"\xef\x04\n" +
+	"is_mystery\x18\x04 \x01(\bR\tisMystery\x12I\n" +
+	"\x0erisk_ctrl_info\x18\x05 \x01(\v2#.bilibili.send_gift_v2.RiskCtrlInfoR\friskCtrlInfo\x12C\n" +
+	"\vorigin_info\x18\x06 \x01(\v2\".bilibili.send_gift_v2.AccountInfoR\n" +
+	"originInfo\x12H\n" +
+	"\rofficial_info\x18\a \x01(\v2#.bilibili.send_gift_v2.OfficialInfoR\fofficialInfo\x12$\n" +
+	"\x0ename_color_str\x18\b \x01(\tR\fnameColorStr\"\x85\x05\n" +
 	"\x05Medal\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05level\x18\x02 \x01(\x03R\x05level\x12\x1f\n" +
@@ -1772,8 +1769,8 @@ const file_SEND_GIFT_V2_proto_rawDesc = "" +
 	"\tcolor_end\x18\x04 \x01(\x03R\bcolorEnd\x12!\n" +
 	"\fcolor_border\x18\x05 \x01(\x03R\vcolorBorder\x12\x14\n" +
 	"\x05color\x18\x06 \x01(\x03R\x05color\x12\x0e\n" +
-	"\x02id\x18\a \x01(\x03R\x02id\x12 \n" +
-	"\x03typ\x18\b \x01(\x0e2\x0e.HaveMedalTypeR\x03typ\x12\x19\n" +
+	"\x02id\x18\a \x01(\x03R\x02id\x126\n" +
+	"\x03typ\x18\b \x01(\x0e2$.bilibili.send_gift_v2.HaveMedalTypeR\x03typ\x12\x19\n" +
 	"\bis_light\x18\t \x01(\x03R\aisLight\x12\x12\n" +
 	"\x04ruid\x18\n" +
 	" \x01(\x03R\x04ruid\x12\x1f\n" +
@@ -1788,11 +1785,11 @@ const file_SEND_GIFT_V2_proto_rawDesc = "" +
 	"\x12v2_medal_color_end\x18\x10 \x01(\tR\x0fv2MedalColorEnd\x121\n" +
 	"\x15v2_medal_color_border\x18\x11 \x01(\tR\x12v2MedalColorBorder\x12-\n" +
 	"\x13v2_medal_color_text\x18\x12 \x01(\tR\x10v2MedalColorText\x12/\n" +
-	"\x14v2_medal_color_level\x18\x13 \x01(\tR\x11v2MedalColorLevel\"U\n" +
+	"\x14v2_medal_color_level\x18\x13 \x01(\tR\x11v2MedalColorLevel\"\x81\x01\n" +
 	"\bUserInfo\x12\x10\n" +
-	"\x03uid\x18\x01 \x01(\x03R\x03uid\x12\x19\n" +
-	"\x04base\x18\x02 \x01(\v2\x05.BaseR\x04base\x12\x1c\n" +
-	"\x05medal\x18\x03 \x01(\v2\x06.MedalR\x05medal\"9\n" +
+	"\x03uid\x18\x01 \x01(\x03R\x03uid\x12/\n" +
+	"\x04base\x18\x02 \x01(\v2\x1b.bilibili.send_gift_v2.BaseR\x04base\x122\n" +
+	"\x05medal\x18\x03 \x01(\v2\x1c.bilibili.send_gift_v2.MedalR\x05medal\"9\n" +
 	"\x0fReceiveUserInfo\x12\x14\n" +
 	"\x05uname\x18\x01 \x01(\tR\x05uname\x12\x10\n" +
 	"\x03uid\x18\x02 \x01(\x03R\x03uid\"4\n" +
@@ -1862,7 +1859,7 @@ const file_SEND_GIFT_V2_proto_rawDesc = "" +
 	"\x04type\x18\x04 \x01(\x05R\x04type*2\n" +
 	"\rHaveMedalType\x12\x10\n" +
 	"\fMedal_Common\x10\x00\x12\x0f\n" +
-	"\vMedal_Group\x10\x01BNZLgithub.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobufb\x06proto3"
+	"\vMedal_Group\x10\x01BYZWgithub.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobuf/sendgiftv2b\x06proto3"
 
 var (
 	file_SEND_GIFT_V2_proto_rawDescOnce sync.Once
@@ -1879,44 +1876,44 @@ func file_SEND_GIFT_V2_proto_rawDescGZIP() []byte {
 var file_SEND_GIFT_V2_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_SEND_GIFT_V2_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_SEND_GIFT_V2_proto_goTypes = []any{
-	(HaveMedalType)(0),           // 0: HaveMedalType
-	(*SendGiftV2)(nil),           // 1: SendGiftV2
-	(*GiftItem)(nil),             // 2: GiftItem
-	(*Base)(nil),                 // 3: Base
-	(*Medal)(nil),                // 4: Medal
-	(*UserInfo)(nil),             // 5: UserInfo
-	(*ReceiveUserInfo)(nil),      // 6: ReceiveUserInfo
-	(*SendMaster)(nil),           // 7: SendMaster
-	(*BlindGift)(nil),            // 8: BlindGift
-	(*MedalInfo)(nil),            // 9: MedalInfo
-	(*BagGiftInfo)(nil),          // 10: BagGiftInfo
-	(*WealthInfo)(nil),           // 11: WealthInfo
-	(*FaceEffectV2)(nil),         // 12: FaceEffectV2
-	(*GroupMedalBrief)(nil),      // 13: GroupMedalBrief
-	(*GiftMaterialSnapShot)(nil), // 14: GiftMaterialSnapShot
-	(*RiskCtrlInfo)(nil),         // 15: RiskCtrlInfo
-	(*AccountInfo)(nil),          // 16: AccountInfo
-	(*OfficialInfo)(nil),         // 17: OfficialInfo
+	(HaveMedalType)(0),           // 0: bilibili.send_gift_v2.HaveMedalType
+	(*SendGiftV2)(nil),           // 1: bilibili.send_gift_v2.SendGiftV2
+	(*GiftItem)(nil),             // 2: bilibili.send_gift_v2.GiftItem
+	(*Base)(nil),                 // 3: bilibili.send_gift_v2.Base
+	(*Medal)(nil),                // 4: bilibili.send_gift_v2.Medal
+	(*UserInfo)(nil),             // 5: bilibili.send_gift_v2.UserInfo
+	(*ReceiveUserInfo)(nil),      // 6: bilibili.send_gift_v2.ReceiveUserInfo
+	(*SendMaster)(nil),           // 7: bilibili.send_gift_v2.SendMaster
+	(*BlindGift)(nil),            // 8: bilibili.send_gift_v2.BlindGift
+	(*MedalInfo)(nil),            // 9: bilibili.send_gift_v2.MedalInfo
+	(*BagGiftInfo)(nil),          // 10: bilibili.send_gift_v2.BagGiftInfo
+	(*WealthInfo)(nil),           // 11: bilibili.send_gift_v2.WealthInfo
+	(*FaceEffectV2)(nil),         // 12: bilibili.send_gift_v2.FaceEffectV2
+	(*GroupMedalBrief)(nil),      // 13: bilibili.send_gift_v2.GroupMedalBrief
+	(*GiftMaterialSnapShot)(nil), // 14: bilibili.send_gift_v2.GiftMaterialSnapShot
+	(*RiskCtrlInfo)(nil),         // 15: bilibili.send_gift_v2.RiskCtrlInfo
+	(*AccountInfo)(nil),          // 16: bilibili.send_gift_v2.AccountInfo
+	(*OfficialInfo)(nil),         // 17: bilibili.send_gift_v2.OfficialInfo
 }
 var file_SEND_GIFT_V2_proto_depIdxs = []int32{
-	7,  // 0: SendGiftV2.send_master:type_name -> SendMaster
-	9,  // 1: SendGiftV2.medal_info:type_name -> MedalInfo
-	8,  // 2: SendGiftV2.blind_gift:type_name -> BlindGift
-	2,  // 3: SendGiftV2.gift_list:type_name -> GiftItem
-	11, // 4: SendGiftV2.wealth_info:type_name -> WealthInfo
-	13, // 5: SendGiftV2.group_medal:type_name -> GroupMedalBrief
-	5,  // 6: SendGiftV2.sender_uinfo:type_name -> UserInfo
-	6,  // 7: GiftItem.receive_user_info:type_name -> ReceiveUserInfo
-	10, // 8: GiftItem.bag_gift:type_name -> BagGiftInfo
-	5,  // 9: GiftItem.receiver_uinfo:type_name -> UserInfo
-	12, // 10: GiftItem.face_effect_v2:type_name -> FaceEffectV2
-	14, // 11: GiftItem.gift_info:type_name -> GiftMaterialSnapShot
-	15, // 12: Base.risk_ctrl_info:type_name -> RiskCtrlInfo
-	16, // 13: Base.origin_info:type_name -> AccountInfo
-	17, // 14: Base.official_info:type_name -> OfficialInfo
-	0,  // 15: Medal.typ:type_name -> HaveMedalType
-	3,  // 16: UserInfo.base:type_name -> Base
-	4,  // 17: UserInfo.medal:type_name -> Medal
+	7,  // 0: bilibili.send_gift_v2.SendGiftV2.send_master:type_name -> bilibili.send_gift_v2.SendMaster
+	9,  // 1: bilibili.send_gift_v2.SendGiftV2.medal_info:type_name -> bilibili.send_gift_v2.MedalInfo
+	8,  // 2: bilibili.send_gift_v2.SendGiftV2.blind_gift:type_name -> bilibili.send_gift_v2.BlindGift
+	2,  // 3: bilibili.send_gift_v2.SendGiftV2.gift_list:type_name -> bilibili.send_gift_v2.GiftItem
+	11, // 4: bilibili.send_gift_v2.SendGiftV2.wealth_info:type_name -> bilibili.send_gift_v2.WealthInfo
+	13, // 5: bilibili.send_gift_v2.SendGiftV2.group_medal:type_name -> bilibili.send_gift_v2.GroupMedalBrief
+	5,  // 6: bilibili.send_gift_v2.SendGiftV2.sender_uinfo:type_name -> bilibili.send_gift_v2.UserInfo
+	6,  // 7: bilibili.send_gift_v2.GiftItem.receive_user_info:type_name -> bilibili.send_gift_v2.ReceiveUserInfo
+	10, // 8: bilibili.send_gift_v2.GiftItem.bag_gift:type_name -> bilibili.send_gift_v2.BagGiftInfo
+	5,  // 9: bilibili.send_gift_v2.GiftItem.receiver_uinfo:type_name -> bilibili.send_gift_v2.UserInfo
+	12, // 10: bilibili.send_gift_v2.GiftItem.face_effect_v2:type_name -> bilibili.send_gift_v2.FaceEffectV2
+	14, // 11: bilibili.send_gift_v2.GiftItem.gift_info:type_name -> bilibili.send_gift_v2.GiftMaterialSnapShot
+	15, // 12: bilibili.send_gift_v2.Base.risk_ctrl_info:type_name -> bilibili.send_gift_v2.RiskCtrlInfo
+	16, // 13: bilibili.send_gift_v2.Base.origin_info:type_name -> bilibili.send_gift_v2.AccountInfo
+	17, // 14: bilibili.send_gift_v2.Base.official_info:type_name -> bilibili.send_gift_v2.OfficialInfo
+	0,  // 15: bilibili.send_gift_v2.Medal.typ:type_name -> bilibili.send_gift_v2.HaveMedalType
+	3,  // 16: bilibili.send_gift_v2.UserInfo.base:type_name -> bilibili.send_gift_v2.Base
+	4,  // 17: bilibili.send_gift_v2.UserInfo.medal:type_name -> bilibili.send_gift_v2.Medal
 	18, // [18:18] is the sub-list for method output_type
 	18, // [18:18] is the sub-list for method input_type
 	18, // [18:18] is the sub-list for extension type_name

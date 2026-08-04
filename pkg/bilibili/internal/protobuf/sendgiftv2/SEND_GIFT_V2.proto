@@ -1,6 +1,8 @@
 syntax = "proto3";
 
-option go_package = "github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobuf";
+package bilibili.send_gift_v2;
+
+option go_package = "github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobuf/sendgiftv2";
 
 message SendGiftV2 {
   int64             uid          = 1;

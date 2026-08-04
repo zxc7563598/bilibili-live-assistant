@@ -9,9 +9,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
-	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobuf"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobuf/interactwordv2"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobuf/sendgiftv2"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -51,15 +51,15 @@ type Message struct {
 //	info[4] — 用户等级信息 [level, ...]
 //	info[5] — 用户头像框等信息
 type DanmuMsgInfo struct {
-	UID         json.Number `json:"-"` // info[2][0] 用户UID
-	Uname       string      `json:"-"` // info[2][1] 用户名
-	Msg         string      `json:"-"` // info[1] 弹幕内容
-	BadgeUID    json.Number `json:"-"` // info[3][12] 勋章主播UID
-	BadgeUname  string      `json:"-"` // info[3][2] 勋章主播名
-	BadgeRoomID json.Number `json:"-"` // info[3][3] 勋章房间ID
-	BadgeName   string      `json:"-"` // info[3][1] 勋章名称
-	BadgeLevel  json.Number `json:"-"` // info[3][0] 勋章等级
-	BadgeType   json.Number `json:"-"` // info[3][10] 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
+	UID         int64  `json:"-"` // info[2][0] 用户UID
+	Uname       string `json:"-"` // info[2][1] 用户名
+	Msg         string `json:"-"` // info[1] 弹幕内容
+	BadgeUID    int64  `json:"-"` // info[3][12] 勋章主播UID
+	BadgeUname  string `json:"-"` // info[3][2] 勋章主播名
+	BadgeRoomID int64  `json:"-"` // info[3][3] 勋章房间ID
+	BadgeName   string `json:"-"` // info[3][1] 勋章名称
+	BadgeLevel  int64  `json:"-"` // info[3][0] 勋章等级
+	BadgeType   int64  `json:"-"` // info[3][10] 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
 }
 
 // LiveInfo 是 LIVE 消息中提取的关键字段
@@ -92,26 +92,26 @@ type PreparingInfo struct {
 
 // BlindGiftInfo 是 SEND_GIFT 中的盲盒礼物信息
 type BlindGiftInfo struct {
-	GiftAction        string      `json:"gift_action"`        // 盲盒动作
-	GiftTipPrice      int64       `json:"-"`                  // 爆出礼物价格(分)
-	OriginalGiftID    json.Number `json:"original_gift_id"`   // 原始礼物ID
-	OriginalGiftName  string      `json:"original_gift_name"` // 原始礼物名称
-	OriginalGiftPrice int64       `json:"-"`                  // 原始礼物价格(分)
+	GiftAction        string `json:"gift_action"`        // 盲盒动作
+	GiftTipPrice      int64  `json:"-"`                  // 爆出礼物价格(分)
+	OriginalGiftID    int64  `json:"original_gift_id"`   // 原始礼物ID
+	OriginalGiftName  string `json:"original_gift_name"` // 原始礼物名称
+	OriginalGiftPrice int64  `json:"-"`                  // 原始礼物价格(分)
 }
 
 // SendGiftInfo 是 SEND_GIFT 与 SEND_GIFT_V2 消息中提取的关键字段
 type SendGiftInfo struct {
-	UID        json.Number    `json:"-"` // 送礼用户UID
+	UID        int64          `json:"-"` // 送礼用户UID
 	Uname      string         `json:"-"` // 送礼用户名
-	GiftID     json.Number    `json:"-"` // 礼物ID
+	GiftID     int64          `json:"-"` // 礼物ID
 	GiftName   string         `json:"-"` // 礼物名称
 	Price      int64          `json:"-"` // 礼物价格(分)
-	Num        json.Number    `json:"-"` // 礼物数量
-	AnchorID   json.Number    `json:"-"` // 主播UID
-	BadgeUID   json.Number    `json:"-"` // 勋章主播UID
+	Num        int64          `json:"-"` // 礼物数量
+	AnchorID   int64          `json:"-"` // 主播UID
+	BadgeUID   int64          `json:"-"` // 勋章主播UID
 	BadgeName  string         `json:"-"` // 勋章名称
-	BadgeLevel json.Number    `json:"-"` // 勋章等级
-	BadgeType  json.Number    `json:"-"` // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
+	BadgeLevel int64          `json:"-"` // 勋章等级
+	BadgeType  int64          `json:"-"` // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
 	BlindGift  *BlindGiftInfo `json:"-"` // 盲盒礼物信息，非盲盒时为 nil
 }
 
@@ -127,6 +127,61 @@ type GuardBuyInfo struct {
 	SendTime   int64  `json:"start_time"`  // 发生时间（秒级时间戳）
 }
 
+// InteractWordV2Info 是 INTERACT_WORD_V2 消息中提取的关键字段
+type InteractWordV2Info struct {
+	UID        int64  `json:"-"` // 用户UID
+	Uname      string `json:"-"` // 用户名
+	MsgType    uint64 `json:"-"` // 消息类型 1=进入直播间 2=关注 3=分享
+	RoomID     uint64 `json:"-"` // 直播间ID
+	Timestamp  uint64 `json:"-"` // 时间戳
+	BadgeUID   int64  `json:"-"` // 勋章主播UID
+	BadgeName  string `json:"-"` // 勋章名称
+	BadgeLevel int64  `json:"-"` // 勋章等级
+	BadgeType  int64  `json:"-"` // 勋章类型 0=普通用户 1=总督 2=提督 3=舰长
+}
+
+// ExtractInteractWordV2 从原始 JSON 中提取 protobuf 编码的用户互动信息(INTERACT_WORD_V2)
+func ExtractInteractWordV2(raw string) (*InteractWordV2Info, error) {
+	// JSON 解析外层，提取 data.pb 字段
+	var outer struct {
+		Data struct {
+			Pb string `json:"pb"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 INTERACT_WORD_V2 外层消息失败: %w", err)
+	}
+	if outer.Data.Pb == "" {
+		return nil, fmt.Errorf("INTERACT_WORD_V2 data.pb 字段为空")
+	}
+	// Base64 解码 protobuf 二进制
+	pbBytes, err := base64.StdEncoding.DecodeString(outer.Data.Pb)
+	if err != nil {
+		return nil, fmt.Errorf("INTERACT_WORD_V2 base64 解码失败: %w", err)
+	}
+	// Protobuf 反序列化
+	var pb interactwordv2.InteractWordV2
+	if err := proto.Unmarshal(pbBytes, &pb); err != nil {
+		return nil, fmt.Errorf("INTERACT_WORD_V2 protobuf 反序列化失败: %w", err)
+	}
+	// 映射到 InteractWordV2Info
+	result := &InteractWordV2Info{
+		UID:       int64(pb.Uid),
+		Uname:     pb.Uname,
+		MsgType:   pb.MsgType,
+		RoomID:    pb.Roomid,
+		Timestamp: pb.Timestamp,
+	}
+	if pb.FansMedal != nil {
+		result.BadgeUID = pb.FansMedal.TargetId
+		result.BadgeName = pb.FansMedal.MedalName
+		result.BadgeLevel = pb.FansMedal.MedalLevel
+		result.BadgeType = pb.FansMedal.GuardLevel
+	}
+	return result, nil
+}
+
+// ExtractGuardBuy 从原始 JSON 中提取大航海（舰长/提督/总督）购买信息
 func ExtractGuardBuy(raw string) (*GuardBuyInfo, error) {
 	// 解析外层 JSON，拿到 data 子对象
 	var outer struct {
@@ -165,45 +220,45 @@ func ExtractSendGiftV2(raw string) (*SendGiftInfo, error) {
 		return nil, fmt.Errorf("SEND_GIFT_V2 base64 解码失败: %w", err)
 	}
 	// Protobuf 反序列化
-	var pb protobuf.SendGiftV2
+	var pb sendgiftv2.SendGiftV2
 	if err := proto.Unmarshal(pbBytes, &pb); err != nil {
 		return nil, fmt.Errorf("SEND_GIFT_V2 protobuf 反序列化失败: %w", err)
 	}
 	// 映射到 SendGiftInfo
 	result := &SendGiftInfo{
-		UID:      json.Number(strconv.FormatInt(pb.Uid, 10)),
+		UID:      pb.Uid,
 		Uname:    pb.Uname,
-		GiftID:   json.Number(strconv.FormatInt(0, 10)),
+		GiftID:   0,
 		GiftName: "",
 		Price:    0,
-		Num:      json.Number(strconv.FormatInt(0, 10)),
-		AnchorID: json.Number(strconv.FormatInt(0, 10)),
+		Num:      0,
+		AnchorID: 0,
 	}
 	// 礼物信息
 	if pb.GiftList != nil {
-		result.GiftID = json.Number(strconv.FormatInt(pb.GiftList.GiftId, 10))
+		result.GiftID = pb.GiftList.GiftId
 		result.GiftName = pb.GiftList.GiftName
 		result.Price = pb.GiftList.Price / 10
-		result.Num = json.Number(strconv.FormatInt(pb.GiftList.Num, 10))
+		result.Num = pb.GiftList.Num
 		// 接受礼物的主播ID
 		if pb.GiftList.ReceiveUserInfo != nil {
-			result.AnchorID = json.Number(strconv.FormatInt(pb.GiftList.ReceiveUserInfo.Uid, 10))
+			result.AnchorID = pb.GiftList.ReceiveUserInfo.Uid
 		}
 	}
 	// 勋章信息 — 用户未佩戴勋章时为 null
 	if pb.SenderUinfo != nil && pb.SenderUinfo.Medal != nil {
 		m := pb.SenderUinfo.Medal
-		result.BadgeUID = json.Number(strconv.FormatInt(m.Ruid, 10))
+		result.BadgeUID = m.Ruid
 		result.BadgeName = m.Name
-		result.BadgeLevel = json.Number(strconv.FormatInt(m.Level, 10))
-		result.BadgeType = json.Number(strconv.FormatInt(m.GuardLevel, 10))
+		result.BadgeLevel = m.Level
+		result.BadgeType = m.GuardLevel
 	}
 	// 盲盒礼物 - 非盲盒礼物时为 null
 	if pb.BlindGift != nil {
 		result.BlindGift = &BlindGiftInfo{
 			GiftAction:        pb.BlindGift.GiftAction,
 			GiftTipPrice:      pb.BlindGift.GiftTipPrice / 10,
-			OriginalGiftID:    json.Number(strconv.FormatInt(pb.BlindGift.OriginalGiftId, 10)),
+			OriginalGiftID:    pb.BlindGift.OriginalGiftId,
 			OriginalGiftName:  pb.BlindGift.OriginalGiftName,
 			OriginalGiftPrice: pb.BlindGift.OriginalGiftPrice / 10,
 		}
@@ -222,21 +277,21 @@ func ExtractSendGift(raw string) (*SendGiftInfo, error) {
 	}
 	// 解析 data 对象，嵌套字段用匿名结构体
 	var data struct {
-		UID           json.Number `json:"uid"`
-		Uname         string      `json:"uname"`
-		GiftID        json.Number `json:"giftId"`
-		GiftName      string      `json:"giftName"`
-		Price         int64       `json:"price"`
-		Num           json.Number `json:"num"`
+		UID           int64  `json:"uid"`
+		Uname         string `json:"uname"`
+		GiftID        int64  `json:"giftId"`
+		GiftName      string `json:"giftName"`
+		Price         int64  `json:"price"`
+		Num           int64  `json:"num"`
 		ReceiverUinfo struct {
-			UID json.Number `json:"uid"`
+			UID int64 `json:"uid"`
 		} `json:"receiver_uinfo"`
 		SenderUinfo struct {
 			Medal *struct {
-				RUID       json.Number `json:"ruid"`
-				Name       string      `json:"name"`
-				GuardLevel json.Number `json:"guard_level"`
-				Level      json.Number `json:"level"`
+				RUID       int64  `json:"ruid"`
+				Name       string `json:"name"`
+				GuardLevel int64  `json:"guard_level"`
+				Level      int64  `json:"level"`
 			} `json:"medal"`
 		} `json:"sender_uinfo"`
 		BlindGift json.RawMessage `json:"blind_gift"`
@@ -263,11 +318,11 @@ func ExtractSendGift(raw string) (*SendGiftInfo, error) {
 	// 盲盒礼物 - 非盲盒礼物时为 null
 	if len(data.BlindGift) > 0 && string(data.BlindGift) != "null" {
 		var raw struct {
-			GiftAction        string      `json:"gift_action"`
-			GiftTipPrice      int64       `json:"gift_tip_price"`
-			OriginalGiftID    json.Number `json:"original_gift_id"`
-			OriginalGiftName  string      `json:"original_gift_name"`
-			OriginalGiftPrice int64       `json:"original_gift_price"`
+			GiftAction        string `json:"gift_action"`
+			GiftTipPrice      int64  `json:"gift_tip_price"`
+			OriginalGiftID    int64  `json:"original_gift_id"`
+			OriginalGiftName  string `json:"original_gift_name"`
+			OriginalGiftPrice int64  `json:"original_gift_price"`
 		}
 		if err := json.Unmarshal(data.BlindGift, &raw); err != nil {
 			return nil, fmt.Errorf("解析 SEND_GIFT blind_gift 字段失败: %w", err)
