@@ -230,34 +230,6 @@ func TestCmdLiveEnd(t *testing.T) {
 	}
 }
 
-// TestCmdDanmuMsg 获取弹幕信息
-//
-//	go test -v -run TestCmdDanmuMsg ./test/
-func TestCmdDanmuMsg(t *testing.T) {
-	for i, raw := range DANMU_MSG {
-		info, err := live.ExtractDanmuMsg(raw)
-		if err != nil {
-			t.Errorf("第 %d 条消息解析失败: %v", i, err)
-			continue
-		}
-		t.Logf("第 %d 条弹幕:", i+1)
-		t.Logf("  用户UID:    %v", info.UID)
-		t.Logf("  用户名:     %s", info.Uname)
-		t.Logf("  弹幕内容:   %s", info.Msg)
-		if info.BadgeName != "" {
-			t.Logf("  勋章等级:   %v", info.BadgeLevel)
-			t.Logf("  勋章名称:   %s", info.BadgeName)
-			t.Logf("  主播名:     %s", info.BadgeUname)
-			t.Logf("  勋章房间ID: %v", info.BadgeRoomID)
-			t.Logf("  勋章类型:   %v", info.BadgeType)
-			t.Logf("  主播UID:    %v", info.BadgeUID)
-		} else {
-			t.Logf("  (无勋章)")
-		}
-		t.Logf("  ---")
-	}
-}
-
 // TestCmdSendGift 获取送礼信息
 //
 //	go test -v -run TestCmdSendGift ./test/
@@ -291,6 +263,72 @@ func TestCmdSendGift(t *testing.T) {
 			t.Logf("    原始礼物ID: %v", info.BlindGift.OriginalGiftID)
 			t.Logf("    原始礼物名称: %s", info.BlindGift.OriginalGiftName)
 			t.Logf("    原始礼物价格(分): %d", info.BlindGift.OriginalGiftPrice)
+		}
+		t.Logf("  ---")
+	}
+}
+
+// TestCmdSendGiftV2 获取 protobuf 编码的送礼信息（SEND_GIFT_V2）
+//
+//	go test -v -run TestCmdSendGiftV2 ./test/
+func TestCmdSendGiftV2(t *testing.T) {
+	for i, raw := range SEND_GIFT_V2 {
+		info, err := live.ExtractSendGiftV2(raw)
+		if err != nil {
+			t.Errorf("第 %d 条消息解析失败: %v", i, err)
+			continue
+		}
+		t.Logf("第 %d 条送礼(V2):", i+1)
+		t.Logf("  送礼用户UID: %v", info.UID)
+		t.Logf("  送礼用户名: %s", info.Uname)
+		t.Logf("  礼物ID: %v", info.GiftID)
+		t.Logf("  礼物名称: %s", info.GiftName)
+		t.Logf("  礼物价格(分): %d", info.Price)
+		t.Logf("  礼物数量: %v", info.Num)
+		t.Logf("  主播UID: %v", info.AnchorID)
+		if info.BadgeName != "" {
+			t.Logf("  勋章名称: %s", info.BadgeName)
+			t.Logf("  勋章主播UID: %v", info.BadgeUID)
+			t.Logf("  勋章等级: %v", info.BadgeLevel)
+			t.Logf("  勋章类型: %v", info.BadgeType)
+		} else {
+			t.Logf("  (无勋章)")
+		}
+		if info.BlindGift != nil {
+			t.Logf("  盲盒礼物:")
+			t.Logf("    盲盒动作: %s", info.BlindGift.GiftAction)
+			t.Logf("    爆出礼物价格(分): %d", info.BlindGift.GiftTipPrice)
+			t.Logf("    原始礼物ID: %v", info.BlindGift.OriginalGiftID)
+			t.Logf("    原始礼物名称: %s", info.BlindGift.OriginalGiftName)
+			t.Logf("    原始礼物价格(分): %d", info.BlindGift.OriginalGiftPrice)
+		}
+		t.Logf("  ---")
+	}
+}
+
+// TestCmdDanmuMsg 获取弹幕信息
+//
+//	go test -v -run TestCmdDanmuMsg ./test/
+func TestCmdDanmuMsg(t *testing.T) {
+	for i, raw := range DANMU_MSG {
+		info, err := live.ExtractDanmuMsg(raw)
+		if err != nil {
+			t.Errorf("第 %d 条消息解析失败: %v", i, err)
+			continue
+		}
+		t.Logf("第 %d 条弹幕:", i+1)
+		t.Logf("  用户UID:    %v", info.UID)
+		t.Logf("  用户名:     %s", info.Uname)
+		t.Logf("  弹幕内容:   %s", info.Msg)
+		if info.BadgeName != "" {
+			t.Logf("  勋章等级:   %v", info.BadgeLevel)
+			t.Logf("  勋章名称:   %s", info.BadgeName)
+			t.Logf("  主播名:     %s", info.BadgeUname)
+			t.Logf("  勋章房间ID: %v", info.BadgeRoomID)
+			t.Logf("  勋章类型:   %v", info.BadgeType)
+			t.Logf("  主播UID:    %v", info.BadgeUID)
+		} else {
+			t.Logf("  (无勋章)")
 		}
 		t.Logf("  ---")
 	}

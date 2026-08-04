@@ -6,8 +6,13 @@
 package live
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
+
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/protobuf"
+	"google.golang.org/protobuf/proto"
 )
 
 // Cmd 是 B站 直播 WebSocket 协议的消息命令类型
@@ -108,6 +113,74 @@ type SendGiftInfo struct {
 	BadgeLevel json.Number    `json:"-"` // 勋章等级
 	BadgeType  json.Number    `json:"-"` // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
 	BlindGift  *BlindGiftInfo `json:"-"` // 盲盒礼物信息，非盲盒时为 nil
+}
+
+// ExtractSendGiftV2 从原始 JSON 中提取 protobuf 编码的送礼信息(SEND_GIFT_V2)
+//
+// SEND_GIFT_V2 的 data.pb 字段是 base64 编码的 protobuf 二进制数据，并将结果映射到与 SEND_GIFT 相同的 SendGiftInfo 结构体。
+func ExtractSendGiftV2(raw string) (*SendGiftInfo, error) {
+	// JSON 解析外层，提取 data.pb 字段
+	var outer struct {
+		Data struct {
+			Pb string `json:"pb"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 SEND_GIFT_V2 外层消息失败: %w", err)
+	}
+	if outer.Data.Pb == "" {
+		return nil, fmt.Errorf("SEND_GIFT_V2 data.pb 字段为空")
+	}
+	// Base64 解码 protobuf 二进制
+	pbBytes, err := base64.StdEncoding.DecodeString(outer.Data.Pb)
+	if err != nil {
+		return nil, fmt.Errorf("SEND_GIFT_V2 base64 解码失败: %w", err)
+	}
+	// Protobuf 反序列化
+	var pb protobuf.SendGiftV2
+	if err := proto.Unmarshal(pbBytes, &pb); err != nil {
+		return nil, fmt.Errorf("SEND_GIFT_V2 protobuf 反序列化失败: %w", err)
+	}
+	// 映射到 SendGiftInfo
+	result := &SendGiftInfo{
+		UID:      json.Number(strconv.FormatInt(pb.Uid, 10)),
+		Uname:    pb.Uname,
+		GiftID:   json.Number(strconv.FormatInt(0, 10)),
+		GiftName: "",
+		Price:    0,
+		Num:      json.Number(strconv.FormatInt(0, 10)),
+		AnchorID: json.Number(strconv.FormatInt(0, 10)),
+	}
+	// 礼物信息
+	if pb.GiftList != nil {
+		result.GiftID = json.Number(strconv.FormatInt(pb.GiftList.GiftId, 10))
+		result.GiftName = pb.GiftList.GiftName
+		result.Price = pb.GiftList.Price / 10
+		result.Num = json.Number(strconv.FormatInt(pb.GiftList.Num, 10))
+		// 接受礼物的主播ID
+		if pb.GiftList.ReceiveUserInfo != nil {
+			result.AnchorID = json.Number(strconv.FormatInt(pb.GiftList.ReceiveUserInfo.Uid, 10))
+		}
+	}
+	// 勋章信息 — 用户未佩戴勋章时为 null
+	if pb.SenderUinfo != nil && pb.SenderUinfo.Medal != nil {
+		m := pb.SenderUinfo.Medal
+		result.BadgeUID = json.Number(strconv.FormatInt(m.Ruid, 10))
+		result.BadgeName = m.Name
+		result.BadgeLevel = json.Number(strconv.FormatInt(m.Level, 10))
+		result.BadgeType = json.Number(strconv.FormatInt(m.GuardLevel, 10))
+	}
+	// 盲盒礼物 - 非盲盒礼物时为 null
+	if pb.BlindGift != nil {
+		result.BlindGift = &BlindGiftInfo{
+			GiftAction:        pb.BlindGift.GiftAction,
+			GiftTipPrice:      pb.BlindGift.GiftTipPrice / 10,
+			OriginalGiftID:    json.Number(strconv.FormatInt(pb.BlindGift.OriginalGiftId, 10)),
+			OriginalGiftName:  pb.BlindGift.OriginalGiftName,
+			OriginalGiftPrice: pb.BlindGift.OriginalGiftPrice / 10,
+		}
+	}
+	return result, nil
 }
 
 // ExtractSendGift 从原始 JSON 中提取送礼信息
