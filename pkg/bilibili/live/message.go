@@ -99,7 +99,7 @@ type BlindGiftInfo struct {
 	OriginalGiftPrice int64       `json:"-"`                  // 原始礼物价格(分)
 }
 
-// SendGiftInfo 是 SEND_GIFT 消息中提取的关键字段
+// SendGiftInfo 是 SEND_GIFT 与 SEND_GIFT_V2 消息中提取的关键字段
 type SendGiftInfo struct {
 	UID        json.Number    `json:"-"` // 送礼用户UID
 	Uname      string         `json:"-"` // 送礼用户名
@@ -113,6 +113,34 @@ type SendGiftInfo struct {
 	BadgeLevel json.Number    `json:"-"` // 勋章等级
 	BadgeType  json.Number    `json:"-"` // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
 	BlindGift  *BlindGiftInfo `json:"-"` // 盲盒礼物信息，非盲盒时为 nil
+}
+
+// GuardBuyInfo 是 GUARD_BUY 消息中提取的关键字段
+type GuardBuyInfo struct {
+	UID        int64  `json:"uid"`         // 送礼用户UID
+	Uname      string `json:"username"`    // 送礼用户名
+	GiftID     int64  `json:"gift_id"`     // 礼物ID
+	GiftName   string `json:"gift_name"`   // 礼物名称(舰长\提督\总督)
+	GuardLevel int64  `json:"guard_level"` // 航海类型 0=普通用户，1=总督，2=提督，3=舰长
+	Num        int64  `json:"num"`         // 数量
+	Price      int64  `json:"price"`       // 价格(分)
+	SendTime   int64  `json:"start_time"`  // 发生时间（秒级时间戳）
+}
+
+func ExtractGuardBuy(raw string) (*GuardBuyInfo, error) {
+	// 解析外层 JSON，拿到 data 子对象
+	var outer struct {
+		Data json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 GUARD_BUY 外层消息失败: %w", err)
+	}
+	var info GuardBuyInfo
+	if err := json.Unmarshal(outer.Data, &info); err != nil {
+		return nil, fmt.Errorf("解析 GUARD_BUY data 字段失败: %w", err)
+	}
+	info.Price = info.Price / 10
+	return &info, nil
 }
 
 // ExtractSendGiftV2 从原始 JSON 中提取 protobuf 编码的送礼信息(SEND_GIFT_V2)

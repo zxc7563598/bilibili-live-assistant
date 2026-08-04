@@ -306,6 +306,29 @@ func TestCmdSendGiftV2(t *testing.T) {
 	}
 }
 
+// TestCmdGuardBuy 获取大航海（舰长/提督/总督）购买信息
+//
+//	go test -v -run TestCmdGuardBuy ./test/
+func TestCmdGuardBuy(t *testing.T) {
+	for i, raw := range GUARD_BUY {
+		info, err := live.ExtractGuardBuy(raw)
+		if err != nil {
+			t.Errorf("第 %d 条消息解析失败: %v", i, err)
+			continue
+		}
+		t.Logf("第 %d 条:", i+1)
+		t.Logf("  送礼用户UID: %d", info.UID)
+		t.Logf("  送礼用户名: %s", info.Uname)
+		t.Logf("  礼物ID: %d", info.GiftID)
+		t.Logf("  礼物名称: %s", info.GiftName)
+		t.Logf("  航海类型: %d", info.GuardLevel)
+		t.Logf("  数量: %d", info.Num)
+		t.Logf("  价格(分): %d", info.Price)
+		t.Logf("  发生时间: %v", time.Unix(info.SendTime, 0))
+		t.Logf("  ---")
+	}
+}
+
 // TestCmdDanmuMsg 获取弹幕信息
 //
 //	go test -v -run TestCmdDanmuMsg ./test/
