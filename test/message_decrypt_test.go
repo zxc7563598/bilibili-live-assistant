@@ -413,3 +413,56 @@ func TestCmdDanmuMsg(t *testing.T) {
 		t.Logf("  ---")
 	}
 }
+
+// TestCmdPkStart 获取 PK 准备信息
+//
+//	go test -v -run TestCmdPkStart ./test/
+func TestCmdPkStart(t *testing.T) {
+	for i, raw := range PK_BATTLE_PRE_NEW {
+		info, err := live.ExtractPkBattlePreNew(raw)
+		if err != nil {
+			t.Errorf("第 %d 条消息解析失败: %v", i, err)
+			continue
+		}
+		t.Logf("第 %d 条:", i+1)
+		t.Logf("  PK ID: %d", info.PkID)
+		t.Logf("  PK 状态: %d", info.PkStatus)
+		t.Logf("  时间戳: %d", info.Timestamp)
+		t.Logf("  对方用户名: %s", info.Uname)
+		t.Logf("  对方UID: %d", info.UID)
+		t.Logf("  对方房间ID: %d", info.RoomID)
+		t.Logf("  对战类型: %d", info.BattleType)
+		t.Logf("  匹配类型: %d", info.MatchType)
+		t.Logf("  ---")
+	}
+}
+
+// TestCmdSuperDanmuMsg 获取醒目留言信息
+//
+//	go test -v -run TestCmdSuperDanmuMsg ./test/
+func TestCmdSuperDanmuMsg(t *testing.T) {
+	for i, raw := range SUPER_CHAT_MESSAGE {
+		info, err := live.ExtractSuperChatMessage(raw)
+		if err != nil {
+			t.Errorf("第 %d 条消息解析失败: %v", i, err)
+			continue
+		}
+		t.Logf("第 %d 条:", i+1)
+		t.Logf("  礼物ID: %d", info.GiftID)
+		t.Logf("  礼物名称: %s", info.GiftName)
+		t.Logf("  礼物数量: %d", info.GiftNum)
+		t.Logf("  用户UID: %d", info.UID)
+		t.Logf("  用户名: %s", info.Uname)
+		t.Logf("  留言内容: %s", info.Message)
+		t.Logf("  价格(分): %d", info.Price)
+		t.Logf("  开始时间: %v", time.Unix(info.StartTime, 0))
+		if info.BadgeRoomID > 0 {
+			t.Logf("  勋章等级: %d", info.BadgeLevel)
+			t.Logf("  勋章名称: %s", info.BadgeName)
+			t.Logf("  勋章主播房间ID: %d", info.BadgeRoomID)
+			t.Logf("  勋章主播名: %s", info.BadgeAnchorUname)
+			t.Logf("  勋章类型: %d", info.BadgeType)
+		}
+		t.Logf("  ---")
+	}
+}

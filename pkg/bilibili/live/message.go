@@ -140,6 +140,121 @@ type InteractWordV2Info struct {
 	BadgeType  int64  `json:"-"` // 勋章类型 0=普通用户 1=总督 2=提督 3=舰长
 }
 
+// PkBattlePreNewInfo 是 PK_BATTLE_PRE_NEW 消息中提取的关键字段
+type PkBattlePreNewInfo struct {
+	PkID       int64  `json:"-"` // PK ID
+	PkStatus   int64  `json:"-"` // PK 状态
+	Timestamp  int64  `json:"-"` // 时间戳
+	Uname      string `json:"-"` // 对方用户名
+	UID        int64  `json:"-"` // 对方用户UID
+	RoomID     int64  `json:"-"` // 对方房间ID
+	BattleType int64  `json:"-"` // 对战类型
+	MatchType  int64  `json:"-"` // 匹配类型
+}
+
+// SuperChatMessage 是 SUPER_CHAT_MESSAGE 消息中提取的关键字段
+type SuperChatMessage struct {
+	GiftID           int64  `json:"-"` // 礼物ID
+	GiftName         string `json:"-"` // 礼物名称
+	GiftNum          int64  `json:"-"` // 礼物数量
+	UID              int64  `json:"-"` // 用户UID
+	Uname            string `json:"-"` // 用户名
+	Message          string `json:"-"` // 留言内容
+	Price            int64  `json:"-"` // 价格
+	StartTime        int64  `json:"-"` // 开始时间（秒级时间戳）
+	BadgeLevel       int64  `json:"-"` // 勋章等级
+	BadgeName        string `json:"-"` // 勋章名称
+	BadgeRoomID      int64  `json:"-"` // 勋章主播房间ID
+	BadgeAnchorUname string `json:"-"` // 勋章主播名
+	BadgeType        int64  `json:"-"` // 勋章类型 0=普通用户 1=总督 2=提督 3=舰长
+}
+
+// ExtractSuperChatMessage 从原始 JSON 中提取醒目留言信息
+func ExtractSuperChatMessage(raw string) (*SuperChatMessage, error) {
+	var outer struct {
+		Data json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 SUPER_CHAT_MESSAGE 外层消息失败: %w", err)
+	}
+	var data struct {
+		Gift struct {
+			GiftID   int64  `json:"gift_id"`
+			GiftName string `json:"gift_name"`
+			Num      int64  `json:"num"`
+		} `json:"gift"`
+		UID      int64 `json:"uid"`
+		UserInfo struct {
+			Uname string `json:"uname"`
+		} `json:"user_info"`
+		Message   string `json:"message"`
+		Price     int64  `json:"price"`
+		StartTime int64  `json:"start_time"`
+		MedalInfo *struct {
+			MedalLevel   int64  `json:"medal_level"`
+			MedalName    string `json:"medal_name"`
+			AnchorRoomID int64  `json:"anchor_roomid"`
+			AnchorUname  string `json:"anchor_uname"`
+			GuardLevel   int64  `json:"guard_level"`
+		} `json:"medal_info"`
+	}
+	if err := json.Unmarshal(outer.Data, &data); err != nil {
+		return nil, fmt.Errorf("解析 SUPER_CHAT_MESSAGE data 字段失败: %w", err)
+	}
+	result := &SuperChatMessage{
+		GiftID:    data.Gift.GiftID,
+		GiftName:  data.Gift.GiftName,
+		GiftNum:   data.Gift.Num,
+		UID:       data.UID,
+		Uname:     data.UserInfo.Uname,
+		Message:   data.Message,
+		Price:     data.Price * 100,
+		StartTime: data.StartTime,
+	}
+	if data.MedalInfo != nil {
+		m := data.MedalInfo
+		result.BadgeLevel = m.MedalLevel
+		result.BadgeName = m.MedalName
+		result.BadgeRoomID = m.AnchorRoomID
+		result.BadgeAnchorUname = m.AnchorUname
+		result.BadgeType = m.GuardLevel
+	}
+	return result, nil
+}
+
+// ExtractPkBattlePreNew 从原始 JSON 中提取 PK 准备信息
+func ExtractPkBattlePreNew(raw string) (*PkBattlePreNewInfo, error) {
+	var outer struct {
+		PkID      int64           `json:"pk_id"`
+		PkStatus  int64           `json:"pk_status"`
+		Timestamp int64           `json:"timestamp"`
+		Data      json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_PRE_NEW 外层消息失败: %w", err)
+	}
+	var data struct {
+		Uname      string `json:"uname"`
+		UID        int64  `json:"uid"`
+		RoomID     int64  `json:"room_id"`
+		BattleType int64  `json:"battle_type"`
+		MatchType  int64  `json:"match_type"`
+	}
+	if err := json.Unmarshal(outer.Data, &data); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_PRE_NEW data 字段失败: %w", err)
+	}
+	return &PkBattlePreNewInfo{
+		PkID:       outer.PkID,
+		PkStatus:   outer.PkStatus,
+		Timestamp:  outer.Timestamp,
+		Uname:      data.Uname,
+		UID:        data.UID,
+		RoomID:     data.RoomID,
+		BattleType: data.BattleType,
+		MatchType:  data.MatchType,
+	}, nil
+}
+
 // ExtractInteractWordV2 从原始 JSON 中提取 protobuf 编码的用户互动信息(INTERACT_WORD_V2)
 func ExtractInteractWordV2(raw string) (*InteractWordV2Info, error) {
 	// JSON 解析外层，提取 data.pb 字段
