@@ -326,19 +326,21 @@ func (s *Service) GetListenerStatus(ctx context.Context) (*ListenerStatusResp, i
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	isRunning := s.listener != nil && s.listener.IsRunning()
-	roomInfo, err := s.client.Room.GetRealRoomInfo(ctx, s.roomID)
-	if err != nil {
-		return nil, 60401, fmt.Errorf("无法在线获取直播间信息: %w", err)
-	}
 	resp := &ListenerStatusResp{
-		IsRunning:  isRunning,
-		RoomID:     s.roomID,
-		UID:        roomInfo.UID,
-		Title:      roomInfo.Title,
-		LiveStatus: roomInfo.LiveStatus,
-		Online:     roomInfo.Online,
-		Attention:  roomInfo.Attention,
-		LiveTime:   roomInfo.LiveTime,
+		IsRunning: isRunning,
+		RoomID:    s.roomID,
+	}
+	if s.roomID > 0 {
+		roomInfo, err := s.client.Room.GetRealRoomInfo(ctx, s.roomID)
+		if err != nil {
+			return nil, 60401, fmt.Errorf("无法在线获取直播间信息: %w", err)
+		}
+		resp.UID = roomInfo.UID
+		resp.Title = roomInfo.Title
+		resp.LiveStatus = roomInfo.LiveStatus
+		resp.Online = roomInfo.Online
+		resp.Attention = roomInfo.Attention
+		resp.LiveTime = roomInfo.LiveTime
 	}
 	if isRunning {
 		resp.MsgCount = s.stats.msgCount

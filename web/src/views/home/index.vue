@@ -1,16 +1,12 @@
 <template>
-  <AppPage show-footer>
+  <AppPage show-footer full>
     <!-- 已登录：登录信息 + 直播间 双栏布局 -->
     <div v-if="isLoggedIn" class="mb-4 flex gap-4">
       <!-- 登录信息卡片 -->
-      <n-card title="登录信息" size="small" class="w-240 flex-shrink-0">
-        <div class="flex items-center gap-3">
-          <n-avatar round :size="36" class="flex-shrink-0 bg-primary">
-            <span class="text-14 text-white font-bold">
-              {{ loginStatus.username?.charAt(0) || 'U' }}
-            </span>
-          </n-avatar>
-          <div class="min-w-0 flex-1">
+      <n-card title="登录信息" size="small" class="min-w-200 w-auto flex-shrink-0">
+        <div class="f-c-c flex-col">
+          <n-avatar round :size="48" class="bg-primary" :src="loginStatus.face" :bordered="true" />
+          <div class="mt-3 min-w-0 w-full text-center">
             <div class="truncate text-14 font-medium">
               {{ loginStatus.username }}
             </div>
@@ -18,21 +14,13 @@
               UID {{ loginStatus.uid }}
             </div>
           </div>
+          <n-button type="error" size="small" class="mt-4 w-full" :loading="logoutLoading" @click="handleLogout">
+            退出登录
+          </n-button>
         </div>
-        <n-button
-          type="error"
-          size="small"
-          text
-          class="mt-3"
-          :loading="logoutLoading"
-          @click="handleLogout"
-        >
-          退出登录
-        </n-button>
       </n-card>
-
       <!-- 直播间管理卡片 -->
-      <n-card title="直播间管理" size="small" class="flex-1">
+      <n-card title="直播间管理" size="small" class="min-w-300 flex-1">
         <!-- 加载中 -->
         <div v-if="listenerLoading && !listenerStatus" class="f-c-c py-6">
           <n-spin size="small" />
@@ -41,12 +29,8 @@
         <!-- 未绑定房间 -->
         <div v-else-if="!hasRoom" class="flex items-center gap-3">
           <n-input
-            v-model:value="roomIdInput"
-            placeholder="请输入直播间 ID"
-            size="small"
-            :disabled="roomBindLoading"
-            style="max-width: 240px"
-            @keyup.enter="handleRoomUpdate"
+            v-model:value="roomIdInput" placeholder="请输入直播间 ID" size="small" :disabled="roomBindLoading"
+            style="max-width: 240px" @keyup.enter="handleRoomUpdate"
           />
           <n-button size="small" type="primary" :loading="roomBindLoading" @click="handleRoomUpdate">
             确认绑定
@@ -55,23 +39,36 @@
 
         <!-- 已绑定房间 -->
         <template v-else>
-          <!-- 房间信息行 -->
-          <div class="mb-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="text-14 text-gray-400">直播间</span>
-              <span class="text-16 font-semibold">{{ listenerStatus.roomId }}</span>
-              <n-tag :type="isRunning ? 'success' : 'default'" size="small" round>
-                <template #icon>
-                  <i :class="isRunning ? 'i-material-symbols:play-circle-outline' : 'i-material-symbols:pause-circle-outline'" />
-                </template>
-                {{ isRunning ? '运行中' : '已停止' }}
-              </n-tag>
-            </div>
-            <span v-if="isRunning" class="text-12 text-gray-400">
-              已运行 {{ listenerStatus.uptime || '-' }}
-            </span>
+          <!-- 直播间标题 + 直播状态 -->
+          <div class="mb-3 flex items-center gap-2">
+            <span class="truncate text-16 font-semibold">{{ listenerStatus.title || '直播间' }}</span>
+            <n-tag :type="liveStatusTagType" size="small" round>
+              {{ liveStatusLabel }}
+            </n-tag>
+            <n-tag :type="isRunning ? 'success' : 'default'" size="small" round>
+              <template #icon>
+                <i
+                  :class="isRunning ? 'i-material-symbols:play-circle-outline' : 'i-material-symbols:pause-circle-outline'"
+                />
+              </template>
+              {{ isRunning ? '监听中' : '已停止' }}
+            </n-tag>
           </div>
 
+          <!-- 直播间基本信息 -->
+          <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-12 text-gray-400">
+            <span>房间号 <span class="text-gray-700 font-medium dark:text-gray-300">{{ listenerStatus.roomId
+            }}</span></span>
+            <span>主播 UID <span class="text-gray-700 font-medium dark:text-gray-300">{{ listenerStatus.uid
+            }}</span></span>
+            <span>人气 <span class="text-gray-700 font-medium dark:text-gray-300">{{ formatNumber(listenerStatus.online)
+            }}</span></span>
+            <span>关注 <span class="text-gray-700 font-medium dark:text-gray-300">{{
+              formatNumber(listenerStatus.attention)
+            }}</span></span>
+            <span v-if="listenerStatus.liveTime">开播 {{ listenerStatus.liveTime }}</span>
+            <span v-if="isRunning" class="text-gray-400">｜ 监听运行 {{ listenerStatus.uptime || '-' }}</span>
+          </div>
           <!-- 数据统计卡片 -->
           <div class="grid grid-cols-3 mb-3 gap-3">
             <div class="card-border rounded-6 auto-bg-highlight p-3 text-center">
@@ -99,40 +96,21 @@
               </div>
             </div>
           </div>
-
           <!-- 运行详情 -->
           <div v-if="isRunning" class="mb-3 text-12 text-gray-400">
             启动于 {{ listenerStatus.startTime || '-' }}
           </div>
-
           <!-- 操作按钮 -->
           <div class="flex items-center gap-2">
-            <n-button
-              v-if="!isRunning"
-              size="small"
-              type="primary"
-              :loading="startLoading"
-              @click="handleStart"
-            >
+            <n-button v-if="!isRunning" size="small" type="primary" :loading="startLoading" @click="handleStart">
               <i class="i-material-symbols:play-arrow mr-1" />
               启动监听
             </n-button>
-            <n-button
-              v-else
-              size="small"
-              type="warning"
-              :loading="stopLoading"
-              @click="handleStop"
-            >
+            <n-button v-else size="small" type="warning" :loading="stopLoading" @click="handleStop">
               <i class="i-material-symbols:stop mr-1" />
               停止监听
             </n-button>
-            <n-button
-              v-if="!isRunning"
-              size="small"
-              :loading="roomBindLoading"
-              @click="showRoomEdit = true"
-            >
+            <n-button v-if="!isRunning" size="small" :loading="roomBindLoading" @click="showRoomEdit = true">
               <i class="i-material-symbols:edit-outline mr-1" />
               修改直播间
             </n-button>
@@ -141,10 +119,7 @@
           <!-- 修改直播间 -->
           <div v-if="showRoomEdit" class="mt-3 flex items-center gap-3">
             <n-input
-              v-model:value="roomIdInput"
-              placeholder="请输入新的直播间 ID"
-              size="small"
-              :disabled="roomBindLoading"
+              v-model:value="roomIdInput" placeholder="请输入新的直播间 ID" size="small" :disabled="roomBindLoading"
               style="max-width: 240px"
             />
             <n-button size="small" type="primary" :loading="roomBindLoading" @click="handleRoomUpdate">
@@ -169,20 +144,13 @@
     </n-card>
 
     <!-- 消息模块（全宽，监听运行后可见） -->
-    <n-card v-if="isRunning" title="实时消息" size="small" class="mb-4">
+    <n-card v-if="isRunning" title="实时消息" size="small" class="mb-4 flex-1">
       <!-- 消息展示区 -->
-      <div
-        ref="chatContainerRef"
-        class="cus-scroll mb-3 h-320 overflow-y-auto card-border rounded-6 auto-bg p-3"
-      >
+      <div ref="chatContainerRef" class="cus-scroll mb-3 h-320 overflow-y-auto card-border rounded-6 auto-bg p-3">
         <div v-if="messages.length === 0" class="h-full f-c-c text-14 text-gray-400">
           暂无消息，等待直播数据...
         </div>
-        <div
-          v-for="(msg, idx) in messages"
-          :key="idx"
-          class="mb-1 flex items-start gap-2"
-        >
+        <div v-for="(msg, idx) in messages" :key="idx" class="mb-1 flex items-start gap-2">
           <span class="mt-1 flex-shrink-0 text-12 text-gray-400">
             {{ formatMsgTime(msg.timestamp) }}
           </span>
@@ -196,20 +164,11 @@
       <!-- 发送弹幕 -->
       <div class="flex gap-2">
         <n-input
-          v-model:value="danmuText"
-          placeholder="输入弹幕内容（1-40 字符）"
-          size="small"
-          :maxlength="40"
-          show-count
-          :disabled="sendLoading"
-          class="flex-1"
-          @keyup.enter="handleSendDanmu"
+          v-model:value="danmuText" placeholder="输入弹幕内容（1-40 字符）" size="small" :maxlength="40" show-count
+          :disabled="sendLoading" class="flex-1" @keyup.enter="handleSendDanmu"
         />
         <n-button
-          size="small"
-          type="primary"
-          :loading="sendLoading"
-          :disabled="!danmuText.trim()"
+          size="small" type="primary" :loading="sendLoading" :disabled="!danmuText.trim()"
           @click="handleSendDanmu"
         >
           发送
@@ -219,22 +178,16 @@
 
     <!-- 登录弹窗 -->
     <n-modal
-      v-model:show="showLoginModal"
-      title="扫码登录 B站"
-      preset="card"
-      style="width: 440px"
-      :mask-closable="false"
+      v-model:show="showLoginModal" title="扫码登录 B站" preset="card" style="width: 440px" :mask-closable="false"
       @after-leave="clearPollTimer"
     >
       <div class="f-c-c flex-col py-4">
         <n-spin v-if="qrLoading" size="medium" />
-
         <div v-else-if="qrcodeUrl" class="f-c-c flex-col">
           <div class="rounded-8 bg-white p-4">
             <QrcodeVue :value="qrcodeUrl" :size="200" level="M" />
           </div>
-
-          <div class="mt-4 f-c-c gap-2">
+          <div class="mt-12 f-c-c gap-2">
             <n-tag v-if="qrPollStatus === 'waiting'" type="info" size="large">
               <i class="i-material-symbols:qr-code-scanner mr-2" />
               等待扫描
@@ -251,18 +204,15 @@
               <i class="i-material-symbols:check-circle mr-2" />
               登录成功
             </n-tag>
+            <p v-else class="mt-2 text-14 text-gray-400">
+              {{ qrMessage }}
+            </p>
           </div>
-
-          <p v-if="qrMessage && qrPollStatus !== 'expired'" class="mt-2 text-14 text-gray-400">
-            {{ qrMessage }}
-          </p>
-
-          <n-button v-if="qrPollStatus === 'expired'" type="primary" class="mt-4" @click="refreshQrcode">
+          <n-button v-if="qrPollStatus === 'expired'" type="primary" class="mt-12" @click="refreshQrcode">
             <i class="i-material-symbols:refresh mr-2" />
             刷新二维码
           </n-button>
         </div>
-
         <div v-else class="f-c-c flex-col py-6">
           <p class="mb-4 text-14 text-gray-400">
             获取二维码失败
@@ -281,21 +231,41 @@ import QrcodeVue from 'qrcode.vue'
 import { useAuthStore } from '@/store'
 import api, { buildWsUrl } from './api'
 
-// ==================== 登录状态 ====================
-const loginStatus = ref(null)
+// 登录状态
+const loginStatus = ref({
+  isLoggedIn: false,
+  uid: 0,
+  username: '',
+  face: '',
+  buvid: '',
+})
 const loginLoading = ref(false)
 
-// ==================== QR 弹窗状态 ====================
+// QR 弹窗状态
 const showLoginModal = ref(false)
 const qrcodeUrl = ref('')
 const qrcodeKey = ref('')
-const qrPollStatus = ref('') // 'waiting' | 'scanned' | 'expired' | 'success'
+const qrPollStatus = ref('waiting') // 'waiting' | 'scanned' | 'expired' | 'success'
 const qrMessage = ref('')
 const qrLoading = ref(false)
 let qrPollTimer = null
 
 // ==================== 直播间状态 ====================
-const listenerStatus = ref(null)
+const listenerStatus = ref({
+  isRunning: false,
+  roomId: 0,
+  startTime: '',
+  uptime: '',
+  msgCount: 0,
+  danmuCount: 0,
+  giftCount: 0,
+  uid: 0,
+  title: '',
+  liveStatus: 0,
+  online: 0,
+  attention: 0,
+  liveTime: '',
+})
 const listenerLoading = ref(false)
 const roomIdInput = ref('')
 const roomBindLoading = ref(false)
@@ -319,6 +289,16 @@ const logoutLoading = ref(false)
 const isLoggedIn = computed(() => loginStatus.value?.isLoggedIn === true)
 const hasRoom = computed(() => !!listenerStatus.value?.roomId)
 const isRunning = computed(() => listenerStatus.value?.isRunning === true)
+
+const liveStatusLabel = computed(() => {
+  const map = { 0: '未开播', 1: '直播中', 2: '轮播中' }
+  return map[listenerStatus.value?.liveStatus] || '未知'
+})
+
+const liveStatusTagType = computed(() => {
+  const map = { 0: 'default', 1: 'success', 2: 'info' }
+  return map[listenerStatus.value?.liveStatus] || 'default'
+})
 
 // ==================== 消息类型映射 ====================
 const CMD_LABELS = {
@@ -375,70 +355,88 @@ function formatMsgTime(ts) {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
 }
 
-// ==================== 登录相关 ====================
+// 登录模块 - 获取登录状态
 async function fetchLoginStatus() {
   loginLoading.value = true
   try {
     const res = await api.getLoginStatus()
-    loginStatus.value = res.data
+    if (res.code === 0) {
+      Object.assign(loginStatus.value, res.data)
+    }
   }
   catch {
-    loginStatus.value = null
+    loginStatus = ref({
+      isLoggedIn: false,
+      uid: 0,
+      username: '',
+      face: '',
+      buvid: '',
+    })
   }
   finally {
     loginLoading.value = false
   }
 }
 
+// 登录模块 - 打开扫码登录弹窗
 function openLoginModal() {
   showLoginModal.value = true
   fetchQRCode()
 }
 
+// 登录模块 - 获取登录二维码信息
 async function fetchQRCode() {
   qrLoading.value = true
-  qrPollStatus.value = ''
+  qrPollStatus.value = 'waiting'
   qrMessage.value = ''
   try {
     const res = await api.getQRCode()
-    qrcodeUrl.value = res.data.url
-    qrcodeKey.value = res.data.qrcodeKey
-    startPolling()
+    if (res.code === 0) {
+      qrcodeUrl.value = res.data.url
+      qrcodeKey.value = res.data.qrcodeKey
+      if (qrcodeKey.value) {
+        startPolling()
+      }
+    }
   }
   catch {
     qrcodeUrl.value = ''
+    qrcodeKey.value = ''
   }
   finally {
     qrLoading.value = false
   }
 }
 
+// 登录模块 - 轮询二维码登录状态
 function startPolling() {
   clearPollTimer()
   qrPollTimer = setInterval(async () => {
     try {
       const res = await api.pollQRCode(qrcodeKey.value)
-      if (res.data.isSuccess) {
-        qrPollStatus.value = 'success'
-        clearPollTimer()
-        // 延迟关闭弹窗，让用户看到成功状态
-        setTimeout(() => {
-          showLoginModal.value = false
-          refreshAfterLogin()
-        }, 1000)
-      }
-      else if (res.data.isExpired) {
-        qrPollStatus.value = 'expired'
-        qrMessage.value = res.data.message || ''
-        clearPollTimer()
-      }
-      else if (res.data.isScanned) {
-        qrPollStatus.value = 'scanned'
-        qrMessage.value = res.data.message || ''
-      }
-      else {
-        qrPollStatus.value = 'waiting'
-        qrMessage.value = res.data.message || ''
+      if (res.code === 0) {
+        if (res.data.isSuccess) {
+          qrPollStatus.value = 'success'
+          clearPollTimer()
+          // 延迟关闭弹窗，让用户看到成功状态
+          setTimeout(() => {
+            showLoginModal.value = false
+            refreshAfterLogin()
+          }, 1000)
+        }
+        else if (res.data.isExpired) {
+          qrPollStatus.value = 'expired'
+          qrMessage.value = res.data.message || ''
+          clearPollTimer()
+        }
+        else if (res.data.isScanned) {
+          qrPollStatus.value = 'scanned'
+          qrMessage.value = res.data.message || ''
+        }
+        else {
+          qrPollStatus.value = 'waiting'
+          qrMessage.value = res.data.message || ''
+        }
       }
     }
     catch {
@@ -447,11 +445,13 @@ function startPolling() {
   }, 4000)
 }
 
+// 登录模块 - 重新获取登录二维码
 function refreshQrcode() {
   clearPollTimer()
   fetchQRCode()
 }
 
+// 登录模块 - 清空二维码登录状态轮询
 function clearPollTimer() {
   if (qrPollTimer) {
     clearInterval(qrPollTimer)
@@ -459,6 +459,7 @@ function clearPollTimer() {
   }
 }
 
+// 登录模块 - 刷新登录状态
 async function refreshAfterLogin() {
   await fetchLoginStatus()
   if (isLoggedIn.value) {
@@ -466,6 +467,7 @@ async function refreshAfterLogin() {
   }
 }
 
+// 登录模块 - 退出登录
 async function handleLogout() {
   logoutLoading.value = true
   try {
@@ -478,35 +480,46 @@ async function handleLogout() {
     roomIdInput.value = ''
     $message.success('已退出登录')
   }
-  catch {
-    // interceptor 已处理错误提示
-  }
   finally {
     logoutLoading.value = false
   }
 }
 
-// ==================== 直播间相关 ====================
+// 直播间模块 - 获取直播间状态
 async function fetchListenerStatus() {
   if (!isLoggedIn.value)
     return
-
   listenerLoading.value = true
   try {
     const res = await api.getListenerStatus()
-    const wasRunning = listenerStatus.value?.isRunning
-    listenerStatus.value = res.data
-
-    // 状态变化时管理 WebSocket
-    if (res.data.isRunning && !wasRunning) {
-      connectWebSocket()
-    }
-    else if (!res.data.isRunning && wasRunning) {
-      disconnectWebSocket()
+    if (res.code === 0) {
+      const wasRunning = listenerStatus.value?.isRunning
+      Object.assign(listenerStatus.value, res.data)
+      // 状态变化时管理 WebSocket
+      if (res.data.isRunning && !wasRunning) {
+        connectWebSocket()
+      }
+      else if (!res.data.isRunning && wasRunning) {
+        disconnectWebSocket()
+      }
     }
   }
   catch {
-    listenerStatus.value = null
+    listenerStatus = ref({
+      isRunning: false,
+      roomId: 0,
+      startTime: '',
+      uptime: '',
+      msgCount: 0,
+      danmuCount: 0,
+      giftCount: 0,
+      uid: 0,
+      title: '',
+      liveStatus: 0,
+      online: 0,
+      attention: 0,
+      liveTime: '',
+    })
     disconnectWebSocket()
   }
   finally {
@@ -514,80 +527,74 @@ async function fetchListenerStatus() {
   }
 }
 
+// 直播间模块 - 绑定直播间
 async function handleRoomUpdate() {
   const id = Number.parseInt(roomIdInput.value, 10)
   if (!id || id < 1) {
     $message.warning('请输入有效的直播间 ID')
     return
   }
-
   roomBindLoading.value = true
   try {
-    await api.updateRoom(id)
-    $message.success('直播间绑定成功')
-    roomIdInput.value = ''
-    showRoomEdit.value = false
-    await fetchListenerStatus()
-  }
-  catch {
-    // interceptor 已处理错误提示
+    const res = await api.updateRoom(id)
+    if (res.code === 0) {
+      $message.success('直播间绑定成功')
+      roomIdInput.value = ''
+      showRoomEdit.value = false
+      await fetchListenerStatus()
+    }
   }
   finally {
     roomBindLoading.value = false
   }
 }
 
+// 直播间模块 - 启动监听
 async function handleStart() {
   startLoading.value = true
   try {
-    await api.startListener()
-    $message.success('监听已启动')
-    await fetchListenerStatus()
-  }
-  catch {
-    // interceptor 已处理错误提示
+    const res = await api.startListener()
+    if (res.code === 0) {
+      $message.success('监听已启动')
+      await fetchListenerStatus()
+    }
   }
   finally {
     startLoading.value = false
   }
 }
 
+// 直播间模块 - 停止监听
 async function handleStop() {
   stopLoading.value = true
   try {
-    await api.stopListener()
-    $message.success('监听已停止')
-    disconnectWebSocket()
-    await fetchListenerStatus()
-  }
-  catch {
-    // interceptor 已处理错误提示
+    const res = await api.stopListener()
+    if (res.code === 0) {
+      $message.success('监听已停止')
+      disconnectWebSocket()
+      await fetchListenerStatus()
+    }
   }
   finally {
     stopLoading.value = false
   }
 }
 
-// ==================== WebSocket ====================
+// 消息模块 - 连接消息流
 function connectWebSocket() {
   if (!listenerStatus.value?.isRunning)
     return
   if (wsClient?.readyState === WebSocket.OPEN)
     return
-
   clearTimeout(reconnectTimer)
-
   const token = useAuthStore().accessToken
   if (!token)
     return
-
   const url = buildWsUrl(token)
   wsClient = new WebSocket(url)
-
   wsClient.onopen = () => {
     console.warn('[Live] WebSocket 已连接')
   }
-
   wsClient.onmessage = (event) => {
     try {
       const { cmd, data } = JSON.parse(event.data)
@@ -596,12 +603,10 @@ function connectWebSocket() {
         data,
         timestamp: Date.now(),
       })
-
       // FIFO 内存控制
       if (messages.value.length > MAX_MESSAGES) {
         messages.value.splice(0, messages.value.length - MAX_MESSAGES)
       }
-
       // 自动滚动到底部
       nextTick(() => scrollToBottom())
     }
@@ -609,15 +614,12 @@ function connectWebSocket() {
       console.error('[Live] WebSocket 消息解析失败:', e)
     }
   }
-
   wsClient.onerror = (e) => {
     console.error('[Live] WebSocket 错误:', e)
   }
-
   wsClient.onclose = () => {
     console.warn('[Live] WebSocket 已断开')
     wsClient = null
-
     // 非预期断开时自动重连
     if (listenerStatus.value?.isRunning) {
       reconnectTimer = setTimeout(() => {
@@ -627,6 +629,7 @@ function connectWebSocket() {
   }
 }
 
+// 消息模块 - 关闭消息流
 function disconnectWebSocket() {
   clearTimeout(reconnectTimer)
   if (wsClient) {
@@ -635,7 +638,7 @@ function disconnectWebSocket() {
   }
 }
 
-// ==================== 发送弹幕 ====================
+// 消息模块 - 发送弹幕
 async function handleSendDanmu() {
   const text = danmuText.value.trim()
   if (!text)
@@ -644,22 +647,29 @@ async function handleSendDanmu() {
     $message.warning('弹幕内容不能超过 40 个字符')
     return
   }
-
   sendLoading.value = true
   try {
-    await api.sendDanmu(text)
-    danmuText.value = ''
-    $message.success('弹幕发送成功')
-  }
-  catch {
-    // interceptor 已处理错误提示
+    const res = await api.sendDanmu(text)
+    if (res.code === 0) {
+      danmuText.value = ''
+      $message.success('弹幕发送成功')
+    }
   }
   finally {
     sendLoading.value = false
   }
 }
 
-// ==================== 辅助函数 ====================
+// 辅助方法 - 数字转换
+function formatNumber(num) {
+  if (num == null)
+    return '-'
+  if (num >= 10000)
+    return `${(num / 10000).toFixed(1)}万`
+  return String(num)
+}
+
+// 辅助方法 - 滚动到底部
 function scrollToBottom() {
   const el = chatContainerRef.value
   if (!el)
@@ -671,7 +681,7 @@ function scrollToBottom() {
   }
 }
 
-// ==================== 生命周期 ====================
+// 生命周期
 onMounted(async () => {
   await fetchLoginStatus()
   if (isLoggedIn.value) {
