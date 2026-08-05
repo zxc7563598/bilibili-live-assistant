@@ -10,10 +10,15 @@ import (
 
 type Repository interface {
 	base.Repository[model.AdminRole]
+	// ExistsByAdminIDAndRoleID 判断管理员是否拥有指定角色
 	ExistsByAdminIDAndRoleID(ctx context.Context, tx *gorm.DB, adminID, roleID int64) (bool, error)
+	// DeleteByAdminID 根据管理员ID删除绑定记录
 	DeleteByAdminID(ctx context.Context, tx *gorm.DB, adminID int64) error
+	// ListByAdminIDs 根据多个管理员ID获取全部相关角色
 	ListByAdminIDs(ctx context.Context, tx *gorm.DB, adminIDs []int64) ([]model.AdminRole, error)
+	// BindRoles 绑定管理员/角色
 	BindRoles(ctx context.Context, tx *gorm.DB, adminID []int64, roleID int64) error
+	// UnbindRoles 取消绑定管理员/角色
 	UnbindRoles(ctx context.Context, tx *gorm.DB, adminIDs []int64, roleID int64) error
 }
 

@@ -12,12 +12,19 @@ import (
 
 type Repository interface {
 	base.Repository[model.Admin]
+	// GetByUsername 根据 username 获取账号信息
 	GetByUsername(ctx context.Context, tx *gorm.DB, username string) (*model.Admin, error)
+	// UpdateTokenByID 根据 id 更换管理员 refreshToken
 	UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error
+	// UpdatePasswordByID 更新管理员密码
 	UpdatePasswordByID(ctx context.Context, tx *gorm.DB, adminID int64, password string) error
+	// UpdateBasicInfoByID 更新管理员基本信息
 	UpdateBasicInfoByID(ctx context.Context, tx *gorm.DB, adminID int64, form model.AdminUpdateBasicInfoByIdForm) error
+	// UpdateRoleIDByID 更新管理员角色信息
 	UpdateRoleIDByID(ctx context.Context, tx *gorm.DB, adminID int64, roleID int64) error
+	// ListPage 获取分页列表数据
 	ListPage(ctx context.Context, tx *gorm.DB, query model.AdminListPageQuery) ([]model.AdminListItem, int64, error)
+	// UpdateProfileByID 更新管理员个人资料
 	UpdateProfileByID(ctx context.Context, tx *gorm.DB, adminID int64, form model.AdminUpdateProfileByIdForm) error
 }
 

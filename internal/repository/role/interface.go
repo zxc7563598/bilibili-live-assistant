@@ -12,9 +12,13 @@ import (
 
 type Repository interface {
 	base.Repository[model.Role]
+	// GetByCode 根据 code 获取单条数据
 	GetByCode(ctx context.Context, tx *gorm.DB, code string) (*model.Role, error)
+	// ListEnabled 获取全部启用数据
 	ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Role, error)
+	// ListPage 获取分页列表数据
 	ListPage(ctx context.Context, tx *gorm.DB, query model.RoleListPageQuery) ([]model.RoleListItem, int64, error)
+	// UpdateByID 变更基本信息
 	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, queue model.RoleUpdateByIdForm) error
 }
 

@@ -10,8 +10,11 @@ import (
 
 type Repository interface {
 	base.Repository[model.RoleMenu]
+	// ListByRoleID 根据角色ID获取权限信息
 	ListByRoleID(ctx context.Context, tx *gorm.DB, roleID int64) ([]model.RoleMenu, error)
+	// DeleteByRoleID 删除角色ID相关的权限
 	DeleteByRoleID(ctx context.Context, tx *gorm.DB, roleID int64) error
+	// ListByRoleIDs 根据角色ID批量获取
 	ListByRoleIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]model.RoleMenu, error)
 }
 

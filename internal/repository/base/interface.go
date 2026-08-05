@@ -8,25 +8,40 @@ import (
 
 // Repository 定义通用接口
 type Repository[T any] interface {
+	// GetByID 根据主键查询记录
 	GetByID(ctx context.Context, tx *gorm.DB, id int64) (*T, error)
+	// GetByIDs 根据主键批量查询记录
 	GetByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]T, error)
+	// FindAll 查询所有记录
 	FindAll(ctx context.Context, tx *gorm.DB) ([]T, error)
+	// FindByField 根据指定字段查询记录列表
 	FindByField(ctx context.Context, tx *gorm.DB, field string, value any) ([]T, error)
+	// FindOneByField 根据指定字段查询单条记录
 	FindOneByField(ctx context.Context, tx *gorm.DB, field string, value any) (*T, error)
+	// FindByCondition 根据条件映射查询记录列表
 	FindByCondition(ctx context.Context, tx *gorm.DB, cond map[string]any) ([]T, error)
+	// Create 创建一条记录，返回创建后的模型
 	Create(ctx context.Context, tx *gorm.DB, entity *T) (*T, error)
+	// CreateBatch 批量创建记录
 	CreateBatch(ctx context.Context, tx *gorm.DB, entities []T) error
+	// Update 更新一条记录（根据主键保存整个实体）
 	Update(ctx context.Context, tx *gorm.DB, entity *T) error
+	// UpdateMap 使用map更新指定字段
 	UpdateMap(ctx context.Context, tx *gorm.DB, field string, value any, updates map[string]any) error
+	// UpdateField 根据主键更新单个字段
 	UpdateField(ctx context.Context, tx *gorm.DB, id int64, field string, value any) error
+	// Delete 根据主键删除记录
 	Delete(ctx context.Context, tx *gorm.DB, id int64) error
+	// DeleteByIDs 根据主键批量删除记录
 	DeleteByIDs(ctx context.Context, tx *gorm.DB, ids []int64) error
+	// Count 统计记录总数
 	Count(ctx context.Context, tx *gorm.DB) (int64, error)
+	// Exists 判断指定字段的记录是否存在
 	Exists(ctx context.Context, tx *gorm.DB, field string, value any) (bool, error)
 }
 
-// GetByID 根据主键查询记录。
-// 如果记录不存在，返回 (nil, nil)。
+// GetByID 根据主键查询记录
+// 如果记录不存在，返回 (nil, nil)
 func (r *gormRepo[T]) GetByID(ctx context.Context, tx *gorm.DB, id int64) (*T, error) {
 	db := r.getDB(ctx, tx)
 	var entity T
@@ -39,8 +54,8 @@ func (r *gormRepo[T]) GetByID(ctx context.Context, tx *gorm.DB, id int64) (*T, e
 	return &entity, nil
 }
 
-// GetByIDs 根据主键批量查询记录。
-// 返回匹配的记录列表，如果没有匹配记录则返回空切片。
+// GetByIDs 根据主键批量查询记录
+// 返回匹配的记录列表，如果没有匹配记录则返回空切片
 func (r *gormRepo[T]) GetByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]T, error) {
 	db := r.getDB(ctx, tx)
 	var list []T
@@ -50,7 +65,7 @@ func (r *gormRepo[T]) GetByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([
 	return list, nil
 }
 
-// FindAll 查询所有记录。
+// FindAll 查询所有记录
 func (r *gormRepo[T]) FindAll(ctx context.Context, tx *gorm.DB) ([]T, error) {
 	db := r.getDB(ctx, tx)
 	var list []T
@@ -60,7 +75,7 @@ func (r *gormRepo[T]) FindAll(ctx context.Context, tx *gorm.DB) ([]T, error) {
 	return list, nil
 }
 
-// FindByField 根据指定字段查询记录列表。
+// FindByField 根据指定字段查询记录列表
 func (r *gormRepo[T]) FindByField(ctx context.Context, tx *gorm.DB, field string, value any) ([]T, error) {
 	db := r.getDB(ctx, tx)
 	var list []T
@@ -70,8 +85,8 @@ func (r *gormRepo[T]) FindByField(ctx context.Context, tx *gorm.DB, field string
 	return list, nil
 }
 
-// FindOneByField 根据指定字段查询单条记录。
-// 如果记录不存在，返回 (nil, nil)。
+// FindOneByField 根据指定字段查询单条记录
+// 如果记录不存在，返回 (nil, nil)
 func (r *gormRepo[T]) FindOneByField(ctx context.Context, tx *gorm.DB, field string, value any) (*T, error) {
 	db := r.getDB(ctx, tx)
 	var entity T
@@ -84,7 +99,7 @@ func (r *gormRepo[T]) FindOneByField(ctx context.Context, tx *gorm.DB, field str
 	return &entity, nil
 }
 
-// FindByCondition 根据条件映射查询记录列表。
+// FindByCondition 根据条件映射查询记录列表
 func (r *gormRepo[T]) FindByCondition(ctx context.Context, tx *gorm.DB, cond map[string]any) ([]T, error) {
 	db := r.getDB(ctx, tx)
 	var list []T
@@ -104,8 +119,8 @@ func (r *gormRepo[T]) Create(ctx context.Context, tx *gorm.DB, entity *T) (*T, e
 	return entity, nil
 }
 
-// CreateBatch 批量创建记录。
-// 如果实体列表为空，则不执行任何操作。
+// CreateBatch 批量创建记录
+// 如果实体列表为空，则不执行任何操作
 func (r *gormRepo[T]) CreateBatch(ctx context.Context, tx *gorm.DB, entities []T) error {
 	db := r.getDB(ctx, tx)
 	if len(entities) == 0 {
@@ -114,7 +129,7 @@ func (r *gormRepo[T]) CreateBatch(ctx context.Context, tx *gorm.DB, entities []T
 	return db.Create(&entities).Error
 }
 
-// Update 更新一条记录（根据主键保存整个实体）。
+// Update 更新一条记录（根据主键保存整个实体）
 func (r *gormRepo[T]) Update(ctx context.Context, tx *gorm.DB, entity *T) error {
 	db := r.getDB(ctx, tx)
 	return db.Save(entity).Error
@@ -126,20 +141,20 @@ func (r *gormRepo[T]) UpdateMap(ctx context.Context, tx *gorm.DB, field string, 
 	return db.Model(new(T)).Where(field+" = ?", value).Updates(updates).Error
 }
 
-// UpdateField 根据主键更新单个字段。
+// UpdateField 根据主键更新单个字段
 func (r *gormRepo[T]) UpdateField(ctx context.Context, tx *gorm.DB, id int64, field string, value any) error {
 	db := r.getDB(ctx, tx)
 	return db.Model(new(T)).Where("id = ?", id).Update(field, value).Error
 }
 
-// Delete 根据主键删除记录。
+// Delete 根据主键删除记录
 func (r *gormRepo[T]) Delete(ctx context.Context, tx *gorm.DB, id int64) error {
 	db := r.getDB(ctx, tx)
 	return db.Delete(new(T), id).Error
 }
 
-// DeleteByIDs 根据主键批量删除记录。
-// 如果主键列表为空，则不执行任何操作。
+// DeleteByIDs 根据主键批量删除记录
+// 如果主键列表为空，则不执行任何操作
 func (r *gormRepo[T]) DeleteByIDs(ctx context.Context, tx *gorm.DB, ids []int64) error {
 	db := r.getDB(ctx, tx)
 	if len(ids) == 0 {
@@ -148,7 +163,7 @@ func (r *gormRepo[T]) DeleteByIDs(ctx context.Context, tx *gorm.DB, ids []int64)
 	return db.Delete(new(T), ids).Error
 }
 
-// Count 统计记录总数。
+// Count 统计记录总数
 func (r *gormRepo[T]) Count(ctx context.Context, tx *gorm.DB) (int64, error) {
 	db := r.getDB(ctx, tx)
 	var total int64
@@ -158,7 +173,7 @@ func (r *gormRepo[T]) Count(ctx context.Context, tx *gorm.DB) (int64, error) {
 	return total, nil
 }
 
-// Exists 判断指定字段的记录是否存在。
+// Exists 判断指定字段的记录是否存在
 func (r *gormRepo[T]) Exists(ctx context.Context, tx *gorm.DB, field string, value any) (bool, error) {
 	db := r.getDB(ctx, tx)
 	var count int64

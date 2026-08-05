@@ -11,11 +11,17 @@ import (
 
 type Repository interface {
 	base.Repository[model.Menu]
+	// ListEnabled 获取全部启用菜单
 	ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Menu, error)
+	// ListEnabledByIDs 根据ID获取全部菜单
 	ListEnabledByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]model.Menu, error)
+	// ExistsByPath 根据路径获取菜单是否存在
 	ExistsByPath(ctx context.Context, tx *gorm.DB, path string) (bool, error)
+	// ListButtonsByParentID 获取菜单下的按钮
 	ListButtonsByParentID(ctx context.Context, tx *gorm.DB, parentID int64) ([]model.Menu, error)
+	// UpdateByID 变更菜单基本信息
 	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.MenuUpdateByIdForm) error
+	// UpdateEnableByID 切换菜单启动状态
 	UpdateEnableByID(ctx context.Context, tx *gorm.DB, id int64) error
 }
 
