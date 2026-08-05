@@ -114,7 +114,7 @@ func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (Refres
 }
 
 // Logout 用于退出管理员登录
-func (s *Service) Logout(ctx context.Context, adminID uint64) (int, error) {
+func (s *Service) Logout(ctx context.Context, adminID int64) (int, error) {
 	// 清空用户token
 	if s.rdb != nil {
 		err := s.rdb.Del(ctx,
@@ -133,7 +133,7 @@ func (s *Service) Logout(ctx context.Context, adminID uint64) (int, error) {
 }
 
 // SwitchRole 用于切换管理员角色信息
-func (s *Service) SwitchRole(ctx context.Context, adminID uint64, code string) (SwitchRoleResp, int, error) {
+func (s *Service) SwitchRole(ctx context.Context, adminID int64, code string) (SwitchRoleResp, int, error) {
 	// 获取角色信息
 	role, err := s.roleRepo.GetByCode(ctx, nil, code)
 	if err != nil {
@@ -170,7 +170,7 @@ func (s *Service) SwitchRole(ctx context.Context, adminID uint64, code string) (
 }
 
 // ChangePassword 用于根据管理员旧密码修改密码
-func (s *Service) ChangePassword(ctx context.Context, adminID uint64, oldPassword, newPassword string) (int, error) {
+func (s *Service) ChangePassword(ctx context.Context, adminID int64, oldPassword, newPassword string) (int, error) {
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
@@ -213,7 +213,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		return ListPageResp{}, 60101, err
 	}
 	// 获取列表管理员角色
-	adminIDs := make([]uint64, 0, len(admins))
+	adminIDs := make([]int64, 0, len(admins))
 	for _, v := range admins {
 		adminIDs = append(adminIDs, v.ID)
 	}
@@ -230,7 +230,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 }
 
 // Details 用于获取单个管理员的详细信息
-func (s *Service) Details(ctx context.Context, adminID uint64) (DetailsResp, int, error) {
+func (s *Service) Details(ctx context.Context, adminID int64) (DetailsResp, int, error) {
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
@@ -282,7 +282,7 @@ func (s *Service) Details(ctx context.Context, adminID uint64) (DetailsResp, int
 // Save 用于创建或修改管理员信息
 func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 	// 在事务中创建/更新管理员并绑定角色
-	var adminID uint64
+	var adminID int64
 	var errCode int
 	var err error
 	isCreate := req.ID == nil || *req.ID == 0
@@ -311,7 +311,7 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 }
 
 // Delete 用于删除管理员信息
-func (s *Service) Delete(ctx context.Context, adminID uint64) (int, error) {
+func (s *Service) Delete(ctx context.Context, adminID int64) (int, error) {
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
@@ -343,7 +343,7 @@ func (s *Service) Delete(ctx context.Context, adminID uint64) (int, error) {
 }
 
 // ResetAdminPassword 修改管理员密码
-func (s *Service) ResetAdminPassword(ctx context.Context, adminID uint64, newPassword string) (int, error) {
+func (s *Service) ResetAdminPassword(ctx context.Context, adminID int64, newPassword string) (int, error) {
 	// 验证管理员是否存在
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {

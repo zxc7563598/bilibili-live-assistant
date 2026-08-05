@@ -524,7 +524,7 @@ func (h *Handler) UpdatePassword(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.id", req.ID),
+			zap.Int64("req.id", req.ID),
 		)
 		response.Error(c, lang, errCode)
 		return
@@ -579,7 +579,7 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.id", req.ID),
+			zap.Int64("req.id", req.ID),
 			zap.Any("req.nickname", req.Nickname),
 			zap.Any("req.gender", req.Gender),
 			zap.Any("req.Address", req.Address),

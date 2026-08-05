@@ -15,7 +15,7 @@ type Repository interface {
 	GetByCode(ctx context.Context, tx *gorm.DB, code string) (*model.Role, error)
 	ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Role, error)
 	ListPage(ctx context.Context, tx *gorm.DB, query model.RoleListPageQuery) ([]model.RoleListItem, int64, error)
-	UpdateByID(ctx context.Context, tx *gorm.DB, id uint64, queue model.RoleUpdateByIdForm) error
+	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, queue model.RoleUpdateByIdForm) error
 }
 
 // GetByCode 根据 code 获取单条数据
@@ -55,7 +55,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleLi
 }
 
 // UpdateByID 变更基本信息
-func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id uint64, form model.RoleUpdateByIdForm) error {
+func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.RoleUpdateByIdForm) error {
 	updateMap := make(map[string]any)
 	if v := form.Code; v != nil && *v != "" {
 		updateMap["code"] = *v

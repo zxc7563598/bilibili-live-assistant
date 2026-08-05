@@ -39,7 +39,7 @@ func (s *Service) MenuExists(ctx context.Context, path string) (bool, int, error
 }
 
 // MenuButtons 用于获取菜单下的按钮
-func (s *Service) MenuButtons(ctx context.Context, parentID uint64) ([]MenuItem, int, error) {
+func (s *Service) MenuButtons(ctx context.Context, parentID int64) ([]MenuItem, int, error) {
 	buttons, err := s.menuRepo.ListButtonsByParentID(ctx, nil, parentID)
 	if err != nil {
 		return nil, 60301, err
@@ -72,7 +72,7 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 }
 
 // SetMenuEnable 用于切换菜单启动状态
-func (s *Service) SetMenuEnable(ctx context.Context, id uint64) (int, error) {
+func (s *Service) SetMenuEnable(ctx context.Context, id int64) (int, error) {
 	err := s.menuRepo.UpdateEnableByID(ctx, nil, id)
 	if err != nil {
 		return 60304, err
@@ -81,7 +81,7 @@ func (s *Service) SetMenuEnable(ctx context.Context, id uint64) (int, error) {
 }
 
 // Delete 用于删除菜单
-func (s *Service) Delete(ctx context.Context, id uint64) (int, error) {
+func (s *Service) Delete(ctx context.Context, id int64) (int, error) {
 	err := s.menuRepo.Delete(ctx, nil, id)
 	if err != nil {
 		return 60305, err

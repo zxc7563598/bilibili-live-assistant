@@ -47,7 +47,7 @@ type AdminListPageReq struct {
 // AdminSaveReq 变更管理员信息请求
 type AdminSaveReq struct {
 	// 管理员ID
-	ID *uint64 `json:"id" example:"1"`
+	ID *int64 `json:"id" example:"1"`
 	// 状态
 	Enable *bool `json:"enable" example:"true"`
 	// 账号
@@ -55,19 +55,19 @@ type AdminSaveReq struct {
 	// 密码
 	Password *string `json:"password" example:"123456"`
 	// 角色ID组
-	RoleIds []uint64 `json:"roleIds" example:"1,2"`
+	RoleIds []int64 `json:"roleIds" example:"1,2"`
 }
 
 // AdminDeleteReq 删除管理员信息请求
 type AdminDeleteReq struct {
 	// 管理员ID
-	ID uint64 `json:"id" binding:"required" err:"required=10101" example:"2"`
+	ID int64 `json:"id" binding:"required" err:"required=10101" example:"2"`
 }
 
 // AdminResetAdminPasswordReq 变更管理员密码请求
 type AdminResetAdminPasswordReq struct {
 	// 管理员ID
-	ID uint64 `json:"id" binding:"required" example:"1"`
+	ID int64 `json:"id" binding:"required" example:"1"`
 	// 密码
 	Password string `json:"password" binding:"required,min=6,max=32" err:"required=10103,min=10104,max=10105" example:"123456"`
 }
@@ -75,7 +75,7 @@ type AdminResetAdminPasswordReq struct {
 // AdminUpdateProfileReq 修改管理员个人信息请求
 type AdminUpdateProfileReq struct {
 	// 管理员ID
-	ID uint64 `json:"id" binding:"required" err:"required=10101" example:"1"`
+	ID int64 `json:"id" binding:"required" err:"required=10101" example:"1"`
 	// 名称
 	Nickname *string `json:"nickName" example:"test name"`
 	// 性别

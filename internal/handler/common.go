@@ -8,8 +8,8 @@ import (
 
 // AdminInfo JWT 中管理员信息
 type AdminInfo struct {
-	AdminID  uint64 `json:"admin_id"`
-	RoleID   uint64 `json:"role_id"`
+	AdminID  int64 `json:"admin_id"`
+	RoleID   int64 `json:"role_id"`
 	RoleCode string `json:"role_code"`
 }
 
@@ -27,11 +27,11 @@ func GetAdminInfo(c *gin.Context) (AdminInfo, bool) {
 	if !ok {
 		return AdminInfo{}, false
 	}
-	adminID, ok := adminIDVal.(uint64)
+	adminID, ok := adminIDVal.(int64)
 	if !ok {
 		return AdminInfo{}, false
 	}
-	roleID, ok := roleIDVal.(uint64)
+	roleID, ok := roleIDVal.(int64)
 	if !ok {
 		return AdminInfo{}, false
 	}

@@ -1,7 +1,7 @@
 package ptr
 
-// Uint64 将 uint64 转换为 *uint64
-func Uint64(v uint64) *uint64 {
+// Int64 将 int64 转换为 *int64
+func Int64(v int64) *int64 {
 	return &v
 }
 

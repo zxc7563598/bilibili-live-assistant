@@ -147,7 +147,7 @@ func (h *Handler) Buttons(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.parent_id", req.ParentID),
+			zap.Int64("req.parent_id", req.ParentID),
 		)
 		response.Error(c, lang, errCode)
 		return
@@ -219,7 +219,7 @@ func (h *Handler) Save(c *gin.Context) {
 			zap.Bool("req.keep_alive", req.KeepAlive),
 			zap.String("req.layout", req.Layout),
 			zap.String("req.type", req.Type),
-			zap.Uint64("req.parent_id", req.ParentID),
+			zap.Int64("req.parent_id", req.ParentID),
 			zap.String("req.name", req.Name),
 			zap.String("req.icon", req.Icon),
 			zap.String("req.path", req.Path),
@@ -272,7 +272,7 @@ func (h *Handler) Toggle(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.id", req.ID),
+			zap.Int64("req.id", req.ID),
 		)
 		response.Error(c, lang, errCode)
 		return
@@ -320,7 +320,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.id", req.ID),
+			zap.Int64("req.id", req.ID),
 		)
 		response.Error(c, lang, errCode)
 		return

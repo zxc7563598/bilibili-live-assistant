@@ -58,7 +58,7 @@ type ListPageResp struct {
 }
 
 type ListPageItem struct {
-	ID        uint64     `json:"id"`
+	ID        int64     `json:"id"`
 	Username  string     `json:"username"`
 	Enable    bool       `json:"enable"`
 	Gender    int        `json:"gender"`
@@ -72,7 +72,7 @@ type ListPageItem struct {
 
 // Details 请求返回
 type DetailsResp struct {
-	ID          uint64             `json:"id"`
+	ID          int64             `json:"id"`
 	Username    string             `json:"username"`
 	Enable      bool               `json:"enable"`
 	CreatedAt   string             `json:"created_at"`
@@ -83,14 +83,14 @@ type DetailsResp struct {
 }
 
 type RoleItem struct {
-	ID     uint64 `json:"id"`
+	ID     int64 `json:"id"`
 	Code   string `json:"code"`
 	Name   string `json:"name"`
 	Enable bool   `json:"enable"`
 }
 
 type DetailsProfileItem struct {
-	ID       uint64 `json:"id"`
+	ID       int64 `json:"id"`
 	Nickname string `json:"nickName"`
 	Gender   int    `json:"gender"`
 	Avatar   string `json:"avatar"`
@@ -100,16 +100,16 @@ type DetailsProfileItem struct {
 
 // Save 请求入参
 type SaveReq struct {
-	ID       *uint64  `json:"id"`
+	ID       *int64  `json:"id"`
 	Enable   *bool    `json:"enable"`
 	Username *string  `json:"username"`
 	Password *string  `json:"password"`
-	RoleIds  []uint64 `json:"roleIds"`
+	RoleIds  []int64 `json:"roleIds"`
 }
 
 // UpdateProfile 请求入参
 type UpdateProfileReq struct {
-	ID       uint64  `json:"id"`
+	ID       int64  `json:"id"`
 	Nickname *string `json:"nickName"`
 	Gender   *int    `json:"gender"`
 	Address  *string `json:"address"`

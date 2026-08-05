@@ -13,12 +13,12 @@ import (
 type Repository interface {
 	base.Repository[model.Admin]
 	GetByUsername(ctx context.Context, tx *gorm.DB, username string) (*model.Admin, error)
-	UpdateTokenByID(ctx context.Context, tx *gorm.DB, id uint64, token *string) error
-	UpdatePasswordByID(ctx context.Context, tx *gorm.DB, adminID uint64, password string) error
-	UpdateBasicInfoByID(ctx context.Context, tx *gorm.DB, adminID uint64, form model.AdminUpdateBasicInfoByIdForm) error
-	UpdateRoleIDByID(ctx context.Context, tx *gorm.DB, adminID uint64, roleID uint64) error
+	UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error
+	UpdatePasswordByID(ctx context.Context, tx *gorm.DB, adminID int64, password string) error
+	UpdateBasicInfoByID(ctx context.Context, tx *gorm.DB, adminID int64, form model.AdminUpdateBasicInfoByIdForm) error
+	UpdateRoleIDByID(ctx context.Context, tx *gorm.DB, adminID int64, roleID int64) error
 	ListPage(ctx context.Context, tx *gorm.DB, query model.AdminListPageQuery) ([]model.AdminListItem, int64, error)
-	UpdateProfileByID(ctx context.Context, tx *gorm.DB, adminID uint64, form model.AdminUpdateProfileByIdForm) error
+	UpdateProfileByID(ctx context.Context, tx *gorm.DB, adminID int64, form model.AdminUpdateProfileByIdForm) error
 }
 
 // GetByUsername 根据 username 获取账号信息
@@ -27,22 +27,22 @@ func (r *gormRepo) GetByUsername(ctx context.Context, tx *gorm.DB, username stri
 }
 
 // UpdateTokenByID 根据 id 更换管理员 refreshToken
-func (r *gormRepo) UpdateTokenByID(ctx context.Context, tx *gorm.DB, id uint64, token *string) error {
+func (r *gormRepo) UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error {
 	return r.UpdateField(ctx, tx, id, "token", token)
 }
 
 // UpdatePasswordByID 更新管理员密码
-func (r *gormRepo) UpdatePasswordByID(ctx context.Context, tx *gorm.DB, id uint64, password string) error {
+func (r *gormRepo) UpdatePasswordByID(ctx context.Context, tx *gorm.DB, id int64, password string) error {
 	return r.UpdateField(ctx, tx, id, "password", password)
 }
 
 // UpdateRoleIDByID 更新管理员角色信息
-func (r *gormRepo) UpdateRoleIDByID(ctx context.Context, tx *gorm.DB, id uint64, roleID uint64) error {
+func (r *gormRepo) UpdateRoleIDByID(ctx context.Context, tx *gorm.DB, id int64, roleID int64) error {
 	return r.UpdateField(ctx, tx, id, "role_id", roleID)
 }
 
 // UpdateBasicInfoByID 更新管理员基本信息
-func (r *gormRepo) UpdateBasicInfoByID(ctx context.Context, tx *gorm.DB, id uint64, form model.AdminUpdateBasicInfoByIdForm) error {
+func (r *gormRepo) UpdateBasicInfoByID(ctx context.Context, tx *gorm.DB, id int64, form model.AdminUpdateBasicInfoByIdForm) error {
 	updateMap := make(map[string]any, 3)
 	if v := form.Username; v != nil && *v != "" {
 		updateMap["username"] = *v
@@ -95,7 +95,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.AdminL
 }
 
 // UpdateProfileByID 更新管理员个人资料
-func (r *gormRepo) UpdateProfileByID(ctx context.Context, tx *gorm.DB, id uint64, form model.AdminUpdateProfileByIdForm) error {
+func (r *gormRepo) UpdateProfileByID(ctx context.Context, tx *gorm.DB, id int64, form model.AdminUpdateProfileByIdForm) error {
 	updateMap := make(map[string]any, 5)
 	if v := form.Nickname; v != nil && *v != "" {
 		updateMap["nickname"] = *v

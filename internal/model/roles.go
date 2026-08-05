@@ -3,7 +3,7 @@ package model
 import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 
 type Role struct {
-	ID     uint64      `gorm:"primaryKey"`
+	ID     int64      `gorm:"primaryKey"`
 	Code   string      `gorm:"type:varchar(100);not null;uniqueIndex;comment:编码"`
 	Name   string      `gorm:"type:varchar(100);not null;comment:名称"`
 	Enable enum.Enable `gorm:"type:smallint;not null;default:0;comment:是否启用"`
@@ -24,7 +24,7 @@ type RoleListPageQuery struct {
 
 // RoleListItem 用于后台列表展示，不对应数据库表
 type RoleListItem struct {
-	ID     uint64
+	ID     int64
 	Code   string
 	Name   string
 	Enable enum.Enable

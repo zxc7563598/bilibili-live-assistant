@@ -3,7 +3,7 @@ package resp
 // MenuItem 单条菜单信息
 type MenuItem struct {
 	// 菜单ID
-	ID uint64 `json:"id" example:"1"`
+	ID int64 `json:"id" example:"1"`
 	// 菜单标识
 	Code string `json:"code" example:"Base"`
 	// 状态
@@ -17,7 +17,7 @@ type MenuItem struct {
 	// 菜单类型
 	Type string `json:"type" example:"MENU" enums:"BUTTON,MENU"`
 	// 父级ID
-	ParentID uint64 `json:"parentId" example:"0"`
+	ParentID int64 `json:"parentId" example:"0"`
 	// 菜单名称
 	Name string `json:"name" example:"基础菜单"`
 	// 菜单图标

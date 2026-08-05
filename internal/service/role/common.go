@@ -12,7 +12,7 @@ import (
 )
 
 // add 用于添加角色基本信息
-func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64, error) {
+func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, error) {
 	if v := req.Code; v == nil || *v == "" {
 		return 0, errors.New("code 不允许为空")
 	}
@@ -36,7 +36,7 @@ func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64, er
 }
 
 // update 用于变更角色基本信息
-func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64, error) {
+func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, error) {
 	// 修改数据
 	if err := s.roleRepo.UpdateByID(ctx, tx, *req.ID, model.RoleUpdateByIdForm{
 		Code:   req.Code,
@@ -50,7 +50,7 @@ func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64,
 }
 
 // resetRoleMenus 用于重新绑定角色对应的权限
-func (s *Service) resetRoleMenus(ctx context.Context, tx *gorm.DB, roleID uint64, menuIDs []uint64) error {
+func (s *Service) resetRoleMenus(ctx context.Context, tx *gorm.DB, roleID int64, menuIDs []int64) error {
 	// 删除旧关系
 	if err := s.roleMenuRepo.DeleteByRoleID(ctx, tx, roleID); err != nil {
 		return err
@@ -75,7 +75,7 @@ func (s *Service) resetRoleMenus(ctx context.Context, tx *gorm.DB, roleID uint64
 }
 
 // getMenusByRole 用于获取指定角色拥有的菜单
-func (s *Service) getMenusByRole(ctx context.Context, roleID uint64, roleCode string) ([]model.Menu, error) {
+func (s *Service) getMenusByRole(ctx context.Context, roleID int64, roleCode string) ([]model.Menu, error) {
 	// 超级管理员默认拥有全部菜单
 	if roleCode == RoleCodeSuperAdmin {
 		return s.menuRepo.ListEnabled(ctx, nil)
@@ -85,7 +85,7 @@ func (s *Service) getMenusByRole(ctx context.Context, roleID uint64, roleCode st
 	if err != nil {
 		return nil, err
 	}
-	menuIDs := make([]uint64, 0, len(roleMenus))
+	menuIDs := make([]int64, 0, len(roleMenus))
 	for _, v := range roleMenus {
 		menuIDs = append(menuIDs, v.MenuID)
 	}
@@ -96,15 +96,15 @@ func (s *Service) getMenusByRole(ctx context.Context, roleID uint64, roleCode st
 }
 
 // buildTree 用于获取菜单权限树
-func (s *Service) buildTree(list []RoleMenuItem, parentID uint64) []RoleMenuItem {
+func (s *Service) buildTree(list []RoleMenuItem, parentID int64) []RoleMenuItem {
 	// 构建 parent -> children map
-	childrenMap := make(map[uint64][]RoleMenuItem)
+	childrenMap := make(map[int64][]RoleMenuItem)
 	for _, el := range list {
 		childrenMap[el.ParentID] = append(childrenMap[el.ParentID], el)
 	}
 	// 递归
-	var build func(pid uint64) []RoleMenuItem
-	build = func(pid uint64) []RoleMenuItem {
+	var build func(pid int64) []RoleMenuItem
+	build = func(pid int64) []RoleMenuItem {
 		branch := childrenMap[pid]
 		// 排序
 		sort.Slice(branch, func(i, j int) bool {
@@ -120,7 +120,7 @@ func (s *Service) buildTree(list []RoleMenuItem, parentID uint64) []RoleMenuItem
 }
 
 // logout 用于退出管理员的登录
-func (s *Service) logout(ctx context.Context, adminID uint64) (int, error) {
+func (s *Service) logout(ctx context.Context, adminID int64) (int, error) {
 	// 清空用户token
 	if s.rdb != nil {
 		err := s.rdb.Del(ctx,

@@ -10,7 +10,7 @@ type RoleListPageResp struct {
 
 type RoleListPageItem struct {
 	// 角色ID
-	ID uint64 `json:"id" example:"1"`
+	ID int64 `json:"id" example:"1"`
 	// 角色标识
 	Code string `json:"code" example:"SUPER_ADMIN"`
 	// 角色名称
@@ -18,7 +18,7 @@ type RoleListPageItem struct {
 	// 状态
 	Enable bool `json:"enable" example:"true"`
 	// 角色绑定菜单ID
-	PermissionIds []uint64 `json:"permissionIds"`
+	PermissionIds []int64 `json:"permissionIds"`
 }
 
 // RoleListAllResp 获取全部角色请求返回
@@ -29,7 +29,7 @@ type RoleListAllResp struct {
 
 type RoleListAllItem struct {
 	// 角色ID
-	ID uint64 `json:"id" example:"1"`
+	ID int64 `json:"id" example:"1"`
 	// 角色标识
 	Code string `json:"code" example:"SUPER_ADMIN"`
 	// 角色名称
@@ -45,7 +45,7 @@ type RolePermissionsResp struct {
 
 type RoleMenuItem struct {
 	// 菜单ID
-	ID uint64 `json:"id" example:"1"`
+	ID int64 `json:"id" example:"1"`
 	// 菜单标识
 	Code string `json:"code" example:"Base"`
 	// 状态
@@ -59,7 +59,7 @@ type RoleMenuItem struct {
 	// 菜单类型
 	Type string `json:"type" example:"MENU" enums:"BUTTON,MENU"`
 	// 父级ID
-	ParentID uint64 `json:"parentId" example:"0"`
+	ParentID int64 `json:"parentId" example:"0"`
 	// 菜单名称
 	Name string `json:"name" example:"基础菜单"`
 	// 菜单图标

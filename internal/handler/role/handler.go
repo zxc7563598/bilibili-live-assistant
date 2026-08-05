@@ -216,7 +216,7 @@ func (h *Handler) Delete(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.id", req.ID),
+			zap.Int64("req.id", req.ID),
 		)
 		response.Error(c, lang, errCode)
 		return
@@ -264,7 +264,7 @@ func (h *Handler) AddRoleUsers(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.roleId", req.RoleID),
+			zap.Int64("req.roleId", req.RoleID),
 			zap.Any("req.adminIds", req.AdminIds),
 		)
 		response.Error(c, lang, errCode)
@@ -313,7 +313,7 @@ func (h *Handler) RemoveRoleUsers(c *gin.Context) {
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
-			zap.Uint64("req.roleId", req.RoleID),
+			zap.Int64("req.roleId", req.RoleID),
 			zap.Any("req.adminIds", req.AdminIds),
 		)
 		response.Error(c, lang, errCode)

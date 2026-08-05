@@ -34,16 +34,16 @@ type ListPageResp struct {
 }
 
 type ListPageItem struct {
-	ID            uint64   `json:"id"`
+	ID            int64   `json:"id"`
 	Code          string   `json:"code"`
 	Name          string   `json:"name"`
 	Enable        bool     `json:"enable"`
-	PermissionIds []uint64 `json:"permissionIds"`
+	PermissionIds []int64 `json:"permissionIds"`
 }
 
 // ListAll 请求返回
 type ListAllResp struct {
-	ID     uint64 `json:"id"`
+	ID     int64 `json:"id"`
 	Code   string `json:"code"`
 	Name   string `json:"name"`
 	Enable bool   `json:"enable"`
@@ -51,23 +51,23 @@ type ListAllResp struct {
 
 // Save 请求入参
 type SaveReq struct {
-	ID      *uint64   `json:"id"`
+	ID      *int64   `json:"id"`
 	Code    *string   `json:"code"`
 	Name    *string   `json:"name"`
 	Enable  *bool     `json:"enable"`
-	MenuIDs *[]uint64 `json:"menu_ids"`
+	MenuIDs *[]int64 `json:"menu_ids"`
 }
 
 // RoleMenuItem 单条菜单权限树
 type RoleMenuItem struct {
-	ID          uint64         `json:"id"`
+	ID          int64         `json:"id"`
 	Code        string         `json:"code"`
 	Enable      bool           `json:"enable"`
 	Show        bool           `json:"show"`
 	KeepAlive   bool           `json:"keep_alive"`
 	Layout      string         `json:"layout"`
 	Type        string         `json:"type"`
-	ParentID    uint64         `json:"parent_id"`
+	ParentID    int64         `json:"parent_id"`
 	Name        string         `json:"name"`
 	Icon        string         `json:"icon"`
 	Path        string         `json:"path"`

@@ -13,7 +13,7 @@ import (
 )
 
 // updateToken 用于更新管理员token
-func (s *Service) updateToken(ctx context.Context, adminID, roleID uint64, roleCode string) (TokenResp, int, error) {
+func (s *Service) updateToken(ctx context.Context, adminID, roleID int64, roleCode string) (TokenResp, int, error) {
 	accessToken, err := jwt.GenerateAccessToken(adminID, "admin", roleID, roleCode)
 	if err != nil {
 		return TokenResp{}, 60102, err
@@ -40,14 +40,14 @@ func (s *Service) updateToken(ctx context.Context, adminID, roleID uint64, roleC
 }
 
 // getAdminRolesMap 用于获取 管理员 → 角色 映射列表
-func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []uint64) (map[uint64][]RoleItem, int, error) {
+func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []int64) (map[int64][]RoleItem, int, error) {
 	// 获取全部角色
 	roles, err := s.roleRepo.FindAll(ctx, nil)
 	if err != nil {
 		return nil, 60101, err
 	}
 	// 组装角色数据
-	roleMap := make(map[uint64]RoleItem)
+	roleMap := make(map[int64]RoleItem)
 	for _, v := range roles {
 		roleMap[v.ID] = RoleItem{
 			ID:     v.ID,
@@ -62,7 +62,7 @@ func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []uint64) 
 		return nil, 60101, err
 	}
 	// 组装管理员对应角色数据
-	adminRoleMap := make(map[uint64][]RoleItem)
+	adminRoleMap := make(map[int64][]RoleItem)
 	for _, ar := range adminRoles {
 		role, ok := roleMap[ar.RoleID]
 		if !ok {
@@ -75,7 +75,7 @@ func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []uint64) 
 }
 
 // add 用于创建管理员基本信息
-func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64, int, error) {
+func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, int, error) {
 	if v := req.Username; v == nil || *v == "" {
 		return 0, 10101, nil
 	}
@@ -114,8 +114,8 @@ func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64, in
 }
 
 // update 用于更新管理员基本信息
-func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64, int, error) {
-	var roleID *uint64
+func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, int, error) {
+	var roleID *int64
 	if len(req.RoleIds) > 0 {
 		roleID = &req.RoleIds[0]
 	}
@@ -134,7 +134,7 @@ func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (uint64,
 //
 // 先清空原有角色，再批量绑定新的角色。数据库操作在事务中进行。
 // 仅影响 admin_role 表，不会修改 admin.RoleID。
-func (s *Service) bindRoles(ctx context.Context, tx *gorm.DB, adminID uint64, roleIds []uint64) (int, error) {
+func (s *Service) bindRoles(ctx context.Context, tx *gorm.DB, adminID int64, roleIds []int64) (int, error) {
 	if len(roleIds) == 0 {
 		return 0, nil
 	}
@@ -156,7 +156,7 @@ func (s *Service) bindRoles(ctx context.Context, tx *gorm.DB, adminID uint64, ro
 	return 0, nil
 }
 
-func toListPageItems(admins []model.AdminListItem, adminRoleMap map[uint64][]RoleItem) []ListPageItem {
+func toListPageItems(admins []model.AdminListItem, adminRoleMap map[int64][]RoleItem) []ListPageItem {
 	respList := make([]ListPageItem, 0, len(admins))
 	for _, v := range admins {
 		item := ListPageItem{

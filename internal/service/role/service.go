@@ -53,12 +53,12 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		return ListPageResp{}, 60201, err
 	}
 	// 获取菜单
-	roleIDs := make([]uint64, 0, len(roles))
+	roleIDs := make([]int64, 0, len(roles))
 	for _, v := range roles {
 		roleIDs = append(roleIDs, v.ID)
 	}
 	roleMenus, err := s.roleMenuRepo.ListByRoleIDs(ctx, nil, roleIDs)
-	menuIDs := make(map[uint64][]uint64)
+	menuIDs := make(map[int64][]int64)
 	for _, v := range roleMenus {
 		menuIDs[v.RoleID] = append(menuIDs[v.RoleID], v.MenuID)
 	}
@@ -105,7 +105,7 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 	// 开启事务
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		// 变更角色信息
-		var roleID uint64
+		var roleID int64
 		var err error
 		isCreate := req.ID == nil || *req.ID == 0
 		if isCreate {
@@ -131,7 +131,7 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 }
 
 // Delete 用于删除角色信息
-func (s *Service) Delete(ctx context.Context, roleID uint64) (int, error) {
+func (s *Service) Delete(ctx context.Context, roleID int64) (int, error) {
 	// 获取角色信息
 	role, err := s.roleRepo.GetByID(ctx, nil, roleID)
 	if err != nil {
@@ -158,7 +158,7 @@ func (s *Service) Delete(ctx context.Context, roleID uint64) (int, error) {
 }
 
 // RoleMenuTree 用于获取管理员权限内的菜单
-func (s *Service) RoleMenuTree(ctx context.Context, roleID uint64, roleCode string) ([]RoleMenuItem, int, error) {
+func (s *Service) RoleMenuTree(ctx context.Context, roleID int64, roleCode string) ([]RoleMenuItem, int, error) {
 	// 获取菜单信息
 	menus, err := s.getMenusByRole(ctx, roleID, roleCode)
 	if err != nil {
@@ -188,7 +188,7 @@ func (s *Service) RoleMenuTree(ctx context.Context, roleID uint64, roleCode stri
 }
 
 // AddRoleUsers 用于分配角色到管理员
-func (s *Service) AddRoleUsers(ctx context.Context, roleID uint64, adminIds []uint64) (int, error) {
+func (s *Service) AddRoleUsers(ctx context.Context, roleID int64, adminIds []int64) (int, error) {
 	// 获取角色信息
 	role, err := s.roleRepo.GetByID(ctx, nil, roleID)
 	if err != nil {
@@ -201,7 +201,7 @@ func (s *Service) AddRoleUsers(ctx context.Context, roleID uint64, adminIds []ui
 		return 40202, nil
 	}
 	// 检查传入的管理员信息
-	adminID := make([]uint64, 0, len(adminIds))
+	adminID := make([]int64, 0, len(adminIds))
 	for _, v := range adminIds {
 		admin, err := s.adminRepo.GetByID(ctx, nil, v)
 		if err != nil {
@@ -233,11 +233,11 @@ func (s *Service) AddRoleUsers(ctx context.Context, roleID uint64, adminIds []ui
 }
 
 // RemoveRoleUsers 用于取消分配角色到管理员
-func (s *Service) RemoveRoleUsers(ctx context.Context, roleID uint64, adminIds []uint64) (int, error) {
+func (s *Service) RemoveRoleUsers(ctx context.Context, roleID int64, adminIds []int64) (int, error) {
 	if len(adminIds) == 0 {
 		return 0, nil
 	}
-	var logoutAdminIDs []uint64
+	var logoutAdminIDs []int64
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		// 查所有管理员
 		admins, err := s.adminRepo.GetByIDs(ctx, tx, adminIds)
@@ -250,7 +250,7 @@ func (s *Service) RemoveRoleUsers(ctx context.Context, roleID uint64, adminIds [
 			return fmt.Errorf("获取多个管理员的所有角色失败: %w", err)
 		}
 		// 构建 map：adminID -> []roleID
-		roleMap := make(map[uint64][]uint64, len(adminIds))
+		roleMap := make(map[int64][]int64, len(adminIds))
 		for _, ar := range adminRoles {
 			roleMap[ar.AdminID] = append(roleMap[ar.AdminID], ar.RoleID)
 		}
@@ -279,7 +279,7 @@ func (s *Service) RemoveRoleUsers(ctx context.Context, roleID uint64, adminIds [
 			}
 			roles := roleMap[admin.ID]
 			// 找一个新的 role（排除被删除的）
-			var newRoleID uint64
+			var newRoleID int64
 			for _, r := range roles {
 				if r != roleID {
 					newRoleID = r

@@ -9,15 +9,15 @@ import (
 )
 
 // buildTree 用于获取菜单权限树
-func (s *Service) buildTree(list []MenuItem, parentID uint64) []MenuItem {
+func (s *Service) buildTree(list []MenuItem, parentID int64) []MenuItem {
 	// 构建 parent -> children map
-	childrenMap := make(map[uint64][]MenuItem)
+	childrenMap := make(map[int64][]MenuItem)
 	for _, el := range list {
 		childrenMap[el.ParentID] = append(childrenMap[el.ParentID], el)
 	}
 	// 递归
-	var build func(pid uint64) []MenuItem
-	build = func(pid uint64) []MenuItem {
+	var build func(pid int64) []MenuItem
+	build = func(pid int64) []MenuItem {
 		branch := childrenMap[pid]
 		// 排序
 		sort.Slice(branch, func(i, j int) bool {

@@ -16,10 +16,10 @@ var (
 )
 
 type Claims struct {
-	ID       uint64 `json:"id"`
+	ID       int64 `json:"id"`
 	Type     string `json:"type"`     // access / refresh
 	Identity string `json:"identity"` // admin / user
-	RoleID   uint64 `json:"role_id"`  // 0 and role_id
+	RoleID   int64 `json:"role_id"`  // 0 and role_id
 	RoleCode string `json:"role_code"`
 	jwt.RegisteredClaims
 }
@@ -32,7 +32,7 @@ func Init(c config.JWTConfig) {
 }
 
 // GenerateAccessToken 生成 AccessToken
-func GenerateAccessToken(id uint64, identity string, role uint64, roleCode string) (string, error) {
+func GenerateAccessToken(id int64, identity string, role int64, roleCode string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		ID:       id,
@@ -50,7 +50,7 @@ func GenerateAccessToken(id uint64, identity string, role uint64, roleCode strin
 }
 
 // GenerateRefreshToken 生成 RefreshToken
-func GenerateRefreshToken(id uint64, identity string, role uint64, roleCode string) (string, error) {
+func GenerateRefreshToken(id int64, identity string, role int64, roleCode string) (string, error) {
 	now := time.Now()
 	claims := Claims{
 		ID:       id,
@@ -97,10 +97,10 @@ func RefreshTTL() time.Duration {
 	return refreshTokenTTL
 }
 
-func AdminTokenKey(id uint64) string {
+func AdminTokenKey(id int64) string {
 	return fmt.Sprintf("admin:token:%d", id)
 }
 
-func AdminRefreshKey(id uint64) string {
+func AdminRefreshKey(id int64) string {
 	return fmt.Sprintf("admin:refresh:%d", id)
 }

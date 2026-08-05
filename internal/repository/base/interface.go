@@ -8,8 +8,8 @@ import (
 
 // Repository 定义通用接口
 type Repository[T any] interface {
-	GetByID(ctx context.Context, tx *gorm.DB, id uint64) (*T, error)
-	GetByIDs(ctx context.Context, tx *gorm.DB, ids []uint64) ([]T, error)
+	GetByID(ctx context.Context, tx *gorm.DB, id int64) (*T, error)
+	GetByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]T, error)
 	FindAll(ctx context.Context, tx *gorm.DB) ([]T, error)
 	FindByField(ctx context.Context, tx *gorm.DB, field string, value any) ([]T, error)
 	FindOneByField(ctx context.Context, tx *gorm.DB, field string, value any) (*T, error)
@@ -18,16 +18,16 @@ type Repository[T any] interface {
 	CreateBatch(ctx context.Context, tx *gorm.DB, entities []T) error
 	Update(ctx context.Context, tx *gorm.DB, entity *T) error
 	UpdateMap(ctx context.Context, tx *gorm.DB, field string, value any, updates map[string]any) error
-	UpdateField(ctx context.Context, tx *gorm.DB, id uint64, field string, value any) error
-	Delete(ctx context.Context, tx *gorm.DB, id uint64) error
-	DeleteByIDs(ctx context.Context, tx *gorm.DB, ids []uint64) error
+	UpdateField(ctx context.Context, tx *gorm.DB, id int64, field string, value any) error
+	Delete(ctx context.Context, tx *gorm.DB, id int64) error
+	DeleteByIDs(ctx context.Context, tx *gorm.DB, ids []int64) error
 	Count(ctx context.Context, tx *gorm.DB) (int64, error)
 	Exists(ctx context.Context, tx *gorm.DB, field string, value any) (bool, error)
 }
 
 // GetByID 根据主键查询记录。
 // 如果记录不存在，返回 (nil, nil)。
-func (r *gormRepo[T]) GetByID(ctx context.Context, tx *gorm.DB, id uint64) (*T, error) {
+func (r *gormRepo[T]) GetByID(ctx context.Context, tx *gorm.DB, id int64) (*T, error) {
 	db := r.getDB(ctx, tx)
 	var entity T
 	if err := db.First(&entity, id).Error; err != nil {
@@ -41,7 +41,7 @@ func (r *gormRepo[T]) GetByID(ctx context.Context, tx *gorm.DB, id uint64) (*T, 
 
 // GetByIDs 根据主键批量查询记录。
 // 返回匹配的记录列表，如果没有匹配记录则返回空切片。
-func (r *gormRepo[T]) GetByIDs(ctx context.Context, tx *gorm.DB, ids []uint64) ([]T, error) {
+func (r *gormRepo[T]) GetByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]T, error) {
 	db := r.getDB(ctx, tx)
 	var list []T
 	if err := db.Where("id IN ?", ids).Find(&list).Error; err != nil {
@@ -127,20 +127,20 @@ func (r *gormRepo[T]) UpdateMap(ctx context.Context, tx *gorm.DB, field string, 
 }
 
 // UpdateField 根据主键更新单个字段。
-func (r *gormRepo[T]) UpdateField(ctx context.Context, tx *gorm.DB, id uint64, field string, value any) error {
+func (r *gormRepo[T]) UpdateField(ctx context.Context, tx *gorm.DB, id int64, field string, value any) error {
 	db := r.getDB(ctx, tx)
 	return db.Model(new(T)).Where("id = ?", id).Update(field, value).Error
 }
 
 // Delete 根据主键删除记录。
-func (r *gormRepo[T]) Delete(ctx context.Context, tx *gorm.DB, id uint64) error {
+func (r *gormRepo[T]) Delete(ctx context.Context, tx *gorm.DB, id int64) error {
 	db := r.getDB(ctx, tx)
 	return db.Delete(new(T), id).Error
 }
 
 // DeleteByIDs 根据主键批量删除记录。
 // 如果主键列表为空，则不执行任何操作。
-func (r *gormRepo[T]) DeleteByIDs(ctx context.Context, tx *gorm.DB, ids []uint64) error {
+func (r *gormRepo[T]) DeleteByIDs(ctx context.Context, tx *gorm.DB, ids []int64) error {
 	db := r.getDB(ctx, tx)
 	if len(ids) == 0 {
 		return nil

@@ -12,11 +12,11 @@ import (
 type Repository interface {
 	base.Repository[model.Menu]
 	ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Menu, error)
-	ListEnabledByIDs(ctx context.Context, tx *gorm.DB, ids []uint64) ([]model.Menu, error)
+	ListEnabledByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]model.Menu, error)
 	ExistsByPath(ctx context.Context, tx *gorm.DB, path string) (bool, error)
-	ListButtonsByParentID(ctx context.Context, tx *gorm.DB, parentID uint64) ([]model.Menu, error)
-	UpdateByID(ctx context.Context, tx *gorm.DB, id uint64, form model.MenuUpdateByIdForm) error
-	UpdateEnableByID(ctx context.Context, tx *gorm.DB, id uint64) error
+	ListButtonsByParentID(ctx context.Context, tx *gorm.DB, parentID int64) ([]model.Menu, error)
+	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.MenuUpdateByIdForm) error
+	UpdateEnableByID(ctx context.Context, tx *gorm.DB, id int64) error
 }
 
 // ListEnabled 获取全部启用菜单
@@ -25,7 +25,7 @@ func (r *gormRepo) ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Menu, 
 }
 
 // ListEnabledByIDs 根据ID获取全部菜单
-func (r *gormRepo) ListEnabledByIDs(ctx context.Context, tx *gorm.DB, ids []uint64) ([]model.Menu, error) {
+func (r *gormRepo) ListEnabledByIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]model.Menu, error) {
 	db := r.getDB(ctx, tx)
 	var list []model.Menu
 	if err := db.Where("enable = ?", enum.EnableEnable).Where("id IN ?", ids).Find(&list).Error; err != nil {
@@ -40,7 +40,7 @@ func (r *gormRepo) ExistsByPath(ctx context.Context, tx *gorm.DB, path string) (
 }
 
 // ListButtonsByParentID 获取菜单下的按钮
-func (r *gormRepo) ListButtonsByParentID(ctx context.Context, tx *gorm.DB, parentID uint64) ([]model.Menu, error) {
+func (r *gormRepo) ListButtonsByParentID(ctx context.Context, tx *gorm.DB, parentID int64) ([]model.Menu, error) {
 	db := r.getDB(ctx, tx)
 	var list []model.Menu
 	if err := db.Where("parent_id = ?", parentID).Where("type = ?", enum.MenuTypeButton).Find(&list).Error; err != nil {
@@ -50,7 +50,7 @@ func (r *gormRepo) ListButtonsByParentID(ctx context.Context, tx *gorm.DB, paren
 }
 
 // UpdateByID 变更菜单基本信息
-func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id uint64, form model.MenuUpdateByIdForm) error {
+func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.MenuUpdateByIdForm) error {
 	return r.UpdateMap(ctx, tx, "id", id, map[string]any{
 		"code":       form.Code,
 		"enable":     form.Enable,
@@ -68,7 +68,7 @@ func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id uint64, form 
 }
 
 // UpdateEnableByID 切换菜单启动状态
-func (r *gormRepo) UpdateEnableByID(ctx context.Context, tx *gorm.DB, id uint64) error {
+func (r *gormRepo) UpdateEnableByID(ctx context.Context, tx *gorm.DB, id int64) error {
 	db := r.getDB(ctx, tx)
 	err := db.WithContext(ctx).
 		Model(&model.Menu{}).

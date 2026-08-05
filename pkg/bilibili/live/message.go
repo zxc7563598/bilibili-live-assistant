@@ -131,9 +131,9 @@ type GuardBuyInfo struct {
 type InteractWordV2Info struct {
 	UID        int64  `json:"-"` // 用户UID
 	Uname      string `json:"-"` // 用户名
-	MsgType    uint64 `json:"-"` // 消息类型 1=进入直播间 2=关注 3=分享
-	RoomID     uint64 `json:"-"` // 直播间ID
-	Timestamp  uint64 `json:"-"` // 时间戳
+	MsgType    int64 `json:"-"` // 消息类型 1=进入直播间 2=关注 3=分享
+	RoomID     int64 `json:"-"` // 直播间ID
+	Timestamp  int64 `json:"-"` // 时间戳
 	BadgeUID   int64  `json:"-"` // 勋章主播UID
 	BadgeName  string `json:"-"` // 勋章名称
 	BadgeLevel int64  `json:"-"` // 勋章等级
@@ -283,9 +283,9 @@ func ExtractInteractWordV2(raw string) (*InteractWordV2Info, error) {
 	result := &InteractWordV2Info{
 		UID:       int64(pb.Uid),
 		Uname:     pb.Uname,
-		MsgType:   pb.MsgType,
-		RoomID:    pb.Roomid,
-		Timestamp: pb.Timestamp,
+		MsgType:   int64(pb.MsgType),
+		RoomID:    int64(pb.Roomid),
+		Timestamp: int64(pb.Timestamp),
 	}
 	if pb.FansMedal != nil {
 		result.BadgeUID = pb.FansMedal.TargetId
