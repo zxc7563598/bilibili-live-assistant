@@ -163,6 +163,22 @@ gender:
   female: female
   male: male
 
+badge_type:
+  l0: crew
+  l1: captain
+  l2: admiral
+  l3: governor
+
+end_reason:
+  normal: normal
+  forced: forced
+  Banned: Banned
+
+end_source:
+  event: event
+  polling: polling
+  manual: manual
+
 enable:
   disable: disable
   enable: enable

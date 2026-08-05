@@ -163,6 +163,22 @@ gender:
   female: 女
   male: 男
 
+badge_type:
+  l0: 普通用户
+  l1: 舰长
+  l2: 提督
+  l3: 总督
+
+end_reason:
+  normal: 正常下播
+  forced: 超管切断
+  Banned: 直播间被封
+
+end_source:
+  event: 事件
+  polling: 轮询
+  manual: 人工
+
 enable:
   disable: 停用
   enable: 启用

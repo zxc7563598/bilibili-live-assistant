@@ -12,5 +12,9 @@ func Run(db *gorm.DB) error {
 		&model.Menu{},
 		&model.RoleMenu{},
 		&model.AdminRole{},
+		&model.LiveUser{},
+		&model.LiveDanmu{},
+		&model.LiveGift{},
+		&model.LiveSession{},
 	)
 }
