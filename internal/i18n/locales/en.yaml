@@ -172,12 +172,22 @@ badge_type:
 end_reason:
   normal: normal
   forced: forced
-  Banned: Banned
+  Banned: banned
 
 end_source:
   event: event
   polling: polling
   manual: manual
+
+start_source:
+  event: event
+  polling: polling
+  manual: manual
+
+gift_type:
+  normal: normal
+  guard: guard
+  super_chat: superChat
 
 enable:
   disable: disable

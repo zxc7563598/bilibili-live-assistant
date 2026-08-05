@@ -179,6 +179,16 @@ end_source:
   polling: 轮询
   manual: 人工
 
+start_source:
+  event: 事件
+  polling: 轮询
+  manual: 人工
+
+gift_type:
+  normal: 普通
+  guard: 航海
+  super_chat: 醒目留言
+
 enable:
   disable: 停用
   enable: 启用
