@@ -46,6 +46,8 @@ type Service struct {
 	queue   *live.Queue   // 弹幕发送优先级队列（nil = 未创建）
 	// 前端 WebSocket 推送
 	hub *Hub // 前端消息推送中心
+	// 消息业务处理器分发器
+	dispatcher *messageDispatcher
 }
 
 // New 创建直播服务
@@ -58,12 +60,21 @@ func New(cfg config.LiveConfig) *Service {
 	)
 	hub := newHub()
 	go hub.Run(context.Background())
+	dispatcher := newMessageDispatcher(
+		newLiveStatusProcessor(),
+		newLiveEndProcessor(),
+		newGiftProcessor(),
+		newInteractProcessor(),
+		newDanmuProcessor(),
+		newPkProcessor(),
+	)
 	return &Service{
-		client:    client,
-		stateFile: cfg.StateFile,
-		rawLogger: logger.NewRawMessageLogger(),
-		roomSvc:   room.NewService(client),
-		hub:       hub,
+		client:     client,
+		stateFile:  cfg.StateFile,
+		rawLogger:  logger.NewRawMessageLogger(),
+		roomSvc:    room.NewService(client),
+		hub:        hub,
+		dispatcher: dispatcher,
 	}
 }
 

@@ -2,12 +2,47 @@ package live
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 )
+
+// parseMessageData 根据 Cmd 类型调用对应的 Extract 函数解密消息
+//
+// 返回值是各 Extract 函数返回的指针类型（如 *live.DanmuMsgInfo），调用方需通过
+// MessageProcessor.Process 内部的 cmd switch 做类型断言。
+func parseMessageData(cmd live.Cmd, raw string) (any, error) {
+	switch cmd {
+	case live.CmdLiveStart:
+		return live.ExtractLive(raw)
+	case live.CmdLiveCutOff:
+		return live.ExtractCutOff(raw)
+	case live.CmdLiveRoomLock:
+		return live.ExtractRoomLock(raw)
+	case live.CmdLiveEnd:
+		return live.ExtractPreparing(raw)
+	case live.CmdSendGift:
+		return live.ExtractSendGift(raw)
+	case live.CmdSendGiftV2:
+		return live.ExtractSendGiftV2(raw)
+	case live.CmdGuardBuy:
+		return live.ExtractGuardBuy(raw)
+	case live.CmdSuperDanmuMsg:
+		return live.ExtractSuperChatMessage(raw)
+	case live.CmdInteractWord:
+		return live.ExtractInteractWordV2(raw)
+	case live.CmdDanmuMsg:
+		return live.ExtractDanmuMsg(raw)
+	case live.CmdPkStart:
+		return live.ExtractPkBattlePreNew(raw)
+	default:
+		return nil, fmt.Errorf("未知的消息类型: %s", cmd)
+	}
+}
 
 // processMessages 在后台 goroutine 中运行，从 listener 消费消息并更新统计
 //
@@ -34,17 +69,31 @@ func (s *Service) processMessages(ctx context.Context, listener *live.Listener, 
 				}
 				// 原始消息日志（独立目录 logs/直播间监听原始信息/）
 				rawLogger.Log(string(msg.Cmd), msg.Raw)
+				// 解密消息并进行处理
+				data, err := parseMessageData(msg.Cmd, string(msg.Raw))
+				if err != nil {
+					log.Printf("[live.Receiver] [%s] 信息解密失败: %v", msg.Cmd, err)
+					continue
+				}
+				// 更新统计
 				s.mu.Lock()
 				s.stats.msgCount++
 				switch msg.Cmd {
 				case live.CmdDanmuMsg:
 					s.stats.danmuCount++
-				case live.CmdSendGift:
+				case live.CmdSendGift, live.CmdSendGiftV2, live.CmdGuardBuy, live.CmdSuperDanmuMsg:
 					s.stats.giftCount++
 				}
 				s.mu.Unlock()
 				// 广播到所有已连接的前端 WebSocket 客户端
-				s.hub.Broadcast(string(msg.Cmd), msg.Raw)
+				jsonBytes, err := json.Marshal(data)
+				if err != nil {
+					log.Printf("[live.Receiver] [全站广播] JSON序列化失败: %v", err)
+				} else {
+					s.hub.Broadcast(string(msg.Cmd), jsonBytes)
+				}
+				// 分发给业务处理器（异步，不阻塞消息循环）
+				go s.dispatcher.dispatch(ctx, msg.Cmd, data)
 			case <-ctx.Done():
 				return // 主动停止，退出整个函数
 			}
