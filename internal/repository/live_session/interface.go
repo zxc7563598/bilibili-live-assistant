@@ -22,6 +22,8 @@ type Repository interface {
 	UpdateStatsByID(ctx context.Context, tx *gorm.DB, id int64, form model.LiveSessionUpdateStatsForm) error
 	// ListActive 获取所有未下播的记录
 	ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSession, error)
+	// ListActiveByRoomID 获取指定房间所有未下播的记录
+	ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID int64) ([]model.LiveSession, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -130,5 +132,13 @@ func (r *gormRepo) ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSes
 	db := r.getDB(ctx, tx)
 	var list []model.LiveSession
 	err := db.Where("end_at = 0").Order("start_at asc").Find(&list).Error
+	return list, err
+}
+
+// ListActiveByRoomID 获取指定房间所有未下播的记录（EndAt = 0），按 StartAt 升序
+func (r *gormRepo) ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID int64) ([]model.LiveSession, error) {
+	db := r.getDB(ctx, tx)
+	var list []model.LiveSession
+	err := db.Where("end_at = 0 AND room_id = ?", roomID).Order("start_at asc").Find(&list).Error
 	return list, err
 }

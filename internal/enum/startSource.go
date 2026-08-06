@@ -5,9 +5,9 @@ import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 type StartSource int
 
 const (
-	StartSourceEvent   StartSource = iota + 1 // 1 — WebSocket LIVE 事件
-	StartSourcePolling                         // 2 — 轮询检测
-	StartSourceManual                          // 3 — 人工补录
+	StartSourceEvent StartSource = iota
+	StartSourcePolling
+	StartSourceManual
 )
 
 func (s StartSource) Key() string {

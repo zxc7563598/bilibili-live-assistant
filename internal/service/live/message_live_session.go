@@ -32,6 +32,19 @@ func (p *liveStatusProcessor) Cmds() []live.Cmd {
 	return []live.Cmd{live.CmdLiveStart}
 }
 
+// endSession 结束指定会话并聚合统计数据
+func (p *liveStatusProcessor) endSession(ctx context.Context, session model.LiveSession, endAt int64, endReason enum.EndReason, endSource enum.EndSource, endDetail string) error {
+	if err := p.liveSessionRepo.UpdateEndByID(ctx, nil, session.ID, model.LiveSessionUpdateEndForm{
+		EndAt:     &endAt,
+		EndReason: &endReason,
+		EndSource: &endSource,
+		EndDetail: &endDetail,
+	}); err != nil {
+		return err
+	}
+	return aggregateSessionStats(ctx, session, endAt, p.liveDanmuRepo, p.liveGiftRepo, p.liveSessionRepo)
+}
+
 func (p *liveStatusProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roomID int64) error {
 	info, ok := data.(*live.LiveInfo)
 	if !ok {
@@ -45,24 +58,10 @@ func (p *liveStatusProcessor) Process(ctx context.Context, cmd live.Cmd, data an
 		log.Printf("[live.Session] 获取未下播记录失败: %v", err)
 		return err
 	}
-	for i, s := range activeSessions {
-		endReason := enum.EndReasonNormal
-		endSource := enum.EndSourcePolling
-		endDetail := "系统检测到新的直播开始"
-		if err := p.liveSessionRepo.UpdateEndByID(ctx, nil, s.ID, model.LiveSessionUpdateEndForm{
-			EndAt:     &now,
-			EndReason: &endReason,
-			EndSource: &endSource,
-			EndDetail: &endDetail,
-		}); err != nil {
+	for _, s := range activeSessions {
+		if err := p.endSession(ctx, s, now, enum.EndReasonNormal, enum.EndSourcePolling, "系统检测到新的直播开始"); err != nil {
 			log.Printf("[live.Session] 更新下播信息失败 (ID:%d): %v", s.ID, err)
 			return err
-		}
-		// 最后一条记录：关联弹幕/礼物数据并汇总统计
-		if i == len(activeSessions)-1 {
-			if err := aggregateSessionStats(ctx, s, now, p.liveDanmuRepo, p.liveGiftRepo, p.liveSessionRepo); err != nil {
-				return err
-			}
 		}
 	}
 	// 存储直播开始记录到数据库
@@ -98,6 +97,19 @@ func newLiveEndProcessor(liveSessionRepo live_session.Repository, liveDanmuRepo 
 
 func (p *liveEndProcessor) Cmds() []live.Cmd {
 	return []live.Cmd{live.CmdLiveCutOff, live.CmdLiveRoomLock, live.CmdLiveEnd}
+}
+
+// endSession 结束指定会话并聚合统计数据
+func (p *liveEndProcessor) endSession(ctx context.Context, session model.LiveSession, endAt int64, endReason enum.EndReason, endSource enum.EndSource, endDetail string) error {
+	if err := p.liveSessionRepo.UpdateEndByID(ctx, nil, session.ID, model.LiveSessionUpdateEndForm{
+		EndAt:     &endAt,
+		EndReason: &endReason,
+		EndSource: &endSource,
+		EndDetail: &endDetail,
+	}); err != nil {
+		return err
+	}
+	return aggregateSessionStats(ctx, session, endAt, p.liveDanmuRepo, p.liveGiftRepo, p.liveSessionRepo)
 }
 
 func (p *liveEndProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roomID int64) error {
@@ -139,22 +151,10 @@ func (p *liveEndProcessor) Process(ctx context.Context, cmd live.Cmd, data any, 
 		log.Printf("[live.Session] 获取未下播记录失败: %v", err)
 		return err
 	}
-	for i, s := range activeSessions {
-		endSource := enum.EndSourceEvent
-		if err := p.liveSessionRepo.UpdateEndByID(ctx, nil, s.ID, model.LiveSessionUpdateEndForm{
-			EndAt:     &now,
-			EndReason: &endReason,
-			EndSource: &endSource,
-			EndDetail: &logDesc,
-		}); err != nil {
+	for _, s := range activeSessions {
+		if err := p.endSession(ctx, s, now, endReason, enum.EndSourceEvent, logDesc); err != nil {
 			log.Printf("[live.Session] 更新下播信息失败 (ID:%d): %v", s.ID, err)
 			return err
-		}
-		// 最后一条记录：关联弹幕/礼物数据并汇总统计
-		if i == len(activeSessions)-1 {
-			if err := aggregateSessionStats(ctx, s, now, p.liveDanmuRepo, p.liveGiftRepo, p.liveSessionRepo); err != nil {
-				return err
-			}
 		}
 	}
 	return nil

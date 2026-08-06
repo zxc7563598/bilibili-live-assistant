@@ -297,6 +297,8 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 	s.procDone = make(chan struct{})
 	procDone := s.procDone
 	s.mu.Unlock()
+	// 同步会话状态：清理非监听房间记录 + 根据实际直播状态修正数据
+	s.syncSessionsOnStart(ctx, roomID)
 	// 创建并启动弹幕发送队列（与监听器同生命周期）
 	s.queue = live.NewQueue(s.listener.RoomID(), &danmuSender{roomSvc: s.roomSvc, client: s.client})
 	s.queue.Start(listenerCtx)
