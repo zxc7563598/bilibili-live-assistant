@@ -3,7 +3,6 @@ package live
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
@@ -40,7 +39,7 @@ func parseMessageData(cmd live.Cmd, raw string) (any, error) {
 	case live.CmdPkStart:
 		return live.ExtractPkBattlePreNew(raw)
 	default:
-		return nil, fmt.Errorf("未知的消息类型: %s", cmd)
+		return nil, nil
 	}
 }
 
@@ -73,6 +72,10 @@ func (s *Service) processMessages(ctx context.Context, listener *live.Listener, 
 				data, err := parseMessageData(msg.Cmd, string(msg.Raw))
 				if err != nil {
 					log.Printf("[live.Receiver] [%s] 信息解密失败: %v", msg.Cmd, err)
+					continue
+				}
+				if data == nil {
+					// 不需要处理的消息类型，跳过
 					continue
 				}
 				// 更新统计
