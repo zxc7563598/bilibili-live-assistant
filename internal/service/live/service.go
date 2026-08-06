@@ -9,6 +9,10 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/room"
@@ -48,33 +52,42 @@ type Service struct {
 	hub *Hub // 前端消息推送中心
 	// 消息业务处理器分发器
 	dispatcher *messageDispatcher
+	// 数据访问
+	liveDanmuRepo   live_danmu.Repository
+	liveGiftRepo    live_gift.Repository
+	liveSessionRepo live_session.Repository
+	liveUserRepo    live_user.Repository
 }
 
 // New 创建直播服务
 //
 // bilibili.Client 在此创建并持久化（整个服务生命周期内复用）
 // WithStateFile 会在启动时自动恢复之前保存的登录态
-func New(cfg config.LiveConfig) *Service {
+func New(cfg config.LiveConfig, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository) *Service {
 	client := bilibili.NewClient(
 		bilibili.WithStateFile(cfg.StateFile),
 	)
 	hub := newHub()
 	go hub.Run(context.Background())
 	dispatcher := newMessageDispatcher(
-		newLiveStatusProcessor(),
-		newLiveEndProcessor(),
-		newGiftProcessor(),
-		newInteractProcessor(),
-		newDanmuProcessor(),
+		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo),
+		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo),
+		newGiftProcessor(liveGiftRepo),
+		newInteractProcessor(liveUserRepo),
+		newDanmuProcessor(liveDanmuRepo),
 		newPkProcessor(),
 	)
 	return &Service{
-		client:     client,
-		stateFile:  cfg.StateFile,
-		rawLogger:  logger.NewRawMessageLogger(),
-		roomSvc:    room.NewService(client),
-		hub:        hub,
-		dispatcher: dispatcher,
+		client:          client,
+		stateFile:       cfg.StateFile,
+		rawLogger:       logger.NewRawMessageLogger(),
+		roomSvc:         room.NewService(client),
+		hub:             hub,
+		dispatcher:      dispatcher,
+		liveDanmuRepo:   liveDanmuRepo,
+		liveGiftRepo:    liveGiftRepo,
+		liveSessionRepo: liveSessionRepo,
+		liveUserRepo:    liveUserRepo,
 	}
 }
 

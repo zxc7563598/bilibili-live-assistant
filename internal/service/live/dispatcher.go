@@ -15,7 +15,8 @@ type MessageProcessor interface {
 	// Cmds 返回本处理器要处理的命令字列表
 	Cmds() []live.Cmd
 	// Process 处理一条已解密的消息，返回 error 表示处理失败
-	Process(ctx context.Context, cmd live.Cmd, data any) error
+	// roomID 是当前监听的直播间房间号
+	Process(ctx context.Context, cmd live.Cmd, data any, roomID int64) error
 }
 
 // messageDispatcher 消息分发器，将 WebSocket 消息路由到对应的 MessageProcessor
@@ -37,12 +38,12 @@ func newMessageDispatcher(processors ...MessageProcessor) *messageDispatcher {
 }
 
 // dispatch 将消息分发给对应的处理器，未注册的命令字静默跳过
-func (d *messageDispatcher) dispatch(ctx context.Context, cmd live.Cmd, data any) {
+func (d *messageDispatcher) dispatch(ctx context.Context, cmd live.Cmd, data any, roomID int64) {
 	p, ok := d.processors[cmd]
 	if !ok {
 		return
 	}
-	if err := p.Process(ctx, cmd, data); err != nil {
+	if err := p.Process(ctx, cmd, data, roomID); err != nil {
 		log.Printf("[live.Dispatcher] [%s] 业务处理失败: %v", cmd, err)
 	}
 }

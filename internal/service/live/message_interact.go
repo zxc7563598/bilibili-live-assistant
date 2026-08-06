@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 )
 
@@ -14,36 +15,32 @@ import (
 //	1 — 进入直播间
 //	2 — 关注
 //	3 — 分享
-type interactProcessor struct{}
+type interactProcessor struct {
+	liveUserRepo live_user.Repository
+}
 
-func newInteractProcessor() *interactProcessor {
-	return &interactProcessor{}
+func newInteractProcessor(liveUserRepo live_user.Repository) *interactProcessor {
+	return &interactProcessor{liveUserRepo: liveUserRepo}
 }
 
 func (p *interactProcessor) Cmds() []live.Cmd {
 	return []live.Cmd{live.CmdInteractWord}
 }
 
-func (p *interactProcessor) Process(ctx context.Context, cmd live.Cmd, data any) error {
+func (p *interactProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roomID int64) error {
 	info, ok := data.(*live.InteractWordV2Info)
 	if !ok {
 		log.Printf("[live.Interact] 数据类型断言失败，期望 *live.InteractWordV2Info，实际 %T", data)
 		return nil
 	}
-
-	msgTypeText := "未知"
+	// 进入欢迎/关注感谢等自动回复
 	switch info.MsgType {
-	case 1:
-		msgTypeText = "进入直播间"
-	case 2:
-		msgTypeText = "关注"
-	case 3:
-		msgTypeText = "分享"
-	}
+	case 1: // 进入直播间
 
-	log.Printf("[live.Interact] 用户互动 — 用户: %s(UID:%d), 类型: %s, 房间号: %d",
-		info.Uname, info.UID, msgTypeText, info.RoomID)
-	// TODO: 存储互动记录到数据库
-	// TODO: 进入欢迎/关注感谢等自动回复
+	case 2: // 关注
+
+	case 3: // 分享
+
+	}
 	return nil
 }

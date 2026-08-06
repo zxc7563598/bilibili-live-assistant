@@ -93,7 +93,7 @@ func (s *Service) processMessages(ctx context.Context, listener *live.Listener, 
 					s.hub.Broadcast(string(msg.Cmd), jsonBytes)
 				}
 				// 分发给业务处理器（异步，不阻塞消息循环）
-				go s.dispatcher.dispatch(ctx, msg.Cmd, data)
+				go s.dispatcher.dispatch(ctx, msg.Cmd, data, s.roomID)
 			case <-ctx.Done():
 				return // 主动停止，退出整个函数
 			}

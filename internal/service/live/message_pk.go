@@ -18,7 +18,7 @@ func (p *pkProcessor) Cmds() []live.Cmd {
 	return []live.Cmd{live.CmdPkStart}
 }
 
-func (p *pkProcessor) Process(ctx context.Context, cmd live.Cmd, data any) error {
+func (p *pkProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roomID int64) error {
 	info, ok := data.(*live.PkBattlePreNewInfo)
 	if !ok {
 		log.Printf("[live.PK] 数据类型断言失败，期望 *live.PkBattlePreNewInfo，实际 %T", data)
