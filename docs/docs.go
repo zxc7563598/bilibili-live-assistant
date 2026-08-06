@@ -2384,6 +2384,11 @@ const docTemplate = `{
         "resp.LiveListenerStatusResp": {
             "type": "object",
             "properties": {
+                "attention": {
+                    "description": "关注数",
+                    "type": "integer",
+                    "example": 1000
+                },
                 "danmuCount": {
                     "description": "监听到弹幕数量",
                     "type": "integer",
@@ -2399,10 +2404,25 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "liveStatus": {
+                    "description": "直播状态：0=未开播, 1=直播中, 2=轮播中",
+                    "type": "integer",
+                    "example": 1
+                },
+                "liveTime": {
+                    "description": "开播时间，格式如 \"2025-01-01 12:00:00\"",
+                    "type": "string",
+                    "example": "2026-07-30 12:00:00"
+                },
                 "msgCount": {
                     "description": "监听到消息数量",
                     "type": "integer",
                     "example": 1234
+                },
+                "online": {
+                    "description": "在线观众数（人气值，非真实人数）",
+                    "type": "integer",
+                    "example": 1000
                 },
                 "roomId": {
                     "description": "房间号",
@@ -2410,9 +2430,19 @@ const docTemplate = `{
                     "example": 22384516
                 },
                 "startTime": {
-                    "description": "开始监听事件",
+                    "description": "开始监听时间",
                     "type": "string",
                     "example": "2026-07-30 12:00:00"
+                },
+                "title": {
+                    "description": "直播间标题",
+                    "type": "string",
+                    "example": "小蒸蛋来喽！"
+                },
+                "uid": {
+                    "description": "直播间主播ID",
+                    "type": "integer",
+                    "example": 617459493
                 },
                 "uptime": {
                     "description": "已监听时长",
@@ -2428,6 +2458,11 @@ const docTemplate = `{
                     "description": "账号Buvid3",
                     "type": "string",
                     "example": "XX-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                },
+                "face": {
+                    "description": "账号头像URL",
+                    "type": "string",
+                    "example": "https://i2.hdslb.com/bfs/face/99a3f6360dff7882059cced5f1912c51cb3dbd71.jpg"
                 },
                 "isLoggedIn": {
                     "description": "是否登录",

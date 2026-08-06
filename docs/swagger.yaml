@@ -572,6 +572,10 @@ definitions:
     type: object
   resp.LiveListenerStatusResp:
     properties:
+      attention:
+        description: 关注数
+        example: 1000
+        type: integer
       danmuCount:
         description: 监听到弹幕数量
         example: 1000
@@ -584,18 +588,38 @@ definitions:
         description: 是否正在监听
         example: true
         type: boolean
+      liveStatus:
+        description: 直播状态：0=未开播, 1=直播中, 2=轮播中
+        example: 1
+        type: integer
+      liveTime:
+        description: 开播时间，格式如 "2025-01-01 12:00:00"
+        example: "2026-07-30 12:00:00"
+        type: string
       msgCount:
         description: 监听到消息数量
         example: 1234
+        type: integer
+      online:
+        description: 在线观众数（人气值，非真实人数）
+        example: 1000
         type: integer
       roomId:
         description: 房间号
         example: 22384516
         type: integer
       startTime:
-        description: 开始监听事件
+        description: 开始监听时间
         example: "2026-07-30 12:00:00"
         type: string
+      title:
+        description: 直播间标题
+        example: 小蒸蛋来喽！
+        type: string
+      uid:
+        description: 直播间主播ID
+        example: 617459493
+        type: integer
       uptime:
         description: 已监听时长
         example: 1h30m0s
@@ -606,6 +630,10 @@ definitions:
       buvid:
         description: 账号Buvid3
         example: XX-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+        type: string
+      face:
+        description: 账号头像URL
+        example: https://i2.hdslb.com/bfs/face/99a3f6360dff7882059cced5f1912c51cb3dbd71.jpg
         type: string
       isLoggedIn:
         description: 是否登录
