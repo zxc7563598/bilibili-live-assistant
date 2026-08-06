@@ -3,24 +3,38 @@
     <!-- 已登录：登录信息 + 直播间 双栏布局 -->
     <div v-if="isLoggedIn" class="mb-4 flex gap-4">
       <!-- 登录信息卡片 -->
-      <n-card title="登录信息" size="small" class="min-w-200 w-auto flex-shrink-0">
-        <div class="f-c-c flex-col">
-          <n-avatar round :size="48" class="bg-primary" :src="loginStatus.face" :bordered="true" />
-          <div class="mt-3 min-w-0 w-full text-center">
-            <div class="truncate text-14 font-medium">
+      <n-card size="small" :bordered="false" class="min-w-200 w-auto flex-shrink-0">
+        <div class="flex flex-col items-center">
+          <!-- 头像 -->
+          <div class="relative">
+            <n-avatar round :size="64" :src="loginStatus.face" :bordered="true" />
+
+            <!-- 在线状态 -->
+            <div class="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
+          </div>
+
+          <!-- 用户信息 -->
+          <div class="mt-3 w-full text-center">
+            <div class="truncate text-15 font-medium">
               {{ loginStatus.username }}
             </div>
+
             <div class="mt-1 text-12 text-gray-400">
               UID {{ loginStatus.uid }}
             </div>
           </div>
-          <n-button type="error" size="small" class="mt-4 w-full" :loading="logoutLoading" @click="handleLogout">
+
+          <!-- 退出 -->
+          <n-button
+            secondary type="error" size="small" class="mt-4 w-full" :loading="logoutLoading"
+            @click="handleLogout"
+          >
             退出登录
           </n-button>
         </div>
       </n-card>
       <!-- 直播间管理卡片 -->
-      <n-card title="直播间管理" size="small" class="min-w-300 flex-1">
+      <n-card title="直播间管理" :bordered="false" size="small" class="min-w-300 flex-1">
         <!-- 加载中 -->
         <div v-if="listenerLoading && !listenerStatus" class="f-c-c py-6">
           <n-spin size="small" />
@@ -144,29 +158,47 @@
     </n-card>
 
     <!-- 消息模块（全宽，监听运行后可见） -->
-    <n-card v-if="isRunning" title="实时消息" size="small" class="mb-4 flex-1">
-      <!-- 消息展示区 -->
-      <div ref="chatContainerRef" class="cus-scroll mb-3 h-320 overflow-y-auto card-border rounded-6 auto-bg p-3">
-        <div v-if="messages.length === 0" class="h-full f-c-c text-14 text-gray-400">
-          暂无消息，等待直播数据...
-        </div>
-        <div v-for="(msg, idx) in messages" :key="idx" class="mb-1 flex items-start gap-2">
-          <span class="mt-1 flex-shrink-0 text-12 text-gray-400">
-            {{ formatMsgTime(msg.timestamp) }}
+    <n-card v-if="isRunning" size="small" class="mb-4 flex-1 overflow-hidden" :bordered="false">
+      <template #header>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+            <span class="text-15 font-medium">实时消息</span>
+          </div>
+
+          <span class="text-12 text-gray-400">
+            {{ messages.length }} 条
           </span>
-          <n-tag :type="getCmdTagType(msg.cmd)" size="small" class="flex-shrink-0">
-            {{ getCmdLabel(msg.cmd) }}
-          </n-tag>
-          <span class="break-all text-14">{{ formatMsgContent(msg) }}</span>
         </div>
+      </template>
+
+      <!-- 消息区域 -->
+      <div
+        ref="chatContainerRef" class="cus-scroll mb-3 h-320 overflow-y-auto rounded-8 bg-gray-50/60 p-3 dark:bg-gray-900/40"
+      >
+        <div
+          v-if="messages.length === 0" class="h-full flex flex-col items-center justify-center gap-2 text-14 text-gray-400"
+        >
+          <div class="i-carbon-chat text-32 opacity-40" />
+          <div>
+            暂无消息，等待直播数据...
+          </div>
+        </div>
+
+        <div
+          v-for="(msg, idx) in messages" :key="idx" class="mb-2 rounded-6 px-3 py-2 transition hover:bg-white dark:hover:bg-gray-800"
+        />
       </div>
 
-      <!-- 发送弹幕 -->
-      <div class="flex gap-2">
+      <!-- 输入区域 -->
+      <div
+        class="flex gap-2 rounded-8 bg-gray-50 p-2 dark:bg-gray-900/40"
+      >
         <n-input
-          v-model:value="danmuText" placeholder="输入弹幕内容（1-40 字符）" size="small" :maxlength="40" show-count
+          v-model:value="danmuText" placeholder="输入弹幕内容..." size="small" :maxlength="40" show-count
           :disabled="sendLoading" class="flex-1" @keyup.enter="handleSendDanmu"
         />
+
         <n-button
           size="small" type="primary" :loading="sendLoading" :disabled="!danmuText.trim()"
           @click="handleSendDanmu"
@@ -299,61 +331,6 @@ const liveStatusTagType = computed(() => {
   const map = { 0: 'default', 1: 'success', 2: 'info' }
   return map[listenerStatus.value?.liveStatus] || 'default'
 })
-
-// ==================== 消息类型映射 ====================
-const CMD_LABELS = {
-  DANMU_MSG: '弹幕',
-  SEND_GIFT: '礼物',
-  INTERACT_WORD: '进房',
-  GUARD_BUY: '舰长',
-  SUPER_CHAT_MESSAGE: 'SC',
-  ENTRY_EFFECT: '进场',
-  WATCHED_CHANGE: '看过',
-  ROOM_REAL_TIME_MESSAGE_UPDATE: '系统',
-}
-
-function getCmdLabel(cmd) {
-  return CMD_LABELS[cmd] || cmd || '消息'
-}
-
-function getCmdTagType(cmd) {
-  switch (cmd) {
-    case 'DANMU_MSG': return 'info'
-    case 'SEND_GIFT': return 'success'
-    case 'INTERACT_WORD': return 'default'
-    case 'GUARD_BUY': return 'warning'
-    case 'SUPER_CHAT_MESSAGE': return 'error'
-    default: return 'default'
-  }
-}
-
-function formatMsgContent(msg) {
-  const { cmd, data } = msg
-  if (!data)
-    return ''
-
-  switch (cmd) {
-    case 'DANMU_MSG':
-      return `${data.username || '未知用户'}：${data.content || ''}`
-    case 'SEND_GIFT':
-      return `${data.username || '未知用户'} 送出 ${data.giftName || '礼物'}${data.num ? ` x${data.num}` : ''}`
-    case 'INTERACT_WORD':
-      return `${data.username || '未知用户'} 进入了直播间`
-    case 'GUARD_BUY':
-      return `${data.username || '未知用户'} 开通了 ${data.giftName || '舰长'}`
-    case 'SUPER_CHAT_MESSAGE':
-      return `${data.username || '未知用户'}：${data.message || ''}`
-    default:
-      return JSON.stringify(data)
-  }
-}
-
-function formatMsgTime(ts) {
-  if (!ts)
-    return ''
-  const d = new Date(ts)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
-}
 
 // 登录模块 - 获取登录状态
 async function fetchLoginStatus() {
