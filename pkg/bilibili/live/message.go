@@ -51,15 +51,15 @@ type Message struct {
 //	info[4] — 用户等级信息 [level, ...]
 //	info[5] — 用户头像框等信息
 type DanmuMsgInfo struct {
-	UID         int64  `json:"-"` // info[2][0] 用户UID
-	Uname       string `json:"-"` // info[2][1] 用户名
-	Msg         string `json:"-"` // info[1] 弹幕内容
-	BadgeUID    int64  `json:"-"` // info[3][12] 勋章主播UID
-	BadgeUname  string `json:"-"` // info[3][2] 勋章主播名
-	BadgeRoomID int64  `json:"-"` // info[3][3] 勋章房间ID
-	BadgeName   string `json:"-"` // info[3][1] 勋章名称
-	BadgeLevel  int64  `json:"-"` // info[3][0] 勋章等级
-	BadgeType   int64  `json:"-"` // info[3][10] 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
+	UID         int64  `json:"uid"`           // info[2][0] 用户UID
+	Uname       string `json:"username"`      // info[2][1] 用户名
+	Msg         string `json:"content"`       // info[1] 弹幕内容
+	BadgeUID    int64  `json:"badge_uid"`     // info[3][12] 勋章主播UID
+	BadgeUname  string `json:"badge_uname"`   // info[3][2] 勋章主播名
+	BadgeRoomID int64  `json:"badge_room_id"` // info[3][3] 勋章房间ID
+	BadgeName   string `json:"badge_name"`    // info[3][1] 勋章名称
+	BadgeLevel  int64  `json:"badge_level"`   // info[3][0] 勋章等级
+	BadgeType   int64  `json:"badge_type"`    // info[3][10] 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
 }
 
 // LiveInfo 是 LIVE 消息中提取的关键字段
@@ -93,27 +93,27 @@ type PreparingInfo struct {
 
 // BlindGiftInfo 是 SEND_GIFT 中的盲盒礼物信息
 type BlindGiftInfo struct {
-	GiftAction        string `json:"gift_action"`        // 盲盒动作
-	GiftTipPrice      int64  `json:"-"`                  // 爆出礼物价格(分)
-	OriginalGiftID    int64  `json:"original_gift_id"`   // 原始礼物ID
-	OriginalGiftName  string `json:"original_gift_name"` // 原始礼物名称
-	OriginalGiftPrice int64  `json:"-"`                  // 原始礼物价格(分)
+	GiftAction        string `json:"gift_action"`         // 盲盒动作
+	GiftTipPrice      int64  `json:"gift_tip_price"`      // 爆出礼物价格(分)
+	OriginalGiftID    int64  `json:"original_gift_id"`    // 原始礼物ID
+	OriginalGiftName  string `json:"original_gift_name"`  // 原始礼物名称
+	OriginalGiftPrice int64  `json:"original_gift_price"` // 原始礼物价格(分)
 }
 
 // SendGiftInfo 是 SEND_GIFT 与 SEND_GIFT_V2 消息中提取的关键字段
 type SendGiftInfo struct {
-	UID        int64          `json:"-"` // 送礼用户UID
-	Uname      string         `json:"-"` // 送礼用户名
-	GiftID     int64          `json:"-"` // 礼物ID
-	GiftName   string         `json:"-"` // 礼物名称
-	Price      int64          `json:"-"` // 礼物价格(分)
-	Num        int64          `json:"-"` // 礼物数量
-	AnchorID   int64          `json:"-"` // 主播UID
-	BadgeUID   int64          `json:"-"` // 勋章主播UID
-	BadgeName  string         `json:"-"` // 勋章名称
-	BadgeLevel int64          `json:"-"` // 勋章等级
-	BadgeType  int64          `json:"-"` // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
-	BlindGift  *BlindGiftInfo `json:"-"` // 盲盒礼物信息，非盲盒时为 nil
+	UID        int64          `json:"uid"`                  // 送礼用户UID
+	Uname      string         `json:"username"`             // 送礼用户名
+	GiftID     int64          `json:"gift_id"`              // 礼物ID
+	GiftName   string         `json:"gift_name"`            // 礼物名称
+	Price      int64          `json:"price"`                // 礼物价格(分)
+	Num        int64          `json:"num"`                  // 礼物数量
+	AnchorID   int64          `json:"anchor_id"`            // 主播UID
+	BadgeUID   int64          `json:"badge_uid"`            // 勋章主播UID
+	BadgeName  string         `json:"badge_name"`           // 勋章名称
+	BadgeLevel int64          `json:"badge_level"`          // 勋章等级
+	BadgeType  int64          `json:"badge_type"`           // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
+	BlindGift  *BlindGiftInfo `json:"blind_gift,omitempty"` // 盲盒礼物信息，非盲盒时为 nil
 }
 
 // GuardBuyInfo 是 GUARD_BUY 消息中提取的关键字段
@@ -130,44 +130,44 @@ type GuardBuyInfo struct {
 
 // InteractWordV2Info 是 INTERACT_WORD_V2 消息中提取的关键字段
 type InteractWordV2Info struct {
-	UID        int64  `json:"-"` // 用户UID
-	Uname      string `json:"-"` // 用户名
-	MsgType    int64  `json:"-"` // 消息类型 1=进入直播间 2=关注 3=分享
-	RoomID     int64  `json:"-"` // 直播间ID
-	Timestamp  int64  `json:"-"` // 时间戳
-	BadgeUID   int64  `json:"-"` // 勋章主播UID
-	BadgeName  string `json:"-"` // 勋章名称
-	BadgeLevel int64  `json:"-"` // 勋章等级
-	BadgeType  int64  `json:"-"` // 勋章类型 0=普通用户 1=总督 2=提督 3=舰长
+	UID        int64  `json:"uid"`         // 用户UID
+	Uname      string `json:"username"`    // 用户名
+	MsgType    int64  `json:"msg_type"`    // 消息类型 1=进入直播间 2=关注 3=分享
+	RoomID     int64  `json:"room_id"`     // 直播间ID
+	Timestamp  int64  `json:"timestamp"`   // 时间戳
+	BadgeUID   int64  `json:"badge_uid"`   // 勋章主播UID
+	BadgeName  string `json:"badge_name"`  // 勋章名称
+	BadgeLevel int64  `json:"badge_level"` // 勋章等级
+	BadgeType  int64  `json:"badge_type"`  // 勋章类型 0=普通用户 1=总督 2=提督 3=舰长
 }
 
 // PkBattlePreNewInfo 是 PK_BATTLE_PRE_NEW 消息中提取的关键字段
 type PkBattlePreNewInfo struct {
-	PkID       int64  `json:"-"` // PK ID
-	PkStatus   int64  `json:"-"` // PK 状态
-	Timestamp  int64  `json:"-"` // 时间戳
-	Uname      string `json:"-"` // 对方用户名
-	UID        int64  `json:"-"` // 对方用户UID
-	RoomID     int64  `json:"-"` // 对方房间ID
-	BattleType int64  `json:"-"` // 对战类型
-	MatchType  int64  `json:"-"` // 匹配类型
+	PkID       int64  `json:"pk_id"`       // PK ID
+	PkStatus   int64  `json:"pk_status"`   // PK 状态
+	Timestamp  int64  `json:"timestamp"`   // 时间戳
+	Uname      string `json:"username"`    // 对方用户名
+	UID        int64  `json:"uid"`         // 对方用户UID
+	RoomID     int64  `json:"room_id"`     // 对方房间ID
+	BattleType int64  `json:"battle_type"` // 对战类型
+	MatchType  int64  `json:"match_type"`  // 匹配类型
 }
 
 // SuperChatMessage 是 SUPER_CHAT_MESSAGE 消息中提取的关键字段
 type SuperChatMessage struct {
-	GiftID           int64  `json:"-"` // 礼物ID
-	GiftName         string `json:"-"` // 礼物名称
-	GiftNum          int64  `json:"-"` // 礼物数量
-	UID              int64  `json:"-"` // 用户UID
-	Uname            string `json:"-"` // 用户名
-	Message          string `json:"-"` // 留言内容
-	Price            int64  `json:"-"` // 价格
-	StartTime        int64  `json:"-"` // 开始时间（秒级时间戳）
-	BadgeLevel       int64  `json:"-"` // 勋章等级
-	BadgeName        string `json:"-"` // 勋章名称
-	BadgeRoomID      int64  `json:"-"` // 勋章主播房间ID
-	BadgeAnchorUname string `json:"-"` // 勋章主播名
-	BadgeType        int64  `json:"-"` // 勋章类型 0=普通用户 1=总督 2=提督 3=舰长
+	GiftID           int64  `json:"gift_id"`            // 礼物ID
+	GiftName         string `json:"gift_name"`          // 礼物名称
+	GiftNum          int64  `json:"gift_num"`           // 礼物数量
+	UID              int64  `json:"uid"`                // 用户UID
+	Uname            string `json:"username"`           // 用户名
+	Message          string `json:"message"`            // 留言内容
+	Price            int64  `json:"price"`              // 价格
+	StartTime        int64  `json:"start_time"`         // 开始时间（秒级时间戳）
+	BadgeLevel       int64  `json:"badge_level"`        // 勋章等级
+	BadgeName        string `json:"badge_name"`         // 勋章名称
+	BadgeRoomID      int64  `json:"badge_room_id"`      // 勋章主播房间ID
+	BadgeAnchorUname string `json:"badge_anchor_uname"` // 勋章主播名
+	BadgeType        int64  `json:"badge_type"`         // 勋章类型 0=普通用户 1=总督 2=提督 3=舰长
 }
 
 // ExtractSuperChatMessage 从原始 JSON 中提取醒目留言信息
