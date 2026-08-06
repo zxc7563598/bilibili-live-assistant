@@ -20,6 +20,8 @@ type Repository interface {
 	UpdateEndByID(ctx context.Context, tx *gorm.DB, id int64, form model.LiveSessionUpdateEndForm) error
 	// UpdateStatsByID 根据 ID 更新统计数据（DanmuCount / GiftCount / GuardCount / SuperChatCount / TotalRevenue）
 	UpdateStatsByID(ctx context.Context, tx *gorm.DB, id int64, form model.LiveSessionUpdateStatsForm) error
+	// ListActive 获取所有未下播的记录
+	ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSession, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -121,4 +123,12 @@ func (r *gormRepo) UpdateStatsByID(ctx context.Context, tx *gorm.DB, id int64, f
 		return nil
 	}
 	return r.UpdateMap(ctx, tx, "id", id, updateMap)
+}
+
+// ListActive 获取所有未下播的记录（EndAt = 0），按 StartAt 升序
+func (r *gormRepo) ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSession, error) {
+	db := r.getDB(ctx, tx)
+	var list []model.LiveSession
+	err := db.Where("end_at = 0").Order("start_at asc").Find(&list).Error
+	return list, err
 }

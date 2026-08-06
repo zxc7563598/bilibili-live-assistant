@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
 	"gorm.io/gorm"
@@ -19,6 +20,14 @@ type Repository interface {
 	ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveGift, error)
 	// ListByLiveID 根据 LiveID 查询礼物，按 SendAt 倒序，limit 控制最大条数
 	ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, limit int) ([]model.LiveGift, error)
+	// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的礼物关联到直播记录
+	UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error
+	// CountAndRevenueByRoomIDAndTimeRange 统计指定房间在时间范围内的礼物数量与收益（price * num）
+	CountAndRevenueByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (count int64, revenue int64, err error)
+	// CountGuardByRoomIDAndTimeRange 统计指定房间在时间范围内的大航海数量
+	CountGuardByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
+	// CountSuperChatByRoomIDAndTimeRange 统计指定房间在时间范围内的醒目留言数量
+	CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -82,6 +91,48 @@ func (r *gormRepo) ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, 
 	var list []model.LiveGift
 	err := db.Where("live_id = ?", liveID).Order("send_at desc").Limit(limit).Find(&list).Error
 	return list, err
+}
+
+// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的礼物关联到直播记录
+func (r *gormRepo) UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error {
+	db := r.getDB(ctx, tx)
+	return db.Model(&model.LiveGift{}).
+		Where("room_id = ? AND send_at >= ? AND send_at <= ?", roomID, startTime, endTime).
+		Update("live_id", liveID).Error
+}
+
+// CountAndRevenueByRoomIDAndTimeRange 统计指定房间在时间范围内的礼物数量与收益（price * num）
+func (r *gormRepo) CountAndRevenueByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (count int64, revenue int64, err error) {
+	db := r.getDB(ctx, tx)
+	var result struct {
+		Count   int64 `gorm:"column:count"`
+		Revenue int64 `gorm:"column:revenue"`
+	}
+	err = db.Model(&model.LiveGift{}).
+		Select("COUNT(*) AS count, COALESCE(SUM(price * num), 0) AS revenue").
+		Where("room_id = ? AND send_at >= ? AND send_at <= ?", roomID, startTime, endTime).
+		Scan(&result).Error
+	return result.Count, result.Revenue, err
+}
+
+// CountGuardByRoomIDAndTimeRange 统计指定房间在时间范围内的大航海数量
+func (r *gormRepo) CountGuardByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error) {
+	db := r.getDB(ctx, tx)
+	var count int64
+	err := db.Model(&model.LiveGift{}).
+		Where("room_id = ? AND send_at >= ? AND send_at <= ? AND gift_type = ?", roomID, startTime, endTime, enum.GiftTypeGuard).
+		Count(&count).Error
+	return count, err
+}
+
+// CountSuperChatByRoomIDAndTimeRange 统计指定房间在时间范围内的醒目留言数量
+func (r *gormRepo) CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error) {
+	db := r.getDB(ctx, tx)
+	var count int64
+	err := db.Model(&model.LiveGift{}).
+		Where("room_id = ? AND send_at >= ? AND send_at <= ? AND gift_type = ?", roomID, startTime, endTime, enum.GiftTypeSuperChat).
+		Count(&count).Error
+	return count, err
 }
 
 // escapeLike 转义 LIKE 查询中的特殊字符 _ %
