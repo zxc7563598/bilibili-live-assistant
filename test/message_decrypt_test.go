@@ -19,13 +19,9 @@ import (
 var (
 	LIVE = []string{
 		`{"cmd":"LIVE","live_key":"716183726456147844","voice_background":"","sub_session_key":"716183726456147844sub_time:1785502507","live_platform":"pc_link","live_model":0,"roomid":22384516,"live_time":1785502506,"special_types":[50]}`,
-		`{"cmd":"LIVE","live_key":"716183726456147844","voice_background":"","sub_session_key":"716183726456147844sub_time:1785502507","live_platform":"pc_link","live_model":0,"roomid":22384516}`,
 		`{"cmd":"LIVE","live_key":"720904702972715974","voice_background":"","sub_session_key":"720904702972715974sub_time:1785385792","live_platform":"pc_link","live_model":0,"roomid":26796998,"live_time":1785385791,"special_types":[50]}`,
-		`{"cmd":"LIVE","live_key":"720904702972715974","voice_background":"","sub_session_key":"720904702972715974sub_time:1785385792","live_platform":"pc_link","live_model":0,"roomid":26796998}`,
 		`{"cmd":"LIVE","live_key":"721025262704714694","voice_background":"","sub_session_key":"721025262704714694sub_time:1785414638","live_platform":"pc_link","live_model":0,"roomid":26796998,"live_time":1785414638,"special_types":[50]}`,
-		`{"cmd":"LIVE","live_key":"721025262704714694","voice_background":"","sub_session_key":"721025262704714694sub_time:1785414638","live_platform":"pc_link","live_model":0,"roomid":26796998}`,
 		`{"cmd":"LIVE","live_key":"721031816824808390","voice_background":"","sub_session_key":"721031816824808390sub_time:1785415800","live_platform":"pc_link","live_model":0,"roomid":26796998,"live_time":1785415800,"special_types":[50]}`,
-		`{"cmd":"LIVE","live_key":"721031816824808390","voice_background":"","sub_session_key":"721031816824808390sub_time:1785415800","live_platform":"pc_link","live_model":0,"roomid":26796998}`,
 	}
 	CUT_OFF = []string{
 		`{"cmd":"CUT_OFF","msg":"直播中涉及低俗语音，如：低俗诱导打赏、低俗语聊、使用诱惑/挑逗性质的声音等","msg_id":"101567020950116352:1000:1000","p_is_ack":true,"p_msg_type":1,"room_id":26796998,"send_time":1785415739274}`,
@@ -202,6 +198,7 @@ func TestCmdLiveStart(t *testing.T) {
 		t.Logf("第 %d 条:", i+1)
 		t.Logf("  直播ID: %s", info.LiveKey)
 		t.Logf("  直播平台: %s", info.LivePlatform)
+		t.Logf("  开播时间: %d", info.LiveTime)
 		t.Logf("  ---")
 	}
 }

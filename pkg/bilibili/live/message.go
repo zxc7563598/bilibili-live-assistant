@@ -66,6 +66,7 @@ type DanmuMsgInfo struct {
 type LiveInfo struct {
 	LiveKey      string `json:"live_key"`      // 直播流标识 key
 	LivePlatform string `json:"live_platform"` // 开播平台（pc_link / android / ios 等）
+	LiveTime     int64  `json:"live_time"`     // 开播时间（Unix 秒级时间戳）
 }
 
 // CutOffInfo 是 CUT_OFF 消息中提取的关键字段
@@ -131,9 +132,9 @@ type GuardBuyInfo struct {
 type InteractWordV2Info struct {
 	UID        int64  `json:"-"` // 用户UID
 	Uname      string `json:"-"` // 用户名
-	MsgType    int64 `json:"-"` // 消息类型 1=进入直播间 2=关注 3=分享
-	RoomID     int64 `json:"-"` // 直播间ID
-	Timestamp  int64 `json:"-"` // 时间戳
+	MsgType    int64  `json:"-"` // 消息类型 1=进入直播间 2=关注 3=分享
+	RoomID     int64  `json:"-"` // 直播间ID
+	Timestamp  int64  `json:"-"` // 时间戳
 	BadgeUID   int64  `json:"-"` // 勋章主播UID
 	BadgeName  string `json:"-"` // 勋章名称
 	BadgeLevel int64  `json:"-"` // 勋章等级
@@ -485,6 +486,9 @@ func ExtractLive(raw string) (*LiveInfo, error) {
 	var info LiveInfo
 	if err := json.Unmarshal([]byte(raw), &info); err != nil {
 		return nil, fmt.Errorf("解析 LIVE 消息失败: %w", err)
+	}
+	if info.LiveTime == 0 {
+		return nil, fmt.Errorf("LIVE 消息缺少 live_time 字段 (B站重复推送)")
 	}
 	return &info, nil
 }

@@ -13,7 +13,6 @@ type LiveGift struct {
 	Price             int64          `gorm:"not null;default:0;comment:礼物价格(分)"`
 	Num               int64          `gorm:"not null;default:1;comment:礼物数量"`
 	Message           string         `gorm:"type:varchar(200);comment:醒目留言文本"`
-	AnchorID          int64          `gorm:"not null;index;comment:主播UID"`
 	BadgeUID          int64          `gorm:"comment:勋章主播UID"`
 	BadgeName         string         `gorm:"type:varchar(100);comment:勋章名称"`
 	BadgeLevel        int64          `gorm:"comment:勋章等级"`
