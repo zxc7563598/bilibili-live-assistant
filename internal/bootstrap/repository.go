@@ -8,6 +8,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/robot_config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/role"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/role_menu"
 	"gorm.io/gorm"
@@ -23,6 +24,7 @@ type Repositories struct {
 	LiveGift    live_gift.Repository
 	LiveSession live_session.Repository
 	LiveUser    live_user.Repository
+	RobotConfig robot_config.Repository
 }
 
 func InitRepositories(db *gorm.DB) *Repositories {
@@ -36,5 +38,6 @@ func InitRepositories(db *gorm.DB) *Repositories {
 		LiveGift:    live_gift.New(db),
 		LiveSession: live_session.New(db),
 		LiveUser:    live_user.New(db),
+		RobotConfig: robot_config.New(db),
 	}
 }

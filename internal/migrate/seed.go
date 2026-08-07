@@ -23,6 +23,9 @@ func Seed(db *gorm.DB) error {
 	if err := seedAdminRole(db); err != nil {
 		return err
 	}
+	if err := seedRobotConfigs(db); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -360,4 +363,298 @@ func seedAdminRole(db *gorm.DB) error {
 		RoleID:  1,
 	}
 	return db.Create(&role).Error
+}
+
+// seedRobotConfigs 初始化机器人配置表
+//
+// 所有功能默认关闭（enabled=false），由用户在管理后台按需开启和配置。
+// 配置值使用 text 类型存储，复杂配置（如答谢模板、回复规则）使用 JSON 格式。
+func seedRobotConfigs(db *gorm.DB) error {
+	var count int64
+	db.Model(&model.RobotConfig{}).Count(&count)
+	if count > 0 {
+		return nil
+	}
+	configs := []model.RobotConfig{
+		{
+			GroupName:   "room",
+			ConfigKey:   "room_id",
+			ConfigValue: "0",
+			Remark:      "监听的直播间房间号, 0 表示未设置",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "is_listening",
+			ConfigValue: "0",
+			Remark:      "是否默认监听直播间, 0-否, 1-是",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "max_name_length",
+			ConfigValue: "8",
+			Remark:      "用户名最大长度, 超过此长度则裁剪",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "name_trim_mode",
+			ConfigValue: "0",
+			Remark:      "裁剪方式, 0-省略后面, 1-省略前面",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "scene",
+			ConfigValue: "0",
+			Remark:      "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "requirement",
+			ConfigValue: "0",
+			Remark:      "触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "reward_type",
+			ConfigValue: "0",
+			Remark:      "奖励类型, 0-星光, 1-积分",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "reward_amount",
+			ConfigValue: "10",
+			Remark:      "奖励数量, 正整数",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "keyword",
+			ConfigValue: "#签到",
+			Remark:      "签到关键词, 用户触发签到的词, 建议增加符号以避免错误触发",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "query_keyword",
+			ConfigValue: "#查询",
+			Remark:      "查询关键词, 用户触发查询的词, 建议增加符号以避免错误触发",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "success_reply",
+			ConfigValue: "",
+			Remark:      "签到成功回复, 支持占位符变量",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "fail_reply",
+			ConfigValue: "",
+			Remark:      "签到失败回复, 一般为不在可用场景或不符合触发门槛， 支持占位符变量",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "repeat_reply",
+			ConfigValue: "",
+			Remark:      "重复签到回复, 支持占位符变量",
+		},
+		{
+			GroupName:   "sign",
+			ConfigKey:   "query_reply",
+			ConfigValue: "",
+			Remark:      "查询成功回复, 支持占位符变量",
+		},
+		{
+			GroupName:   "ad",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "ad",
+			ConfigKey:   "scene",
+			ConfigValue: "0",
+			Remark:      "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+		},
+		{
+			GroupName:   "ad",
+			ConfigKey:   "interval",
+			ConfigValue: "62",
+			Remark:      "发送间隔, 秒",
+		},
+		{
+			GroupName:   "ad",
+			ConfigKey:   "send_mode",
+			ConfigValue: "0",
+			Remark:      "发送方式, 0-随机发送, 1-顺序发送",
+		},
+		{
+			GroupName:   "ad",
+			ConfigKey:   "content",
+			ConfigValue: "",
+			Remark:      "发送内容, 支持占位符变量",
+		},
+
+		{
+			GroupName:   "pk",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "pk",
+			ConfigKey:   "content",
+			ConfigValue: "",
+			Remark:      "发送内容, 支持占位符变量",
+		},
+
+		{
+			GroupName:   "gift",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "gift",
+			ConfigKey:   "scene",
+			ConfigValue: "0",
+			Remark:      "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+		},
+		{
+			GroupName:   "gift",
+			ConfigKey:   "requirement",
+			ConfigValue: "0",
+			Remark:      "答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+		},
+		{
+			GroupName:   "gift",
+			ConfigKey:   "show_count",
+			ConfigValue: "1",
+			Remark:      "展示数量, 在答谢礼物时标注数量, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "gift",
+			ConfigKey:   "merge_gift",
+			ConfigValue: "1",
+			Remark:      "礼物合并, 一次性感谢用户在短时间内赠送的多个礼物, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "gift",
+			ConfigKey:   "include_blindbox",
+			ConfigValue: "1",
+			Remark:      "盲盒统计, 盲盒礼物在感谢末尾携带盈亏信息, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "gift",
+			ConfigKey:   "min_battery",
+			ConfigValue: "10",
+			Remark:      "起始感谢电池, 低于此电池数的礼物不触发感谢",
+		},
+		{
+			GroupName:   "gift",
+			ConfigKey:   "content",
+			ConfigValue: "",
+			Remark:      "感谢内容, 支持占位符变量",
+		},
+
+		{
+			GroupName:   "welcome",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "welcome",
+			ConfigKey:   "scene",
+			ConfigValue: "0",
+			Remark:      "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+		},
+		{
+			GroupName:   "welcome",
+			ConfigKey:   "requirement",
+			ConfigValue: "0",
+			Remark:      "欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+		},
+		{
+			GroupName:   "welcome",
+			ConfigKey:   "content",
+			ConfigValue: "",
+			Remark:      "欢迎内容, 支持占位符变量",
+		},
+		{
+			GroupName:   "follow",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "follow",
+			ConfigKey:   "scene",
+			ConfigValue: "0",
+			Remark:      "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+		},
+		{
+			GroupName:   "follow",
+			ConfigKey:   "requirement",
+			ConfigValue: "0",
+			Remark:      "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+		},
+		{
+			GroupName:   "follow",
+			ConfigKey:   "content",
+			ConfigValue: "",
+			Remark:      "感谢内容, 支持占位符变量",
+		},
+		{
+			GroupName:   "share",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "share",
+			ConfigKey:   "scene",
+			ConfigValue: "0",
+			Remark:      "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+		},
+		{
+			GroupName:   "share",
+			ConfigKey:   "requirement",
+			ConfigValue: "0",
+			Remark:      "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+		},
+		{
+			GroupName:   "share",
+			ConfigKey:   "content",
+			ConfigValue: "",
+			Remark:      "感谢内容, 支持占位符变量",
+		},
+		{
+			GroupName:   "reply",
+			ConfigKey:   "enabled",
+			ConfigValue: "0",
+			Remark:      "是否启用, 0-禁用, 1-启用",
+		},
+		{
+			GroupName:   "reply",
+			ConfigKey:   "scene",
+			ConfigValue: "0",
+			Remark:      "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+		},
+		{
+			GroupName:   "reply",
+			ConfigKey:   "requirement",
+			ConfigValue: "0",
+			Remark:      "触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+		},
+		{
+			GroupName:   "reply",
+			ConfigKey:   "content",
+			ConfigValue: "",
+			Remark:      "回复内容, json 配置项",
+		},
+	}
+	return db.Create(&configs).Error
 }

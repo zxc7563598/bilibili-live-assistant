@@ -16,5 +16,6 @@ func Run(db *gorm.DB) error {
 		&model.LiveDanmu{},
 		&model.LiveGift{},
 		&model.LiveSession{},
+		&model.RobotConfig{},
 	)
 }

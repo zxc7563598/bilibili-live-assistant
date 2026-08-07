@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"context"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/migrate"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"gorm.io/gorm"
@@ -20,6 +22,7 @@ type App struct {
 	DB          *gorm.DB
 	Redis       *redis.Client
 	LiveService *live.Service
+	ConfigCache *robotconfig.Cache
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -53,6 +56,11 @@ func NewApp(cfg *config.Config) *App {
 	repos := InitRepositories(db)
 	// service
 	services := InitServices(repos, db, rdb, cfg)
+	// 初始化机器人配置缓存
+	configCache := robotconfig.New(repos.RobotConfig)
+	if err := configCache.Init(context.Background()); err != nil {
+		log.Fatalf("机器人配置加载失败: %v", err)
+	}
 	// handler
 	handlers := InitHandlers(services, rdb)
 	// i18n
@@ -67,5 +75,6 @@ func NewApp(cfg *config.Config) *App {
 		DB:          db,
 		Redis:       rdb,
 		LiveService: services.Live,
+		ConfigCache: configCache,
 	}
 }
