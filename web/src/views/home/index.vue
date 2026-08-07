@@ -1,144 +1,242 @@
 <template>
   <AppPage show-footer full>
-    <div v-if="isLoggedIn" class="mb-4 flex gap-4">
-      <n-card size="small" :bordered="false" class="min-w-200 w-auto flex-shrink-0">
-        <div class="flex flex-col items-center">
-          <div class="relative">
-            <n-avatar round :size="64" :src="loginStatus.face" :bordered="true" />
-            <div class="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
-          </div>
-          <div class="mt-3 w-full text-center">
-            <div class="truncate text-15 font-medium">
-              {{ loginStatus.username }}
+    <div class="flex flex-col" style="height: calc(100vh - 9rem)">
+      <div v-if="isLoggedIn" class="mb-4 flex flex-shrink-0 gap-4">
+        <n-card size="small" :bordered="false" class="min-w-200 w-auto flex-shrink-0">
+          <div class="flex flex-col items-center">
+            <div class="relative">
+              <n-avatar round :size="64" :src="loginStatus.face" :bordered="true" />
+              <div class="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-green-500 ring-2 ring-white" />
             </div>
-            <div class="mt-1 text-12 text-gray-400">
-              UID {{ loginStatus.uid }}
+            <div class="mt-3 w-full text-center">
+              <div class="truncate text-15 font-medium">
+                {{ loginStatus.username }}
+              </div>
+              <div class="mt-1 text-12 text-gray-400">
+                UID {{ loginStatus.uid }}
+              </div>
             </div>
+            <n-button secondary type="error" size="small" class="mt-4 w-full" :loading="logoutLoading" @click="handleLogout">
+              退出登录
+            </n-button>
           </div>
-          <n-button secondary type="error" size="small" class="mt-4 w-full" :loading="logoutLoading" @click="handleLogout">
-            退出登录
+        </n-card>
+        <n-card title="直播间管理" :bordered="false" size="small" class="min-w-300 flex-1">
+          <div v-if="listenerLoading && !listenerStatus" class="f-c-c py-6">
+            <n-spin size="small" />
+          </div>
+          <div v-else-if="!hasRoom" class="flex items-center gap-3">
+            <n-input v-model:value="roomIdInput" placeholder="请输入直播间 ID" size="small" :disabled="roomBindLoading" style="max-width: 240px" @keyup.enter="handleRoomUpdate" />
+            <n-button size="small" type="primary" :loading="roomBindLoading" @click="handleRoomUpdate">
+              确认绑定
+            </n-button>
+          </div>
+          <template v-else>
+            <div class="mb-3 flex items-center gap-2">
+              <span class="truncate text-16 font-semibold">{{ listenerStatus.title || '直播间' }}</span>
+              <n-tag :type="liveStatusTagType" size="small" round>
+                {{ liveStatusLabel }}
+              </n-tag>
+              <n-tag :type="isRunning ? 'success' : 'default'" size="small" round>
+                <template #icon>
+                  <i :class="isRunning ? 'i-material-symbols:play-circle-outline' : 'i-material-symbols:pause-circle-outline'" />
+                </template>
+                {{ isRunning ? '监听中' : '已停止' }}
+              </n-tag>
+            </div>
+            <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-12 text-gray-400">
+              <span>房间号 <span class="text-gray-700 font-medium dark:text-gray-300">{{ listenerStatus.roomId }}</span></span>
+              <span>主播 UID <span class="text-gray-700 font-medium dark:text-gray-300">{{ listenerStatus.uid }}</span></span>
+              <span>人气 <span class="text-gray-700 font-medium dark:text-gray-300">{{ formatNumber(listenerStatus.online) }}</span></span>
+              <span>关注 <span class="text-gray-700 font-medium dark:text-gray-300">{{ formatNumber(listenerStatus.attention) }}</span></span>
+              <span v-if="listenerStatus.liveTime">开播 {{ listenerStatus.liveTime }}</span>
+              <span v-if="isRunning" class="text-gray-400">｜ 监听运行 {{ listenerStatus.uptime || '-' }}</span>
+            </div>
+            <div class="grid grid-cols-3 mb-3 gap-3">
+              <div class="card-border rounded-6 auto-bg-highlight p-3 text-center">
+                <div class="text-16 text-primary font-semibold">
+                  {{ listenerStatus.msgCount ?? 0 }}
+                </div>
+                <div class="mt-1 text-12 text-gray-400">
+                  消息总数
+                </div>
+              </div>
+              <div class="card-border rounded-6 auto-bg-highlight p-3 text-center">
+                <div class="text-16 text-[#2080f0] font-semibold">
+                  {{ listenerStatus.danmuCount ?? 0 }}
+                </div>
+                <div class="mt-1 text-12 text-gray-400">
+                  弹幕
+                </div>
+              </div>
+              <div class="card-border rounded-6 auto-bg-highlight p-3 text-center">
+                <div class="text-16 text-[#18a058] font-semibold">
+                  {{ listenerStatus.giftCount ?? 0 }}
+                </div>
+                <div class="mt-1 text-12 text-gray-400">
+                  礼物
+                </div>
+              </div>
+            </div>
+            <div v-if="isRunning" class="mb-3 text-12 text-gray-400">
+              启动于 {{ listenerStatus.startTime || '-' }}
+            </div>
+            <div class="flex items-center gap-2">
+              <n-button v-if="!isRunning" size="small" type="primary" :loading="startLoading" @click="handleStart">
+                <i class="i-material-symbols:play-arrow mr-1" />
+                启动监听
+              </n-button>
+              <n-button v-else size="small" type="warning" :loading="stopLoading" @click="handleStop">
+                <i class="i-material-symbols:stop mr-1" />
+                停止监听
+              </n-button>
+              <n-button v-if="!isRunning" size="small" :loading="roomBindLoading" @click="showRoomEdit = true">
+                <i class="i-material-symbols:edit-outline mr-1" />
+                修改直播间
+              </n-button>
+            </div>
+            <div v-if="showRoomEdit" class="mt-3 flex items-center gap-3">
+              <n-input v-model:value="roomIdInput" placeholder="请输入新的直播间 ID" size="small" :disabled="roomBindLoading" style="max-width: 240px" />
+              <n-button size="small" type="primary" :loading="roomBindLoading" @click="handleRoomUpdate">
+                确认修改
+              </n-button>
+              <n-button size="small" @click="showRoomEdit = false">
+                取消
+              </n-button>
+            </div>
+          </template>
+        </n-card>
+      </div>
+      <n-card v-else title="登录管理" size="small" class="mb-4">
+        <div class="f-c-c py-8">
+          <n-button type="primary" size="large" :loading="loginLoading" @click="openLoginModal">
+            <i class="i-material-symbols:login mr-2" />
+            扫码登录 B站 账号
           </n-button>
         </div>
       </n-card>
-      <n-card title="直播间管理" :bordered="false" size="small" class="min-w-300 flex-1">
-        <div v-if="listenerLoading && !listenerStatus" class="f-c-c py-6">
-          <n-spin size="small" />
-        </div>
-        <div v-else-if="!hasRoom" class="flex items-center gap-3">
-          <n-input v-model:value="roomIdInput" placeholder="请输入直播间 ID" size="small" :disabled="roomBindLoading" style="max-width: 240px" @keyup.enter="handleRoomUpdate" />
-          <n-button size="small" type="primary" :loading="roomBindLoading" @click="handleRoomUpdate">
-            确认绑定
-          </n-button>
-        </div>
-        <template v-else>
-          <div class="mb-3 flex items-center gap-2">
-            <span class="truncate text-16 font-semibold">{{ listenerStatus.title || '直播间' }}</span>
-            <n-tag :type="liveStatusTagType" size="small" round>
-              {{ liveStatusLabel }}
-            </n-tag>
-            <n-tag :type="isRunning ? 'success' : 'default'" size="small" round>
-              <template #icon>
-                <i :class="isRunning ? 'i-material-symbols:play-circle-outline' : 'i-material-symbols:pause-circle-outline'" />
-              </template>
-              {{ isRunning ? '监听中' : '已停止' }}
-            </n-tag>
-          </div>
-          <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-12 text-gray-400">
-            <span>房间号 <span class="text-gray-700 font-medium dark:text-gray-300">{{ listenerStatus.roomId }}</span></span>
-            <span>主播 UID <span class="text-gray-700 font-medium dark:text-gray-300">{{ listenerStatus.uid }}</span></span>
-            <span>人气 <span class="text-gray-700 font-medium dark:text-gray-300">{{ formatNumber(listenerStatus.online) }}</span></span>
-            <span>关注 <span class="text-gray-700 font-medium dark:text-gray-300">{{ formatNumber(listenerStatus.attention) }}</span></span>
-            <span v-if="listenerStatus.liveTime">开播 {{ listenerStatus.liveTime }}</span>
-            <span v-if="isRunning" class="text-gray-400">｜ 监听运行 {{ listenerStatus.uptime || '-' }}</span>
-          </div>
-          <div class="grid grid-cols-3 mb-3 gap-3">
-            <div class="card-border rounded-6 auto-bg-highlight p-3 text-center">
-              <div class="text-16 text-primary font-semibold">
-                {{ listenerStatus.msgCount ?? 0 }}
-              </div>
-              <div class="mt-1 text-12 text-gray-400">
-                消息总数
-              </div>
+      <n-card v-if="isRunning" size="small" class="min-h-0 flex flex-col flex-1 overflow-hidden" :bordered="false" content-style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+              <span class="text-15 font-medium">实时消息</span>
             </div>
-            <div class="card-border rounded-6 auto-bg-highlight p-3 text-center">
-              <div class="text-16 text-[#2080f0] font-semibold">
-                {{ listenerStatus.danmuCount ?? 0 }}
-              </div>
-              <div class="mt-1 text-12 text-gray-400">
-                弹幕
-              </div>
-            </div>
-            <div class="card-border rounded-6 auto-bg-highlight p-3 text-center">
-              <div class="text-16 text-[#18a058] font-semibold">
-                {{ listenerStatus.giftCount ?? 0 }}
-              </div>
-              <div class="mt-1 text-12 text-gray-400">
-                礼物
-              </div>
-            </div>
-          </div>
-          <div v-if="isRunning" class="mb-3 text-12 text-gray-400">
-            启动于 {{ listenerStatus.startTime || '-' }}
-          </div>
-          <div class="flex items-center gap-2">
-            <n-button v-if="!isRunning" size="small" type="primary" :loading="startLoading" @click="handleStart">
-              <i class="i-material-symbols:play-arrow mr-1" />
-              启动监听
-            </n-button>
-            <n-button v-else size="small" type="warning" :loading="stopLoading" @click="handleStop">
-              <i class="i-material-symbols:stop mr-1" />
-              停止监听
-            </n-button>
-            <n-button v-if="!isRunning" size="small" :loading="roomBindLoading" @click="showRoomEdit = true">
-              <i class="i-material-symbols:edit-outline mr-1" />
-              修改直播间
-            </n-button>
-          </div>
-          <div v-if="showRoomEdit" class="mt-3 flex items-center gap-3">
-            <n-input v-model:value="roomIdInput" placeholder="请输入新的直播间 ID" size="small" :disabled="roomBindLoading" style="max-width: 240px" />
-            <n-button size="small" type="primary" :loading="roomBindLoading" @click="handleRoomUpdate">
-              确认修改
-            </n-button>
-            <n-button size="small" @click="showRoomEdit = false">
-              取消
-            </n-button>
+            <span class="text-12 text-gray-400">
+              {{ messages.length }} 条
+            </span>
           </div>
         </template>
-      </n-card>
-    </div>
-    <n-card v-else title="登录管理" size="small" class="mb-4">
-      <div class="f-c-c py-8">
-        <n-button type="primary" size="large" :loading="loginLoading" @click="openLoginModal">
-          <i class="i-material-symbols:login mr-2" />
-          扫码登录 B站 账号
-        </n-button>
-      </div>
-    </n-card>
-    <n-card v-if="isRunning" size="small" class="mb-4 flex-1 overflow-hidden" :bordered="false">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-            <span class="text-15 font-medium">实时消息</span>
+        <!-- 消息区域 -->
+        <div ref="chatContainerRef" class="cus-scroll mb-3 min-h-0 flex-1 overflow-y-auto rounded-8 bg-gray-50/60 p-3 dark:bg-gray-900/40">
+          <div v-if="messages.length === 0" class="h-full flex flex-col items-center justify-center gap-2 text-14 text-gray-400">
+            <div class="i-carbon-chat text-32 opacity-40" />
+            <div>
+              暂无消息，等待直播数据...
+            </div>
           </div>
-          <span class="text-12 text-gray-400">
-            {{ messages.length }} 条
-          </span>
-        </div>
-      </template>
-      <!-- 消息区域 -->
-      <div ref="chatContainerRef" class="cus-scroll mb-3 h-320 overflow-y-auto rounded-8 bg-gray-50/60 p-3 dark:bg-gray-900/40">
-        <div v-if="messages.length === 0" class="h-full flex flex-col items-center justify-center gap-2 text-14 text-gray-400">
-          <div class="i-carbon-chat text-32 opacity-40" />
-          <div>
-            暂无消息，等待直播数据...
-          </div>
-        </div>
-        <div v-for="(msg, idx) in messages" :key="idx" class="mb-2">
-          <!-- 普通弹幕 -->
-          <template v-if="msg.cmd === 'DANMU_MSG'">
-            <div class="mb-5 rounded-8 bg-white px-3 py-2 transition dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800">
-              <div class="flex items-center gap-2 overflow-hidden whitespace-nowrap">
+          <div v-for="(msg, idx) in messages" :key="idx" class="mb-2">
+            <!-- 普通弹幕 -->
+            <template v-if="msg.cmd === 'DANMU_MSG'">
+              <div class="mb-5 rounded-8 bg-white px-3 py-2 transition dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800">
+                <div class="flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                  <span v-if="msg.data.badge_name" class="mr-5 inline-flex shrink-0 items-center border rounded-4 px-8 py-2 text-10 font-medium" :class="getBadgeClass(msg.data.badge_type)">
+                    {{ msg.data.badge_name }}
+                    Lv{{ msg.data.badge_level }}
+                  </span>
+                  <a class="shrink-0 font-medium no-underline transition hover:underline" :class="getUserNameClass(msg.data.badge_type)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
+                    {{ msg.data.username }}
+                  </a>
+                  <span class="ml-2 mr-4 shrink-0 text-gray-400">:</span>
+                  <span class="min-w-0 overflow-hidden text-ellipsis text-14 text-gray-700 dark:text-gray-200">
+                    {{ msg.data.content }}
+                  </span>
+                </div>
+              </div>
+            </template>
+            <!-- 礼物 -->
+            <template v-else-if="msg.cmd === 'SEND_GIFT' || msg.cmd === 'SEND_GIFT_V2'">
+              <div class="mb-2 rounded-8 bg-orange-50 px-3 py-2 transition dark:bg-orange-900/10 hover:bg-orange-100/60 dark:hover:bg-orange-900/20">
+                <div class="flex items-center gap-2 overflow-hidden whitespace-nowrap">
+                  <span v-if="msg.data.badge_name" class="mr-5 inline-flex shrink-0 items-center rounded-4 px-8 py-2 text-10 font-medium" :class="getBadgeClass(msg.data.badge_type)">
+                    {{ msg.data.badge_name }}
+                    Lv{{ msg.data.badge_level }}
+                  </span>
+                  <a class="shrink-0 font-medium no-underline transition hover:underline" :class="getUserNameClass(msg.data.badge_type)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
+                    {{ msg.data.username }}
+                  </a>
+                  <span class="ml-3 shrink-0 text-gray-500 dark:text-gray-400">
+                    送出
+                  </span>
+                  <span class="min-w-0 overflow-hidden text-ellipsis text-orange-600 font-medium dark:text-orange-400">
+                    {{ msg.data.gift_name }} x {{ msg.data.num }}
+                  </span>
+                  <span v-if="msg.data.blind_gift" class="ml-5 min-w-0 overflow-hidden text-ellipsis text-10 text-gray-600 font-medium dark:text-gray-400">
+                    {{ msg.data.blind_gift.original_gift_name }} - {{ blindGiftAnalyze(msg.data.num, msg.data.price, msg.data.blind_gift.original_gift_price) }}
+                  </span>
+                  <span class="ml-auto shrink-0 rounded-4 bg-orange-100 px-8 py-2 text-12 text-orange-600 font-medium dark:bg-orange-900/30 dark:text-orange-300">
+                    ¥{{ formatPrice(msg.data.price * msg.data.num) }}
+                  </span>
+                </div>
+              </div>
+            </template>
+            <!-- 醒目留言 -->
+            <template v-else-if="msg.cmd === 'SUPER_CHAT_MESSAGE'">
+              <div class="mb-5 border border-orange-200 rounded-4 bg-orange-50 px-3 py-3 dark:border-orange-800 dark:bg-orange-950/30">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0 flex items-center gap-2 overflow-hidden">
+                    <span v-if="msg.data.badge_name" class="mr-3 inline-flex shrink-0 items-center border rounded-4 px-8 py-2 text-10 font-medium" :class="getBadgeClass(msg.data.badge_type)">
+                      {{ msg.data.badge_name }}
+                      Lv{{ msg.data.badge_level }}
+                    </span>
+                    <a class="shrink-0 font-medium no-underline transition hover:underline" :class="getUserNameClass(msg.data.badge_type)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
+                      {{ msg.data.username }}
+                    </a>
+                  </div>
+                  <span class="shrink-0 text-orange-600 font-bold dark:text-orange-400">
+                    ¥{{ formatPrice(msg.data.price) }}
+                  </span>
+                </div>
+                <div class="mt-3 border border-orange-100 rounded-6 bg-white px-3 py-2 text-14 text-gray-700 leading-normal dark:border-orange-900 dark:bg-gray-900/50 dark:text-gray-200">
+                  {{ msg.data.message }}
+                </div>
+              </div>
+            </template>
+            <!-- 舰长开通 -->
+            <template v-else-if="msg.cmd === 'GUARD_BUY'">
+              <div class="mb-5 rounded-8 px-3 py-3 transition" :class="getGuardCardClass(msg.data.guard_level)">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2 overflow-hidden">
+                    <span class="shrink-0 rounded-full px-8 py-2 text-11 font-medium" :class="getGuardBadgeClass(msg.data.guard_level)">
+                      {{ getGuardName(msg.data.guard_level) }}
+                    </span>
+                    <a class="shrink-0 font-medium no-underline hover:underline" :class="getGuardUserClass(msg.data.guard_level)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
+                      {{ msg.data.username }}
+                    </a>
+                    <span class="text-13 text-gray-500 dark:text-gray-400">
+                      开通了
+                    </span>
+                    <span class="font-medium" :class="getGuardUserClass(msg.data.guard_level)">
+                      {{ msg.data.gift_name }}
+                    </span>
+                    <span v-if="msg.data.num > 1" class="text-13 text-gray-500 dark:text-gray-400">
+                      x {{ msg.data.num }}
+                    </span>
+                  </div>
+                  <span v-if="msg.data.price" class="shrink-0 text-13 font-medium" :class="getUserNameClass(msg.data.guard_level)">
+                    ¥{{ formatPrice(msg.data.price * msg.data.num) }}
+                  </span>
+                </div>
+              </div>
+            </template>
+            <!-- 互动事件 -->
+            <template v-else-if="msg.cmd === 'INTERACT_WORD_V2'">
+              <div class="mb-5 flex items-center gap-2 rounded-8 px-3 py-2 text-13 text-gray-500 dark:text-gray-400">
+                <span class="mr-5 h-20 w-20 inline-flex shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800">
+                  <span v-if="msg.data.msg_type === 1" class="i-carbon-login text-12" />
+                  <span v-else-if="msg.data.msg_type === 2" class="i-carbon-favorite text-12" />
+                  <span v-else-if="msg.data.msg_type === 3" class="i-carbon-share text-12" />
+                </span>
                 <span v-if="msg.data.badge_name" class="mr-5 inline-flex shrink-0 items-center border rounded-4 px-8 py-2 text-10 font-medium" :class="getBadgeClass(msg.data.badge_type)">
                   {{ msg.data.badge_name }}
                   Lv{{ msg.data.badge_level }}
@@ -146,151 +244,67 @@
                 <a class="shrink-0 font-medium no-underline transition hover:underline" :class="getUserNameClass(msg.data.badge_type)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
                   {{ msg.data.username }}
                 </a>
-                <span class="ml-2 mr-4 shrink-0 text-gray-400">:</span>
-                <span class="min-w-0 overflow-hidden text-ellipsis text-14 text-gray-700 dark:text-gray-200">
-                  {{ msg.data.content }}
+                <span class="shrink-0">
+                  <template v-if="msg.data.msg_type === 1">
+                    进入直播间
+                  </template>
+                  <template v-else-if="msg.data.msg_type === 2">
+                    关注了直播间
+                  </template>
+                  <template v-else-if="msg.data.msg_type === 3">
+                    分享了直播间
+                  </template>
                 </span>
               </div>
-            </div>
-          </template>
-          <!-- 礼物 -->
-          <template v-else-if="msg.cmd === 'SEND_GIFT' || msg.cmd === 'SEND_GIFT_V2'">
-            <div class="mb-2 rounded-8 bg-orange-50 px-3 py-2 transition dark:bg-orange-900/10 hover:bg-orange-100/60 dark:hover:bg-orange-900/20">
-              <div class="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-                <span v-if="msg.data.badge_name" class="mr-5 inline-flex shrink-0 items-center rounded-4 px-8 py-2 text-10 font-medium" :class="getBadgeClass(msg.data.badge_type)">
-                  {{ msg.data.badge_name }}
-                  Lv{{ msg.data.badge_level }}
-                </span>
-                <a class="shrink-0 font-medium no-underline transition hover:underline" :class="getUserNameClass(msg.data.badge_type)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
-                  {{ msg.data.username }}
-                </a>
-                <span class="ml-3 shrink-0 text-gray-500 dark:text-gray-400">
-                  送出
-                </span>
-                <span class="min-w-0 overflow-hidden text-ellipsis text-orange-600 font-medium dark:text-orange-400">
-                  {{ msg.data.gift_name }} x {{ msg.data.num }}
-                </span>
-                <span v-if="msg.data.blind_gift" class="ml-5 min-w-0 overflow-hidden text-ellipsis text-10 text-gray-600 font-medium dark:text-gray-400">
-                  {{ msg.data.blind_gift.original_gift_name }} - {{ blindGiftAnalyze(msg.data.num, msg.data.price, msg.data.blind_gift.original_gift_price) }}
-                </span>
-                <span class="ml-auto shrink-0 rounded-4 bg-orange-100 px-8 py-2 text-12 text-orange-600 font-medium dark:bg-orange-900/30 dark:text-orange-300">
-                  ¥{{ formatPrice(msg.data.price * msg.data.num) }}
-                </span>
-              </div>
-            </div>
-          </template>
-          <!-- 醒目留言 -->
-          <template v-else-if="msg.cmd === 'SUPER_CHAT_MESSAGE'">
-            <div class="mb-5 border border-orange-200 rounded-4 bg-orange-50 px-3 py-3 dark:border-orange-800 dark:bg-orange-950/30">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0 flex items-center gap-2 overflow-hidden">
-                  <span v-if="msg.data.badge_name" class="mr-3 inline-flex shrink-0 items-center border rounded-4 px-8 py-2 text-10 font-medium" :class="getBadgeClass(msg.data.badge_type)">
-                    {{ msg.data.badge_name }}
-                    Lv{{ msg.data.badge_level }}
+            </template>
+            <!-- PK -->
+            <template v-else-if="msg.cmd === 'PK_BATTLE_PRE_NEW'">
+              <div class="mb-5 border border-indigo-200 rounded-8 bg-indigo-50 px-3 py-2 dark:border-indigo-900 dark:bg-indigo-950/30">
+                <div class="flex items-center gap-2 text-13">
+                  <span class="shrink-0 text-indigo-600 font-medium dark:text-indigo-300">
+                    PK 对决
                   </span>
-                  <a class="shrink-0 font-medium no-underline transition hover:underline" :class="getUserNameClass(msg.data.badge_type)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
-                    {{ msg.data.username }}
-                  </a>
-                </div>
-                <span class="shrink-0 text-orange-600 font-bold dark:text-orange-400">
-                  ¥{{ formatPrice(msg.data.price) }}
-                </span>
-              </div>
-              <div class="mt-3 border border-orange-100 rounded-6 bg-white px-3 py-2 text-14 text-gray-700 leading-normal dark:border-orange-900 dark:bg-gray-900/50 dark:text-gray-200">
-                {{ msg.data.message }}
-              </div>
-            </div>
-          </template>
-          <!-- 舰长开通 -->
-          <template v-else-if="msg.cmd === 'GUARD_BUY'">
-            <div class="mb-5 rounded-8 px-3 py-3 transition" :class="getGuardCardClass(msg.data.guard_level)">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2 overflow-hidden">
-                  <span class="shrink-0 rounded-full px-8 py-2 text-11 font-medium" :class="getGuardBadgeClass(msg.data.guard_level)">
-                    {{ getGuardName(msg.data.guard_level) }}
-                  </span>
-                  <a class="shrink-0 font-medium no-underline hover:underline" :class="getGuardUserClass(msg.data.guard_level)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
-                    {{ msg.data.username }}
-                  </a>
-                  <span class="text-13 text-gray-500 dark:text-gray-400">
-                    开通了
-                  </span>
-                  <span class="font-medium" :class="getGuardUserClass(msg.data.guard_level)">
-                    {{ msg.data.gift_name }}
-                  </span>
-                  <span v-if="msg.data.num > 1" class="text-13 text-gray-500 dark:text-gray-400">
-                    x {{ msg.data.num }}
+                  <span class="text-gray-400"> | </span>
+                  <span class="text-gray-500 dark:text-gray-400">
+                    即将开始
                   </span>
                 </div>
-                <span v-if="msg.data.price" class="shrink-0 text-13 font-medium" :class="getUserNameClass(msg.data.guard_level)">
-                  ¥{{ formatPrice(msg.data.price * msg.data.num) }}
-                </span>
+                <div class="mt-2 flex items-center gap-2 text-14">
+                  <a class="text-gray-700 font-medium no-underline dark:text-gray-200 hover:underline" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
+                    {{ msg.data.username }}
+                  </a>
+                  <span class="text-gray-400">
+                    ·
+                  </span>
+                  <a class="text-gray-500 no-underline dark:text-gray-400 hover:text-indigo-500 hover:underline" :href="`https://live.bilibili.com/${msg.data.room_id}`" target="_blank">
+                    房间 {{ msg.data.room_id }}
+                  </a>
+                </div>
               </div>
-            </div>
-          </template>
-          <!-- 互动事件 -->
-          <template v-else-if="msg.cmd === 'INTERACT_WORD_V2'">
-            <div class="mb-5 flex items-center gap-2 rounded-8 px-3 py-2 text-13 text-gray-500 dark:text-gray-400">
-              <span class="mr-5 h-20 w-20 inline-flex shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-gray-800">
-                <span v-if="msg.data.msg_type === 1" class="i-carbon-login text-12" />
-                <span v-else-if="msg.data.msg_type === 2" class="i-carbon-favorite text-12" />
-                <span v-else-if="msg.data.msg_type === 3" class="i-carbon-share text-12" />
-              </span>
-              <span v-if="msg.data.badge_name" class="mr-5 inline-flex shrink-0 items-center border rounded-4 px-8 py-2 text-10 font-medium" :class="getBadgeClass(msg.data.badge_type)">
-                {{ msg.data.badge_name }}
-                Lv{{ msg.data.badge_level }}
-              </span>
-              <a class="shrink-0 font-medium no-underline transition hover:underline" :class="getUserNameClass(msg.data.badge_type)" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
-                {{ msg.data.username }}
-              </a>
-              <span class="shrink-0">
-                <template v-if="msg.data.msg_type === 1">
-                  进入直播间
-                </template>
-                <template v-else-if="msg.data.msg_type === 2">
-                  关注了直播间
-                </template>
-                <template v-else-if="msg.data.msg_type === 3">
-                  分享了直播间
-                </template>
-              </span>
-            </div>
-          </template>
-          <!-- PK -->
-          <template v-else-if="msg.cmd === 'PK_BATTLE_PRE_NEW'">
-            <div class="mb-5 border border-indigo-200 rounded-8 bg-indigo-50 px-3 py-2 dark:border-indigo-900 dark:bg-indigo-950/30">
-              <div class="flex items-center gap-2 text-13">
-                <span class="shrink-0 text-indigo-600 font-medium dark:text-indigo-300">
-                  PK 对决
-                </span>
-                <span class="text-gray-400"> | </span>
-                <span class="text-gray-500 dark:text-gray-400">
-                  即将开始
-                </span>
-              </div>
-              <div class="mt-2 flex items-center gap-2 text-14">
-                <a class="text-gray-700 font-medium no-underline dark:text-gray-200 hover:underline" :href="`https://space.bilibili.com/${msg.data.uid}`" target="_blank">
-                  {{ msg.data.username }}
-                </a>
-                <span class="text-gray-400">
-                  ·
-                </span>
-                <a class="text-gray-500 no-underline dark:text-gray-400 hover:text-indigo-500 hover:underline" :href="`https://live.bilibili.com/${msg.data.room_id}`" target="_blank">
-                  房间 {{ msg.data.room_id }}
-                </a>
-              </div>
-            </div>
-          </template>
+            </template>
+          </div>
         </div>
-      </div>
-      <!-- 输入区域 -->
-      <div class="flex gap-2 rounded-8 bg-gray-50 p-2 dark:bg-gray-900/40">
-        <n-input v-model:value="danmuText" placeholder="输入弹幕内容..." size="small" :maxlength="40" show-count :disabled="sendLoading" class="flex-1" @keyup.enter="handleSendDanmu" />
-        <n-button size="small" type="primary" :loading="sendLoading" :disabled="!danmuText.trim()" @click="handleSendDanmu">
-          发送
-        </n-button>
-      </div>
-    </n-card>
+        <!-- 输入区域 -->
+        <div>
+          <!-- 消息类型过滤 -->
+          <div class="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-8 bg-gray-50 p-2 dark:bg-gray-900/40">
+            <n-checkbox v-model:checked="messagesShowType.DANMU_MSG" label="弹幕" size="small" />
+            <n-checkbox v-model:checked="messagesShowType.SEND_GIFT" label="礼物" size="small" />
+            <n-checkbox v-model:checked="messagesShowType.SUPER_CHAT_MESSAGE" label="醒目留言" size="small" />
+            <n-checkbox v-model:checked="messagesShowType.GUARD_BUY" label="大航海" size="small" />
+            <n-checkbox v-model:checked="messagesShowType.INTERACT_WORD_V2" label="互动" size="small" />
+            <n-checkbox v-model:checked="messagesShowType.PK_BATTLE_PRE_NEW" label="PK" size="small" />
+          </div>
+          <!-- 输入行 -->
+          <div class="flex gap-2 rounded-8 bg-gray-50 p-2 dark:bg-gray-900/40">
+            <n-input v-model:value="danmuText" placeholder="输入弹幕内容..." size="small" :maxlength="40" show-count :disabled="sendLoading" class="flex-1" @keyup.enter="handleSendDanmu" />
+            <n-button size="small" type="primary" :loading="sendLoading" :disabled="!danmuText.trim()" @click="handleSendDanmu">
+              发送
+            </n-button>
+          </div>
+        </div>
+      </n-card>
+    </div>
     <!-- 登录弹窗 -->
     <n-modal v-model:show="showLoginModal" title="扫码登录 B站" preset="card" style="width: 440px" :mask-closable="false" @after-leave="clearPollTimer">
       <div class="f-c-c flex-col py-4">
@@ -391,7 +405,6 @@ const messages = ref([])
 const messagesShowType = ref({
   DANMU_MSG: true,
   SEND_GIFT: true,
-  SEND_GIFT_V2: true,
   SUPER_CHAT_MESSAGE: true,
   GUARD_BUY: true,
   INTERACT_WORD_V2: true,
@@ -662,7 +675,8 @@ function connectWebSocket() {
   wsClient.onmessage = (event) => {
     try {
       const { cmd, data } = JSON.parse(event.data)
-      if (messagesShowType.value?.[cmd] === true) {
+      const filterKey = cmd === 'SEND_GIFT_V2' ? 'SEND_GIFT' : cmd
+      if (messagesShowType.value?.[filterKey]) {
         messages.value.push({
           cmd,
           data,
