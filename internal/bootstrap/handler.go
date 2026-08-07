@@ -6,15 +6,17 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/altcha"
 	livehdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/menu"
+	robotconfighdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/role"
 )
 
 type Handlers struct {
-	Admin  *admin.Handler
-	Menu   *menu.Handler
-	Role   *role.Handler
-	Altcha *altcha.Handler
-	Live   *livehdlr.Handler
+	Admin       *admin.Handler
+	Menu        *menu.Handler
+	Role        *role.Handler
+	Altcha      *altcha.Handler
+	Live        *livehdlr.Handler
+	RobotConfig *robotconfighdlr.Handler
 }
 
 func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
@@ -23,6 +25,7 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		Menu:   menu.New(&svc.Menu),
 		Role:   role.New(&svc.Role),
 		Altcha: altcha.New(&svc.Altcha),
-		Live:   livehdlr.New(svc.Live, rdb),
+		Live:        livehdlr.New(svc.Live, rdb),
+		RobotConfig: robotconfighdlr.New(svc.RobotConfig),
 	}
 }

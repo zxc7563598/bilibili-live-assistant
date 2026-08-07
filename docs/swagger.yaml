@@ -1,5 +1,35 @@
 basePath: /
 definitions:
+  input.AdConfigReq:
+    properties:
+      content:
+        description: 发送内容（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      interval:
+        description: 发送间隔, 秒
+        example: "62"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+      send_mode:
+        description: 发送方式, 0-随机发送, 1-顺序发送
+        example: "0"
+        type: string
+    required:
+    - content
+    - enabled
+    - interval
+    - scene
+    - send_mode
+    type: object
   input.AdminChangePasswordReq:
     properties:
       newPassword:
@@ -177,6 +207,76 @@ definitions:
     required:
     - id
     type: object
+  input.FollowConfigReq:
+    properties:
+      content:
+        description: 感谢内容（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+    required:
+    - content
+    - enabled
+    - requirement
+    - scene
+    type: object
+  input.GiftConfigReq:
+    properties:
+      content:
+        description: 感谢内容（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      include_blindbox:
+        description: 盲盒统计, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      merge_gift:
+        description: 礼物合并, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      min_battery:
+        description: 起始感谢电池数
+        example: "10"
+        type: string
+      requirement:
+        description: 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+      show_count:
+        description: 展示数量, 0-禁用, 1-启用
+        example: "1"
+        type: string
+    required:
+    - content
+    - enabled
+    - include_blindbox
+    - merge_gift
+    - min_battery
+    - requirement
+    - scene
+    - show_count
+    type: object
   input.LiveQRCodePollReq:
     properties:
       qrcodeKey:
@@ -298,6 +398,85 @@ definitions:
     required:
     - path
     type: object
+  input.PkConfigReq:
+    properties:
+      content:
+        description: 发送内容（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+    required:
+    - content
+    - enabled
+    type: object
+  input.ReplyConfigReq:
+    properties:
+      content:
+        description: 回复内容（JSON 配置）
+        items:
+          $ref: '#/definitions/input.ReplyItem'
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+    required:
+    - content
+    - enabled
+    - requirement
+    - scene
+    type: object
+  input.ReplyItem:
+    properties:
+      keyword:
+        description: 触发关键词列表
+        example:
+        - 你好
+        - 在吗
+        items:
+          type: string
+        type: array
+      mute_duration:
+        description: 禁言时长（分钟）, 0 表示永久
+        example: "10"
+        type: string
+      mute_sender:
+        description: 是否禁言发送者, 0-否, 1-是
+        example: "0"
+        type: string
+      ransom_amount:
+        description: 赎回金额（解除禁言需要赠送的电池数）, 0 表示不可赎回
+        example: "1000"
+        type: string
+      reply_content:
+        description: 回复内容列表
+        example:
+        - 欢迎来到直播间
+        - 在哦在哦
+        items:
+          type: string
+        type: array
+      safe_word:
+        description: 安全词列表（包含则不触发）
+        example:
+        - 骗子
+        - 哎呀
+        items:
+          type: string
+        type: array
+    type: object
   input.RoleAddRoleUsersReq:
     properties:
       adminIds:
@@ -398,6 +577,25 @@ definitions:
           type: integer
         type: array
     type: object
+  input.RoomConfigReq:
+    properties:
+      isListening:
+        description: 是否默认监听直播间, 0-否, 1-是
+        example: "1"
+        type: string
+      maxNameLength:
+        description: 用户名最大长度, 超过此长度则裁剪
+        example: "8"
+        type: string
+      nameTrimMode:
+        description: 裁剪方式, 0-省略后面, 1-省略前面
+        example: "0"
+        type: string
+    required:
+    - isListening
+    - maxNameLength
+    - nameTrimMode
+    type: object
   input.SendDanmuReq:
     properties:
       message:
@@ -407,6 +605,143 @@ definitions:
         type: string
     required:
     - message
+    type: object
+  input.ShareConfigReq:
+    properties:
+      content:
+        description: 感谢内容（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+    required:
+    - content
+    - enabled
+    - requirement
+    - scene
+    type: object
+  input.SignConfigReq:
+    properties:
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      fail_reply:
+        description: 签到失败回复（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      keyword:
+        description: 签到关键词
+        example: '#签到'
+        type: string
+      query_keyword:
+        description: 查询关键词
+        example: '#查询'
+        type: string
+      query_reply:
+        description: 查询成功回复（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      repeat_reply:
+        description: 重复签到回复（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      requirement:
+        description: 触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      reward_amount:
+        description: 奖励数量, 正整数
+        example: "10"
+        type: string
+      reward_type:
+        description: 奖励类型, 0-星光, 1-积分
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+      success_reply:
+        description: 签到成功回复（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+    required:
+    - enabled
+    - fail_reply
+    - keyword
+    - query_keyword
+    - query_reply
+    - repeat_reply
+    - requirement
+    - reward_amount
+    - reward_type
+    - scene
+    - success_reply
+    type: object
+  input.WelcomeConfigReq:
+    properties:
+      content:
+        description: 欢迎内容（JSON 数组字符串）
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+    required:
+    - content
+    - enabled
+    - requirement
+    - scene
+    type: object
+  resp.AdConfigResp:
+    properties:
+      content:
+        description: 发送内容
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      interval:
+        description: 发送间隔, 秒
+        example: "62"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+      send_mode:
+        description: 发送方式, 0-随机发送, 1-顺序发送
+        example: "0"
+        type: string
     type: object
   resp.AdminCaptchaResp:
     properties:
@@ -568,6 +903,62 @@ definitions:
       refreshToken:
         description: refresh token
         example: Bearer xxxxxxxxxx
+        type: string
+    type: object
+  resp.FollowConfigResp:
+    properties:
+      content:
+        description: 感谢内容
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+    type: object
+  resp.GiftConfigResp:
+    properties:
+      content:
+        description: 感谢内容
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      include_blindbox:
+        description: 盲盒统计, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      merge_gift:
+        description: 礼物合并, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      min_battery:
+        description: 起始感谢电池数
+        example: "10"
+        type: string
+      requirement:
+        description: 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+      show_count:
+        description: 展示数量, 0-禁用, 1-启用
+        example: "1"
         type: string
     type: object
   resp.LiveListenerStatusResp:
@@ -781,6 +1172,65 @@ definitions:
         example: true
         type: boolean
     type: object
+  resp.PkConfigResp:
+    properties:
+      content:
+        description: 发送内容
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+    type: object
+  resp.ReplyConfigResp:
+    properties:
+      content:
+        description: 回复内容
+        items:
+          $ref: '#/definitions/resp.ReplyItem'
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+    type: object
+  resp.ReplyItem:
+    properties:
+      keyword:
+        description: 触发关键词列表
+        items:
+          type: string
+        type: array
+      mute_duration:
+        description: 禁言时长（分钟）, 0 表示永久
+        type: string
+      mute_sender:
+        description: 是否禁言发送者, 0-否, 1-是
+        type: string
+      ransom_amount:
+        description: 赎回金额（解除禁言需要赠送的电池数）, 0 表示不可赎回
+        type: string
+      reply_content:
+        description: 回复内容列表
+        items:
+          type: string
+        type: array
+      safe_word:
+        description: 安全词列表（包含则不触发）
+        items:
+          type: string
+        type: array
+    type: object
   resp.RoleListAllItem:
     properties:
       code:
@@ -922,6 +1372,112 @@ definitions:
         items:
           $ref: '#/definitions/resp.RoleMenuItem'
         type: array
+    type: object
+  resp.RoomConfigResp:
+    properties:
+      isListening:
+        description: 是否默认监听直播间, 0-否, 1-是
+        example: "1"
+        type: string
+      maxNameLength:
+        description: 用户名最大长度, 超过此长度则裁剪
+        example: "8"
+        type: string
+      nameTrimMode:
+        description: 裁剪方式, 0-省略后面, 1-省略前面
+        example: "0"
+        type: string
+    type: object
+  resp.ShareConfigResp:
+    properties:
+      content:
+        description: 感谢内容
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+    type: object
+  resp.SignConfigResp:
+    properties:
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      fail_reply:
+        description: 签到失败回复
+        items:
+          type: string
+        type: array
+      keyword:
+        description: 签到关键词
+        example: '#签到'
+        type: string
+      query_keyword:
+        description: 查询关键词
+        example: '#查询'
+        type: string
+      query_reply:
+        description: 查询成功回复
+        items:
+          type: string
+        type: array
+      repeat_reply:
+        description: 重复签到回复
+        items:
+          type: string
+        type: array
+      requirement:
+        description: 触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      reward_amount:
+        description: 奖励数量, 正整数
+        example: "10"
+        type: string
+      reward_type:
+        description: 奖励类型, 0-星光, 1-积分
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
+      success_reply:
+        description: 签到成功回复
+        items:
+          type: string
+        type: array
+    type: object
+  resp.WelcomeConfigResp:
+    properties:
+      content:
+        description: 欢迎内容
+        items:
+          type: string
+        type: array
+      enabled:
+        description: 是否启用, 0-禁用, 1-启用
+        example: "1"
+        type: string
+      requirement:
+        description: 欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        example: "0"
+        type: string
+      scene:
+        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
+        example: "1"
+        type: string
     type: object
   response.Response:
     properties:
@@ -1719,6 +2275,501 @@ paths:
       summary: 校验菜单路径是否存在
       tags:
       - 菜单
+  /api/admin/robot/ad/apply:
+    post:
+      description: 更新定时广告模块的发送间隔、内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 定时广告配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AdConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新定时广告模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/ad/get:
+    post:
+      description: 获取定时广告模块的发送间隔、内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AdConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取定时广告模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/follow/apply:
+    post:
+      description: 更新感谢关注模块的触发门槛、感谢内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 感谢关注配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.FollowConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新感谢关注模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/follow/get:
+    post:
+      description: 获取感谢关注模块的触发门槛、感谢内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.FollowConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取感谢关注模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/gift/apply:
+    post:
+      description: 更新礼物答谢模块的触发门槛、礼物合并、答谢内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 礼物答谢配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.GiftConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新礼物答谢模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/gift/get:
+    post:
+      description: 获取礼物答谢模块的触发门槛、礼物合并、答谢内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.GiftConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取礼物答谢模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/pk/apply:
+    post:
+      description: 更新PK播报模块的启用状态、播报内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: PK播报配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.PkConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新PK播报模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/pk/get:
+    post:
+      description: 获取PK播报模块的启用状态、播报内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.PkConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取PK播报模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/reply/apply:
+    post:
+      description: 更新自动回复模块的触发门槛、回复规则等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 自动回复配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ReplyConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新自动回复模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/reply/get:
+    post:
+      description: 获取自动回复模块的触发门槛、回复规则等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ReplyConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取自动回复模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/room/apply:
+    post:
+      description: 更新房间模块的监听、用户名裁剪等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 房间配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.RoomConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新房间模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/room/get:
+    post:
+      description: 获取房间模块的监听、用户名裁剪等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.RoomConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取房间模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/share/apply:
+    post:
+      description: 更新感谢分享模块的触发门槛、感谢内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 感谢分享配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ShareConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新感谢分享模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/share/get:
+    post:
+      description: 获取感谢分享模块的触发门槛、感谢内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ShareConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取感谢分享模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/sign/apply:
+    post:
+      description: 更新签到模块的触发条件、奖励、回复内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 签到配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.SignConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新签到模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/sign/get:
+    post:
+      description: 获取签到模块的触发条件、奖励、回复内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.SignConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取签到模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/welcome/apply:
+    post:
+      description: 更新进房欢迎模块的触发门槛、欢迎内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 进房欢迎配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.WelcomeConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新进房欢迎模块配置
+      tags:
+      - 机器人配置
+  /api/admin/robot/welcome/get:
+    post:
+      description: 获取进房欢迎模块的触发门槛、欢迎内容等配置信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.WelcomeConfigResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取进房欢迎模块配置
+      tags:
+      - 机器人配置
   /api/admin/roles/add-role-users:
     post:
       description: 将指定角色批量分配给管理员（建立管理员与角色的关联关系）

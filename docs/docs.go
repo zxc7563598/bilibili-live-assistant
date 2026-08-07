@@ -1287,6 +1287,825 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/robot/ad/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新定时广告模块的发送间隔、内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新定时广告模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "定时广告配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.AdConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/ad/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取定时广告模块的发送间隔、内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取定时广告模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.AdConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/follow/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新感谢关注模块的触发门槛、感谢内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新感谢关注模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "感谢关注配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.FollowConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/follow/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取感谢关注模块的触发门槛、感谢内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取感谢关注模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.FollowConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/gift/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新礼物答谢模块的触发门槛、礼物合并、答谢内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新礼物答谢模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "礼物答谢配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.GiftConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/gift/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取礼物答谢模块的触发门槛、礼物合并、答谢内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取礼物答谢模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.GiftConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/pk/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新PK播报模块的启用状态、播报内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新PK播报模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "PK播报配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.PkConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/pk/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取PK播报模块的启用状态、播报内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取PK播报模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.PkConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/reply/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新自动回复模块的触发门槛、回复规则等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新自动回复模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "自动回复配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.ReplyConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/reply/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取自动回复模块的触发门槛、回复规则等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取自动回复模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.ReplyConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/room/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新房间模块的监听、用户名裁剪等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新房间模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "房间配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.RoomConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/room/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取房间模块的监听、用户名裁剪等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取房间模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.RoomConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/share/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新感谢分享模块的触发门槛、感谢内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新感谢分享模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "感谢分享配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.ShareConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/share/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取感谢分享模块的触发门槛、感谢内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取感谢分享模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.ShareConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/sign/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新签到模块的触发条件、奖励、回复内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新签到模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "签到配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.SignConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/sign/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取签到模块的触发条件、奖励、回复内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取签到模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.SignConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/welcome/apply": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新进房欢迎模块的触发门槛、欢迎内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "更新进房欢迎模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "进房欢迎配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.WelcomeConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/robot/welcome/get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取进房欢迎模块的触发门槛、欢迎内容等配置信息",
+                "tags": [
+                    "机器人配置"
+                ],
+                "summary": "获取进房欢迎模块配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.WelcomeConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/roles/add-role-users": {
             "post": {
                 "security": [
@@ -1615,6 +2434,45 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "input.AdConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled",
+                "interval",
+                "scene",
+                "send_mode"
+            ],
+            "properties": {
+                "content": {
+                    "description": "发送内容（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "interval": {
+                    "description": "发送间隔, 秒",
+                    "type": "string",
+                    "example": "62"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                },
+                "send_mode": {
+                    "description": "发送方式, 0-随机发送, 1-顺序发送",
+                    "type": "string",
+                    "example": "0"
+                }
+            }
+        },
         "input.AdminChangePasswordReq": {
             "type": "object",
             "required": [
@@ -1850,6 +2708,96 @@ const docTemplate = `{
                 }
             }
         },
+        "input.FollowConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled",
+                "requirement",
+                "scene"
+            ],
+            "properties": {
+                "content": {
+                    "description": "感谢内容（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "input.GiftConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled",
+                "include_blindbox",
+                "merge_gift",
+                "min_battery",
+                "requirement",
+                "scene",
+                "show_count"
+            ],
+            "properties": {
+                "content": {
+                    "description": "感谢内容（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "include_blindbox": {
+                    "description": "盲盒统计, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "merge_gift": {
+                    "description": "礼物合并, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "min_battery": {
+                    "description": "起始感谢电池数",
+                    "type": "string",
+                    "example": "10"
+                },
+                "requirement": {
+                    "description": "答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                },
+                "show_count": {
+                    "description": "展示数量, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
         "input.LiveQRCodePollReq": {
             "type": "object",
             "required": [
@@ -2012,6 +2960,113 @@ const docTemplate = `{
                 }
             }
         },
+        "input.PkConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled"
+            ],
+            "properties": {
+                "content": {
+                    "description": "发送内容（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "input.ReplyConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled",
+                "requirement",
+                "scene"
+            ],
+            "properties": {
+                "content": {
+                    "description": "回复内容（JSON 配置）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/input.ReplyItem"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "input.ReplyItem": {
+            "type": "object",
+            "properties": {
+                "keyword": {
+                    "description": "触发关键词列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "你好",
+                        "在吗"
+                    ]
+                },
+                "mute_duration": {
+                    "description": "禁言时长（分钟）, 0 表示永久",
+                    "type": "string",
+                    "example": "10"
+                },
+                "mute_sender": {
+                    "description": "是否禁言发送者, 0-否, 1-是",
+                    "type": "string",
+                    "example": "0"
+                },
+                "ransom_amount": {
+                    "description": "赎回金额（解除禁言需要赠送的电池数）, 0 表示不可赎回",
+                    "type": "string",
+                    "example": "1000"
+                },
+                "reply_content": {
+                    "description": "回复内容列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "欢迎来到直播间",
+                        "在哦在哦"
+                    ]
+                },
+                "safe_word": {
+                    "description": "安全词列表（包含则不触发）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "骗子",
+                        "哎呀"
+                    ]
+                }
+            }
+        },
         "input.RoleAddRoleUsersReq": {
             "type": "object",
             "required": [
@@ -2147,6 +3202,31 @@ const docTemplate = `{
                 }
             }
         },
+        "input.RoomConfigReq": {
+            "type": "object",
+            "required": [
+                "isListening",
+                "maxNameLength",
+                "nameTrimMode"
+            ],
+            "properties": {
+                "isListening": {
+                    "description": "是否默认监听直播间, 0-否, 1-是",
+                    "type": "string",
+                    "example": "1"
+                },
+                "maxNameLength": {
+                    "description": "用户名最大长度, 超过此长度则裁剪",
+                    "type": "string",
+                    "example": "8"
+                },
+                "nameTrimMode": {
+                    "description": "裁剪方式, 0-省略后面, 1-省略前面",
+                    "type": "string",
+                    "example": "0"
+                }
+            }
+        },
         "input.SendDanmuReq": {
             "type": "object",
             "required": [
@@ -2158,6 +3238,185 @@ const docTemplate = `{
                     "maxLength": 40,
                     "minLength": 1,
                     "example": "发送弹幕信息"
+                }
+            }
+        },
+        "input.ShareConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled",
+                "requirement",
+                "scene"
+            ],
+            "properties": {
+                "content": {
+                    "description": "感谢内容（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "input.SignConfigReq": {
+            "type": "object",
+            "required": [
+                "enabled",
+                "fail_reply",
+                "keyword",
+                "query_keyword",
+                "query_reply",
+                "repeat_reply",
+                "requirement",
+                "reward_amount",
+                "reward_type",
+                "scene",
+                "success_reply"
+            ],
+            "properties": {
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "fail_reply": {
+                    "description": "签到失败回复（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "keyword": {
+                    "description": "签到关键词",
+                    "type": "string",
+                    "example": "#签到"
+                },
+                "query_keyword": {
+                    "description": "查询关键词",
+                    "type": "string",
+                    "example": "#查询"
+                },
+                "query_reply": {
+                    "description": "查询成功回复（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "repeat_reply": {
+                    "description": "重复签到回复（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "requirement": {
+                    "description": "触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "reward_amount": {
+                    "description": "奖励数量, 正整数",
+                    "type": "string",
+                    "example": "10"
+                },
+                "reward_type": {
+                    "description": "奖励类型, 0-星光, 1-积分",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                },
+                "success_reply": {
+                    "description": "签到成功回复（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "input.WelcomeConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled",
+                "requirement",
+                "scene"
+            ],
+            "properties": {
+                "content": {
+                    "description": "欢迎内容（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "resp.AdConfigResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "发送内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "interval": {
+                    "description": "发送间隔, 秒",
+                    "type": "string",
+                    "example": "62"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                },
+                "send_mode": {
+                    "description": "发送方式, 0-随机发送, 1-顺序发送",
+                    "type": "string",
+                    "example": "0"
                 }
             }
         },
@@ -2378,6 +3637,80 @@ const docTemplate = `{
                     "description": "refresh token",
                     "type": "string",
                     "example": "Bearer xxxxxxxxxx"
+                }
+            }
+        },
+        "resp.FollowConfigResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "感谢内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "resp.GiftConfigResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "感谢内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "include_blindbox": {
+                    "description": "盲盒统计, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "merge_gift": {
+                    "description": "礼物合并, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "min_battery": {
+                    "description": "起始感谢电池数",
+                    "type": "string",
+                    "example": "10"
+                },
+                "requirement": {
+                    "description": "答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                },
+                "show_count": {
+                    "description": "展示数量, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
                 }
             }
         },
@@ -2658,6 +3991,88 @@ const docTemplate = `{
                 }
             }
         },
+        "resp.PkConfigResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "发送内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "resp.ReplyConfigResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "回复内容",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.ReplyItem"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "resp.ReplyItem": {
+            "type": "object",
+            "properties": {
+                "keyword": {
+                    "description": "触发关键词列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mute_duration": {
+                    "description": "禁言时长（分钟）, 0 表示永久",
+                    "type": "string"
+                },
+                "mute_sender": {
+                    "description": "是否禁言发送者, 0-否, 1-是",
+                    "type": "string"
+                },
+                "ransom_amount": {
+                    "description": "赎回金额（解除禁言需要赠送的电池数）, 0 表示不可赎回",
+                    "type": "string"
+                },
+                "reply_content": {
+                    "description": "回复内容列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "safe_word": {
+                    "description": "安全词列表（包含则不触发）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "resp.RoleListAllItem": {
             "type": "object",
             "properties": {
@@ -2845,6 +4260,148 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/resp.RoleMenuItem"
                     }
+                }
+            }
+        },
+        "resp.RoomConfigResp": {
+            "type": "object",
+            "properties": {
+                "isListening": {
+                    "description": "是否默认监听直播间, 0-否, 1-是",
+                    "type": "string",
+                    "example": "1"
+                },
+                "maxNameLength": {
+                    "description": "用户名最大长度, 超过此长度则裁剪",
+                    "type": "string",
+                    "example": "8"
+                },
+                "nameTrimMode": {
+                    "description": "裁剪方式, 0-省略后面, 1-省略前面",
+                    "type": "string",
+                    "example": "0"
+                }
+            }
+        },
+        "resp.ShareConfigResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "感谢内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "resp.SignConfigResp": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "fail_reply": {
+                    "description": "签到失败回复",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "keyword": {
+                    "description": "签到关键词",
+                    "type": "string",
+                    "example": "#签到"
+                },
+                "query_keyword": {
+                    "description": "查询关键词",
+                    "type": "string",
+                    "example": "#查询"
+                },
+                "query_reply": {
+                    "description": "查询成功回复",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "repeat_reply": {
+                    "description": "重复签到回复",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "requirement": {
+                    "description": "触发门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "reward_amount": {
+                    "description": "奖励数量, 正整数",
+                    "type": "string",
+                    "example": "10"
+                },
+                "reward_type": {
+                    "description": "奖励类型, 0-星光, 1-积分",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                },
+                "success_reply": {
+                    "description": "签到成功回复",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "resp.WelcomeConfigResp": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "欢迎内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
                 }
             }
         },

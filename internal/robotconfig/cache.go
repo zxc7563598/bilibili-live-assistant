@@ -45,3 +45,35 @@ func (c *Cache) Init(ctx context.Context) error {
 	}
 	return nil
 }
+
+// Get 获取指定分组下的单条配置值
+func (c *Cache) Get(groupName, configKey string) (string, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	group, ok := c.cache[groupName]
+	if !ok {
+		return "", false
+	}
+	val, ok := group[configKey]
+	return val, ok
+}
+
+// GetGroup 获取指定分组下的全部配置
+func (c *Cache) GetGroup(groupName string) (map[string]string, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	group, ok := c.cache[groupName]
+	if !ok {
+		return nil, false
+	}
+	result := make(map[string]string, len(group))
+	for k, v := range group {
+		result[k] = v
+	}
+	return result, ok
+}
+
+// Reload 从数据库全量重新加载配置
+func (c *Cache) Reload(ctx context.Context) error {
+	return c.Init(ctx)
+}

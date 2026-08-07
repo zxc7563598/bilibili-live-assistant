@@ -68,21 +68,39 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/menu/toggle", middleware.AdminAuth(rdb), middleware.RequireRole("SUPER_ADMIN"), handlers.Menu.Toggle)
 	adminApi.POST("/menu/delete", middleware.AdminAuth(rdb), middleware.RequireRole("SUPER_ADMIN"), handlers.Menu.Delete)
 	// 直播控制路由（所有登录用户可访问）
-	live := adminApi.Group("/live").Use(middleware.AdminAuth(rdb))
-	live.POST("/login/qrcode", handlers.Live.GetQRCode)
-	live.POST("/login/poll", handlers.Live.PollQRCode)
-	live.POST("/login/status", handlers.Live.GetLoginStatus)
-	live.POST("/login/logout", handlers.Live.Logout)
-	live.POST("/room/update", handlers.Live.UpdateRoom)
-	live.POST("/room/send-danmu", handlers.Live.SendDanmu)
-	live.POST("/listener/start", handlers.Live.StartListener)
-	live.POST("/listener/stop", handlers.Live.StopListener)
-	live.POST("/listener/status", handlers.Live.GetListenerStatus)
+	adminApi.POST("/live/login/qrcode", middleware.AdminAuth(rdb), handlers.Live.GetQRCode)
+	adminApi.POST("/live/login/poll", middleware.AdminAuth(rdb), handlers.Live.PollQRCode)
+	adminApi.POST("/live/login/status", middleware.AdminAuth(rdb), handlers.Live.GetLoginStatus)
+	adminApi.POST("/live/login/logout", middleware.AdminAuth(rdb), handlers.Live.Logout)
+	adminApi.POST("/live/room/update", middleware.AdminAuth(rdb), handlers.Live.UpdateRoom)
+	adminApi.POST("/live/room/send-danmu", middleware.AdminAuth(rdb), handlers.Live.SendDanmu)
+	adminApi.POST("/live/listener/start", middleware.AdminAuth(rdb), handlers.Live.StartListener)
+	adminApi.POST("/live/listener/stop", middleware.AdminAuth(rdb), handlers.Live.StopListener)
+	adminApi.POST("/live/listener/status", middleware.AdminAuth(rdb), handlers.Live.GetListenerStatus)
 	// 直播消息 WebSocket 推送
 	// 认证在 Handler 内部通过 query param（?token=xxx）处理，
 	// 因为浏览器 WebSocket API 不支持自定义请求头，无法使用 AdminAuth 中间件。
 	// 因此该路由注册在 adminApi 上而非 live Group 内，绕过 AdminAuth
 	adminApi.GET("/live/messages/stream", handlers.Live.MessageStream)
+	// 机器人配置路由（所有登录用户可访问）
+	adminApi.POST("/robot/room/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetRoom)
+	adminApi.POST("/robot/room/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyRoom)
+	adminApi.POST("/robot/sign/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetSign)
+	adminApi.POST("/robot/sign/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplySign)
+	adminApi.POST("/robot/ad/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetAd)
+	adminApi.POST("/robot/ad/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyAd)
+	adminApi.POST("/robot/gift/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetGift)
+	adminApi.POST("/robot/gift/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyGift)
+	adminApi.POST("/robot/pk/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetPk)
+	adminApi.POST("/robot/pk/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyPk)
+	adminApi.POST("/robot/welcome/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetWelcome)
+	adminApi.POST("/robot/welcome/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyWelcome)
+	adminApi.POST("/robot/follow/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetFollow)
+	adminApi.POST("/robot/follow/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyFollow)
+	adminApi.POST("/robot/share/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetShare)
+	adminApi.POST("/robot/share/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyShare)
+	adminApi.POST("/robot/reply/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetReply)
+	adminApi.POST("/robot/reply/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyReply)
 	return r
 }
 

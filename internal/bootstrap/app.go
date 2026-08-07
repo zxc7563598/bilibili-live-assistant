@@ -54,13 +54,13 @@ func NewApp(cfg *config.Config) *App {
 	// 处理依赖注入
 	// repository
 	repos := InitRepositories(db)
-	// service
-	services := InitServices(repos, db, rdb, cfg)
 	// 初始化机器人配置缓存
 	configCache := robotconfig.New(repos.RobotConfig)
 	if err := configCache.Init(context.Background()); err != nil {
 		log.Fatalf("机器人配置加载失败: %v", err)
 	}
+	// service
+	services := InitServices(repos, db, rdb, cfg, configCache)
 	// handler
 	handlers := InitHandlers(services, rdb)
 	// i18n
