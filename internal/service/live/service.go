@@ -13,6 +13,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
+	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/room"
@@ -48,6 +49,10 @@ type Service struct {
 	// 弹幕发送
 	roomSvc *room.Service // 弹幕 API 服务
 	queue   *live.Queue   // 弹幕发送优先级队列（nil = 未创建）
+	// 自动广告定时发送器
+	robotConfigSvc   *robotconfigsvc.Service // 机器人配置服务
+	autoSenderCancel context.CancelFunc      // 自动发送器取消函数
+	autoSenderDone   chan struct{}           // 自动发送器退出信号
 	// 前端 WebSocket 推送
 	hub *Hub // 前端消息推送中心
 	// 消息业务处理器分发器
@@ -63,7 +68,7 @@ type Service struct {
 //
 // bilibili.Client 在此创建并持久化（整个服务生命周期内复用）
 // WithStateFile 会在启动时自动恢复之前保存的登录态
-func New(cfg config.LiveConfig, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository) *Service {
+func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository) *Service {
 	client := bilibili.NewClient(
 		bilibili.WithStateFile(cfg.StateFile),
 	)
@@ -88,6 +93,7 @@ func New(cfg config.LiveConfig, liveDanmuRepo live_danmu.Repository, liveGiftRep
 		liveGiftRepo:    liveGiftRepo,
 		liveSessionRepo: liveSessionRepo,
 		liveUserRepo:    liveUserRepo,
+		robotConfigSvc:  robotConfigSvc,
 	}
 }
 
@@ -299,9 +305,11 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 	s.mu.Unlock()
 	// 同步会话状态：清理非监听房间记录 + 根据实际直播状态修正数据
 	s.syncSessionsOnStart(ctx, roomID)
-	// 创建并启动弹幕发送队列（与监听器同生命周期）
+	// 创建并启动弹幕发送队列
 	s.queue = live.NewQueue(s.listener.RoomID(), &danmuSender{roomSvc: s.roomSvc, client: s.client})
 	s.queue.Start(listenerCtx)
+	// 启动自动广告定时发送器
+	s.startAutoSender(listenerCtx)
 	go s.processMessages(listenerCtx, listener, procDone, s.rawLogger)
 	return 0, nil
 }
@@ -323,6 +331,8 @@ func (s *Service) StopListener() (int, error) {
 	procDone := s.procDone
 	queue := s.queue
 	s.mu.Unlock()
+	// 停止自动广告发送器
+	s.stopAutoSender()
 	// 停止弹幕发送队列并清空待发送消息
 	if queue != nil {
 		queue.Stop()
@@ -343,6 +353,8 @@ func (s *Service) StopListener() (int, error) {
 	s.listenerCancel = nil
 	s.procDone = nil
 	s.queue = nil
+	s.autoSenderCancel = nil
+	s.autoSenderDone = nil
 	s.mu.Unlock()
 	return 0, nil
 }

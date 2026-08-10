@@ -7,15 +7,17 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
+	livesvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 )
 
 type Handler struct {
 	robotConfigSvc *robotconfigsvc.Service
+	liveSvc        *livesvc.Service
 }
 
-func New(robotConfigSvc *robotconfigsvc.Service) *Handler {
-	return &Handler{robotConfigSvc: robotConfigSvc}
+func New(robotConfigSvc *robotconfigsvc.Service, liveSvc *livesvc.Service) *Handler {
+	return &Handler{robotConfigSvc: robotConfigSvc, liveSvc: liveSvc}
 }
 
 // @Summary 获取房间模块配置
@@ -173,6 +175,8 @@ func (h *Handler) ApplyAd(c *gin.Context) {
 		response.Error(c, lang, errCode)
 		return
 	}
+	// 重启自动广告发送器，使新配置立即生效
+	h.liveSvc.RestartAutoSender()
 	response.Success(c, lang, nil)
 }
 

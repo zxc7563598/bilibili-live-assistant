@@ -23,12 +23,13 @@ type Services struct {
 }
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache) *Services {
+	robotConfigSvc := robotconfigsvc.New(repo.RobotConfig, configCache, db)
 	return &Services{
 		Admin:       *admin.New(repo.Admin, repo.AdminRole, repo.Role, db, rdb),
 		Role:        *role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),
 		Menu:        *menu.New(repo.Menu),
 		Altcha:      *altcha.New(cfg.Altcha.HMACKey),
-		Live:        live.New(cfg.Live, repo.LiveDanmu, repo.LiveGift, repo.LiveSession, repo.LiveUser),
-		RobotConfig: robotconfigsvc.New(repo.RobotConfig, configCache, db),
+		Live:        live.New(cfg.Live, robotConfigSvc, repo.LiveDanmu, repo.LiveGift, repo.LiveSession, repo.LiveUser),
+		RobotConfig: robotConfigSvc,
 	}
 }

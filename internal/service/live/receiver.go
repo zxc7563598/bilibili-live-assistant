@@ -138,6 +138,8 @@ func (s *Service) processMessages(ctx context.Context, listener *live.Listener, 
 			queue.Start(ctx)
 			log.Printf("[live.Service] 弹幕发送队列已随重连重新启动")
 		}
+		// 重连成功，重新启动自动广告发送器
+		s.RestartAutoSender()
 		listener = newListener // 用新 listener 继续外循环
 	}
 }
