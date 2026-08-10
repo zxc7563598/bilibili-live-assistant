@@ -63,6 +63,14 @@ func NewApp(cfg *config.Config) *App {
 	services := InitServices(repos, db, rdb, cfg, configCache)
 	// handler
 	handlers := InitHandlers(services, rdb)
+	// 如果配置了自动监听（is_listening=1）且 room_id>0，启动监听
+	if isListening, ok := configCache.Get("room", "is_listening"); ok && isListening == "1" {
+		if code, err := services.Live.StartListener(context.Background()); err != nil {
+			log.Printf("[App] 自动启动监听失败 (code=%d): %v", code, err)
+		} else if code == 0 {
+			log.Println("[App] 已根据配置自动启动直播间监听")
+		}
+	}
 	// i18n
 	if err := i18n.InitLocales(); err != nil {
 		log.Fatalf("无法初始化 i18n: %v", err)

@@ -3,6 +3,7 @@ package live
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -82,9 +83,12 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveDanm
 		newDanmuProcessor(liveDanmuRepo),
 		newPkProcessor(),
 	)
+	// 从配置中恢复上次监听的房间号
+	defaultRoomID := robotConfigSvc.GetRoomID()
 	return &Service{
 		client:          client,
 		stateFile:       cfg.StateFile,
+		roomID:          defaultRoomID,
 		rawLogger:       logger.NewRawMessageLogger(),
 		roomSvc:         room.NewService(client),
 		hub:             hub,
@@ -233,6 +237,10 @@ func (s *Service) UpdateRoom(ctx context.Context, roomID int64) (int, error) {
 		s.mu.Lock()
 		s.roomID = roomID
 		s.mu.Unlock()
+		// 持久化房间号
+		if _, err := s.robotConfigSvc.SetRoomID(context.Background(), roomID); err != nil {
+			log.Printf("[live.Service] 持久化房间号到配置失败: %v", err)
+		}
 		return 0, nil
 	}
 	// 正在监听且房间号变更：停旧 → 换号 → 启新
@@ -242,6 +250,10 @@ func (s *Service) UpdateRoom(ctx context.Context, roomID int64) (int, error) {
 	s.mu.Lock()
 	s.roomID = roomID
 	s.mu.Unlock()
+	// 持久化房间号
+	if _, err := s.robotConfigSvc.SetRoomID(context.Background(), roomID); err != nil {
+		log.Printf("[live.Service] 持久化房间号到配置失败: %v", err)
+	}
 	return s.StartListener(ctx)
 }
 

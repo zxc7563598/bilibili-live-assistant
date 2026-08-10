@@ -3,6 +3,7 @@ package robotconfig
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/robot_config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
@@ -72,6 +73,26 @@ func (s *Service) GetRoomConfig(ctx context.Context) (RoomConfigResp, int, error
 // ApplyRoomConfig 用于存储房间模块配置
 func (s *Service) ApplyRoomConfig(ctx context.Context, data RoomConfigReq) (int, error) {
 	return s.applyConfig(ctx, "room", roomConfigReqToMap(data))
+}
+
+// GetRoomID 从缓存读取默认直播间房间号（内部使用，不暴露给前端配置页面）
+func (s *Service) GetRoomID() int64 {
+	val, ok := s.configCache.Get("room", "room_id")
+	if !ok || val == "0" {
+		return 0
+	}
+	id, err := strconv.ParseInt(val, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
+// SetRoomID 将直播间房间号持久化到数据库并刷新缓存（内部使用，由 live service 调用）
+func (s *Service) SetRoomID(ctx context.Context, roomID int64) (int, error) {
+	return s.applyConfig(ctx, "room", map[string]string{
+		"room_id": strconv.FormatInt(roomID, 10),
+	})
 }
 
 // ======================== sign ========================
