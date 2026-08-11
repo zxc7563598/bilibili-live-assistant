@@ -318,7 +318,7 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 	// 同步会话状态：清理非监听房间记录 + 根据实际直播状态修正数据
 	s.syncSessionsOnStart(ctx, roomID)
 	// 创建并启动弹幕发送队列
-	s.queue = live.NewQueue(s.listener.RoomID(), &danmuSender{roomSvc: s.roomSvc, client: s.client})
+	s.queue = live.NewQueue(s.listener.RoomID(), &danmuSender{roomSvc: s.roomSvc, client: s.client, danmuLogger: logger.NewDanmuSendLogger()})
 	s.queue.Start(listenerCtx)
 	// 启动自动广告定时发送器
 	s.startAutoSender(listenerCtx)
