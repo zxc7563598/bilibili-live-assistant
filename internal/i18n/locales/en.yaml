@@ -202,6 +202,14 @@ menu_type:
   button: button
   menu: menu
 
+credit_type:
+  stars: stars
+  points: points
+
+change_type:
+  reduce: reduce
+  increase: increase
+
 no: no
 yes: yes
 unknown: unknown

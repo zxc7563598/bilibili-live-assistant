@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/menu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/robot_config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/role"
@@ -25,6 +26,7 @@ type Repositories struct {
 	LiveSession live_session.Repository
 	LiveUser    live_user.Repository
 	RobotConfig robot_config.Repository
+	LiveUserCreditLog live_user_credit_log.Repository
 }
 
 func InitRepositories(db *gorm.DB) *Repositories {
@@ -39,5 +41,6 @@ func InitRepositories(db *gorm.DB) *Repositories {
 		LiveSession: live_session.New(db),
 		LiveUser:    live_user.New(db),
 		RobotConfig: robot_config.New(db),
+		LiveUserCreditLog: live_user_credit_log.New(db),
 	}
 }

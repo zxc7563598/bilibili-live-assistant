@@ -202,6 +202,14 @@ menu_type:
   button: 按钮
   menu: 菜单
 
+credit_type:
+  stars: 星光
+  points: 积分
+
+change_type:
+  reduce: 减少
+  increase: 增加
+
 no: 否
 yes: 是
 unknown: 未知
