@@ -98,6 +98,8 @@ func (s *Service) syncSessionsOnStart(ctx context.Context, roomID int64) {
 		log.Printf("[live.Service] 同步会话：获取直播间信息失败 (RoomID:%d): %v", roomID, err)
 		return
 	}
+	// 同步直播间状态缓存
+	s.roomState.Update(roomInfo)
 	// 根据实际状态修正监听房间的会话
 	roomActiveSessions, err := s.liveSessionRepo.ListActiveByRoomID(ctx, nil, roomID)
 	if err != nil {

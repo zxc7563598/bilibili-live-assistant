@@ -50,6 +50,8 @@ type Service struct {
 	// 弹幕发送
 	roomSvc *room.Service // 弹幕 API 服务
 	queue   *live.Queue   // 弹幕发送优先级队列（nil = 未创建）
+	// 直播间状态缓存（线程安全，供处理器读取 LiveStatus 判断 scene 等）
+	roomState *RoomState
 	// 自动广告定时发送器
 	robotConfigSvc   *robotconfigsvc.Service // 机器人配置服务
 	autoSenderCancel context.CancelFunc      // 自动发送器取消函数
@@ -75,12 +77,18 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveDanm
 	)
 	hub := newHub()
 	go hub.Run(context.Background())
+	roomState := &RoomState{}
 	dispatcher := newMessageDispatcher(
-		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo),
-		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo),
+		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
+		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
 		newGiftProcessor(liveGiftRepo),
 		newInteractProcessor(liveUserRepo),
-		newDanmuProcessor(liveDanmuRepo),
+		newDanmuProcessor(liveDanmuRepo, roomState, func() int64 {
+			if sess := client.Session(); sess != nil {
+				return sess.UID
+			}
+			return 0
+		}),
 		newPkProcessor(),
 	)
 	// 从配置中恢复上次监听的房间号
@@ -89,6 +97,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveDanm
 		client:          client,
 		stateFile:       cfg.StateFile,
 		roomID:          defaultRoomID,
+		roomState:       roomState,
 		rawLogger:       logger.NewRawMessageLogger(),
 		roomSvc:         room.NewService(client),
 		hub:             hub,
@@ -385,6 +394,7 @@ func (s *Service) GetListenerStatus(ctx context.Context) (*ListenerStatusResp, i
 		if err != nil {
 			return nil, 60401, fmt.Errorf("无法在线获取直播间信息: %w", err)
 		}
+		s.roomState.Update(roomInfo)
 		resp.UID = roomInfo.UID
 		resp.Title = roomInfo.Title
 		resp.LiveStatus = roomInfo.LiveStatus

@@ -14,10 +14,16 @@ import (
 // danmuProcessor 处理弹幕消息（DANMU_MSG）
 type danmuProcessor struct {
 	liveDanmuRepo live_danmu.Repository
+	roomState     *RoomState
+	getBotUID     func() int64
 }
 
-func newDanmuProcessor(liveDanmuRepo live_danmu.Repository) *danmuProcessor {
-	return &danmuProcessor{liveDanmuRepo: liveDanmuRepo}
+func newDanmuProcessor(liveDanmuRepo live_danmu.Repository, roomState *RoomState, getBotUID func() int64) *danmuProcessor {
+	return &danmuProcessor{
+		liveDanmuRepo: liveDanmuRepo,
+		roomState:     roomState,
+		getBotUID:     getBotUID,
+	}
 }
 
 func (p *danmuProcessor) Cmds() []live.Cmd {
@@ -49,6 +55,12 @@ func (p *danmuProcessor) Process(ctx context.Context, cmd live.Cmd, data any, ro
 		log.Printf("[live.Danmu] 弹幕存储失败: %v", err)
 		return err
 	}
-	// TODO: 弹幕关键词检测/自动回复
+	// 签到检测
+	botUID := p.getBotUID()
+	liveStatus := p.roomState.LiveStatus()
+	_ = botUID
+	_ = liveStatus
+
+	// 自动回复关键词检测
 	return nil
 }

@@ -18,13 +18,15 @@ type liveStatusProcessor struct {
 	liveSessionRepo live_session.Repository
 	liveDanmuRepo   live_danmu.Repository
 	liveGiftRepo    live_gift.Repository
+	roomState       *RoomState
 }
 
-func newLiveStatusProcessor(liveSessionRepo live_session.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository) *liveStatusProcessor {
+func newLiveStatusProcessor(liveSessionRepo live_session.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, roomState *RoomState) *liveStatusProcessor {
 	return &liveStatusProcessor{
 		liveSessionRepo: liveSessionRepo,
 		liveDanmuRepo:   liveDanmuRepo,
 		liveGiftRepo:    liveGiftRepo,
+		roomState:       roomState,
 	}
 }
 
@@ -51,6 +53,8 @@ func (p *liveStatusProcessor) Process(ctx context.Context, cmd live.Cmd, data an
 		log.Printf("[live.LiveStatus] 数据类型断言失败，期望 *live.LiveInfo，实际 %T", data)
 		return nil
 	}
+	// 同步直播间状态缓存
+	p.roomState.SetLiveStatus(1)
 	now := time.Now().Unix()
 	// 所有未下播记录转换为下播，记录为轮询下播
 	activeSessions, err := p.liveSessionRepo.ListActive(ctx, nil)
@@ -85,13 +89,15 @@ type liveEndProcessor struct {
 	liveSessionRepo live_session.Repository
 	liveDanmuRepo   live_danmu.Repository
 	liveGiftRepo    live_gift.Repository
+	roomState       *RoomState
 }
 
-func newLiveEndProcessor(liveSessionRepo live_session.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository) *liveEndProcessor {
+func newLiveEndProcessor(liveSessionRepo live_session.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, roomState *RoomState) *liveEndProcessor {
 	return &liveEndProcessor{
 		liveSessionRepo: liveSessionRepo,
 		liveDanmuRepo:   liveDanmuRepo,
 		liveGiftRepo:    liveGiftRepo,
+		roomState:       roomState,
 	}
 }
 
@@ -144,6 +150,8 @@ func (p *liveEndProcessor) Process(ctx context.Context, cmd live.Cmd, data any, 
 	default:
 		return nil
 	}
+	// 同步直播间状态缓存
+	p.roomState.SetLiveStatus(0)
 	// 所有未下播记录设置为下播
 	now := time.Now().Unix()
 	activeSessions, err := p.liveSessionRepo.ListActive(ctx, nil)
