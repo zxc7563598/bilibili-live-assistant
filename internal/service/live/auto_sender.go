@@ -116,18 +116,20 @@ func (s *Service) runAutoSender(ctx context.Context, done chan struct{}, scene, 
 func (s *Service) checkAdSend(scene string) bool {
 	switch scene {
 	case "1", "2": // 直播中 / 非直播中
-		s.mu.Lock()
-		roomID := s.roomID
-		s.mu.Unlock()
-		if roomID <= 0 {
-			return false
+		liveStatus := s.roomState.LiveStatus()
+		if liveStatus == -1 {
+			s.mu.Lock()
+			roomID := s.roomID
+			s.mu.Unlock()
+			roomInfo, err := s.client.Room.GetRealRoomInfo(context.Background(), roomID)
+			if err != nil {
+				log.Printf("[live.AutoSender] 获取直播间状态失败: %v", err)
+				return false
+			}
+			s.roomState.Update(roomInfo)
+			liveStatus = roomInfo.LiveStatus
 		}
-		roomInfo, err := s.client.Room.GetRealRoomInfo(context.Background(), roomID)
-		if err != nil {
-			log.Printf("[live.AutoSender] 获取直播间状态失败: %v", err)
-			return false
-		}
-		isLive := roomInfo.LiveStatus == 1
+		isLive := liveStatus == 1
 		if scene == "1" {
 			return isLive
 		}
