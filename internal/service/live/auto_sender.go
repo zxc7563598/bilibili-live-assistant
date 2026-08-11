@@ -106,7 +106,7 @@ func (s *Service) runAutoSender(ctx context.Context, done chan struct{}, scene, 
 			msg := pickAdMessage(sendMode, content, &seqIndex)
 			if msg != "" {
 				// 定时任务, priority = 50
-				s.EnqueueDanmu(msg, 10)
+				s.EnqueueDanmu(msg, 50)
 			}
 		}
 	}
