@@ -86,7 +86,16 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 	dispatcher := newMessageDispatcher(
 		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
 		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
-		newGiftProcessor(liveGiftRepo),
+		newGiftProcessor(liveGiftRepo, LiveUserBlacklistRepo, roomState, configCache, client, func() int64 {
+			if sess := client.Session(); sess != nil {
+				return sess.UID
+			}
+			return 0
+		}, func(msg string, kind string) {
+			if enqueueFn != nil {
+				enqueueFn(msg, kind)
+			}
+		}),
 		newInteractProcessor(liveUserRepo),
 		newDanmuProcessor(liveUserRepo, liveDanmuRepo, liveGiftRepo, liveUserCreditLogRepo, liveUserSignLogRepo, LiveUserBlacklistRepo, roomState, configCache, client, func() int64 {
 			if sess := client.Session(); sess != nil {

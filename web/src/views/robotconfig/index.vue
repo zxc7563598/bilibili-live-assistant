@@ -403,7 +403,7 @@
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
                 送礼人名称：<b>@name@</b><br>
                 礼物信息：<b>@gift@</b><br>
-                礼物单价：<b>@price@</b><br>
+                礼物总价(人民币)：<b>@price@</b><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
