@@ -119,6 +119,7 @@ func (p *danmuProcessor) processSignIn(ctx context.Context, info *live.DanmuMsgI
 func (p *danmuProcessor) checkSignCondition(cfg robotconfig.SignConfig, info *live.DanmuMsgInfo, roomID int64, liveStatus int) bool {
 	req := ptr.ParseEnumInt[enum.Requirement](cfg.Requirement)
 	switch req {
+	case enum.RequirementUnlimited:
 	case enum.RequirementHasBadge:
 		if info.BadgeRoomID != roomID {
 			log.Printf("[live.Sign] 签到条件不满足: 需要携带当前直播间牌子，用户牌子 roomID=%d, 当前 roomID=%d", info.BadgeRoomID, roomID)
@@ -241,7 +242,6 @@ func (p *danmuProcessor) resolveSignVars(ctx context.Context, info *live.DanmuMs
 }
 
 // sendSignReply 签到相关从模板列表中随机选取一条，渲染变量后发送弹幕
-// priority 设置为 50
 func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, info *live.DanmuMsgInfo) {
 	tmpl := PickRandom(templates)
 	if tmpl == "" {
@@ -319,10 +319,11 @@ func (p *danmuProcessor) processReplyIn(ctx context.Context, info *live.DanmuMsg
 	}
 }
 
-// checkReplyCondition 校验签到的 Requirement 和 Scene 是否满足
+// checkReplyCondition 校验自动回复的 Requirement 和 Scene 是否满足
 func (p *danmuProcessor) checkReplyCondition(cfg robotconfig.ReplyConfig, info *live.DanmuMsgInfo, roomID int64, liveStatus int) bool {
 	req := ptr.ParseEnumInt[enum.Requirement](cfg.Requirement)
 	switch req {
+	case enum.RequirementUnlimited:
 	case enum.RequirementHasBadge:
 		if info.BadgeRoomID != roomID {
 			log.Printf("[live.Reply] 回复条件不满足: 需要携带当前直播间牌子，用户牌子 roomID=%d, 当前 roomID=%d", info.BadgeRoomID, roomID)
@@ -391,7 +392,6 @@ func (p *danmuProcessor) blockUserForReply(uid, roomID int64, uname, msg, muteDu
 }
 
 // sendReply 自动回复相关从模板列表中随机选取一条，渲染变量后发送弹幕
-// priority 设置为 50
 func (p *danmuProcessor) sendReply(ctx context.Context, templates []string, info *live.DanmuMsgInfo, roomID int64) {
 	tmpl := PickRandom(templates)
 	if tmpl == "" {
