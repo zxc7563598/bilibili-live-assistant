@@ -6,6 +6,9 @@ import (
 	"math/rand"
 	"strconv"
 	"time"
+
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 )
 
 // startAutoSender 读取广告配置，若启用则启动后台 ticker goroutine 定时发送广告弹幕
@@ -114,8 +117,9 @@ func (s *Service) runAutoSender(ctx context.Context, done chan struct{}, scene, 
 
 // checkAdScene 根据配置检查当前是否满足发送场景
 func (s *Service) checkAdSend(scene string) bool {
-	switch scene {
-	case "1", "2": // 直播中 / 非直播中
+	sceneValue := ptr.ParseEnumInt[enum.Scene](scene)
+	switch sceneValue {
+	case enum.SceneLive, enum.SceneNotLive:
 		liveStatus := s.roomState.LiveStatus()
 		if liveStatus == -1 {
 			s.mu.Lock()
@@ -129,8 +133,8 @@ func (s *Service) checkAdSend(scene string) bool {
 			s.roomState.Update(roomInfo)
 			liveStatus = roomInfo.LiveStatus
 		}
-		isLive := liveStatus == 1
-		if scene == "1" {
+		isLive := enum.Scene(liveStatus) == enum.SceneLive
+		if sceneValue == enum.SceneLive {
 			return isLive
 		}
 		return !isLive
@@ -144,12 +148,15 @@ func pickAdMessage(sendMode string, content []string, seqIndex *int) string {
 	if len(content) == 0 {
 		return ""
 	}
-	switch sendMode {
-	case "1": // 顺序发送
+	sendModeValue := ptr.ParseEnumInt[enum.SendMode](sendMode)
+	switch sendModeValue {
+	case enum.SendModeSequential:
 		idx := *seqIndex % len(content)
 		*seqIndex++
 		return content[idx]
-	default: // "0" 随机发送
+	case enum.SendModeRandom:
 		return content[rand.Intn(len(content))]
+	default:
+		return ""
 	}
 }

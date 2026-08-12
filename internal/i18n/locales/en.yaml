@@ -223,6 +223,10 @@ live_status:
   live: live
   looping: looping
 
+send_mode:
+  random: random
+  sequential: sequential
+
 no: no
 yes: yes
 unknown: unknown

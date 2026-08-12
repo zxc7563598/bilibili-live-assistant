@@ -223,6 +223,10 @@ live_status:
   live: 直播中
   looping: 轮播中
 
+send_mode:
+  random: 随机发送
+  sequential: 顺序发送
+
 no: 否
 yes: 是
 unknown: 未知
