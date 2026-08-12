@@ -10,6 +10,20 @@ import (
 	"gorm.io/gorm"
 )
 
+// TimeRange 时间范围
+type TimeRange struct {
+	Start int64 // 起始时间戳（含）
+	End   int64 // 结束时间戳（含）
+}
+
+// BlindBoxProfit 盲盒盈利统计
+type BlindBoxProfit struct {
+	Daily   int64 // 本日盈利
+	Weekly  int64 // 本周盈利
+	Monthly int64 // 本月盈利
+	Total   int64 // 总计盈利
+}
+
 type Repository interface {
 	base.Repository[model.LiveGift]
 	// DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -28,6 +42,8 @@ type Repository interface {
 	CountGuardByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
 	// CountSuperChatByRoomIDAndTimeRange 统计指定房间在时间范围内的醒目留言数量
 	CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
+	// SumBlindBoxProfit 统计盲盒盈利
+	SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxProfit, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -133,6 +149,30 @@ func (r *gormRepo) CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *g
 		Where("room_id = ? AND send_at >= ? AND send_at <= ? AND gift_type = ?", roomID, startTime, endTime, enum.GiftTypeSuperChat).
 		Count(&count).Error
 	return count, err
+}
+
+// SumBlindBoxProfit 统计盲盒盈利
+func (r *gormRepo) SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxProfit, error) {
+	db := r.getDB(ctx, tx)
+	db = db.Model(&model.LiveGift{}).Where("original = ?", enum.No)
+	// 筛选用户或房间
+	if uid > 0 {
+		db = db.Where("uid = ?", uid)
+	}
+	if roomID > 0 {
+		db = db.Where("room_id = ?", roomID)
+	}
+	var result BlindBoxProfit
+	err := db.Select(`
+		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN (price - original_gift_price) * num ELSE 0 END), 0) AS daily,
+		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN (price - original_gift_price) * num ELSE 0 END), 0) AS weekly,
+		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN (price - original_gift_price) * num ELSE 0 END), 0) AS monthly,
+		COALESCE(SUM((price - original_gift_price) * num), 0) AS total`,
+		day.Start, day.End,
+		week.Start, week.End,
+		month.Start, month.End,
+	).Scan(&result).Error
+	return &result, err
 }
 
 // escapeLike 转义 LIKE 查询中的特殊字符 _ %

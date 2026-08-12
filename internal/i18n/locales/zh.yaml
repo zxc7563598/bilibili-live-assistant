@@ -227,6 +227,15 @@ send_mode:
   random: 随机发送
   sequential: 顺序发送
 
+menu_type:
+  match_any: 任意命中
+  match_all: 全部命中
+
+mute_status:
+  muted: 禁言中
+  unmute_failed: 解禁失败
+  not_found: 未找到记录
+
 no: 否
 yes: 是
 unknown: 未知

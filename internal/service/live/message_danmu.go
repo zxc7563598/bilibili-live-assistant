@@ -2,6 +2,7 @@ package live
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -10,10 +11,13 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_sign_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 )
@@ -22,22 +26,28 @@ import (
 type danmuProcessor struct {
 	liveUserRepo          live_user.Repository
 	liveDanmuRepo         live_danmu.Repository
+	liveGiftRepo          live_gift.Repository
 	liveUserCreditLogRepo live_user_credit_log.Repository
 	liveUserSignLogRepo   live_user_sign_log.Repository
+	LiveUserBlacklistRepo live_user_blacklist.Repository
 	roomState             *RoomState
 	configCache           *robotconfig.Cache
+	client                *bilibili.Client
 	getBotUID             func() int64
 	enqueueDanmu          func(msg string, priority int)
 }
 
-func newDanmuProcessor(liveUserRepo live_user.Repository, liveDanmuRepo live_danmu.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository, roomState *RoomState, configCache *robotconfig.Cache, getBotUID func() int64, enqueueDanmu func(msg string, priority int)) *danmuProcessor {
+func newDanmuProcessor(liveUserRepo live_user.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, priority int)) *danmuProcessor {
 	return &danmuProcessor{
 		liveUserRepo:          liveUserRepo,
 		liveDanmuRepo:         liveDanmuRepo,
+		liveGiftRepo:          liveGiftRepo,
 		liveUserCreditLogRepo: liveUserCreditLogRepo,
 		liveUserSignLogRepo:   liveUserSignLogRepo,
+		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
 		roomState:             roomState,
 		configCache:           configCache,
+		client:                client,
 		getBotUID:             getBotUID,
 		enqueueDanmu:          enqueueDanmu,
 	}
@@ -77,11 +87,11 @@ func (p *danmuProcessor) Process(ctx context.Context, cmd live.Cmd, data any, ro
 	// 签到检测
 	p.processSignIn(ctx, info, roomID, botUID, liveStatus)
 	// 自动回复关键词检测
+	p.processReplyIn(ctx, info, roomID, botUID, liveStatus)
 	return nil
 }
 
 // processSignIn 处理签到逻辑
-// 校验 → 签到 / 查询，任一环节失败仅 log，不返回 error，保证后续弹幕处理不受影响
 func (p *danmuProcessor) processSignIn(ctx context.Context, info *live.DanmuMsgInfo, roomID, botUID int64, liveStatus int) {
 	if botUID == info.UID {
 		return
@@ -192,7 +202,6 @@ func (p *danmuProcessor) handleSignQuery(ctx context.Context, cfg robotconfig.Si
 }
 
 // resolveSignVars 按需查询签到相关数据，返回变量名 → 值的映射
-// 仅对 needed 中标记为 true 的变量发起数据库查询，未使用的变量不会触发额外 IO
 func (p *danmuProcessor) resolveSignVars(ctx context.Context, info *live.DanmuMsgInfo, needed map[string]bool) map[string]string {
 	vars := make(map[string]string)
 	// 无 IO：直接从 info 获取
@@ -231,7 +240,8 @@ func (p *danmuProcessor) resolveSignVars(ctx context.Context, info *live.DanmuMs
 	return vars
 }
 
-// sendSignReply 从模板列表中随机选取一条，渲染变量后发送弹幕
+// sendSignReply 签到相关从模板列表中随机选取一条，渲染变量后发送弹幕
+// priority 设置为 50
 func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, info *live.DanmuMsgInfo) {
 	tmpl := PickRandom(templates)
 	if tmpl == "" {
@@ -240,7 +250,7 @@ func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, 
 	needed := CollectVars(templates)
 	vars := p.resolveSignVars(ctx, info, needed)
 	msg := RenderTemplate(tmpl, vars)
-	p.enqueueDanmu(msg, 100)
+	p.enqueueDanmu(msg, 50)
 }
 
 // grantSignReward 注册用户（如不存在）并发放签到奖励
@@ -274,4 +284,221 @@ func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMs
 		_, err = p.liveUserCreditLogRepo.AddStarsLog(ctx, nil, params)
 	}
 	return err
+}
+
+// processReplyIn 处理自动回复逻辑
+func (p *danmuProcessor) processReplyIn(ctx context.Context, info *live.DanmuMsgInfo, roomID, botUID int64, liveStatus int) {
+	if botUID == info.UID {
+		return
+	}
+	var cfg robotconfig.ReplyConfig
+	if err := p.configCache.UnmarshalGroup("reply", &cfg); err != nil {
+		log.Printf("[live.Reply] 加载签到配置失败: %v", err)
+		return
+	}
+	if !ptr.ParseBool(cfg.Enabled) {
+		return
+	}
+	if !p.checkReplyCondition(cfg, info, roomID, liveStatus) {
+		return
+	}
+	for _, reply := range cfg.Content {
+		if containsMatch(info.Msg, reply.Keyword, enum.MatchPolicyMatchAny) {
+			if !containsMatch(info.Msg, reply.SafeWord, enum.MatchPolicyMatchAny) {
+				// 加入黑名单
+				if ptr.ParseBool(reply.MuteSender) {
+					if err := p.blockUserForReply(info.UID, roomID, info.Uname, info.Msg, reply.MuteDuration, reply.RansomAmount); err != nil {
+						log.Printf("[live.Reply] 加入黑名单失败: %v", err)
+						return
+					}
+				}
+				// 回复信息
+				p.sendReply(ctx, reply.ReplyContent, info, roomID)
+			}
+		}
+	}
+}
+
+// checkReplyCondition 校验签到的 Requirement 和 Scene 是否满足
+func (p *danmuProcessor) checkReplyCondition(cfg robotconfig.ReplyConfig, info *live.DanmuMsgInfo, roomID int64, liveStatus int) bool {
+	req := ptr.ParseEnumInt[enum.Requirement](cfg.Requirement)
+	switch req {
+	case enum.RequirementHasBadge:
+		if info.BadgeRoomID != roomID {
+			log.Printf("[live.Reply] 回复条件不满足: 需要携带当前直播间牌子，用户牌子 roomID=%d, 当前 roomID=%d", info.BadgeRoomID, roomID)
+			return false
+		}
+	case enum.RequirementHasSailBadge:
+		if info.BadgeRoomID != roomID {
+			log.Printf("[live.Reply] 回复条件不满足: 需要携带当前直播间牌子，用户牌子 roomID=%d, 当前 roomID=%d", info.BadgeRoomID, roomID)
+			return false
+		}
+		if enum.BadgeType(info.BadgeType) == enum.BadgeTypeL0 {
+			log.Printf("[live.Reply] 回复条件不满足: 需要非 L0 勋章")
+			return false
+		}
+	default:
+		log.Printf("[live.Reply] 未知的回复条件: %d", req)
+		return false
+	}
+	sce := ptr.ParseEnumInt[enum.Scene](cfg.Scene)
+	switch sce {
+	case enum.SceneUnlimited:
+	case enum.SceneLive:
+		if liveStatus != int(enum.LiveStatusLive) {
+			log.Printf("[live.Reply] 场景不满足: 需要直播中，当前状态=%d", liveStatus)
+			return false
+		}
+	case enum.SceneNotLive:
+		if liveStatus == int(enum.LiveStatusLive) {
+			log.Printf("[live.Reply] 场景不满足: 需要非直播状态，当前为直播中")
+			return false
+		}
+	default:
+		log.Printf("[live.Reply] 未知的场景: %d", sce)
+		return false
+	}
+	return true
+}
+
+// blockUserForReply 由自动回复触发的加入黑名单
+func (p *danmuProcessor) blockUserForReply(uid, roomID int64, uname, msg, muteDuration, ransomAmount string) error {
+	csrf, err := p.client.CSRF()
+	if err != nil {
+		return fmt.Errorf("用户 CSRF 获取失败: %w", err)
+	}
+	err = p.client.Room.AddSilentUser(context.Background(), roomID, uid, msg, csrf)
+	if err != nil {
+		return fmt.Errorf("用户加入黑名单失败: %w", err)
+	}
+	ransomAmountValue, _ := strconv.ParseInt(ransomAmount, 10, 64)
+	muteDurationValue, _ := strconv.ParseInt(muteDuration, 10, 64)
+	_, err = p.LiveUserBlacklistRepo.Create(context.Background(), nil, &model.LiveUserBlacklist{
+		RoomID:          roomID,
+		UID:             uid,
+		Uname:           uname,
+		Msg:             msg,
+		RansomAmount:    ransomAmountValue,
+		MuteDuration:    muteDurationValue,
+		MuteExpiresAt:   getExpireTimestamp(muteDurationValue),
+		UnmuteFailCount: 0,
+		Status:          enum.MuteStatusMuted,
+	})
+	if err != nil {
+		return fmt.Errorf("添加黑名单记录失败: %w", err)
+	}
+	return nil
+}
+
+// sendReply 自动回复相关从模板列表中随机选取一条，渲染变量后发送弹幕
+// priority 设置为 50
+func (p *danmuProcessor) sendReply(ctx context.Context, templates []string, info *live.DanmuMsgInfo, roomID int64) {
+	tmpl := PickRandom(templates)
+	if tmpl == "" {
+		return
+	}
+	needed := CollectVars(templates)
+	vars := p.resolveReplyVars(ctx, info, needed, roomID)
+	msg := RenderTemplate(tmpl, vars)
+	p.enqueueDanmu(msg, 50)
+}
+
+// resolveReplyVars 按需查询自动回复相关数据，返回变量名 → 值的映射
+func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuMsgInfo, needed map[string]bool, roomID int64) map[string]string {
+	vars := make(map[string]string)
+	// 无 IO：直接从 info 获取
+	if needed["name"] {
+		vars["name"] = info.Uname
+	}
+	if needed["guard"] {
+		vars["guard"] = enum.BadgeType(info.BadgeType).Text("zh")
+	}
+	// IO：计算盲盒变量
+	needUserProfit := needed["daily_net"] || needed["weekly_net"] || needed["monthly_net"] || needed["total_net"]
+	needRoomProfit := needed["room_daily_net"] || needed["room_weekly_net"] || needed["room_monthly_net"] || needed["room_total_net"]
+	if needUserProfit || needRoomProfit {
+		now := time.Now()
+		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		// 处理时间变量
+		day := live_gift.TimeRange{Start: today.Unix(), End: now.Unix()}
+		daysSinceMonday := int(now.Weekday()) - int(time.Monday)
+		if daysSinceMonday < 0 {
+			daysSinceMonday += 7
+		}
+		weekStart := time.Date(now.Year(), now.Month(), now.Day()-daysSinceMonday, 0, 0, 0, 0, now.Location())
+		week := live_gift.TimeRange{Start: weekStart.Unix(), End: now.Unix()}
+		monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+		month := live_gift.TimeRange{Start: monthStart.Unix(), End: now.Unix()}
+		// 获取用户纬度数据（如果需要）
+		if needUserProfit {
+			profit, err := p.liveGiftRepo.SumBlindBoxProfit(ctx, nil, info.UID, roomID, day, week, month)
+			if err != nil {
+				log.Printf("[live.Reply] 查询用户盲盒盈利失败: %v", err)
+			} else {
+				if needed["daily_net"] {
+					vars["daily_net"] = strconv.FormatInt(profit.Daily, 10)
+				}
+				if needed["weekly_net"] {
+					vars["weekly_net"] = strconv.FormatInt(profit.Weekly, 10)
+				}
+				if needed["monthly_net"] {
+					vars["monthly_net"] = strconv.FormatInt(profit.Monthly, 10)
+				}
+				if needed["total_net"] {
+					vars["total_net"] = strconv.FormatInt(profit.Total, 10)
+				}
+			}
+		}
+		// 获取房间纬度数据（如果需要）
+		if needRoomProfit {
+			profit, err := p.liveGiftRepo.SumBlindBoxProfit(ctx, nil, 0, roomID, day, week, month)
+			if err != nil {
+				log.Printf("[live.Reply] 查询直播间盲盒盈利失败: %v", err)
+			} else {
+				if needed["room_daily_net"] {
+					vars["room_daily_net"] = strconv.FormatInt(profit.Daily, 10)
+				}
+				if needed["room_weekly_net"] {
+					vars["room_weekly_net"] = strconv.FormatInt(profit.Weekly, 10)
+				}
+				if needed["room_monthly_net"] {
+					vars["room_monthly_net"] = strconv.FormatInt(profit.Monthly, 10)
+				}
+				if needed["room_total_net"] {
+					vars["room_total_net"] = strconv.FormatInt(profit.Total, 10)
+				}
+			}
+		}
+	}
+	return vars
+}
+
+// containsMatch 自动回复相关关键词匹配
+func containsMatch(s string, items []string, matchPolicy enum.MatchPolicy) bool {
+	switch matchPolicy {
+	case enum.MatchPolicyMatchAny:
+		for _, item := range items {
+			if strings.Contains(s, item) {
+				return true
+			}
+		}
+		return false
+	case enum.MatchPolicyMatchAll:
+		for _, item := range items {
+			if !strings.Contains(s, item) {
+				return false
+			}
+		}
+		return len(items) > 0
+	default:
+		return false
+	}
+}
+
+// getExpireTimestamp 自动回复相关禁言获取过期时间戳
+func getExpireTimestamp(muteDurationValue int64) int64 {
+	if muteDurationValue <= 0 {
+		return time.Now().Add(99 * 365 * 24 * time.Hour).Unix()
+	}
+	return time.Now().Add(time.Duration(muteDurationValue) * time.Minute).Unix()
 }

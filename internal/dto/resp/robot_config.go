@@ -130,7 +130,7 @@ type ReplyConfigResp struct {
 type ReplyItem struct {
 	// 触发关键词列表
 	Keyword []string `json:"keyword"`
-	// 安全词列表（包含则不触发）
+	// 安全词列表
 	SafeWord []string `json:"safe_word"`
 	// 是否禁言发送者, 0-否, 1-是
 	MuteSender string `json:"mute_sender"`

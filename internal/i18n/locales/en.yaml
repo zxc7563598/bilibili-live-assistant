@@ -227,6 +227,15 @@ send_mode:
   random: random
   sequential: sequential
 
+menu_type:
+  match_any: match_any
+  match_all: match_all
+
+mute_status:
+  muted: muted
+  unmute_failed: unmute_failed
+  not_found: not_found
+
 no: no
 yes: yes
 unknown: unknown

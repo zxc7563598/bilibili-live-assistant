@@ -901,7 +901,6 @@
             自动回复相关占位变量
           </div>
           <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-            命中的关键词：<b>@keywords@</b><br>
             发送人昵称：<b>@name@</b><br>
             用户航海类型：<b>@guard@</b><br>
             用户本日盲盒盈利：<b>@daily_net@</b><br>
