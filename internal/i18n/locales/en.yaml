@@ -210,6 +210,20 @@ change_type:
   reduce: reduce
   increase: increase
 
+requirement:
+  has_badge: hasBadge
+  has_sail_badge: hasSailBadge
+
+scene:
+  live: live
+  not_live: notLive
+
+live_status:
+  offline: offline
+  live: live
+  looping: looping
+
 no: no
 yes: yes
 unknown: unknown
+unlimited: unlimited

@@ -12,18 +12,6 @@ type RoomState struct {
 	info *room.RealRoomInfo
 }
 
-// Info 返回缓存的直播间信息副本。
-// 缓存为空时返回 nil。
-func (rs *RoomState) Info() *room.RealRoomInfo {
-	rs.mu.RLock()
-	defer rs.mu.RUnlock()
-	if rs.info == nil {
-		return nil
-	}
-	info := *rs.info
-	return &info
-}
-
 // Update 用 API 返回的完整信息替换缓存。
 func (rs *RoomState) Update(info *room.RealRoomInfo) {
 	rs.mu.Lock()

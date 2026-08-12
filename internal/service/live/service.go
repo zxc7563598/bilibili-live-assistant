@@ -14,6 +14,9 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_sign_log"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
@@ -50,7 +53,7 @@ type Service struct {
 	// 弹幕发送
 	roomSvc *room.Service // 弹幕 API 服务
 	queue   *live.Queue   // 弹幕发送优先级队列（nil = 未创建）
-	// 直播间状态缓存（线程安全，供处理器读取 LiveStatus 判断 scene 等）
+	// 直播间状态缓存
 	roomState *RoomState
 	// 自动广告定时发送器
 	robotConfigSvc   *robotconfigsvc.Service // 机器人配置服务
@@ -64,50 +67,55 @@ type Service struct {
 	liveDanmuRepo   live_danmu.Repository
 	liveGiftRepo    live_gift.Repository
 	liveSessionRepo live_session.Repository
-	liveUserRepo    live_user.Repository
 }
 
 // New 创建直播服务
 //
 // bilibili.Client 在此创建并持久化（整个服务生命周期内复用）
 // WithStateFile 会在启动时自动恢复之前保存的登录态
-func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository) *Service {
+func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCache *robotconfig.Cache, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository) *Service {
 	client := bilibili.NewClient(
 		bilibili.WithStateFile(cfg.StateFile),
 	)
 	hub := newHub()
 	go hub.Run(context.Background())
 	roomState := &RoomState{}
+	var enqueueFn func(msg string, priority int)
 	dispatcher := newMessageDispatcher(
 		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
 		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
 		newGiftProcessor(liveGiftRepo),
 		newInteractProcessor(liveUserRepo),
-		newDanmuProcessor(liveDanmuRepo, roomState, func() int64 {
+		newDanmuProcessor(liveUserRepo, liveDanmuRepo, liveUserCreditLogRepo, liveUserSignLogRepo, roomState, configCache, func() int64 {
 			if sess := client.Session(); sess != nil {
 				return sess.UID
 			}
 			return 0
+		}, func(msg string, priority int) {
+			if enqueueFn != nil {
+				enqueueFn(msg, priority)
+			}
 		}),
 		newPkProcessor(),
 	)
 	// 从配置中恢复上次监听的房间号
 	defaultRoomID := robotConfigSvc.GetRoomID()
-	return &Service{
-		client:          client,
-		stateFile:       cfg.StateFile,
-		roomID:          defaultRoomID,
-		roomState:       roomState,
-		rawLogger:       logger.NewRawMessageLogger(),
-		roomSvc:         room.NewService(client),
-		hub:             hub,
-		dispatcher:      dispatcher,
+	s := &Service{
+		client:                client,
+		stateFile:             cfg.StateFile,
+		roomID:                defaultRoomID,
+		roomState:             roomState,
+		rawLogger:             logger.NewRawMessageLogger(),
+		roomSvc:               room.NewService(client),
+		hub:                   hub,
+		dispatcher:            dispatcher,
 		liveDanmuRepo:   liveDanmuRepo,
 		liveGiftRepo:    liveGiftRepo,
 		liveSessionRepo: liveSessionRepo,
-		liveUserRepo:    liveUserRepo,
 		robotConfigSvc:  robotConfigSvc,
 	}
+	enqueueFn = s.EnqueueDanmu
+	return s
 }
 
 // Client 返回内部的 *bilibili.Client，供其他 Service 进行高级操作

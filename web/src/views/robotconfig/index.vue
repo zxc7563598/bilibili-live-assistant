@@ -138,7 +138,6 @@
                 用户积分：<b>@points@</b><br>
                 用户星光：<b>@stars@</b><br>
                 用户航海类型：<b>@guard@</b><br>
-                主播名称：<b>@anchor@</b>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -548,7 +547,6 @@
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
                 用户名称：<b>@user@</b><br>
                 用户航海类型：<b>@guard@</b><br>
-                主播名称：<b>@anchor@</b><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -625,7 +623,6 @@
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
                 用户名称：<b>@user@</b><br>
                 用户航海类型：<b>@guard@</b><br>
-                主播名称：<b>@anchor@</b><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -702,7 +699,6 @@
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
                 用户名称：<b>@user@</b><br>
                 用户航海类型：<b>@guard@</b><br>
-                主播名称：<b>@anchor@</b><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -908,7 +904,6 @@
             命中的关键词：<b>@keywords@</b><br>
             发送人昵称：<b>@name@</b><br>
             用户航海类型：<b>@guard@</b><br>
-            主播名称：<b>@anchor@</b><br>
             用户本日盲盒盈利：<b>@daily_net@</b><br>
             用户本周盲盒盈利：<b>@weekly_net@</b><br>
             用户本月盲盒盈利：<b>@monthly_net@</b><br>

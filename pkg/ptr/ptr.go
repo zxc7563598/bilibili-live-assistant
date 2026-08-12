@@ -1,24 +1,6 @@
 package ptr
 
-// Int64 将 int64 转换为 *int64
-func Int64(v int64) *int64 {
-	return &v
-}
-
-// Int 将 int 转换为 *int
-func Int(v int) *int {
-	return &v
-}
-
-// String 将 string 转换为 *string
-func String(v string) *string {
-	return &v
-}
-
-// Bool 将 bool 转换为 *bool
-func Bool(v bool) *bool {
-	return &v
-}
+import "strconv"
 
 // Deref 安全地将指针解引用为值，如果指针为 nil 则返回零值
 func Deref[T any](p *T) T {
@@ -27,4 +9,18 @@ func Deref[T any](p *T) T {
 		return zero
 	}
 	return *p
+}
+
+// ParseBool 将配置字符串解析为 bool，"1" 为 true
+func ParseBool(s string) bool {
+	return s == "1"
+}
+
+// ParseEnumInt 将配置字符串解析为 int 枚举值，解析失败返回 0
+func ParseEnumInt[T ~int](s string) T {
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		return 0
+	}
+	return T(v)
 }

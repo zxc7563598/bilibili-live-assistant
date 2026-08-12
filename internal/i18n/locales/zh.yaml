@@ -210,6 +210,20 @@ change_type:
   reduce: 减少
   increase: 增加
 
+requirement:
+  has_badge: 带本直播间牌子
+  has_sail_badge: 带本直播间大航海牌子
+
+scene:
+  live: 直播中
+  not_live: 非直播中
+
+live_status:
+  offline: 未开播
+  live: 直播中
+  looping: 轮播中
+
 no: 否
 yes: 是
 unknown: 未知
+unlimited: 不限制
