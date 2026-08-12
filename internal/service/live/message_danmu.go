@@ -34,10 +34,10 @@ type danmuProcessor struct {
 	configCache           *robotconfig.Cache
 	client                *bilibili.Client
 	getBotUID             func() int64
-	enqueueDanmu          func(msg string, priority int)
+	enqueueDanmu          func(msg string, kind string)
 }
 
-func newDanmuProcessor(liveUserRepo live_user.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, priority int)) *danmuProcessor {
+func newDanmuProcessor(liveUserRepo live_user.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *danmuProcessor {
 	return &danmuProcessor{
 		liveUserRepo:          liveUserRepo,
 		liveDanmuRepo:         liveDanmuRepo,
@@ -250,7 +250,7 @@ func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, 
 	needed := CollectVars(templates)
 	vars := p.resolveSignVars(ctx, info, needed)
 	msg := RenderTemplate(tmpl, vars)
-	p.enqueueDanmu(msg, 50)
+	p.enqueueDanmu(msg, "sign")
 }
 
 // grantSignReward 注册用户（如不存在）并发放签到奖励
@@ -400,7 +400,7 @@ func (p *danmuProcessor) sendReply(ctx context.Context, templates []string, info
 	needed := CollectVars(templates)
 	vars := p.resolveReplyVars(ctx, info, needed, roomID)
 	msg := RenderTemplate(tmpl, vars)
-	p.enqueueDanmu(msg, 50)
+	p.enqueueDanmu(msg, "reply")
 }
 
 // resolveReplyVars 按需查询自动回复相关数据，返回变量名 → 值的映射

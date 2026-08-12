@@ -82,7 +82,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 	hub := newHub()
 	go hub.Run(context.Background())
 	roomState := &RoomState{}
-	var enqueueFn func(msg string, priority int)
+	var enqueueFn func(msg string, kind string) // 签名与 Service.EnqueueDanmu 保持一致
 	dispatcher := newMessageDispatcher(
 		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
 		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
@@ -93,9 +93,9 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 				return sess.UID
 			}
 			return 0
-		}, func(msg string, priority int) {
+		}, func(msg string, kind string) {
 			if enqueueFn != nil {
-				enqueueFn(msg, priority)
+				enqueueFn(msg, kind)
 			}
 		}),
 		newPkProcessor(),
@@ -424,16 +424,28 @@ func (s *Service) GetListenerStatus(ctx context.Context) (*ListenerStatusResp, i
 
 // EnqueueDanmu 将弹幕加入发送队列
 //
-// priority 越小越优先发送，同优先级按入队顺序（FIFO）发送。
 // 即使监听器未启动也可以入队，消息会在 StartListener 后依次发送。
-//
 // 如果监听器未在运行（queue == nil），消息会被丢弃。
-func (s *Service) EnqueueDanmu(msg string, priority int) {
+func (s *Service) EnqueueDanmu(msg string, kind string) {
 	s.mu.Lock()
 	q := s.queue
 	s.mu.Unlock()
 	if q != nil {
-		q.Enqueue(msg, priority)
+		q.Enqueue(msg, danmuPriority(kind))
+	}
+}
+
+// danmuPriority 集中管理各类弹幕的发送优先级，越小越优先
+func danmuPriority(kind string) int {
+	switch kind {
+	case "ad": // 定时广告
+		return 100
+	case "sign": // 签到
+		return 50
+	case "reply": // 自动回复
+		return 50
+	default:
+		return 0
 	}
 }
 

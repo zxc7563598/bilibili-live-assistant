@@ -244,7 +244,7 @@ func (h *Handler) SendDanmu(c *gin.Context) {
 		response.Error(c, lang, code)
 		return
 	}
-	h.liveSvc.EnqueueDanmu(req.Message, 0)
+	h.liveSvc.EnqueueDanmu(req.Message, "admin")
 	response.Success(c, lang, nil)
 }
 
