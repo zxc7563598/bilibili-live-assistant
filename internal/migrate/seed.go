@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // Seed 填充数据
@@ -30,28 +31,23 @@ func Seed(db *gorm.DB) error {
 }
 
 // seedRoles 初始化填充角色表
+// 以 code 为唯一键做幂等 upsert：已存在的跳过，未来新增的角色会自动追加。
 func seedRoles(db *gorm.DB) error {
-	var count int64
-	db.Model(&model.Role{}).Count(&count)
-	if count > 0 {
-		return nil
-	}
 	role := model.Role{
 		ID:     1,
 		Code:   "SUPER_ADMIN",
 		Name:   "超级管理员",
 		Enable: enum.EnableEnable,
 	}
-	return db.Create(&role).Error
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "code"}},
+		DoNothing: true,
+	}).Create(&role).Error
 }
 
 // seedMenus 初始化填充菜单表
+// 以 code 为唯一键做幂等 upsert：已存在的菜单跳过，未来新增的菜单会自动追加。
 func seedMenus(db *gorm.DB) error {
-	var count int64
-	db.Model(&model.Menu{}).Count(&count)
-	if count > 0 {
-		return nil
-	}
 	menus := []model.Menu{
 		{
 			ID:        1,
@@ -182,7 +178,7 @@ func seedMenus(db *gorm.DB) error {
 			Layout:    "",
 			Type:      "MENU",
 			ParentID:  0,
-			Name:      "资产大盘",
+			Name:      "房间配置",
 			Icon:      "i-fe:home",
 			Path:      "/",
 			Component: "/src/views/home/index.vue",
@@ -190,141 +186,24 @@ func seedMenus(db *gorm.DB) error {
 		},
 		{
 			ID:        10,
-			Code:      "iFrame",
+			Code:      "Robot",
 			Enable:    enum.EnableEnable,
 			Show:      enum.Yes,
 			KeepAlive: enum.No,
 			Layout:    "",
 			Type:      "MENU",
 			ParentID:  0,
-			Name:      "外部链接",
-			Icon:      "i-fe:insert-link",
-			Path:      "",
-			Component: "",
+			Name:      "机器人配置",
+			Icon:      "i-fe:gitlab",
+			Path:      "/robot",
+			Component: "/src/views/robotconfig/index.vue",
 			Order:     0,
-		},
-		{
-			ID:        11,
-			Code:      "Blog",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.No,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  10,
-			Name:      "个人博客",
-			Icon:      "i-fe:trello",
-			Path:      "https://hejunjie.life",
-			Component: "",
-			Order:     0,
-		},
-		{
-			ID:        12,
-			Code:      "NaiveUI",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.No,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  10,
-			Name:      "Naive UI",
-			Icon:      "i-me:naiveui",
-			Path:      "https://www.naiveui.com/zh-CN/os-theme",
-			Component: "",
-			Order:     1,
-		},
-		{
-			ID:        13,
-			Code:      "Base",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.No,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  0,
-			Name:      "基础功能",
-			Icon:      "i-fe:grid",
-			Path:      "",
-			Component: "",
-			Order:     1,
-		},
-		{
-			ID:        14,
-			Code:      "Icon",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.No,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  13,
-			Name:      "图标 Icon",
-			Icon:      "i-fe:feather",
-			Path:      "/base/icon",
-			Component: "/src/views/base/unocss-icon.vue",
-			Order:     0,
-		},
-		{
-			ID:        15,
-			Code:      "BaseComponents",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.No,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  13,
-			Name:      "基础组件",
-			Icon:      "i-me:awesome",
-			Path:      "/base/components",
-			Component: "/src/views/base/index.vue",
-			Order:     1,
-		},
-		{
-			ID:        16,
-			Code:      "Unocss",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.No,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  13,
-			Name:      "基础组件",
-			Icon:      "i-me:awesome",
-			Path:      "/base/unocss",
-			Component: "/src/views/base/unocss.vue",
-			Order:     2,
-		},
-		{
-			ID:        17,
-			Code:      "KeepAlive",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.Yes,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  13,
-			Name:      "KeepAlive",
-			Icon:      "i-me:awesome",
-			Path:      "/base/keep-alive",
-			Component: "/src/views/base/keep-alive.vue",
-			Order:     3,
-		},
-		{
-			ID:        18,
-			Code:      "MeModal",
-			Enable:    enum.EnableEnable,
-			Show:      enum.Yes,
-			KeepAlive: enum.No,
-			Layout:    "",
-			Type:      "MENU",
-			ParentID:  13,
-			Name:      "MeModal",
-			Icon:      "i-me:dialog",
-			Path:      "/testModal",
-			Component: "/src/views/base/test-modal.vue",
-			Order:     4,
 		},
 	}
-	return db.Create(&menus).Error
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "code"}},
+		DoNothing: true,
+	}).Create(&menus).Error
 }
 
 // seedAdmin 初始化填充管理员表
@@ -369,12 +248,10 @@ func seedAdminRole(db *gorm.DB) error {
 //
 // 所有功能默认关闭（enabled=false），由用户在管理后台按需开启和配置。
 // 配置值使用 text 类型存储，复杂配置（如答谢模板、回复规则）使用 JSON 格式。
+//
+// 以 (group_name, config_key) 为唯一键做幂等 upsert：
+// 已存在的配置项跳过（不覆盖用户在后台改过的值），未来新增的配置项会自动追加。
 func seedRobotConfigs(db *gorm.DB) error {
-	var count int64
-	db.Model(&model.RobotConfig{}).Count(&count)
-	if count > 0 {
-		return nil
-	}
 	configs := []model.RobotConfig{
 		{
 			GroupName:   "room",
@@ -656,5 +533,8 @@ func seedRobotConfigs(db *gorm.DB) error {
 			Remark:      "回复内容, json 配置项",
 		},
 	}
-	return db.Create(&configs).Error
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "group_name"}, {Name: "config_key"}},
+		DoNothing: true,
+	}).Create(&configs).Error
 }
