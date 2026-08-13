@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/docs"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/bootstrap"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
@@ -31,9 +32,21 @@ import (
 
 // @BasePath /
 func main() {
-	port := flag.Int("port", 9000, "服务端口")
+	port := flag.Int("port", 25443, "服务端口")
 	configPath := flag.String("config", "config.yaml", "配置文件路径")
 	flag.Parse()
+	// 未显式设置 GIN_MODE 时默认使用 release 模式（开发用 make dev-go 传 GIN_MODE=debug）
+	if os.Getenv("GIN_MODE") == "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	// 首次运行且配置文件缺失时，自动生成默认配置
+	created, err := config.EnsureConfigFile(*configPath)
+	if err != nil {
+		log.Fatalf("初始化配置文件失败: %v", err)
+	}
+	if created {
+		log.Printf("未找到配置文件，已自动生成默认配置: %s", *configPath)
+	}
 	// 加载配置
 	cfg, err := config.LoadConfig(*configPath)
 	if err != nil {
@@ -75,6 +88,9 @@ func main() {
 	// 启动服务
 	go func() {
 		log.Printf("服务在 %s 启动 (版本: %s, 提交: %s)\n", addr, version.Version, version.Commit)
+		log.Printf("打开浏览器，前往：http://127.0.0.1%s/admin 访问后台\n", addr)
+		log.Printf("默认账号：admin\n")
+		log.Printf("默认密码：123456\n")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("监听错误: %v", err)
 		}
