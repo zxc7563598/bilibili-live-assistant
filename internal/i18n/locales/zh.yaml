@@ -194,6 +194,11 @@ gift_type:
   guard: 航海
   super_chat: 醒目留言
 
+interact_type:
+  enter: 进房欢迎
+  follow: 关注
+  share: 分享
+
 enable:
   disable: 停用
   enable: 启用

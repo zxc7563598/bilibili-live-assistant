@@ -207,7 +207,6 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 	if gift != nil {
 		if _, err := p.liveGiftRepo.Create(ctx, nil, gift); err != nil {
 			log.Printf("[live.Gift] 礼物存储失败: %v", err)
-			return err
 		}
 	}
 	if thankInfo != nil {

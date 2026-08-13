@@ -194,6 +194,11 @@ gift_type:
   guard: guard
   super_chat: superChat
 
+interact_type:
+  enter: enter
+  follow: follow
+  share: share
+
 enable:
   disable: disable
   enable: enable

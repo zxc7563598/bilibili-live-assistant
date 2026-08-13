@@ -5,6 +5,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/admin_role"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_interact_word"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
@@ -31,6 +32,7 @@ type Repositories struct {
 	LiveUserCreditLog live_user_credit_log.Repository
 	LiveUserSignLog   live_user_sign_log.Repository
 	LiveUserBlacklist live_user_blacklist.Repository
+	LiveInteractWord  live_interact_word.Repository
 }
 
 func InitRepositories(db *gorm.DB) *Repositories {
@@ -48,5 +50,6 @@ func InitRepositories(db *gorm.DB) *Repositories {
 		LiveUserCreditLog: live_user_credit_log.New(db),
 		LiveUserSignLog:   live_user_sign_log.New(db),
 		LiveUserBlacklist: live_user_blacklist.New(db),
+		LiveInteractWord:  live_interact_word.New(db),
 	}
 }

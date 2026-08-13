@@ -80,7 +80,6 @@ func (p *danmuProcessor) Process(ctx context.Context, cmd live.Cmd, data any, ro
 	}
 	if _, err := p.liveDanmuRepo.Create(ctx, nil, danmu); err != nil {
 		log.Printf("[live.Danmu] 弹幕存储失败: %v", err)
-		return err
 	}
 	botUID := p.getBotUID()
 	liveStatus := p.roomState.LiveStatus()

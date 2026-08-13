@@ -545,8 +545,11 @@
                 进房欢迎相关占位变量
               </div>
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                用户名称：<b>@user@</b><br>
+                用户名称：<b>@name@</b><br>
                 用户航海类型：<b>@guard@</b><br>
+                用户累计进房次数：<b>@total_times@</b><br>
+                用户累计进房天数：<b>@total_days@</b><br>
+                用户连续进房天数：<b>@streak@</b><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -621,8 +624,11 @@
                 感谢关注相关占位变量
               </div>
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                用户名称：<b>@user@</b><br>
+                用户名称：<b>@name@</b><br>
                 用户航海类型：<b>@guard@</b><br>
+                用户累计关注次数：<b>@total_times@</b><br>
+                用户累计关注天数：<b>@total_days@</b><br>
+                用户连续关注天数：<b>@streak@</b><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -697,8 +703,11 @@
                 感谢分享相关占位变量
               </div>
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                用户名称：<b>@user@</b><br>
+                用户名称：<b>@name@</b><br>
                 用户航海类型：<b>@guard@</b><br>
+                用户累计分享次数：<b>@total_times@</b><br>
+                用户累计分享天数：<b>@total_days@</b><br>
+                用户连续分享天数：<b>@streak@</b><br>
               </div>
             </div>
             <div class="flex items-start gap-5">

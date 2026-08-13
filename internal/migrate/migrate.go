@@ -18,5 +18,6 @@ func Run(db *gorm.DB) error {
 		&model.LiveSession{},
 		&model.RobotConfig{},
 		&model.LiveUserSignLog{},
+		&model.LiveInteractWord{},
 	)
 }

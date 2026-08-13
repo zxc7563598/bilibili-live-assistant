@@ -43,3 +43,11 @@ type GiftConfig struct {
 	MinBattery      string   `config:"min_battery"`      // 起始感谢电池
 	Content         []string `config:"content"`          // 答谢内容
 }
+
+// InteractConfig 互动消息（进房欢迎/感谢关注/感谢分享）回复配置
+type InteractConfig struct {
+	Enabled     string   `config:"enabled"`     // 是否启用
+	Scene       string   `config:"scene"`       // 场景
+	Requirement string   `config:"requirement"` // 条件
+	Content     []string `config:"content"`     // 内容
+}

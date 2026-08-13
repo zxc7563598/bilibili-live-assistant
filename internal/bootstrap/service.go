@@ -29,7 +29,7 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		Role:        *role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),
 		Menu:        *menu.New(repo.Menu),
 		Altcha:      *altcha.New(cfg.Altcha.HMACKey),
-		Live:        live.New(cfg.Live, robotConfigSvc, configCache, repo.LiveDanmu, repo.LiveGift, repo.LiveSession, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveUserSignLog, repo.LiveUserBlacklist),
+		Live:        live.New(cfg.Live, robotConfigSvc, configCache, repo.LiveDanmu, repo.LiveGift, repo.LiveSession, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveUserSignLog, repo.LiveUserBlacklist, repo.LiveInteractWord),
 		RobotConfig: robotConfigSvc,
 	}
 }
