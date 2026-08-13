@@ -117,7 +117,16 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 				enqueueFn(msg, kind)
 			}
 		}),
-		newPkProcessor(),
+		newPkProcessor(configCache, client, func() int64 {
+			if sess := client.Session(); sess != nil {
+				return sess.UID
+			}
+			return 0
+		}, func(msg string, kind string) {
+			if enqueueFn != nil {
+				enqueueFn(msg, kind)
+			}
+		}),
 	)
 	// 从配置中恢复上次监听的房间号
 	defaultRoomID := robotConfigSvc.GetRoomID()
@@ -457,12 +466,22 @@ func (s *Service) EnqueueDanmu(msg string, kind string) {
 // danmuPriority 集中管理各类弹幕的发送优先级，越小越优先
 func danmuPriority(kind string) int {
 	switch kind {
-	case "ad": // 定时广告
-		return 100
 	case "sign": // 签到
+		return 20
+	case "ad": // 定时广告
 		return 50
+	case "gift": // 礼物答谢
+		return 10
+	case "pk": // PK播报
+		return 30
+	case "welcome": // 进房欢迎
+		return 40
+	case "follow": // 感谢关注
+		return 40
+	case "share": // 感谢分享
+		return 40
 	case "reply": // 自动回复
-		return 50
+		return 20
 	default:
 		return 0
 	}

@@ -51,3 +51,9 @@ type InteractConfig struct {
 	Requirement string   `config:"requirement"` // 条件
 	Content     []string `config:"content"`     // 内容
 }
+
+// PkConfig PK信息
+type PkConfig struct {
+	Enabled string   `config:"enabled"` // 是否启用
+	Content []string `config:"content"` // 内容
+}
