@@ -23,6 +23,9 @@ import (
 // giftMergeWindow 礼物合并 debounce 窗口：同一用户在此时间内的多个礼物会被合并为一条答谢消息
 const giftMergeWindow = 3 * time.Second
 
+// unmuteFailLimit 解禁失败次数阈值，累计达到该次数后标记为解禁失败
+const unmuteFailLimit int64 = 3
+
 // giftMergeBuffer 礼物合并缓冲区，在 MergeGift 开启时将同一用户短时间内赠送的
 type giftMergeBuffer struct {
 	mu       sync.Mutex
@@ -207,15 +210,18 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			return err
 		}
 	}
-	// 礼物答谢
 	if thankInfo != nil {
+		// 礼物答谢
 		botUID := p.getBotUID()
 		liveStatus := p.roomState.LiveStatus()
 		p.processGiftIn(thankInfo, roomID, botUID, liveStatus)
+		// 黑名单赎回
+		p.processRedeem(ctx, thankInfo.UID, thankInfo.Price, thankInfo.Num, roomID, botUID)
 	}
 	return nil
 }
 
+// processGiftIn 处理礼物答谢逻辑
 func (p *giftProcessor) processGiftIn(info *giftThankInfo, roomID, botUID int64, liveStatus int) {
 	if botUID == info.UID {
 		return
@@ -386,4 +392,75 @@ func (p *giftProcessor) sendGiftReply(infos []*giftThankInfo) {
 		}
 	}
 	p.enqueueDanmu(msg, "gift")
+}
+
+// processRedeem 黑名单赎回：用户在禁言中赠送礼物后，尝试解除直播间禁言并更新解禁结果
+func (p *giftProcessor) processRedeem(ctx context.Context, uid, price, num, roomID, botUID int64) {
+	if botUID == uid {
+		return
+	}
+	// 获取用户是否正在禁言中
+	black, err := p.LiveUserBlacklistRepo.GetActiveByRoomUID(ctx, nil, roomID, uid)
+	if err != nil {
+		log.Printf("[live.Gift] 获取黑名单数据失败: %v", err)
+		return
+	}
+	if black == nil {
+		return
+	}
+	// 验证是否满足解禁条件
+	priceValue := (price * num) / 10
+	if black.RansomAmount > priceValue {
+		log.Printf("[live.Gift] 用户 %d 不满足解除黑名单的条件，需要赠送电池 %d 当前赠送电池 %d", uid, black.RansomAmount, priceValue)
+		return
+	}
+	csrf, err := p.client.CSRF()
+	if err != nil {
+		log.Printf("[live.Gift] 获取黑名单列表需要的 CSRF 获取失败: %v", err)
+		return
+	}
+	// 遍历直播间禁言列表，找到对应用户的禁言记录 ID
+	blackID := int64(0)
+	page := int64(1)
+	for {
+		silentList, silentListErr := p.client.Room.GetSilentUserList(ctx, roomID, page, csrf)
+		if silentListErr != nil {
+			log.Printf("[live.Gift] 禁言列表第%d页失败: %v", page, silentListErr)
+			break
+		}
+		for _, item := range silentList.Items {
+			if item.UID == uid {
+				blackID = item.ID
+				break
+			}
+		}
+		if blackID != 0 || page >= int64(silentList.TotalPage) {
+			break
+		}
+		page++
+	}
+	// 禁言列表中未找到该用户
+	if blackID == 0 {
+		if err := p.LiveUserBlacklistRepo.UpdateUnmuteResult(ctx, nil, black.ID, enum.MuteStatusNotFound, black.UnmuteFailCount+1); err != nil {
+			log.Printf("[live.Gift] 更新黑名单解禁结果失败: %v", err)
+		}
+		return
+	}
+	// 解除直播间禁言
+	if err := p.client.Room.DelSilentUser(ctx, roomID, blackID, csrf); err != nil {
+		// 解禁失败：失败次数 +1，累计达到阈值后标记为解禁失败
+		failCount := black.UnmuteFailCount + 1
+		status := black.Status
+		if failCount >= unmuteFailLimit {
+			status = enum.MuteStatusUnmuteFailed
+		}
+		if updateErr := p.LiveUserBlacklistRepo.UpdateUnmuteResult(ctx, nil, black.ID, status, failCount); updateErr != nil {
+			log.Printf("[live.Gift] 更新黑名单解禁结果失败: %v", updateErr)
+		}
+		return
+	}
+	// 解禁成功：状态变更为已解禁，失败次数保持不变
+	if err := p.LiveUserBlacklistRepo.UpdateUnmuteResult(ctx, nil, black.ID, enum.MuteStatusUnmuted, black.UnmuteFailCount); err != nil {
+		log.Printf("[live.Gift] 更新黑名单解禁结果失败: %v", err)
+	}
 }

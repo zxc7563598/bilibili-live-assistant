@@ -12,7 +12,7 @@ type LiveUserBlacklist struct {
 	Msg             string          `gorm:"type:varchar(200);not null;comment:涉案弹幕"`
 	RansomAmount    int64           `gorm:"not null;default:0;index;comment:赎回需要的金额"`
 	MuteDuration    int64           `gorm:"not null;default:0;index;comment:禁言时长(分钟)"`
-	MuteExpiresAt   int64           `gorm:"not null;comment:解禁时间"`
+	MuteExpiresAt   int64           `gorm:"not null;comment:禁言自动解除时间"`
 	UnmuteFailCount int64           `gorm:"not null;default:0;index;comment:解禁失败次数"`
 	Status          enum.MuteStatus `gorm:"type:smallint;comment:解禁状态"`
 	BaseModel

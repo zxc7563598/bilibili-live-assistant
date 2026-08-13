@@ -235,6 +235,7 @@ mute_status:
   muted: 禁言中
   unmute_failed: 解禁失败
   not_found: 未找到记录
+  unmuted: 已解禁
 
 no: 否
 yes: 是

@@ -235,6 +235,7 @@ mute_status:
   muted: muted
   unmute_failed: unmute_failed
   not_found: not_found
+  unmuted: unmuted
 
 no: no
 yes: yes
