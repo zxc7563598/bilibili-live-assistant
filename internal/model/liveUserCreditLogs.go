@@ -10,15 +10,15 @@ import (
 type LiveUserCreditLog struct {
 	ID           int64             `gorm:"primaryKey"`
 	UserID       int64             `gorm:"not null;comment:用户ID"`
-	CreditType   enum.CreditType   `gorm:"not null;default:0,comment:积分类型"`
-	ChangeType   enum.ChangeType   `gorm:"not null;default:0,comment:变动类型"`
+	CreditType   enum.CreditType   `gorm:"not null;default:0;comment:积分类型"`
+	ChangeType   enum.ChangeType   `gorm:"not null;default:0;comment:变动类型"`
 	ChangeAmount int64             `gorm:"not null;default:0;comment:变动数值"`
 	BeforeValue  int64             `gorm:"not null;default:0;comment:变动前数值"`
 	AfterValue   int64             `gorm:"not null;default:0;comment:变动后数值"`
 	BizType      string            `gorm:"type:varchar(100);comment:业务类型"`
 	Remark       string            `gorm:"type:varchar(255);comment:备注/原因说明"`
-	OperatorType enum.OperatorType `gorm:"not null;default:0,comment:操作方"`
-	OperatorID   int64             `gorm:"not null;default:0,comment:操作人标识ID"`
+	OperatorType enum.OperatorType `gorm:"not null;default:0;comment:操作方"`
+	OperatorID   int64             `gorm:"not null;default:0;comment:操作人标识ID"`
 	BaseModel
 }
 
