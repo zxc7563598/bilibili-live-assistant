@@ -232,7 +232,7 @@ send_mode:
   random: 随机发送
   sequential: 顺序发送
 
-menu_type:
+menu_policy_type:
   match_any: 任意命中
   match_all: 全部命中
 

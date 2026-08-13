@@ -232,7 +232,7 @@ send_mode:
   random: random
   sequential: sequential
 
-menu_type:
+menu_policy_type:
   match_any: match_any
   match_all: match_all
 

@@ -12,9 +12,9 @@ const (
 func (m MatchPolicy) Key() string {
 	switch m {
 	case MatchPolicyMatchAny:
-		return "menu_type.match_any"
+		return "menu_policy_type.match_any"
 	case MatchPolicyMatchAll:
-		return "menu_type.match_all"
+		return "menu_policy_type.match_all"
 	default:
 		return "unknown"
 	}
