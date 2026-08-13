@@ -3055,7 +3055,7 @@ const docTemplate = `{
                     ]
                 },
                 "safe_word": {
-                    "description": "安全词列表（包含则不触发）",
+                    "description": "安全词列表",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -4065,7 +4065,7 @@ const docTemplate = `{
                     }
                 },
                 "safe_word": {
-                    "description": "安全词列表（包含则不触发）",
+                    "description": "安全词列表",
                     "type": "array",
                     "items": {
                         "type": "string"

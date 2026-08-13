@@ -469,7 +469,7 @@ definitions:
           type: string
         type: array
       safe_word:
-        description: 安全词列表（包含则不触发）
+        description: 安全词列表
         example:
         - 骗子
         - 哎呀
@@ -1226,7 +1226,7 @@ definitions:
           type: string
         type: array
       safe_word:
-        description: 安全词列表（包含则不触发）
+        description: 安全词列表
         items:
           type: string
         type: array
