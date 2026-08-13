@@ -6,6 +6,8 @@ import (
 	"log"
 	"math"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
@@ -18,6 +20,28 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 )
 
+// giftMergeWindow 礼物合并 debounce 窗口：同一用户在此时间内的多个礼物会被合并为一条答谢消息
+const giftMergeWindow = 3 * time.Second
+
+// giftMergeBuffer 礼物合并缓冲区，在 MergeGift 开启时将同一用户短时间内赠送的
+type giftMergeBuffer struct {
+	mu       sync.Mutex
+	entries  map[int64]*mergeEntry
+	interval time.Duration
+}
+
+type mergeEntry struct {
+	infos []*giftThankInfo
+	timer *time.Timer
+}
+
+func newGiftMergeBuffer(interval time.Duration) *giftMergeBuffer {
+	return &giftMergeBuffer{
+		entries:  make(map[int64]*mergeEntry),
+		interval: interval,
+	}
+}
+
 // giftProcessor 处理礼物相关消息（SEND_GIFT / SEND_GIFT_V2 / GUARD_BUY / SUPER_CHAT_MESSAGE）
 type giftProcessor struct {
 	liveGiftRepo          live_gift.Repository
@@ -27,6 +51,7 @@ type giftProcessor struct {
 	client                *bilibili.Client
 	getBotUID             func() int64
 	enqueueDanmu          func(msg string, kind string)
+	mergeBuffer           *giftMergeBuffer
 }
 
 // giftThankInfo 礼物答谢所需的共有信息，从 SendGiftInfo / GuardBuyInfo / SuperChatMessage 中提取
@@ -52,6 +77,7 @@ func newGiftProcessor(liveGiftRepo live_gift.Repository, LiveUserBlacklistRepo l
 		client:                client,
 		getBotUID:             getBotUID,
 		enqueueDanmu:          enqueueDanmu,
+		mergeBuffer:           newGiftMergeBuffer(giftMergeWindow),
 	}
 }
 
@@ -205,7 +231,15 @@ func (p *giftProcessor) processGiftIn(ctx context.Context, info *giftThankInfo, 
 	if !p.checkGiftCondition(cfg, info, roomID, liveStatus) {
 		return
 	}
-	p.sendGiftReply(ctx, cfg.Content, info, cfg.ShowCount, cfg.IncludeBlindbox)
+
+	if ptr.ParseBool(cfg.MergeGift) {
+		// 合并模式：加入缓冲区，由 debounce timer 触发合并发送
+		p.mergeBuffer.add(info, func(infos []*giftThankInfo) {
+			p.flushUserGifts(infos)
+		})
+	} else {
+		p.sendGiftReply(ctx, cfg.Content, info, cfg.ShowCount, cfg.IncludeBlindbox)
+	}
 }
 
 // checkGiftCondition 校验礼物答谢的 Requirement, Scene 以及 MinBattery 是否满足
@@ -257,6 +291,39 @@ func (p *giftProcessor) checkGiftCondition(cfg robotconfig.GiftConfig, info *gif
 	return true
 }
 
+// add 将一条礼物答谢信息加入合并缓冲区
+func (b *giftMergeBuffer) add(info *giftThankInfo, flushFn func([]*giftThankInfo)) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	uid := info.UID
+	entry, ok := b.entries[uid]
+	if !ok {
+		entry = &mergeEntry{}
+		b.entries[uid] = entry
+	}
+	entry.infos = append(entry.infos, info)
+	// 重置 debounce timer
+	if entry.timer != nil {
+		entry.timer.Stop()
+	}
+	entry.timer = time.AfterFunc(b.interval, func() {
+		b.mu.Lock()
+		entry := b.entries[uid]
+		if entry != nil {
+			delete(b.entries, uid)
+		}
+		b.mu.Unlock()
+
+		if entry != nil && entry.timer != nil {
+			entry.timer.Stop()
+		}
+		if entry != nil && len(entry.infos) > 0 {
+			flushFn(entry.infos)
+		}
+	})
+}
+
+// resolveGiftVars 按需查询礼物答谢相关数据，返回变量名 → 值的映射
 func (p *giftProcessor) resolveGiftVars(ctx context.Context, info *giftThankInfo, needed map[string]bool, showCount bool) map[string]string {
 	vars := make(map[string]string)
 	// 无 IO：直接从 info 获取
@@ -275,6 +342,34 @@ func (p *giftProcessor) resolveGiftVars(ctx context.Context, info *giftThankInfo
 	return vars
 }
 
+// resolveMergeGiftVars 为合并后的多条礼物信息解析模板变量，功能同 resolveGiftVars
+func (p *giftProcessor) resolveMergeGiftVars(infos []*giftThankInfo, needed map[string]bool, showCount bool) map[string]string {
+	vars := make(map[string]string)
+	if needed["name"] {
+		vars["name"] = infos[0].Uname
+	}
+	if needed["price"] {
+		var totalPrice int64
+		for _, info := range infos {
+			totalPrice += info.Price * info.Num
+		}
+		vars["price"] = fmt.Sprintf("%.2f", float64(totalPrice)/100)
+	}
+	if needed["gift"] {
+		var parts []string
+		for _, info := range infos {
+			if showCount {
+				parts = append(parts, fmt.Sprintf("%d个%s", info.Num, info.GiftName))
+			} else {
+				parts = append(parts, info.GiftName)
+			}
+		}
+		vars["gift"] = strings.Join(parts, "、")
+	}
+	return vars
+}
+
+// sendGiftReply 礼物答谢相关从模板列表中随机选取一条，渲染变量后发送弹幕
 func (p *giftProcessor) sendGiftReply(ctx context.Context, templates []string, info *giftThankInfo, showCount, includeBlindbox string) {
 	tmpl := PickRandom(templates)
 	if tmpl == "" {
@@ -296,5 +391,46 @@ func (p *giftProcessor) sendGiftReply(ctx context.Context, templates []string, i
 			msg = fmt.Sprintf("%s | %s%.2f元", msg, status, revenue)
 		}
 	}
+	p.enqueueDanmu(msg, "gift")
+}
+
+// flushUserGifts 将同一用户累积的多个礼物信息合并为一条答谢弹幕并加入发送队列，功能同 sendGiftReply
+func (p *giftProcessor) flushUserGifts(infos []*giftThankInfo) {
+	if len(infos) == 0 {
+		return
+	}
+	var cfg robotconfig.GiftConfig
+	if err := p.configCache.UnmarshalGroup("gift", &cfg); err != nil {
+		log.Printf("[live.Gift] 合并发送时加载礼物答谢配置失败: %v", err)
+		return
+	}
+	tmpl := PickRandom(cfg.Content)
+	if tmpl == "" {
+		return
+	}
+	needed := CollectVars(cfg.Content)
+	vars := p.resolveMergeGiftVars(infos, needed, ptr.ParseBool(cfg.ShowCount))
+	msg := RenderTemplate(tmpl, vars)
+	// 追加聚合盲盒盈亏
+	includeBlindboxValue := ptr.ParseBool(cfg.IncludeBlindbox)
+	if includeBlindboxValue {
+		var totalPrice, totalOriginalPrice int64
+		for _, info := range infos {
+			if info.Original == enum.No && info.OriginalGiftPrice > 0 {
+				totalPrice += info.Price * info.Num
+				totalOriginalPrice += info.OriginalGiftPrice * info.Num
+			}
+		}
+		diff := totalPrice - totalOriginalPrice
+		if diff != 0 {
+			revenue := math.Abs(float64(diff)) / 100
+			status := "赚了"
+			if diff < 0 {
+				status = "亏了"
+			}
+			msg = fmt.Sprintf("%s | %s%.2f元", msg, status, revenue)
+		}
+	}
+
 	p.enqueueDanmu(msg, "gift")
 }
