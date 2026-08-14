@@ -89,10 +89,10 @@ make dev
 
 | 服务 | 地址 | 说明 |
 |------|------|------|
-| Go API | http://localhost:9000 | 后端 REST API |
-| Vite Dev | http://localhost:3200 | 前端开发服务器（热重载，代理 API 到 :9000） |
-| Swagger UI | http://localhost:9000/swagger/index.html | 交互式 API 文档（开发环境） |
-| 管理后台 | http://localhost:9000/admin/ | 前端页面（嵌入后端服务） |
+| Go API | http://localhost:25443 | 后端 REST API |
+| Vite Dev | http://localhost:3200 | 前端开发服务器（热重载，代理 API 到 :25443） |
+| Swagger UI | http://localhost:25443/swagger/index.html | 交互式 API 文档（开发环境） |
+| 管理后台 | http://localhost:25443/admin/ | 前端页面（嵌入后端服务） |
 
 ## 生产部署
 
@@ -115,7 +115,7 @@ make build
 
 启动：
 ```bash
-GIN_MODE=release ./BiliLiveAssistant -config ./config.yaml -port 9000
+GIN_MODE=release ./BiliLiveAssistant -config ./config.yaml -port 25443
 ```
 
 推荐使用 systemd 管理服务。

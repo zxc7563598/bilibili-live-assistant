@@ -45,5 +45,5 @@ config.yaml
 /bin
 /logs
 
-.claude/settings.json
+.claude
 bilibili_state.json

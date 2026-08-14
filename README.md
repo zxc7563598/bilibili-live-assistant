@@ -1,149 +1,84 @@
+<div align="center">
+
 # BiliLive Assistant
 
-开箱即用的全栈后台管理系统，基于 **Go + Vue 3** 构建，将 API 服务与前端界面整合为​**单一二进制部署**。
+**跑在自己电脑上的 B 站直播机器人**
 
-内置 RBAC 权限控制与完整后台基础能力，分层清晰、扩展友好，适用于快速搭建各类管理系统与控制面板。
+不用写代码、不用装环境，下载双击就能用。
+签到、欢迎、答谢、播报、定时广告……直播间的杂活，全交给它。
 
----
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## 在线示例
+</div>
 
-在线体验：[https://gak.hejunjie.life/admin](https://gak.hejunjie.life/admin)
+## 它能做什么
 
-> 建议先体验 Demo，再阅读下方说明，会更直观。
+- **每日签到** —— 观众在直播间发弹幕签到，~~机器人自动登记并发放积分，用于兑换礼品或参与活动(后期支持)~~
+- **定时广告** —— 设置好内容和时间间隔，机器人自动定时发送广告弹幕，支持多条内容随机轮播
+- **礼物答谢** —— 收到礼物、上舰、醒目留言（SC）自动发弹幕致谢，感谢语可以自定义，~~机器人自动登记并发放积分，用于兑换礼品或参与活动(后期支持)~~
+- **PK 播报** —— 开始 PK 自动在直播间播报
+- **进房欢迎** —— 观众进入直播间自动欢迎
+- **感谢关注 / 分享** —— 观众点关注、分享直播间，自动发弹幕致谢
+- **弹幕自动回复** —— 设置关键词和回复内容，弹幕命中即自动回复，可根据关键词自动禁言
+- **直播记录** —— 开启监听后自动记录弹幕、礼物等信息，所有数据只存储在本地，安全放心
 
----
+## 后台界面一览
 
-## 文档入口
+所有功能都在网页后台里点选配置，不需要写一行代码：
 
-- 部署 / 开发文档（推荐）：[https://hejunjie.life/gak](https://hejunjie.life/gak)
-- 在线项目说明：[https://zread.ai/zxc7563598/bilibili-live-assistant](https://zread.ai/zxc7563598/bilibili-live-assistant)
+<p align="center">
+  <a href="https://cdn.hejunjie.life/bilibilidanmu/bilibili-live-assistant-promo.png" target="_blank">
+    <img src="https://cdn.hejunjie.life/bilibilidanmu/bilibili-live-assistant-promo.png" alt="后台机器人配置界面截图" width="600">
+  </a>
+</p>
 
----
+> 图片较长，点击可查看完整大图
 
-## 项目介绍
+## 为什么选它
 
-BiliLive Assistant 是一个为“​**快速落地后台系统**”而设计的全栈解决方案：
-
-- 后端提供完整的 REST API 与鉴权能力
-- 前端提供开箱即用的管理后台界面
-- 构建阶段自动将前端资源嵌入后端
-
-最终部署时，你只需要：
-
-> **一个二进制文件，即可同时运行 API + 管理后台**
-
----
-
-## 项目特点
-
-- ​**单一二进制部署**：无需单独部署前端，极大简化上线流程
-- ​**完整 RBAC 权限系统**：管理员 / 角色 / 菜单 / 按钮权限控制
-- ​**JWT 鉴权机制**：支持 access / refresh token，Redis 可选增强
-- ​**统一错误码体系**：对外仅暴露标准错误码，支持多语言扩展
-- ​**后台基础能力齐全**：登录 / 登出 / 权限分配 / 菜单管理全打通
-- ​**内置 API 文档**：开发环境集成 Swagger + ReDoc
-- ​**清晰分层结构**：低耦合设计，方便扩展业务
-- ​**优秀前端开发体验**：通用 CRUD 组件 + composables 减少重复代码
-
----
-
-## 项目架构
-
-### 后端分层（核心链路）
-
-> DTO → Handler → Service → Repository → Model
-
-依赖统一在 `internal/bootstrap` 中完成装配。
-
-- ​`internal/dto/input`：请求参数结构
-- ​`internal/dto/resp`：响应结构
-- ​`internal/handler`：HTTP 入口（参数解析 / 返回处理）
-- ​`internal/service`：业务逻辑编排（不直接操作数据库）
-- ​`internal/repository`：数据访问层（CRUD 封装）
-- ​`internal/model`：GORM 模型定义
-
----
-
-### 前端模块
-
-标准后台管理结构，包含：
-
-- ​`src/views`：页面（登录 / 用户 / 角色 / 菜单等）
-- ​`src/components/me`：通用 CRUD 页面组件
-- ​`src/composables`：组合式封装（表单 / 弹窗 / CRUD / 缓存）
-- 路由权限控制：基于路由守卫 + 权限状态
-
----
-
-## 技术栈
-
-**后端：**
-
-- Go 1.25+
-- Gin
-- GORM（MySQL / PostgreSQL）
-- JWT
-- Redis（可选）
-- Swagger / ReDoc
-- zap + lumberjack（日志）
-
-**前端：**
-
-- Vue 3 + Vite
-- Naive UI
-- Pinia（含持久化）
-- UnoCSS
-- axios
-
----
+- **零门槛**：下载对应系统的安装包，双击启动即可运行，不需要安装任何环境
+- **数据安心**：所有数据都存储在你自己的电脑上，不会上传到任何服务器
+- **可视化配置**：全部功能在网页后台里点点选选就配好了，不需要碰任何配置文件和代码
+- **全平台支持**：Windows、macOS、Linux 都有对应的安装包
 
 ## 快速开始
 
-### 环境要求
+1. **下载安装包**：前往 [Releases](https://github.com/zxc7563598/bilibili-live-assistant/releases) 页面，下载对应系统的安装包
+2. **双击启动**：解压后双击运行程序
+3. **扫码登录**：浏览器打开 http://localhost:25443 ，扫码登录你的 B 站账号
+4. **填写房间号，开启监听**：在后台填入你的直播间房号，打开监听开关，搞定
 
-- Go ≥ 1.25
-- Node.js ≥ 18（仅开发构建前端需要）
-- MySQL 或 PostgreSQL
-- Redis（可选）
+> [!NOTE]
+> 机器人运行期间需要保持电脑开机并联网，退出程序即停止工作。
 
----
+## 未来计划
 
-### 克隆并初始化配置
+- **数据分析**：对监听到的弹幕、礼物等信息进行汇总分析（数据存储在本地，无泄漏风险）
+- **积分商城**：配合签到积分等玩法，打造更丰富的直播间互动体系
+- **更多功能**：持续开发中，欢迎在 [Issues](https://github.com/zxc7563598/bilibili-live-assistant/issues) 提出你的想法
 
-```bash
-git clone https://github.com/zxc7563598/bilibili-live-assistant.git
-cd bilibili-live-assistant
-cp config.example.yaml config.yaml
-```
+## 常见问题
 
-修改 `config.yaml`（数据库、JWT 密钥等）。
+**机器人需要一直开着电脑吗？**
 
----
+需要。机器人是运行在你电脑上的程序，电脑关机或程序退出后就会停止工作。
 
-### 启动开发环境
+**数据存在哪里？会泄露吗？**
 
-```bash
-make dev
-```
+所有数据（登录状态、弹幕记录、配置等）都保存在你的电脑本地，不会上传到任何第三方服务器。
 
-访问地址：
+**支持哪些系统？**
 
-- API：`http://localhost:9000/api/admin`
-- Swagger：`http://localhost:9000/swagger/index.html`
-- 后台：`http://localhost:9000/admin/`
+Windows、macOS、Linux 均有对应的安装包。
 
----
+**需要提前安装什么环境吗？**
 
-## 部署方式
+不需要。安装包已内置运行所需的一切，下载解压后直接双击运行。
 
-推荐：**本地构建 → 上传服务器运行**
+**直播间房号在哪里看？**
 
-```bash
-make build
-GIN_MODE=release ./bin/BiliLive Assistant -config ./config.yaml -port 9000
-```
+打开你的直播间网页（live.bilibili.com），网址后面的那串数字就是房号。
 
-支持通过 Nginx 做反向代理统一入口（详见文档）。
+**能部署到服务器上吗？**
 
----
+可以。项目本身是一个 Web 服务，一键安装包仅支持本机访问；如果把它部署到自己的服务器上，就可以作为网站运行，支持远程访问。
