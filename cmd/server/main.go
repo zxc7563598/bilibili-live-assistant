@@ -91,6 +91,7 @@ func main() {
 		log.Printf("打开浏览器，前往：http://127.0.0.1%s/admin 访问后台\n", addr)
 		log.Printf("默认账号：admin\n")
 		log.Printf("默认密码：123456\n")
+		log.Printf("关闭该窗口后软件会自行退出，下次启动重新打开软件即可")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("监听错误: %v", err)
 		}
