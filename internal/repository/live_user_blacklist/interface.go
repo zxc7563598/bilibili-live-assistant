@@ -17,6 +17,8 @@ type Repository interface {
 	GetActiveByRoomUID(ctx context.Context, tx *gorm.DB, roomID, uid int64) (*model.LiveUserBlacklist, error)
 	// UpdateUnmuteResult 根据黑名单ID更新解禁结果
 	UpdateUnmuteResult(ctx context.Context, tx *gorm.DB, id int64, status enum.MuteStatus, unmuteFailCount int64) error
+	// ListExpiredMuted 查询已到解禁时间但仍处于禁言状态的黑名单记录
+	ListExpiredMuted(ctx context.Context, tx *gorm.DB, now int64) ([]model.LiveUserBlacklist, error)
 }
 
 // GetActiveByRoomUID 获取用户在指定房间内禁言中且未过期的黑名单记录
@@ -48,4 +50,16 @@ func (r *gormRepo) UpdateUnmuteResult(ctx context.Context, tx *gorm.DB, id int64
 			"status":            status,
 			"unmute_fail_count": unmuteFailCount,
 		}).Error
+}
+
+// ListExpiredMuted 查询已到解禁时间但仍处于禁言状态的黑名单记录
+// 按解禁时间升序排列，最早到期的优先处理
+func (r *gormRepo) ListExpiredMuted(ctx context.Context, tx *gorm.DB, now int64) ([]model.LiveUserBlacklist, error) {
+	db := r.getDB(ctx, tx)
+	var list []model.LiveUserBlacklist
+	err := db.Where("status = ?", enum.MuteStatusMuted).
+		Where("mute_expires_at <= ?", now).
+		Order("mute_expires_at asc").
+		Find(&list).Error
+	return list, err
 }

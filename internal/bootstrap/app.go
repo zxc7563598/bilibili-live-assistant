@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -12,6 +13,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/migrate"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/cron"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"gorm.io/gorm"
 )
@@ -23,6 +25,7 @@ type App struct {
 	Redis       *redis.Client
 	LiveService *live.Service
 	ConfigCache *robotconfig.Cache
+	Scheduler   *cron.Scheduler
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -61,6 +64,13 @@ func NewApp(cfg *config.Config) *App {
 	}
 	// service
 	services := InitServices(repos, db, rdb, cfg, configCache)
+	// 定时任务调度器（项目启动后常驻，退出时在 main.go 中统一停止）
+	scheduler := cron.New(cron.Job{
+		Name:     "live-unmute",
+		Interval: time.Minute,
+		Run:      services.Live.UnmuteDueUsers,
+	})
+	scheduler.Start()
 	// handler
 	handlers := InitHandlers(services, rdb)
 	// 如果配置了自动监听（is_listening=1）且 room_id>0，启动监听
@@ -84,5 +94,6 @@ func NewApp(cfg *config.Config) *App {
 		Redis:       rdb,
 		LiveService: services.Live,
 		ConfigCache: configCache,
+		Scheduler:   scheduler,
 	}
 }

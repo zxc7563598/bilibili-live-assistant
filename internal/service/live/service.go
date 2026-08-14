@@ -132,19 +132,20 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 	// 从配置中恢复上次监听的房间号
 	defaultRoomID := robotConfigSvc.GetRoomID()
 	s := &Service{
-		client:          client,
-		stateFile:       cfg.StateFile,
-		testUIDs:        buildTestUIDSet(cfg.TestUIDs),
-		roomID:          defaultRoomID,
-		roomState:       roomState,
-		rawLogger:       logger.NewRawMessageLogger(),
-		roomSvc:         room.NewService(client),
-		hub:             hub,
-		dispatcher:      dispatcher,
-		liveDanmuRepo:   liveDanmuRepo,
-		liveGiftRepo:    liveGiftRepo,
-		liveSessionRepo: liveSessionRepo,
-		robotConfigSvc:  robotConfigSvc,
+		client:                client,
+		stateFile:             cfg.StateFile,
+		testUIDs:              buildTestUIDSet(cfg.TestUIDs),
+		roomID:                defaultRoomID,
+		roomState:             roomState,
+		rawLogger:             logger.NewRawMessageLogger(),
+		roomSvc:               room.NewService(client),
+		hub:                   hub,
+		dispatcher:            dispatcher,
+		liveDanmuRepo:         liveDanmuRepo,
+		liveGiftRepo:          liveGiftRepo,
+		liveSessionRepo:       liveSessionRepo,
+		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
+		robotConfigSvc:        robotConfigSvc,
 	}
 	enqueueFn = s.EnqueueDanmu
 	return s

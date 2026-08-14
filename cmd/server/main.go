@@ -104,9 +104,12 @@ func main() {
 	)
 	<-quit
 	log.Println("关闭服务...")
-	// 先停止 Live Listener（等待 WebSocket goroutine 退出，优雅断连）
+	// 先停止 Live Listener
 	app.LiveService.Shutdown()
 	log.Println("Live 服务已关闭")
+	// 停止定时任务调度器
+	app.Scheduler.Stop()
+	log.Println("定时任务调度器已停止")
 	// 再关闭 HTTP Server
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

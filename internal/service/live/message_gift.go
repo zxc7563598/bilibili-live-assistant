@@ -418,48 +418,5 @@ func (p *giftProcessor) processRedeem(ctx context.Context, uid, price, num, room
 		log.Printf("[live.Gift] 获取黑名单列表需要的 CSRF 获取失败: %v", err)
 		return
 	}
-	// 遍历直播间禁言列表，找到对应用户的禁言记录 ID
-	blackID := int64(0)
-	page := int64(1)
-	for {
-		silentList, silentListErr := p.client.Room.GetSilentUserList(ctx, roomID, page, csrf)
-		if silentListErr != nil {
-			log.Printf("[live.Gift] 禁言列表第%d页失败: %v", page, silentListErr)
-			break
-		}
-		for _, item := range silentList.Items {
-			if item.UID == uid {
-				blackID = item.ID
-				break
-			}
-		}
-		if blackID != 0 || page >= int64(silentList.TotalPage) {
-			break
-		}
-		page++
-	}
-	// 禁言列表中未找到该用户
-	if blackID == 0 {
-		if err := p.LiveUserBlacklistRepo.UpdateUnmuteResult(ctx, nil, black.ID, enum.MuteStatusNotFound, black.UnmuteFailCount+1); err != nil {
-			log.Printf("[live.Gift] 更新黑名单解禁结果失败: %v", err)
-		}
-		return
-	}
-	// 解除直播间禁言
-	if err := p.client.Room.DelSilentUser(ctx, roomID, blackID, csrf); err != nil {
-		// 解禁失败：失败次数 +1，累计达到阈值后标记为解禁失败
-		failCount := black.UnmuteFailCount + 1
-		status := black.Status
-		if failCount >= unmuteFailLimit {
-			status = enum.MuteStatusUnmuteFailed
-		}
-		if updateErr := p.LiveUserBlacklistRepo.UpdateUnmuteResult(ctx, nil, black.ID, status, failCount); updateErr != nil {
-			log.Printf("[live.Gift] 更新黑名单解禁结果失败: %v", updateErr)
-		}
-		return
-	}
-	// 解禁成功：状态变更为已解禁，失败次数保持不变
-	if err := p.LiveUserBlacklistRepo.UpdateUnmuteResult(ctx, nil, black.ID, enum.MuteStatusUnmuted, black.UnmuteFailCount); err != nil {
-		log.Printf("[live.Gift] 更新黑名单解禁结果失败: %v", err)
-	}
+	unmuteUser(ctx, p.client, p.LiveUserBlacklistRepo, black, csrf)
 }
