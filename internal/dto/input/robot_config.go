@@ -3,11 +3,11 @@ package input
 // RoomConfigReq 房间模块配置请求
 type RoomConfigReq struct {
 	// 是否默认监听直播间, 0-否, 1-是
-	IsListening string `json:"isListening" binding:"required" err:"required=10501" example:"1"`
+	IsListening string `json:"is_listening" binding:"required" err:"required=10501" example:"1"`
 	// 用户名最大长度, 超过此长度则裁剪
-	MaxNameLength string `json:"maxNameLength" binding:"required" err:"required=10501" example:"8"`
+	MaxNameLength string `json:"max_name_length" binding:"required" err:"required=10501" example:"8"`
 	// 裁剪方式, 0-省略后面, 1-省略前面
-	NameTrimMode string `json:"nameTrimMode" binding:"required" err:"required=10501" example:"0"`
+	NameTrimMode string `json:"name_trim_mode" binding:"required" err:"required=10501" example:"0"`
 }
 
 // SignConfigReq 签到模块配置请求

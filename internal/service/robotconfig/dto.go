@@ -13,9 +13,9 @@ type ReplyItem struct {
 
 // GetRoomConfig 请求返回
 type RoomConfigResp struct {
-	IsListening   string `json:"isListening"`
-	MaxNameLength string `json:"maxNameLength"`
-	NameTrimMode  string `json:"nameTrimMode"`
+	IsListening   string `json:"is_listening"`
+	MaxNameLength string `json:"max_name_length"`
+	NameTrimMode  string `json:"name_trim_mode"`
 }
 
 // GetSignConfig 请求返回
@@ -94,9 +94,9 @@ type ReplyConfigResp struct {
 
 // ApplyRoomConfig 请求入参
 type RoomConfigReq struct {
-	IsListening   string `json:"isListening"`
-	MaxNameLength string `json:"maxNameLength"`
-	NameTrimMode  string `json:"nameTrimMode"`
+	IsListening   string `json:"is_listening"`
+	MaxNameLength string `json:"max_name_length"`
+	NameTrimMode  string `json:"name_trim_mode"`
 }
 
 // ApplySignConfig 请求入参

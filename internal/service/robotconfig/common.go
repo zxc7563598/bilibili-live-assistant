@@ -70,7 +70,7 @@ func toRoomConfigResp(group map[string]string) RoomConfigResp {
 
 func roomConfigReqToMap(req RoomConfigReq) map[string]string {
 	return map[string]string{
-		"is_listening":   req.IsListening,
+		"is_listening":    req.IsListening,
 		"max_name_length": req.MaxNameLength,
 		"name_trim_mode":  req.NameTrimMode,
 	}
@@ -173,14 +173,14 @@ func toGiftConfigResp(group map[string]string) (GiftConfigResp, error) {
 
 func giftConfigReqToMap(req GiftConfigReq) map[string]string {
 	return map[string]string{
-		"enabled":           req.Enabled,
-		"scene":             req.Scene,
-		"requirement":       req.Requirement,
-		"show_count":        req.ShowCount,
-		"merge_gift":        req.MergeGift,
-		"include_blindbox":  req.IncludeBlindbox,
-		"min_battery":       req.MinBattery,
-		"content":           marshalSlice(req.Content),
+		"enabled":          req.Enabled,
+		"scene":            req.Scene,
+		"requirement":      req.Requirement,
+		"show_count":       req.ShowCount,
+		"merge_gift":       req.MergeGift,
+		"include_blindbox": req.IncludeBlindbox,
+		"min_battery":      req.MinBattery,
+		"content":          marshalSlice(req.Content),
 	}
 }
 

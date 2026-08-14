@@ -27,7 +27,7 @@
                 启动时自动监听
               </div>
               <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
-                <div v-for="item in enabledEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="roomConfigForm.isListening === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="roomConfigForm.isListening = item.value">
+                <div v-for="item in enabledEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="roomConfigForm.is_listening === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="roomConfigForm.is_listening = item.value">
                   {{ item.label }}
                 </div>
               </div>
@@ -36,14 +36,14 @@
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 用户名最大长度
               </div>
-              <n-input v-model:value="roomConfigForm.maxNameLength" type="number" placeholder="0 为不做任何限制" />
+              <n-input v-model:value="roomConfigForm.max_name_length" type="number" placeholder="0 为不做任何限制" />
             </div>
             <div class="flex items-center gap-5">
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 裁剪模式
               </div>
               <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
-                <div v-for="item in nameTrimModeEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="roomConfigForm.nameTrimMode === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="roomConfigForm.nameTrimMode = item.value">
+                <div v-for="item in nameTrimModeEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="roomConfigForm.name_trim_mode === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="roomConfigForm.name_trim_mode = item.value">
                   {{ item.label }}
                 </div>
               </div>
@@ -977,9 +977,9 @@ import api from './api'
 const roomLoading = ref(false)
 const roomConfigShow = ref(false)
 const roomConfigForm = ref({
-  isListening: '',
-  maxNameLength: '',
-  nameTrimMode: '',
+  is_listening: '',
+  max_name_length: '',
+  name_trim_mode: '',
 })
 
 // 签到配置模块
@@ -1216,20 +1216,20 @@ function saveReplyConfig() {
 function apply(type) {
   switch (type) {
     case 'basic': // 基础设置
-      if (roomConfigForm.value.isListening.trim() === '') {
+      if (roomConfigForm.value.is_listening.trim() === '') {
         return $message.warning('启动时自动监听不可以为空')
       }
-      if (roomConfigForm.value.maxNameLength.trim() === '') {
+      if (roomConfigForm.value.max_name_length.trim() === '') {
         return $message.warning('用户名最大长度不可以为空')
       }
-      if (roomConfigForm.value.nameTrimMode.trim() === '') {
+      if (roomConfigForm.value.name_trim_mode.trim() === '') {
         return $message.warning('裁剪模式不可以为空')
       }
       roomLoading.value = true
       api.applyRoom(
-        roomConfigForm.value.isListening,
-        roomConfigForm.value.maxNameLength,
-        roomConfigForm.value.nameTrimMode,
+        roomConfigForm.value.is_listening,
+        roomConfigForm.value.max_name_length,
+        roomConfigForm.value.name_trim_mode,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {

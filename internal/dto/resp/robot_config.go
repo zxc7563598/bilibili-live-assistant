@@ -3,11 +3,11 @@ package resp
 // RoomConfigResp 房间模块配置返回
 type RoomConfigResp struct {
 	// 是否默认监听直播间, 0-否, 1-是
-	IsListening string `json:"isListening" example:"1"`
+	IsListening string `json:"is_listening" example:"1"`
 	// 用户名最大长度, 超过此长度则裁剪
-	MaxNameLength string `json:"maxNameLength" example:"8"`
+	MaxNameLength string `json:"max_name_length" example:"8"`
 	// 裁剪方式, 0-省略后面, 1-省略前面
-	NameTrimMode string `json:"nameTrimMode" example:"0"`
+	NameTrimMode string `json:"name_trim_mode" example:"0"`
 }
 
 // SignConfigResp 签到模块配置返回
