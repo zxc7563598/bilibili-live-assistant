@@ -1,12 +1,14 @@
 package robotconfig
 
 type ReplyItem struct {
-	Keyword      []string `json:"keyword"`       // 触发自动回复的关键词列表，满足一个即触发
-	SafeWord     []string `json:"safe_word"`     // 包含此词则不触发回复，满足一个即不触发
-	MuteSender   string   `json:"mute_sender"`   // 是否禁言, 0-否, 1-是
-	MuteDuration string   `json:"mute_duration"` // 禁言时长（分钟）, 0 表示永久
-	RansomAmount string   `json:"ransom_amount"` // 赎回金额（解除禁言需要赠送的电池数）, 0 表示不可赎回
-	ReplyContent []string `json:"reply_content"` // 回复内容
+	Keyword             []string `json:"keyword"`                // 触发自动回复的关键词列表
+	KeywordMatchPolicy  string   `json:"keyword_match_policy"`   // 关键词匹配策略
+	SafeWord            []string `json:"safe_word"`              // 包含此词则不触发回复
+	SafeWordMatchPolicy string   `json:"safe_word_match_policy"` // 安全词匹配策略
+	MuteSender          string   `json:"mute_sender"`            // 是否禁言, 0-否, 1-是
+	MuteDuration        string   `json:"mute_duration"`          // 禁言时长（分钟）, 0 表示永久
+	RansomAmount        string   `json:"ransom_amount"`          // 赎回金额（解除禁言需要赠送的电池数）, 0 表示不可赎回
+	ReplyContent        []string `json:"reply_content"`          // 回复内容
 }
 
 // GetRoomConfig 请求返回

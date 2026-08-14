@@ -448,6 +448,10 @@ definitions:
         items:
           type: string
         type: array
+      keyword_match_policy:
+        description: 关键词匹配策略
+        example: "0"
+        type: string
       mute_duration:
         description: 禁言时长（分钟）, 0 表示永久
         example: "10"
@@ -476,6 +480,10 @@ definitions:
         items:
           type: string
         type: array
+      safe_word_match_policy:
+        description: 安全词匹配策略
+        example: "0"
+        type: string
     type: object
   input.RoleAddRoleUsersReq:
     properties:
@@ -1211,6 +1219,9 @@ definitions:
         items:
           type: string
         type: array
+      keyword_match_policy:
+        description: 关键词匹配策略
+        type: string
       mute_duration:
         description: 禁言时长（分钟）, 0 表示永久
         type: string
@@ -1230,6 +1241,9 @@ definitions:
         items:
           type: string
         type: array
+      safe_word_match_policy:
+        description: 安全词匹配策略
+        type: string
     type: object
   resp.RoleListAllItem:
     properties:

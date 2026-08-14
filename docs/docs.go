@@ -3028,6 +3028,11 @@ const docTemplate = `{
                         "在吗"
                     ]
                 },
+                "keyword_match_policy": {
+                    "description": "关键词匹配策略",
+                    "type": "string",
+                    "example": "0"
+                },
                 "mute_duration": {
                     "description": "禁言时长（分钟）, 0 表示永久",
                     "type": "string",
@@ -3064,6 +3069,11 @@ const docTemplate = `{
                         "骗子",
                         "哎呀"
                     ]
+                },
+                "safe_word_match_policy": {
+                    "description": "安全词匹配策略",
+                    "type": "string",
+                    "example": "0"
                 }
             }
         },
@@ -4045,6 +4055,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "keyword_match_policy": {
+                    "description": "关键词匹配策略",
+                    "type": "string"
+                },
                 "mute_duration": {
                     "description": "禁言时长（分钟）, 0 表示永久",
                     "type": "string"
@@ -4070,6 +4084,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "safe_word_match_policy": {
+                    "description": "安全词匹配策略",
+                    "type": "string"
                 }
             }
         },

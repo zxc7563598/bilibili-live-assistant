@@ -130,8 +130,12 @@ type ReplyConfigResp struct {
 type ReplyItem struct {
 	// 触发关键词列表
 	Keyword []string `json:"keyword"`
+	// 关键词匹配策略
+	KeywordMatchPolicy string `json:"keyword_match_policy"`
 	// 安全词列表
 	SafeWord []string `json:"safe_word"`
+	// 安全词匹配策略
+	SafeWordMatchPolicy string `json:"safe_word_match_policy"`
 	// 是否禁言发送者, 0-否, 1-是
 	MuteSender string `json:"mute_sender"`
 	// 禁言时长（分钟）, 0 表示永久

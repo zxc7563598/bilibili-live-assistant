@@ -302,8 +302,10 @@ func (p *danmuProcessor) processReplyIn(ctx context.Context, info *live.DanmuMsg
 		return
 	}
 	for _, reply := range cfg.Content {
-		if containsMatch(info.Msg, reply.Keyword, enum.MatchPolicyMatchAny) {
-			if !containsMatch(info.Msg, reply.SafeWord, enum.MatchPolicyMatchAny) {
+		keywordMatchPolicyValue := parseMatchPolicy(reply.KeywordMatchPolicy)
+		safeWordMatchPolicyValue := parseMatchPolicy(reply.SafeWordMatchPolicy)
+		if containsMatch(info.Msg, reply.Keyword, keywordMatchPolicyValue) {
+			if !containsMatch(info.Msg, reply.SafeWord, safeWordMatchPolicyValue) {
 				// 加入黑名单
 				if ptr.ParseBool(reply.MuteSender) {
 					if err := p.blockUserForReply(info.UID, roomID, info.Uname, info.Msg, reply.MuteDuration, reply.RansomAmount); err != nil {
@@ -470,6 +472,14 @@ func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuM
 		}
 	}
 	return vars
+}
+
+// parseMatchPolicy 解析匹配策略，空值（老版本配置）回退为 MatchAny
+func parseMatchPolicy(s string) enum.MatchPolicy {
+	if s == "" {
+		return enum.MatchPolicyMatchAny
+	}
+	return ptr.ParseEnumInt[enum.MatchPolicy](s)
 }
 
 // containsMatch 自动回复相关关键词匹配

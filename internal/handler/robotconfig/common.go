@@ -100,12 +100,14 @@ func toReplyItems(svcItems []robotconfigsvc.ReplyItem) []resp.ReplyItem {
 	items := make([]resp.ReplyItem, 0, len(svcItems))
 	for _, v := range svcItems {
 		items = append(items, resp.ReplyItem{
-			Keyword:      v.Keyword,
-			SafeWord:     v.SafeWord,
-			MuteSender:   v.MuteSender,
-			MuteDuration: v.MuteDuration,
-			RansomAmount: v.RansomAmount,
-			ReplyContent: v.ReplyContent,
+			Keyword:             v.Keyword,
+			KeywordMatchPolicy:  v.KeywordMatchPolicy,
+			SafeWord:            v.SafeWord,
+			SafeWordMatchPolicy: v.SafeWordMatchPolicy,
+			MuteSender:          v.MuteSender,
+			MuteDuration:        v.MuteDuration,
+			RansomAmount:        v.RansomAmount,
+			ReplyContent:        v.ReplyContent,
 		})
 	}
 	return items
@@ -115,12 +117,14 @@ func fromReplyItems(inputItems []input.ReplyItem) []robotconfigsvc.ReplyItem {
 	items := make([]robotconfigsvc.ReplyItem, 0, len(inputItems))
 	for _, v := range inputItems {
 		items = append(items, robotconfigsvc.ReplyItem{
-			Keyword:      v.Keyword,
-			SafeWord:     v.SafeWord,
-			MuteSender:   v.MuteSender,
-			MuteDuration: v.MuteDuration,
-			RansomAmount: v.RansomAmount,
-			ReplyContent: v.ReplyContent,
+			Keyword:             v.Keyword,
+			KeywordMatchPolicy:  v.KeywordMatchPolicy,
+			SafeWord:            v.SafeWord,
+			SafeWordMatchPolicy: v.SafeWordMatchPolicy,
+			MuteSender:          v.MuteSender,
+			MuteDuration:        v.MuteDuration,
+			RansomAmount:        v.RansomAmount,
+			ReplyContent:        v.ReplyContent,
 		})
 	}
 	return items

@@ -861,6 +861,16 @@
             </n-button>
           </div>
         </div>
+        <div class="flex items-center gap-5">
+          <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+            关键词匹配方式
+          </div>
+          <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
+            <div v-for="item in matchPolicyEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="replyConfigForm.keyword_match_policy === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="replyConfigForm.keyword_match_policy = item.value">
+              {{ item.label }}
+            </div>
+          </div>
+        </div>
         <div class="flex items-start gap-5">
           <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
             安全词
@@ -875,6 +885,16 @@
             <n-button secondary type="primary" size="medium" class="w-full" @click="replyConfigForm.safe_word.push('')">
               添加
             </n-button>
+          </div>
+        </div>
+        <div class="flex items-center gap-5">
+          <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+            安全词匹配方式
+          </div>
+          <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
+            <div v-for="item in matchPolicyEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="replyConfigForm.safe_word_match_policy === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="replyConfigForm.safe_word_match_policy = item.value">
+              {{ item.label }}
+            </div>
           </div>
         </div>
         <div class="flex items-center gap-5">
@@ -1055,7 +1075,9 @@ const replyConfigModel = ref(false)
 const replyConfigIndex = ref(0)
 const replyConfigForm = ref({
   keyword: [],
+  keyword_match_policy: '0',
   safe_word: [],
+  safe_word_match_policy: '0',
   mute_sender: '0',
   mute_duration: '0',
   ransom_amount: '0',
@@ -1137,6 +1159,17 @@ const sendModeEnums = [
   },
 ]
 
+const matchPolicyEnums = [
+  {
+    label: '任意命中即触发',
+    value: '0',
+  },
+  {
+    label: '全部命中才触发',
+    value: '1',
+  },
+]
+
 // 自动回复配置
 function replyConfig(index) {
   try {
@@ -1147,7 +1180,9 @@ function replyConfig(index) {
     else {
       replyConfigForm.value = {
         keyword: [],
+        keyword_match_policy: '0',
         safe_word: [],
+        safe_word_match_policy: '0',
         mute_sender: '0',
         mute_duration: '0',
         ransom_amount: '0',

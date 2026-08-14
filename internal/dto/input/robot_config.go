@@ -130,8 +130,12 @@ type ReplyConfigReq struct {
 type ReplyItem struct {
 	// 触发关键词列表
 	Keyword []string `json:"keyword" example:"你好,在吗"`
+	// 关键词匹配策略
+	KeywordMatchPolicy string `json:"keyword_match_policy" example:"0"`
 	// 安全词列表
 	SafeWord []string `json:"safe_word" example:"骗子,哎呀"`
+	// 安全词匹配策略
+	SafeWordMatchPolicy string `json:"safe_word_match_policy" example:"0"`
 	// 是否禁言发送者, 0-否, 1-是
 	MuteSender string `json:"mute_sender" example:"0"`
 	// 禁言时长（分钟）, 0 表示永久
