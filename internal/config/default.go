@@ -1,8 +1,11 @@
 package config
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // defaultConfigYAML 首次运行且配置文件缺失时写入的默认配置
@@ -47,7 +50,7 @@ pool:
 #   min_idle_conns: 5
 
 jwt: # jwt 配置
-  secret: "your-secret-at-least-32-characters-long!!"
+  secret: "{{JWT_SECRET}}" # 自动生成的随机密钥
   access_ttl: 7200
   refresh_ttl: 604800
 
@@ -62,6 +65,24 @@ live: # B站 直播监听配置
   test_uids: [] # 测试机器人 UID 白名单，命中的机器人只记录日志不真正发送弹幕（可为空）
 `
 
+// defaultConfigContent 返回填充了随机 JWT 密钥的默认配置内容
+func defaultConfigContent() (string, error) {
+	secret, err := randomJWTSecret()
+	if err != nil {
+		return "", err
+	}
+	return strings.Replace(defaultConfigYAML, "{{JWT_SECRET}}", secret, 1), nil
+}
+
+// randomJWTSecret 使用 crypto/rand 生成 32 字节随机密钥并十六进制编码（64 字符）
+func randomJWTSecret() (string, error) {
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+
 // EnsureConfigFile 若 path 指向的配置文件不存在则写入默认配置
 func EnsureConfigFile(path string) (created bool, err error) {
 	if _, err := os.Stat(path); err == nil {
@@ -74,7 +95,11 @@ func EnsureConfigFile(path string) (created bool, err error) {
 			return false, err
 		}
 	}
-	if err := os.WriteFile(path, []byte(defaultConfigYAML), 0o644); err != nil {
+	content, err := defaultConfigContent()
+	if err != nil {
+		return false, err
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		return false, err
 	}
 	return true, nil
