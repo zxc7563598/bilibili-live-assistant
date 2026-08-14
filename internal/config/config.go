@@ -71,7 +71,8 @@ type DatabasePoolConfig struct {
 }
 
 type LiveConfig struct {
-	StateFile string `yaml:"state_file"`
+	StateFile string  `yaml:"state_file"`
+	TestUIDs  []int64 `yaml:"test_uids"` // 测试机器人 UID 白名单，命中则仅记录日志不真正发送弹幕（可为空）
 }
 
 type Config struct {

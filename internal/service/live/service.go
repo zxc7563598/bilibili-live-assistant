@@ -39,10 +39,11 @@ import (
 //	status, _, _ := s.liveSvc.GetListenerStatus()
 type Service struct {
 	mu        sync.Mutex
-	client    *bilibili.Client // B站 API 客户端（长生命周期，管理 Cookie）
-	listener  *live.Listener   // WebSocket 监听器（nil = 未启动）
-	roomID    int64            // 目标房间号
-	stateFile string           // Cookie 持久化文件路径
+	client    *bilibili.Client   // B站 API 客户端（长生命周期，管理 Cookie）
+	listener  *live.Listener     // WebSocket 监听器（nil = 未启动）
+	roomID    int64              // 目标房间号
+	stateFile string             // Cookie 持久化文件路径
+	testUIDs  map[int64]struct{} // 测试机器人 UID 白名单
 	// listener 生命周期控制
 	listenerCtx    context.Context
 	listenerCancel context.CancelFunc
@@ -133,6 +134,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 	s := &Service{
 		client:          client,
 		stateFile:       cfg.StateFile,
+		testUIDs:        buildTestUIDSet(cfg.TestUIDs),
 		roomID:          defaultRoomID,
 		roomState:       roomState,
 		rawLogger:       logger.NewRawMessageLogger(),
@@ -146,6 +148,15 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 	}
 	enqueueFn = s.EnqueueDanmu
 	return s
+}
+
+// buildTestUIDSet 将测试机器人 UID 列表转换为 set，供弹幕发送器 O(1) 查询
+func buildTestUIDSet(uids []int64) map[int64]struct{} {
+	set := make(map[int64]struct{}, len(uids))
+	for _, uid := range uids {
+		set[uid] = struct{}{}
+	}
+	return set
 }
 
 // Client 返回内部的 *bilibili.Client，供其他 Service 进行高级操作
@@ -365,7 +376,7 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 	// 同步会话状态：清理非监听房间记录 + 根据实际直播状态修正数据
 	s.syncSessionsOnStart(ctx, roomID)
 	// 创建并启动弹幕发送队列
-	s.queue = live.NewQueue(s.listener.RoomID(), &danmuSender{roomSvc: s.roomSvc, client: s.client, danmuLogger: logger.NewDanmuSendLogger()})
+	s.queue = live.NewQueue(s.listener.RoomID(), &danmuSender{roomSvc: s.roomSvc, client: s.client, danmuLogger: logger.NewDanmuSendLogger(), testUIDs: s.testUIDs})
 	s.queue.Start(listenerCtx)
 	// 启动自动广告定时发送器
 	s.startAutoSender(listenerCtx)

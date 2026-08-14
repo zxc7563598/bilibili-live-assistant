@@ -59,6 +59,7 @@ altcha: # altcha 验证码配置（hmac_key 留空则关闭验证码）
 
 live: # B站 直播监听配置
   state_file: "bilibili_state.json" # B站 Cookie 持久化文件路径
+  test_uids: [] # 测试机器人 UID 白名单，命中的机器人只记录日志不真正发送弹幕（可为空）
 `
 
 // EnsureConfigFile 若 path 指向的配置文件不存在则写入默认配置
