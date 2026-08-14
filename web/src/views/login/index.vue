@@ -1,59 +1,60 @@
 <!-- Copyright © 2023 Ronnie Zhang (大脸怪). MIT License. -->
-
 <template>
-  <div class="wh-full flex-col bg-[url(@/assets/images/login_bg.webp)] bg-cover">
-    <div class="m-auto max-w-700 min-w-345 f-c-c rounded-8 auto-bg bg-opacity-20 bg-cover p-12 card-shadow">
-      <div class="hidden w-380 px-20 py-35 md:block">
-        <img src="@/assets/images/login_banner.webp" class="w-full" alt="login_banner">
-      </div>
-
-      <div class="w-320 flex-col px-20 py-32">
-        <h2 class="f-c-c text-24 text-#6a6a6a font-normal">
-          <img src="@/assets/images/logo.png" class="mr-12 h-50">
+  <div class="login-page relative wh-full flex-col overflow-hidden">
+    <div class="login-blob login-blob-1 -z-1" />
+    <div class="login-blob login-blob-2 -z-1" />
+    <div class="login-card relative m-auto max-w-[calc(100vw-32px)] w-345 flex items-stretch justify-center overflow-hidden rounded-16 card-shadow md:w-700">
+      <div class="login-brand relative hidden w-320 flex-col shrink-0 justify-center px-32 py-40 md:flex">
+        <img src="@/assets/images/logo.png" class="relative z-1 h-64 w-64" alt="logo">
+        <h1 class="relative z-1 mt-16 text-26 text-white font-bold leading-tight">
           {{ title }}
-        </h2>
-        <n-input
-          v-model:value="loginInfo.username" autofocus class="mt-32 h-40 items-center" placeholder="请输入用户名"
-          :maxlength="20"
-        >
+        </h1>
+        <p class="relative z-1 mt-8 text-14 text-white/65 leading-relaxed">
+          B站直播机器人助手
+        </p>
+      </div>
+      <div class="relative z-1 w-full flex flex-col px-24 py-32 md:flex-1 md:px-32 md:py-40">
+        <div class="mb-28 flex items-center md:hidden">
+          <div class="login-logo-tile h-44 w-44 f-c-c shrink-0 rounded-12">
+            <img src="@/assets/images/logo.png" class="h-28 w-28" alt="logo">
+          </div>
+          <span class="ml-12 text-18 text-#333 font-bold dark:text-#eee">{{ title }}</span>
+        </div>
+        <div class="mb-28 hidden md:block">
+          <h1 class="text-24 text-#333 font-bold dark:text-#eee">
+            欢迎登录
+          </h1>
+          <p class="mt-6 text-14 text-#8a8a8a dark:text-#7d7d7d">
+            欢迎回来，请登录您的账号
+          </p>
+        </div>
+        <n-input v-model:value="loginInfo.username" autofocus size="large" placeholder="请输入用户名" :maxlength="20">
           <template #prefix>
             <i class="i-fe:user mr-12 opacity-20" />
           </template>
         </n-input>
-        <n-input
-          v-model:value="loginInfo.password" class="mt-20 h-40 items-center" type="password"
-          show-password-on="mousedown" placeholder="请输入密码" :maxlength="20"
-        >
+        <n-input v-model:value="loginInfo.password" class="mt-16" size="large" type="password" show-password-on="mousedown" placeholder="请输入密码" :maxlength="20">
           <template #prefix>
             <i class="i-fe:lock mr-12 opacity-20" />
           </template>
         </n-input>
-
-        <div v-if="isCaptcha" class="mt-20 flex items-center">
-          <altcha-widget
-            type="checkbox" language="zh-cn" :challenge="challenge" class="w-full"
-            @statechange="onStateChange"
-          />
+        <div v-if="isCaptcha" class="mt-16 flex items-center">
+          <altcha-widget type="checkbox" language="zh-cn" :challenge="challenge" class="w-full" @statechange="onStateChange" />
         </div>
-
-        <n-checkbox class="mt-20" :checked="isRemember" label="记住我" :on-update:checked="(val) => (isRemember = val)" />
-
-        <div class="mt-20 flex items-center">
-          <n-button class="h-40 flex-1 rounded-5 text-16" type="primary" ghost @click="quickLogin">
+        <n-checkbox class="mt-16" :checked="isRemember" label="记住我" :on-update:checked="(val) => (isRemember = val)" />
+        <div class="mt-24 flex items-center gap-16">
+          <n-button class="h-40 flex-1 rounded-8 text-16" type="primary" ghost @click="quickLogin">
             一键体验
           </n-button>
-
-          <n-button
-            class="ml-32 h-40 flex-1 rounded-5 text-16" type="primary" :loading="loading"
-            @click="handleLogin"
-          >
+          <n-button class="h-40 flex-1 rounded-8 text-16" type="primary" :loading="loading" @click="handleLogin">
             登录
           </n-button>
         </div>
       </div>
     </div>
-
-    <TheFooter class="py-12" />
+    <div class="relative">
+      <TheFooter class="py-12" />
+    </div>
   </div>
 </template>
 
@@ -150,3 +151,93 @@ onMounted(() => {
   })
 })
 </script>
+
+<style scoped>
+.login-page {
+  background-color: #f4f5f8;
+  background-image:
+    radial-gradient(1000px 520px at 110% -20%, rgba(var(--primary-color), 0.1), transparent 62%),
+    radial-gradient(900px 480px at -15% 115%, rgba(var(--primary-color), 0.09), transparent 60%);
+}
+.dark .login-page {
+  background-color: #18181c;
+  background-image:
+    radial-gradient(1000px 520px at 110% -20%, rgba(var(--primary-color), 0.14), transparent 62%),
+    radial-gradient(900px 480px at -15% 115%, rgba(var(--primary-color), 0.12), transparent 60%);
+}
+
+.login-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+}
+.login-blob-1 {
+  top: -130px;
+  right: -90px;
+  width: 380px;
+  height: 380px;
+  background: rgba(var(--primary-color), 0.2);
+}
+.login-blob-2 {
+  bottom: -110px;
+  left: -70px;
+  width: 320px;
+  height: 320px;
+  background: rgba(var(--primary-color), 0.14);
+}
+.dark .login-blob-1 {
+  background: rgba(var(--primary-color), 0.18);
+}
+.dark .login-blob-2 {
+  background: rgba(var(--primary-color), 0.12);
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.75);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+}
+.dark .login-card {
+  background: rgba(24, 24, 28, 0.62);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.login-brand {
+  overflow: hidden;
+  background: linear-gradient(
+    155deg,
+    rgb(var(--primary-color)) 0%,
+    color-mix(in srgb, rgb(var(--primary-color)) 55%, #101014) 100%
+  );
+}
+.login-brand::before,
+.login-brand::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+.login-brand::before {
+  top: -70px;
+  right: -55px;
+  width: 210px;
+  height: 210px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.login-brand::after {
+  bottom: -75px;
+  left: -60px;
+  width: 230px;
+  height: 230px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.login-logo-tile {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--primary-color)),
+    color-mix(in srgb, rgb(var(--primary-color)) 55%, #101014)
+  );
+}
+</style>
