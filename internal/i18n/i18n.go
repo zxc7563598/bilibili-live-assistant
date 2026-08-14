@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -79,7 +80,8 @@ func loadLocalesFromEmbed() error {
 			continue
 		}
 		lang := strings.TrimSuffix(name, filepath.Ext(name))
-		data, err := fs.ReadFile(localeFS, filepath.Join("locales", name))
+		// embed.FS 的路径约定始终使用正斜杠，Windows 下 filepath.Join 会生成反斜杠导致读取失败
+		data, err := fs.ReadFile(localeFS, path.Join("locales", name))
 		if err != nil {
 			return err
 		}
