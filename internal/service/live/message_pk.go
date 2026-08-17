@@ -4,11 +4,14 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"unicode/utf8"
 
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/util"
 )
 
 // pkProcessor 处理 PK 相关消息（PK_BATTLE_PRE_NEW）
@@ -48,21 +51,26 @@ func (p *pkProcessor) processPkIn(ctx context.Context, info *live.PkBattlePreNew
 	if botUID == info.UID {
 		return
 	}
-	var cfg robotconfig.PkConfig
-	if err := p.configCache.UnmarshalGroup("pk", &cfg); err != nil {
+	var pkCfg robotconfig.PkConfig
+	if err := p.configCache.UnmarshalGroup("pk", &pkCfg); err != nil {
 		log.Printf("[live.PK] 加载PK播报配置失败: %v", err)
 		return
 	}
-	if !ptr.ParseBool(cfg.Enabled) {
+	if !ptr.ParseBool(pkCfg.Enabled) {
 		return
 	}
-	p.sendPkReply(ctx, cfg.Content, info)
+	p.sendPkReply(ctx, pkCfg.Content, info)
 }
 
 // sendPkReply PK播报不随机抽取，渲染变量后发送全部模板
 func (p *pkProcessor) sendPkReply(ctx context.Context, templates []string, info *live.PkBattlePreNewInfo) {
+	var roomCfg robotconfig.RoomConfig
+	if err := p.configCache.UnmarshalGroup("room", &roomCfg); err != nil {
+		log.Printf("[live.PK] 加载房间配置失败: %v", err)
+		return
+	}
 	needed := CollectVars(templates)
-	vars := p.resolvePkVars(ctx, info, needed)
+	vars := p.resolvePkVars(ctx, info, needed, roomCfg)
 	msg := make([]string, 0, len(templates))
 	for _, template := range templates {
 		msg = append(msg, RenderTemplate(template, vars))
@@ -73,10 +81,21 @@ func (p *pkProcessor) sendPkReply(ctx context.Context, templates []string, info 
 }
 
 // resolvePkVars 按需查询PK播报相关数据，返回变量名 → 值的映射
-func (p *pkProcessor) resolvePkVars(ctx context.Context, info *live.PkBattlePreNewInfo, needed map[string]bool) map[string]string {
+func (p *pkProcessor) resolvePkVars(ctx context.Context, info *live.PkBattlePreNewInfo, needed map[string]bool, roomCfg robotconfig.RoomConfig) map[string]string {
 	vars := make(map[string]string)
 	if needed["anchor"] {
 		vars["anchor"] = info.Uname
+		maxNameLengthValue, _ := strconv.ParseInt(roomCfg.MaxNameLength, 10, 64)
+		if maxNameLengthValue > 0 {
+			if utf8.RuneCountInString(vars["anchor"]) > int(maxNameLengthValue) {
+				switch ptr.ParseEnumInt[enum.NameTrimMode](roomCfg.NameTrimMode) {
+				case enum.NameTrimModeTrimEnd:
+					vars["anchor"] = util.TrimFromBack(vars["anchor"], int(maxNameLengthValue))
+				case enum.NameTrimModeTrimStart:
+					vars["anchor"] = util.TrimFromFront(vars["anchor"], int(maxNameLengthValue))
+				}
+			}
+		}
 	}
 	if needed["online_num"] || needed["online_score"] || needed["top3_score"] {
 		onlineGoldRank, err := p.client.Room.GetOnlineGoldRank(ctx, info.UID, info.RoomID)

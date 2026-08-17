@@ -62,17 +62,29 @@ func marshalReplyItems(v []ReplyItem) string {
 
 func toRoomConfigResp(group map[string]string) RoomConfigResp {
 	return RoomConfigResp{
-		IsListening:   getString(group, "is_listening"),
-		MaxNameLength: getString(group, "max_name_length"),
-		NameTrimMode:  getString(group, "name_trim_mode"),
+		IsListening:           getString(group, "is_listening"),
+		MaxNameLength:         getString(group, "max_name_length"),
+		NameTrimMode:          getString(group, "name_trim_mode"),
+		ConsumeRewardEnabled:  getString(group, "consume_reward_enabled"),
+		RewardType:            getString(group, "reward_type"),
+		ConsumeBatteryRate:    getString(group, "consume_battery_rate"),
+		CaptainRewardAmount:   getString(group, "captain_reward_amount"),
+		CommanderRewardAmount: getString(group, "commander_reward_amount"),
+		GovernorRewardAmount:  getString(group, "governor_reward_amount"),
 	}
 }
 
 func roomConfigReqToMap(req RoomConfigReq) map[string]string {
 	return map[string]string{
-		"is_listening":    req.IsListening,
-		"max_name_length": req.MaxNameLength,
-		"name_trim_mode":  req.NameTrimMode,
+		"is_listening":            req.IsListening,
+		"max_name_length":         req.MaxNameLength,
+		"name_trim_mode":          req.NameTrimMode,
+		"consume_reward_enabled":  req.ConsumeRewardEnabled,
+		"reward_type":             req.RewardType,
+		"consume_battery_rate":    req.ConsumeBatteryRate,
+		"captain_reward_amount":   req.CaptainRewardAmount,
+		"commander_reward_amount": req.CommanderRewardAmount,
+		"governor_reward_amount":  req.GovernorRewardAmount,
 	}
 }
 

@@ -58,9 +58,15 @@ func (h *Handler) ApplyRoom(c *gin.Context) {
 		return
 	}
 	errCode, err := h.robotConfigSvc.ApplyRoomConfig(ctx, robotconfigsvc.RoomConfigReq{
-		IsListening:   req.IsListening,
-		MaxNameLength: req.MaxNameLength,
-		NameTrimMode:  req.NameTrimMode,
+		IsListening:           req.IsListening,
+		MaxNameLength:         req.MaxNameLength,
+		NameTrimMode:          req.NameTrimMode,
+		ConsumeRewardEnabled:  req.ConsumeRewardEnabled,
+		RewardType:            req.RewardType,
+		ConsumeBatteryRate:    req.ConsumeBatteryRate,
+		CaptainRewardAmount:   req.CaptainRewardAmount,
+		CommanderRewardAmount: req.CommanderRewardAmount,
+		GovernorRewardAmount:  req.GovernorRewardAmount,
 	})
 	if errCode != 0 {
 		handler.ErrorLog(logger.RobotConfigLogger, "robotConfigSvc.ApplyRoomConfig 调用失败", errCode, err)

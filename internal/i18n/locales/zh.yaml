@@ -242,6 +242,19 @@ mute_status:
   not_found: 未找到记录
   unmuted: 已解禁
 
+name_trim_mode:
+  trim_end: 省略后面
+  trim_start: 省略前面
+
+reward_policy:
+  no_reward: 不发放
+  battery_reward: 按消费电池发放
+  vip_reward: 按开通航海类型发放
+
+reward_type:
+  stars: 星光
+  points: 积分
+
 no: 否
 yes: 是
 unknown: 未知

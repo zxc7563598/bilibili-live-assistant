@@ -12,7 +12,7 @@ export default {
   getFollow: () => request.post('/robot/follow/get'), // 获取感谢关注模块配置
   getShare: () => request.post('/robot/share/get'), // 获取感谢分享模块配置
   getReply: () => request.post('/robot/reply/get'), // 获取自动回复模块配置
-  applyRoom: (is_listening, max_name_length, name_trim_mode) => request.post('/robot/room/apply', { is_listening, max_name_length, name_trim_mode }), // 变更房间模块配置
+  applyRoom: (is_listening, max_name_length, name_trim_mode, consume_reward_enabled, reward_type, consume_battery_rate, captain_reward_amount, commander_reward_amount, governor_reward_amount) => request.post('/robot/room/apply', { is_listening, max_name_length, name_trim_mode, consume_reward_enabled, reward_type, consume_battery_rate, captain_reward_amount, commander_reward_amount, governor_reward_amount }), // 变更房间模块配置
   applySign: (enabled, scene, requirement, reward_type, reward_amount, keyword, query_keyword, success_reply, fail_reply, repeat_reply, query_reply) => request.post('/robot/sign/apply', { enabled, scene, requirement, reward_type, reward_amount, keyword, query_keyword, success_reply, fail_reply, repeat_reply, query_reply }), // 变更签到模块配置
   applyAd: (enabled, scene, interval, send_mode, content) => request.post('/robot/ad/apply', { enabled, scene, interval, send_mode, content }), // 变更定时广告模块配置
   applyGift: (enabled, scene, requirement, show_count, merge_gift, include_blindbox, min_battery, content) => request.post('/robot/gift/apply', { enabled, scene, requirement, show_count, merge_gift, include_blindbox, min_battery, content }), // 变更礼物答谢模块配置

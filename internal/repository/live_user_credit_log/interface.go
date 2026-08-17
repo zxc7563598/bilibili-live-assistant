@@ -48,7 +48,7 @@ func (r *gormRepo) addCreditLog(ctx context.Context, tx *gorm.DB, creditType enu
 	err := db.Transaction(func(tx *gorm.DB) error {
 		// 查询当前用户
 		var user model.LiveUser
-		if err := tx.Where("uid = ?", params.UserID).First(&user).Error; err != nil {
+		if err := tx.Where("id = ?", params.UserID).First(&user).Error; err != nil {
 			return fmt.Errorf("查询用户失败: %w", err)
 		}
 		// 获取变动前数值
@@ -91,7 +91,7 @@ func (r *gormRepo) addCreditLog(ctx context.Context, tx *gorm.DB, creditType enu
 			return fmt.Errorf("创建日志失败: %w", err)
 		}
 		// 更新用户积分/星光
-		if err := tx.Model(&user).Where("uid = ?", params.UserID).Update(fieldName, afterValue).Error; err != nil {
+		if err := tx.Model(&user).Where("id = ?", params.UserID).Update(fieldName, afterValue).Error; err != nil {
 			return fmt.Errorf("更新用户%s失败: %w", fieldName, err)
 		}
 		return nil

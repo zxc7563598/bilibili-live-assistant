@@ -88,7 +88,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, configCa
 	dispatcher := newMessageDispatcher(
 		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
 		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
-		newGiftProcessor(liveGiftRepo, LiveUserBlacklistRepo, roomState, configCache, client, func() int64 {
+		newGiftProcessor(liveUserRepo, liveGiftRepo, LiveUserBlacklistRepo, liveUserCreditLogRepo, roomState, configCache, client, func() int64 {
 			if sess := client.Session(); sess != nil {
 				return sess.UID
 			}

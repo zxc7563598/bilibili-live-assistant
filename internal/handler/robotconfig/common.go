@@ -8,9 +8,15 @@ import (
 
 func toRoomConfigResp(svcResp robotconfigsvc.RoomConfigResp) resp.RoomConfigResp {
 	return resp.RoomConfigResp{
-		IsListening:   svcResp.IsListening,
-		MaxNameLength: svcResp.MaxNameLength,
-		NameTrimMode:  svcResp.NameTrimMode,
+		IsListening:           svcResp.IsListening,
+		MaxNameLength:         svcResp.MaxNameLength,
+		NameTrimMode:          svcResp.NameTrimMode,
+		ConsumeRewardEnabled:  svcResp.ConsumeRewardEnabled,
+		RewardType:            svcResp.RewardType,
+		ConsumeBatteryRate:    svcResp.ConsumeBatteryRate,
+		CaptainRewardAmount:   svcResp.CaptainRewardAmount,
+		CommanderRewardAmount: svcResp.CommanderRewardAmount,
+		GovernorRewardAmount:  svcResp.GovernorRewardAmount,
 	}
 }
 

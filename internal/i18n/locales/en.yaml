@@ -242,6 +242,19 @@ mute_status:
   not_found: not_found
   unmuted: unmuted
 
+name_trim_mode:
+  trim_end: trim_end
+  trim_start: trim_start
+
+reward_policy:
+  no_reward: no_reward
+  battery_reward: battery_reward
+  vip_reward: vip_reward
+
+reward_type:
+  stars: stars
+  points: points
+
 no: no
 yes: yes
 unknown: unknown

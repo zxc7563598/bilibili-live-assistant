@@ -59,3 +59,15 @@ type PkConfig struct {
 	Enabled string   `config:"enabled"` // 是否启用
 	Content []string `config:"content"` // 内容
 }
+
+// RoomConfig 房间配置
+type RoomConfig struct {
+	MaxNameLength         string `config:"max_name_length"`         // 用户名最大长度, 超过此长度则裁剪
+	NameTrimMode          string `config:"name_trim_mode"`          // 裁剪方式, 0-省略后面, 1-省略前面
+	ConsumeRewardEnabled  string `config:"consume_reward_enabled"`  // 用户消费发放奖励, 0-不发放, 1-按消费电池发放, 2-按开通航海类型发放
+	RewardType            string `config:"reward_type"`             // 奖励类型, 0-星光, 1-积分
+	ConsumeBatteryRate    string `config:"consume_battery_rate"`    // 消费电池转换倍率, 设置为 2 则代表用户消耗 1 电池会得到 2 点奖励, 奖励设置为按消费电池发放时生效
+	CaptainRewardAmount   string `config:"captain_reward_amount"`   // 开通舰长奖励数量, 奖励设置为按开通航海类型发放时生效
+	CommanderRewardAmount string `config:"commander_reward_amount"` // 开通提督奖励数量, 奖励设置为按开通航海类型发放时生效
+	GovernorRewardAmount  string `config:"governor_reward_amount"`  // 开通总督奖励数量, 奖励设置为按开通航海类型发放时生效
+}

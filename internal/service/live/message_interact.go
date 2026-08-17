@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
@@ -12,6 +13,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/util"
 )
 
 // interactProcessor 处理用户互动消息（INTERACT_WORD_V2）
@@ -140,23 +142,23 @@ func (p *interactProcessor) processInteractIn(ctx context.Context, kind interact
 	if botUID == info.UID {
 		return
 	}
-	var cfg robotconfig.InteractConfig
-	if err := p.configCache.UnmarshalGroup(kind.group, &cfg); err != nil {
+	var interactCfg robotconfig.InteractConfig
+	if err := p.configCache.UnmarshalGroup(kind.group, &interactCfg); err != nil {
 		log.Printf("[live.%s] 加载%s配置失败: %v", kind.tag, kind.label, err)
 		return
 	}
-	if !ptr.ParseBool(cfg.Enabled) {
+	if !ptr.ParseBool(interactCfg.Enabled) {
 		return
 	}
-	if !p.checkInteractCondition(kind, cfg, info, anchorID, liveStatus) {
+	if !p.checkInteractCondition(kind, interactCfg, info, anchorID, liveStatus) {
 		return
 	}
-	p.sendInteractReply(ctx, kind, cfg.Content, info)
+	p.sendInteractReply(ctx, kind, interactCfg.Content, info)
 }
 
 // checkInteractCondition 校验互动回复的 Requirement 和 Scene 是否满足
-func (p *interactProcessor) checkInteractCondition(kind interactKind, cfg robotconfig.InteractConfig, info *live.InteractWordV2Info, anchorID int64, liveStatus int) bool {
-	req := ptr.ParseEnumInt[enum.Requirement](cfg.Requirement)
+func (p *interactProcessor) checkInteractCondition(kind interactKind, interactCfg robotconfig.InteractConfig, info *live.InteractWordV2Info, anchorID int64, liveStatus int) bool {
+	req := ptr.ParseEnumInt[enum.Requirement](interactCfg.Requirement)
 	switch req {
 	case enum.RequirementUnlimited:
 	case enum.RequirementHasBadge:
@@ -177,7 +179,7 @@ func (p *interactProcessor) checkInteractCondition(kind interactKind, cfg robotc
 		log.Printf("[live.%s] 未知的%s条件: %d", kind.tag, kind.label, req)
 		return false
 	}
-	sce := ptr.ParseEnumInt[enum.Scene](cfg.Scene)
+	sce := ptr.ParseEnumInt[enum.Scene](interactCfg.Scene)
 	switch sce {
 	case enum.SceneUnlimited:
 	case enum.SceneLive:
@@ -203,17 +205,33 @@ func (p *interactProcessor) sendInteractReply(ctx context.Context, kind interact
 	if tmpl == "" {
 		return
 	}
+	var roomCfg robotconfig.RoomConfig
+	if err := p.configCache.UnmarshalGroup("room", &roomCfg); err != nil {
+		log.Printf("[live.%s] 加载房间配置失败: %v", kind.tag, err)
+		return
+	}
 	needed := CollectVars(templates)
-	vars := p.resolveInteractVars(ctx, kind, info, needed)
+	vars := p.resolveInteractVars(ctx, kind, info, needed, roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	p.enqueueDanmu(msg, kind.danmuKind)
 }
 
 // resolveInteractVars 按需查询互动相关数据，返回变量名 → 值的映射
-func (p *interactProcessor) resolveInteractVars(ctx context.Context, kind interactKind, info *live.InteractWordV2Info, needed map[string]bool) map[string]string {
+func (p *interactProcessor) resolveInteractVars(ctx context.Context, kind interactKind, info *live.InteractWordV2Info, needed map[string]bool, roomCfg robotconfig.RoomConfig) map[string]string {
 	vars := make(map[string]string)
 	if needed["name"] {
 		vars["name"] = info.Uname
+		maxNameLengthValue, _ := strconv.ParseInt(roomCfg.MaxNameLength, 10, 64)
+		if maxNameLengthValue > 0 {
+			if utf8.RuneCountInString(vars["name"]) > int(maxNameLengthValue) {
+				switch ptr.ParseEnumInt[enum.NameTrimMode](roomCfg.NameTrimMode) {
+				case enum.NameTrimModeTrimEnd:
+					vars["name"] = util.TrimFromBack(vars["name"], int(maxNameLengthValue))
+				case enum.NameTrimModeTrimStart:
+					vars["name"] = util.TrimFromFront(vars["name"], int(maxNameLengthValue))
+				}
+			}
+		}
 	}
 	if needed["guard"] {
 		vars["guard"] = enum.BadgeType(info.BadgeType).Text("zh")

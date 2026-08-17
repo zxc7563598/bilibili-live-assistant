@@ -48,6 +48,82 @@
                 </div>
               </div>
             </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                消费奖励
+              </div>
+              <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
+                <div v-for="item in consumeRewardEnabledEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="roomConfigForm.consume_reward_enabled === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="roomConfigForm.consume_reward_enabled = item.value">
+                  {{ item.label }}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                奖励类型
+              </div>
+              <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
+                <div v-for="item in rewardTypeEnums" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="roomConfigForm.reward_type === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="roomConfigForm.reward_type = item.value">
+                  {{ item.label }}
+                </div>
+              </div>
+            </div>
+            <div v-show="roomConfigForm.consume_reward_enabled === '1'" class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                转换倍率
+              </div>
+              <n-input-group>
+                <n-input v-model:value="roomConfigForm.consume_battery_rate" type="number" placeholder="设置为 2 则代表用户消耗 1 电池会得到 2 点奖励" />
+                <n-input-group-label v-show="roomConfigForm.reward_type === '0'">
+                  星光
+                </n-input-group-label>
+                <n-input-group-label v-show="roomConfigForm.reward_type === '1'">
+                  积分
+                </n-input-group-label>
+              </n-input-group>
+            </div>
+            <div v-show="roomConfigForm.consume_reward_enabled === '2'" class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                舰长奖励
+              </div>
+              <n-input-group>
+                <n-input v-model:value="roomConfigForm.captain_reward_amount" type="number" placeholder="奖励设置为按开通航海类型发放时生效" />
+                <n-input-group-label v-show="roomConfigForm.reward_type === '0'">
+                  星光
+                </n-input-group-label>
+                <n-input-group-label v-show="roomConfigForm.reward_type === '1'">
+                  积分
+                </n-input-group-label>
+              </n-input-group>
+            </div>
+            <div v-show="roomConfigForm.consume_reward_enabled === '2'" class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                提督奖励
+              </div>
+              <n-input-group>
+                <n-input v-model:value="roomConfigForm.commander_reward_amount" type="number" placeholder="奖励设置为按开通航海类型发放时生效" />
+                <n-input-group-label v-show="roomConfigForm.reward_type === '0'">
+                  星光
+                </n-input-group-label>
+                <n-input-group-label v-show="roomConfigForm.reward_type === '1'">
+                  积分
+                </n-input-group-label>
+              </n-input-group>
+            </div>
+            <div v-show="roomConfigForm.consume_reward_enabled === '2'" class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                总督奖励
+              </div>
+              <n-input-group>
+                <n-input v-model:value="roomConfigForm.governor_reward_amount" type="number" placeholder="奖励设置为按开通航海类型发放时生效" />
+                <n-input-group-label v-show="roomConfigForm.reward_type === '0'">
+                  星光
+                </n-input-group-label>
+                <n-input-group-label v-show="roomConfigForm.reward_type === '1'">
+                  积分
+                </n-input-group-label>
+              </n-input-group>
+            </div>
           </div>
           <template #footer>
             <div class="flex justify-end">
@@ -980,6 +1056,12 @@ const roomConfigForm = ref({
   is_listening: '',
   max_name_length: '',
   name_trim_mode: '',
+  consume_reward_enabled: '',
+  reward_type: '',
+  consume_battery_rate: '',
+  captain_reward_amount: '',
+  commander_reward_amount: '',
+  governor_reward_amount: '',
 })
 
 // 签到配置模块
@@ -1170,6 +1252,21 @@ const matchPolicyEnums = [
   },
 ]
 
+const consumeRewardEnabledEnums = [
+  {
+    label: '不发放',
+    value: '0',
+  },
+  {
+    label: '按消费电池发放',
+    value: '1',
+  },
+  {
+    label: '按开通航海类型发放',
+    value: '2',
+  },
+]
+
 // 自动回复配置
 function replyConfig(index) {
   try {
@@ -1225,11 +1322,39 @@ function apply(type) {
       if (roomConfigForm.value.name_trim_mode.trim() === '') {
         return $message.warning('裁剪模式不可以为空')
       }
+      if (roomConfigForm.value.consume_reward_enabled.trim() === '') {
+        return $message.warning('消费奖励不可以为空')
+      }
+      if (roomConfigForm.value.reward_type.trim() === '') {
+        return $message.warning('奖励类型不可以为空')
+      }
+      if (roomConfigForm.value.consume_reward_enabled === '1') {
+        if (roomConfigForm.value.consume_battery_rate.trim() === '') {
+          return $message.warning('转换倍率不可以为空')
+        }
+      }
+      if (roomConfigForm.value.consume_reward_enabled === '2') {
+        if (roomConfigForm.value.captain_reward_amount.trim() === '') {
+          return $message.warning('舰长奖励不可以为空')
+        }
+        if (roomConfigForm.value.commander_reward_amount.trim() === '') {
+          return $message.warning('提督奖励不可以为空')
+        }
+        if (roomConfigForm.value.governor_reward_amount.trim() === '') {
+          return $message.warning('总督奖励不可以为空')
+        }
+      }
       roomLoading.value = true
       api.applyRoom(
         roomConfigForm.value.is_listening,
         roomConfigForm.value.max_name_length,
         roomConfigForm.value.name_trim_mode,
+        roomConfigForm.value.consume_reward_enabled,
+        roomConfigForm.value.reward_type,
+        roomConfigForm.value.consume_battery_rate,
+        roomConfigForm.value.captain_reward_amount,
+        roomConfigForm.value.commander_reward_amount,
+        roomConfigForm.value.governor_reward_amount,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {

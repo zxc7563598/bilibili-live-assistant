@@ -13,9 +13,15 @@ type ReplyItem struct {
 
 // GetRoomConfig 请求返回
 type RoomConfigResp struct {
-	IsListening   string `json:"is_listening"`
-	MaxNameLength string `json:"max_name_length"`
-	NameTrimMode  string `json:"name_trim_mode"`
+	IsListening           string `json:"is_listening"`
+	MaxNameLength         string `json:"max_name_length"`
+	NameTrimMode          string `json:"name_trim_mode"`
+	ConsumeRewardEnabled  string `json:"consume_reward_enabled"`
+	RewardType            string `json:"reward_type"`
+	ConsumeBatteryRate    string `json:"consume_battery_rate"`
+	CaptainRewardAmount   string `json:"captain_reward_amount"`
+	CommanderRewardAmount string `json:"commander_reward_amount"`
+	GovernorRewardAmount  string `json:"governor_reward_amount"`
 }
 
 // GetSignConfig 请求返回
@@ -94,9 +100,15 @@ type ReplyConfigResp struct {
 
 // ApplyRoomConfig 请求入参
 type RoomConfigReq struct {
-	IsListening   string `json:"is_listening"`
-	MaxNameLength string `json:"max_name_length"`
-	NameTrimMode  string `json:"name_trim_mode"`
+	IsListening           string `json:"is_listening"`
+	MaxNameLength         string `json:"max_name_length"`
+	NameTrimMode          string `json:"name_trim_mode"`
+	ConsumeRewardEnabled  string `json:"consume_reward_enabled"`
+	RewardType            string `json:"reward_type"`
+	ConsumeBatteryRate    string `json:"consume_battery_rate"`
+	CaptainRewardAmount   string `json:"captain_reward_amount"`
+	CommanderRewardAmount string `json:"commander_reward_amount"`
+	GovernorRewardAmount  string `json:"governor_reward_amount"`
 }
 
 // ApplySignConfig 请求入参

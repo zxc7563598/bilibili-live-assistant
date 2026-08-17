@@ -278,6 +278,42 @@ func seedRobotConfigs(db *gorm.DB) error {
 			Remark:      "裁剪方式, 0-省略后面, 1-省略前面",
 		},
 		{
+			GroupName:   "room",
+			ConfigKey:   "consume_reward_enabled",
+			ConfigValue: "0",
+			Remark:      "用户消费发放奖励, 0-不发放, 1-按消费电池发放, 2-按开通航海类型发放",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "reward_type",
+			ConfigValue: "1",
+			Remark:      "奖励类型, 0-星光, 1-积分",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "consume_battery_rate",
+			ConfigValue: "0",
+			Remark:      "消费电池转换倍率, 设置为 2 则代表用户消耗 1 电池会得到 2 点奖励, 奖励设置为按消费电池发放时生效",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "captain_reward_amount",
+			ConfigValue: "0",
+			Remark:      "开通舰长奖励数量, 奖励设置为按开通航海类型发放时生效",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "commander_reward_amount",
+			ConfigValue: "0",
+			Remark:      "开通提督奖励数量, 奖励设置为按开通航海类型发放时生效",
+		},
+		{
+			GroupName:   "room",
+			ConfigKey:   "governor_reward_amount",
+			ConfigValue: "0",
+			Remark:      "开通总督奖励数量, 奖励设置为按开通航海类型发放时生效",
+		},
+		{
 			GroupName:   "sign",
 			ConfigKey:   "enabled",
 			ConfigValue: "0",

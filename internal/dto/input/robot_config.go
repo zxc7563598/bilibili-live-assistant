@@ -8,6 +8,18 @@ type RoomConfigReq struct {
 	MaxNameLength string `json:"max_name_length" binding:"required" err:"required=10501" example:"8"`
 	// 裁剪方式, 0-省略后面, 1-省略前面
 	NameTrimMode string `json:"name_trim_mode" binding:"required" err:"required=10501" example:"0"`
+	// 用户消费发放奖励, 0-不发放, 1-按消费电池发放, 2-按开通航海类型发放
+	ConsumeRewardEnabled string `json:"consume_reward_enabled" binding:"required" err:"required=10501" example:"0"`
+	// 奖励类型, 0-星光, 1-积分
+	RewardType string `json:"reward_type" binding:"required" err:"required=10501" example:"1"`
+	// 消费电池转换倍率, 奖励设置为按消费电池发放时生效
+	ConsumeBatteryRate string `json:"consume_battery_rate" binding:"required" err:"required=10501" example:"0"`
+	// 开通舰长奖励数量, 奖励设置为按开通航海类型发放时生效
+	CaptainRewardAmount string `json:"captain_reward_amount" binding:"required" err:"required=10501" example:"0"`
+	// 开通提督奖励数量, 奖励设置为按开通航海类型发放时生效
+	CommanderRewardAmount string `json:"commander_reward_amount" binding:"required" err:"required=10501" example:"0"`
+	// 开通总督奖励数量, 奖励设置为按开通航海类型发放时生效
+	GovernorRewardAmount string `json:"governor_reward_amount" binding:"required" err:"required=10501" example:"0"`
 }
 
 // SignConfigReq 签到模块配置请求

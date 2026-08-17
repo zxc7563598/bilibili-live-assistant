@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
@@ -20,6 +21,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/util"
 )
 
 // danmuProcessor 处理弹幕消息（DANMU_MSG）
@@ -95,28 +97,28 @@ func (p *danmuProcessor) processSignIn(ctx context.Context, info *live.DanmuMsgI
 	if botUID == info.UID {
 		return
 	}
-	var cfg robotconfig.SignConfig
-	if err := p.configCache.UnmarshalGroup("sign", &cfg); err != nil {
+	var signCfg robotconfig.SignConfig
+	if err := p.configCache.UnmarshalGroup("sign", &signCfg); err != nil {
 		log.Printf("[live.Sign] 加载签到配置失败: %v", err)
 		return
 	}
-	if !ptr.ParseBool(cfg.Enabled) {
+	if !ptr.ParseBool(signCfg.Enabled) {
 		return
 	}
-	if !p.checkSignCondition(cfg, info, roomID, liveStatus) {
+	if !p.checkSignCondition(signCfg, info, roomID, liveStatus) {
 		return
 	}
-	if strings.Contains(info.Msg, cfg.Keyword) {
-		p.handleSignIn(ctx, cfg, info)
+	if strings.Contains(info.Msg, signCfg.Keyword) {
+		p.handleSignIn(ctx, signCfg, info)
 	}
-	if strings.Contains(info.Msg, cfg.QueryKeyword) {
-		p.handleSignQuery(ctx, cfg, info)
+	if strings.Contains(info.Msg, signCfg.QueryKeyword) {
+		p.handleSignQuery(ctx, signCfg, info)
 	}
 }
 
 // checkSignCondition 校验签到的 Requirement 和 Scene 是否满足
-func (p *danmuProcessor) checkSignCondition(cfg robotconfig.SignConfig, info *live.DanmuMsgInfo, roomID int64, liveStatus int) bool {
-	req := ptr.ParseEnumInt[enum.Requirement](cfg.Requirement)
+func (p *danmuProcessor) checkSignCondition(signCfg robotconfig.SignConfig, info *live.DanmuMsgInfo, roomID int64, liveStatus int) bool {
+	req := ptr.ParseEnumInt[enum.Requirement](signCfg.Requirement)
 	switch req {
 	case enum.RequirementUnlimited:
 	case enum.RequirementHasBadge:
@@ -137,7 +139,7 @@ func (p *danmuProcessor) checkSignCondition(cfg robotconfig.SignConfig, info *li
 		log.Printf("[live.Sign] 未知的签到条件: %d", req)
 		return false
 	}
-	sce := ptr.ParseEnumInt[enum.Scene](cfg.Scene)
+	sce := ptr.ParseEnumInt[enum.Scene](signCfg.Scene)
 	switch sce {
 	case enum.SceneUnlimited:
 	case enum.SceneLive:
@@ -158,19 +160,19 @@ func (p *danmuProcessor) checkSignCondition(cfg robotconfig.SignConfig, info *li
 }
 
 // handleSignIn 处理签到：查重 → 已签到发重复回复 / 未签到则记录、发奖励、发成功回复
-func (p *danmuProcessor) handleSignIn(ctx context.Context, cfg robotconfig.SignConfig, info *live.DanmuMsgInfo) {
+func (p *danmuProcessor) handleSignIn(ctx context.Context, signCfg robotconfig.SignConfig, info *live.DanmuMsgInfo) {
 	exists, err := p.liveUserSignLogRepo.ExistsByUIDToday(ctx, nil, info.UID)
 	if err != nil {
 		log.Printf("[live.Sign] 查询用户签到信息失败: %v", err)
 		return
 	}
 	if exists {
-		p.sendSignReply(ctx, cfg.RepeatReply, info)
+		p.sendSignReply(ctx, signCfg.RepeatReply, info)
 		return
 	}
 	// 记录签到
-	rewardType := ptr.ParseEnumInt[enum.CreditType](cfg.RewardType)
-	rewardAmount, _ := strconv.ParseInt(cfg.RewardAmount, 10, 64)
+	rewardType := ptr.ParseEnumInt[enum.CreditType](signCfg.RewardType)
+	rewardAmount, _ := strconv.ParseInt(signCfg.RewardAmount, 10, 64)
 	if _, err := p.liveUserSignLogRepo.Create(ctx, nil, &model.LiveUserSignLog{
 		UID:          info.UID,
 		Uname:        info.Uname,
@@ -190,23 +192,33 @@ func (p *danmuProcessor) handleSignIn(ctx context.Context, cfg robotconfig.SignC
 	if rewardAmount > 0 {
 		if err := p.grantSignReward(ctx, info, rewardType, rewardAmount); err != nil {
 			log.Printf("[live.Sign] 签到奖励发放失败: %v", err)
-			return
 		}
 	}
-	p.sendSignReply(ctx, cfg.SuccessReply, info)
+	p.sendSignReply(ctx, signCfg.SuccessReply, info)
 }
 
 // handleSignQuery 处理签到查询：发送查询回复
-func (p *danmuProcessor) handleSignQuery(ctx context.Context, cfg robotconfig.SignConfig, info *live.DanmuMsgInfo) {
-	p.sendSignReply(ctx, cfg.QueryReply, info)
+func (p *danmuProcessor) handleSignQuery(ctx context.Context, signCfg robotconfig.SignConfig, info *live.DanmuMsgInfo) {
+	p.sendSignReply(ctx, signCfg.QueryReply, info)
 }
 
 // resolveSignVars 按需查询签到相关数据，返回变量名 → 值的映射
-func (p *danmuProcessor) resolveSignVars(ctx context.Context, info *live.DanmuMsgInfo, needed map[string]bool) map[string]string {
+func (p *danmuProcessor) resolveSignVars(ctx context.Context, info *live.DanmuMsgInfo, needed map[string]bool, roomCfg robotconfig.RoomConfig) map[string]string {
 	vars := make(map[string]string)
 	// 无 IO：直接从 info 获取
 	if needed["name"] {
 		vars["name"] = info.Uname
+		maxNameLengthValue, _ := strconv.ParseInt(roomCfg.MaxNameLength, 10, 64)
+		if maxNameLengthValue > 0 {
+			if utf8.RuneCountInString(vars["name"]) > int(maxNameLengthValue) {
+				switch ptr.ParseEnumInt[enum.NameTrimMode](roomCfg.NameTrimMode) {
+				case enum.NameTrimModeTrimEnd:
+					vars["name"] = util.TrimFromBack(vars["name"], int(maxNameLengthValue))
+				case enum.NameTrimModeTrimStart:
+					vars["name"] = util.TrimFromFront(vars["name"], int(maxNameLengthValue))
+				}
+			}
+		}
 	}
 	if needed["guard"] {
 		vars["guard"] = enum.BadgeType(info.BadgeType).Text("zh")
@@ -246,8 +258,13 @@ func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, 
 	if tmpl == "" {
 		return
 	}
+	var roomCfg robotconfig.RoomConfig
+	if err := p.configCache.UnmarshalGroup("room", &roomCfg); err != nil {
+		log.Printf("[live.Sign] 加载房间配置失败: %v", err)
+		return
+	}
 	needed := CollectVars(templates)
-	vars := p.resolveSignVars(ctx, info, needed)
+	vars := p.resolveSignVars(ctx, info, needed, roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	p.enqueueDanmu(msg, "sign")
 }
@@ -290,18 +307,18 @@ func (p *danmuProcessor) processReplyIn(ctx context.Context, info *live.DanmuMsg
 	if botUID == info.UID {
 		return
 	}
-	var cfg robotconfig.ReplyConfig
-	if err := p.configCache.UnmarshalGroup("reply", &cfg); err != nil {
+	var replyCfg robotconfig.ReplyConfig
+	if err := p.configCache.UnmarshalGroup("reply", &replyCfg); err != nil {
 		log.Printf("[live.Reply] 加载签到配置失败: %v", err)
 		return
 	}
-	if !ptr.ParseBool(cfg.Enabled) {
+	if !ptr.ParseBool(replyCfg.Enabled) {
 		return
 	}
-	if !p.checkReplyCondition(cfg, info, roomID, liveStatus) {
+	if !p.checkReplyCondition(replyCfg, info, roomID, liveStatus) {
 		return
 	}
-	for _, reply := range cfg.Content {
+	for _, reply := range replyCfg.Content {
 		keywordMatchPolicyValue := parseMatchPolicy(reply.KeywordMatchPolicy)
 		safeWordMatchPolicyValue := parseMatchPolicy(reply.SafeWordMatchPolicy)
 		if containsMatch(info.Msg, reply.Keyword, keywordMatchPolicyValue) {
@@ -321,8 +338,8 @@ func (p *danmuProcessor) processReplyIn(ctx context.Context, info *live.DanmuMsg
 }
 
 // checkReplyCondition 校验自动回复的 Requirement 和 Scene 是否满足
-func (p *danmuProcessor) checkReplyCondition(cfg robotconfig.ReplyConfig, info *live.DanmuMsgInfo, roomID int64, liveStatus int) bool {
-	req := ptr.ParseEnumInt[enum.Requirement](cfg.Requirement)
+func (p *danmuProcessor) checkReplyCondition(replyCfg robotconfig.ReplyConfig, info *live.DanmuMsgInfo, roomID int64, liveStatus int) bool {
+	req := ptr.ParseEnumInt[enum.Requirement](replyCfg.Requirement)
 	switch req {
 	case enum.RequirementUnlimited:
 	case enum.RequirementHasBadge:
@@ -343,7 +360,7 @@ func (p *danmuProcessor) checkReplyCondition(cfg robotconfig.ReplyConfig, info *
 		log.Printf("[live.Reply] 未知的回复条件: %d", req)
 		return false
 	}
-	sce := ptr.ParseEnumInt[enum.Scene](cfg.Scene)
+	sce := ptr.ParseEnumInt[enum.Scene](replyCfg.Scene)
 	switch sce {
 	case enum.SceneUnlimited:
 	case enum.SceneLive:
@@ -398,18 +415,34 @@ func (p *danmuProcessor) sendReply(ctx context.Context, templates []string, info
 	if tmpl == "" {
 		return
 	}
+	var roomCfg robotconfig.RoomConfig
+	if err := p.configCache.UnmarshalGroup("room", &roomCfg); err != nil {
+		log.Printf("[live.Reply] 加载房间配置失败: %v", err)
+		return
+	}
 	needed := CollectVars(templates)
-	vars := p.resolveReplyVars(ctx, info, needed, roomID)
+	vars := p.resolveReplyVars(ctx, info, needed, roomID, roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	p.enqueueDanmu(msg, "reply")
 }
 
 // resolveReplyVars 按需查询自动回复相关数据，返回变量名 → 值的映射
-func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuMsgInfo, needed map[string]bool, roomID int64) map[string]string {
+func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuMsgInfo, needed map[string]bool, roomID int64, roomCfg robotconfig.RoomConfig) map[string]string {
 	vars := make(map[string]string)
 	// 无 IO：直接从 info 获取
 	if needed["name"] {
 		vars["name"] = info.Uname
+		maxNameLengthValue, _ := strconv.ParseInt(roomCfg.MaxNameLength, 10, 64)
+		if maxNameLengthValue > 0 {
+			if utf8.RuneCountInString(vars["name"]) > int(maxNameLengthValue) {
+				switch ptr.ParseEnumInt[enum.NameTrimMode](roomCfg.NameTrimMode) {
+				case enum.NameTrimModeTrimEnd:
+					vars["name"] = util.TrimFromBack(vars["name"], int(maxNameLengthValue))
+				case enum.NameTrimModeTrimStart:
+					vars["name"] = util.TrimFromFront(vars["name"], int(maxNameLengthValue))
+				}
+			}
+		}
 	}
 	if needed["guard"] {
 		vars["guard"] = enum.BadgeType(info.BadgeType).Text("zh")

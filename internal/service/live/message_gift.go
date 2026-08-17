@@ -9,15 +9,19 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/util"
 )
 
 // giftMergeWindow 礼物合并 debounce 窗口：同一用户在此时间内的多个礼物会被合并为一条答谢消息
@@ -47,8 +51,10 @@ func newGiftMergeBuffer(interval time.Duration) *giftMergeBuffer {
 
 // giftProcessor 处理礼物相关消息（SEND_GIFT / SEND_GIFT_V2 / GUARD_BUY / SUPER_CHAT_MESSAGE）
 type giftProcessor struct {
+	liveUserRepo          live_user.Repository
 	liveGiftRepo          live_gift.Repository
 	LiveUserBlacklistRepo live_user_blacklist.Repository
+	liveUserCreditLogRepo live_user_credit_log.Repository
 	roomState             *RoomState
 	configCache           *robotconfig.Cache
 	client                *bilibili.Client
@@ -63,6 +69,7 @@ type giftThankInfo struct {
 	Uname             string         // 用户名
 	GiftID            int64          // 礼物ID
 	GiftName          string         // 礼物名称
+	GiftType          enum.GiftType  // 礼物类型
 	Price             int64          // 价格（分）
 	Num               int64          // 数量
 	Original          enum.YesNo     // 是否原始礼物
@@ -71,10 +78,12 @@ type giftThankInfo struct {
 	BadgeType         enum.BadgeType // 牌子类型
 }
 
-func newGiftProcessor(liveGiftRepo live_gift.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
+func newGiftProcessor(liveUserRepo live_user.Repository, liveGiftRepo live_gift.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
 	return &giftProcessor{
+		liveUserRepo:          liveUserRepo,
 		liveGiftRepo:          liveGiftRepo,
 		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
+		liveUserCreditLogRepo: liveUserCreditLogRepo,
 		roomState:             roomState,
 		configCache:           configCache,
 		client:                client,
@@ -126,6 +135,7 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			Uname:     info.Uname,
 			GiftID:    info.GiftID,
 			GiftName:  info.GiftName,
+			GiftType:  enum.GiftTypeNormal,
 			Price:     info.Price,
 			Num:       info.Num,
 			Original:  enum.Yes,
@@ -161,6 +171,7 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			Uname:     info.Uname,
 			GiftID:    info.GiftID,
 			GiftName:  info.GiftName,
+			GiftType:  enum.GiftTypeGuard,
 			Price:     info.Price,
 			Num:       1,
 			Original:  enum.Yes,
@@ -196,6 +207,7 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			Uname:     info.Uname,
 			GiftID:    info.GiftID,
 			GiftName:  info.GiftName,
+			GiftType:  enum.GiftTypeSuperChat,
 			Price:     info.Price,
 			Num:       1,
 			Original:  enum.Yes,
@@ -210,12 +222,14 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 		}
 	}
 	if thankInfo != nil {
-		// 礼物答谢
 		botUID := p.getBotUID()
 		liveStatus := p.roomState.LiveStatus()
+		// 礼物答谢
 		p.processGiftIn(thankInfo, roomID, botUID, liveStatus)
 		// 黑名单赎回
 		p.processRedeem(ctx, thankInfo.UID, thankInfo.Price, thankInfo.Num, roomID, botUID)
+		// 奖励发放
+		p.processReward(ctx, thankInfo, botUID)
 	}
 	return nil
 }
@@ -225,18 +239,18 @@ func (p *giftProcessor) processGiftIn(info *giftThankInfo, roomID, botUID int64,
 	if botUID == info.UID {
 		return
 	}
-	var cfg robotconfig.GiftConfig
-	if err := p.configCache.UnmarshalGroup("gift", &cfg); err != nil {
+	var giftCfg robotconfig.GiftConfig
+	if err := p.configCache.UnmarshalGroup("gift", &giftCfg); err != nil {
 		log.Printf("[live.Gift] 加载礼物答谢配置失败: %v", err)
 		return
 	}
-	if !ptr.ParseBool(cfg.Enabled) {
+	if !ptr.ParseBool(giftCfg.Enabled) {
 		return
 	}
-	if !p.checkGiftCondition(cfg, info, roomID, liveStatus) {
+	if !p.checkGiftCondition(giftCfg, info, roomID, liveStatus) {
 		return
 	}
-	if ptr.ParseBool(cfg.MergeGift) {
+	if ptr.ParseBool(giftCfg.MergeGift) {
 		p.mergeBuffer.add(info, p.sendGiftReply)
 	} else {
 		p.sendGiftReply([]*giftThankInfo{info})
@@ -244,8 +258,8 @@ func (p *giftProcessor) processGiftIn(info *giftThankInfo, roomID, botUID int64,
 }
 
 // checkGiftCondition 校验礼物答谢的 Requirement, Scene 以及 MinBattery 是否满足
-func (p *giftProcessor) checkGiftCondition(cfg robotconfig.GiftConfig, info *giftThankInfo, roomID int64, liveStatus int) bool {
-	req := ptr.ParseEnumInt[enum.Requirement](cfg.Requirement)
+func (p *giftProcessor) checkGiftCondition(giftCfg robotconfig.GiftConfig, info *giftThankInfo, roomID int64, liveStatus int) bool {
+	req := ptr.ParseEnumInt[enum.Requirement](giftCfg.Requirement)
 	switch req {
 	case enum.RequirementUnlimited:
 	case enum.RequirementHasBadge:
@@ -266,7 +280,7 @@ func (p *giftProcessor) checkGiftCondition(cfg robotconfig.GiftConfig, info *gif
 		log.Printf("[live.Gift] 未知的答谢条件: %d", req)
 		return false
 	}
-	sce := ptr.ParseEnumInt[enum.Scene](cfg.Scene)
+	sce := ptr.ParseEnumInt[enum.Scene](giftCfg.Scene)
 	switch sce {
 	case enum.SceneUnlimited:
 	case enum.SceneLive:
@@ -283,7 +297,7 @@ func (p *giftProcessor) checkGiftCondition(cfg robotconfig.GiftConfig, info *gif
 		log.Printf("[live.Gift] 未知的场景: %d", sce)
 		return false
 	}
-	minBatteryValue, _ := strconv.ParseInt(cfg.MinBattery, 10, 64)
+	minBatteryValue, _ := strconv.ParseInt(giftCfg.MinBattery, 10, 64)
 	priceValue := (info.Price * info.Num) / 10
 	if priceValue < minBatteryValue {
 		log.Printf("[live.Gift] 礼物价值低于起始感谢电池数: 礼物电池=%d, 起始感谢电池数=%d", priceValue, minBatteryValue)
@@ -325,13 +339,24 @@ func (b *giftMergeBuffer) add(info *giftThankInfo, flushFn func([]*giftThankInfo
 }
 
 // resolveGiftVars 按需解析礼物答谢模板变量，返回变量名 → 值的映射。支持单条与合并后的多条礼物。
-func (p *giftProcessor) resolveGiftVars(infos []*giftThankInfo, needed map[string]bool, showCount bool) map[string]string {
+func (p *giftProcessor) resolveGiftVars(infos []*giftThankInfo, needed map[string]bool, showCount bool, roomCfg robotconfig.RoomConfig) map[string]string {
 	vars := make(map[string]string)
 	if len(infos) == 0 {
 		return vars
 	}
 	if needed["name"] {
 		vars["name"] = infos[0].Uname
+		maxNameLengthValue, _ := strconv.ParseInt(roomCfg.MaxNameLength, 10, 64)
+		if maxNameLengthValue > 0 {
+			if utf8.RuneCountInString(vars["name"]) > int(maxNameLengthValue) {
+				switch ptr.ParseEnumInt[enum.NameTrimMode](roomCfg.NameTrimMode) {
+				case enum.NameTrimModeTrimEnd:
+					vars["name"] = util.TrimFromBack(vars["name"], int(maxNameLengthValue))
+				case enum.NameTrimModeTrimStart:
+					vars["name"] = util.TrimFromFront(vars["name"], int(maxNameLengthValue))
+				}
+			}
+		}
 	}
 	if needed["price"] {
 		var totalPrice int64
@@ -359,20 +384,25 @@ func (p *giftProcessor) sendGiftReply(infos []*giftThankInfo) {
 	if len(infos) == 0 {
 		return
 	}
-	var cfg robotconfig.GiftConfig
-	if err := p.configCache.UnmarshalGroup("gift", &cfg); err != nil {
+	var giftCfg robotconfig.GiftConfig
+	if err := p.configCache.UnmarshalGroup("gift", &giftCfg); err != nil {
 		log.Printf("[live.Gift] 加载礼物答谢配置失败: %v", err)
 		return
 	}
-	tmpl := PickRandom(cfg.Content)
+	var roomCfg robotconfig.RoomConfig
+	if err := p.configCache.UnmarshalGroup("room", &roomCfg); err != nil {
+		log.Printf("[live.Gift] 加载房间配置失败: %v", err)
+		return
+	}
+	tmpl := PickRandom(giftCfg.Content)
 	if tmpl == "" {
 		return
 	}
-	needed := CollectVars(cfg.Content)
-	vars := p.resolveGiftVars(infos, needed, ptr.ParseBool(cfg.ShowCount))
+	needed := CollectVars(giftCfg.Content)
+	vars := p.resolveGiftVars(infos, needed, ptr.ParseBool(giftCfg.ShowCount), roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	// 追加盲盒盈亏（按数量累加）
-	if ptr.ParseBool(cfg.IncludeBlindbox) {
+	if ptr.ParseBool(giftCfg.IncludeBlindbox) {
 		var totalPrice, totalOriginalPrice int64
 		for _, info := range infos {
 			if info.Original == enum.No && info.OriginalGiftPrice > 0 {
@@ -419,4 +449,107 @@ func (p *giftProcessor) processRedeem(ctx context.Context, uid, price, num, room
 		return
 	}
 	unmuteUser(ctx, p.client, p.LiveUserBlacklistRepo, black, csrf)
+}
+
+// processReward 奖励发放：根据系统设置为用户发放奖励
+func (p *giftProcessor) processReward(ctx context.Context, thankInfo *giftThankInfo, botUID int64) {
+	if botUID == thankInfo.UID {
+		return
+	}
+	var roomCfg robotconfig.RoomConfig
+	if err := p.configCache.UnmarshalGroup("room", &roomCfg); err != nil {
+		log.Printf("[live.Gift] 加载房间配置失败: %v", err)
+		return
+	}
+	switch ptr.ParseEnumInt[enum.RewardPolicy](roomCfg.ConsumeRewardEnabled) {
+	case enum.RewardPolicyBatteryReward:
+		magnification, _ := strconv.ParseInt(roomCfg.ConsumeBatteryRate, 10, 64)
+		rewardType := ptr.ParseEnumInt[enum.RewardType](roomCfg.RewardType)
+		if err := p.processBatteryReward(ctx, thankInfo.UID, thankInfo.Uname, thankInfo.GiftName, rewardType, thankInfo.Price, thankInfo.Num, magnification); err != nil {
+			log.Printf("[live.Gift] 奖励发放失败: %v", err)
+		}
+	case enum.RewardPolicyVipReward:
+		if thankInfo.GiftType == enum.GiftTypeGuard {
+			var reward int64
+			switch thankInfo.BadgeType {
+			case enum.BadgeTypeL1:
+				reward, _ = strconv.ParseInt(roomCfg.CaptainRewardAmount, 10, 64)
+			case enum.BadgeTypeL2:
+				reward, _ = strconv.ParseInt(roomCfg.CommanderRewardAmount, 10, 64)
+			case enum.BadgeTypeL3:
+				reward, _ = strconv.ParseInt(roomCfg.GovernorRewardAmount, 10, 64)
+			}
+			rewardType := ptr.ParseEnumInt[enum.RewardType](roomCfg.RewardType)
+			if err := p.processVipReward(ctx, thankInfo.UID, thankInfo.Uname, rewardType, thankInfo.BadgeType, reward); err != nil {
+				log.Printf("[live.Gift] 奖励发放失败: %v", err)
+			}
+		}
+	}
+}
+
+// processBatteryReward 按消费电池发放积分
+func (p *giftProcessor) processBatteryReward(ctx context.Context, uid int64, uname, giftName string, rewardType enum.RewardType, price, num, magnification int64) error {
+	user, err := p.liveUserRepo.GetByUID(ctx, nil, uid)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		user, err = p.liveUserRepo.Create(ctx, nil, &model.LiveUser{
+			Uid:   uid,
+			Uname: uname,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	battery := price / 10
+	params := live_user_credit_log.AddCreditLogParams{
+		UserID:       user.ID,
+		ChangeType:   enum.ChangeTypeIncrease,
+		ChangeAmount: (battery * num) * magnification,
+		BizType:      "gift",
+		Remark:       fmt.Sprintf("用户赠送 %d 个价值 %d 电池的 %s (积分倍率 %d)", num, battery, giftName, magnification),
+		OperatorType: enum.OperatorTypeSystem,
+		OperatorID:   0,
+	}
+	switch rewardType {
+	case enum.RewardTypePoints:
+		_, err = p.liveUserCreditLogRepo.AddPointsLog(ctx, nil, params)
+	case enum.RewardTypeStars:
+		_, err = p.liveUserCreditLogRepo.AddStarsLog(ctx, nil, params)
+	}
+	return err
+}
+
+// processVipReward 按航海类型发放积分
+func (p *giftProcessor) processVipReward(ctx context.Context, uid int64, uname string, rewardType enum.RewardType, level enum.BadgeType, reward int64) error {
+	user, err := p.liveUserRepo.GetByUID(ctx, nil, uid)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		user, err = p.liveUserRepo.Create(ctx, nil, &model.LiveUser{
+			Uid:   uid,
+			Uname: uname,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	params := live_user_credit_log.AddCreditLogParams{
+		UserID:       user.ID,
+		ChangeType:   enum.ChangeTypeIncrease,
+		ChangeAmount: reward,
+		BizType:      "gift",
+		Remark:       fmt.Sprintf("用户开通 %s 奖励 %d", level.Text("zh"), reward),
+		OperatorType: enum.OperatorTypeSystem,
+		OperatorID:   0,
+	}
+	switch rewardType {
+	case enum.RewardTypePoints:
+		_, err = p.liveUserCreditLogRepo.AddPointsLog(ctx, nil, params)
+	case enum.RewardTypeStars:
+		_, err = p.liveUserCreditLogRepo.AddStarsLog(ctx, nil, params)
+	}
+	return err
 }
