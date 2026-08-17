@@ -587,22 +587,52 @@ definitions:
     type: object
   input.RoomConfigReq:
     properties:
-      isListening:
+      captain_reward_amount:
+        description: 开通舰长奖励数量, 奖励设置为按开通航海类型发放时生效
+        example: "0"
+        type: string
+      commander_reward_amount:
+        description: 开通提督奖励数量, 奖励设置为按开通航海类型发放时生效
+        example: "0"
+        type: string
+      consume_battery_rate:
+        description: 消费电池转换倍率, 奖励设置为按消费电池发放时生效
+        example: "0"
+        type: string
+      consume_reward_enabled:
+        description: 用户消费发放奖励, 0-不发放, 1-按消费电池发放, 2-按开通航海类型发放
+        example: "0"
+        type: string
+      governor_reward_amount:
+        description: 开通总督奖励数量, 奖励设置为按开通航海类型发放时生效
+        example: "0"
+        type: string
+      is_listening:
         description: 是否默认监听直播间, 0-否, 1-是
         example: "1"
         type: string
-      maxNameLength:
+      max_name_length:
         description: 用户名最大长度, 超过此长度则裁剪
         example: "8"
         type: string
-      nameTrimMode:
+      name_trim_mode:
         description: 裁剪方式, 0-省略后面, 1-省略前面
         example: "0"
         type: string
+      reward_type:
+        description: 奖励类型, 0-星光, 1-积分
+        example: "1"
+        type: string
     required:
-    - isListening
-    - maxNameLength
-    - nameTrimMode
+    - captain_reward_amount
+    - commander_reward_amount
+    - consume_battery_rate
+    - consume_reward_enabled
+    - governor_reward_amount
+    - is_listening
+    - max_name_length
+    - name_trim_mode
+    - reward_type
     type: object
   input.SendDanmuReq:
     properties:
@@ -1389,17 +1419,41 @@ definitions:
     type: object
   resp.RoomConfigResp:
     properties:
-      isListening:
+      captain_reward_amount:
+        description: 开通舰长奖励数量, 奖励设置为按开通航海类型发放时生效
+        example: "0"
+        type: string
+      commander_reward_amount:
+        description: 开通提督奖励数量, 奖励设置为按开通航海类型发放时生效
+        example: "0"
+        type: string
+      consume_battery_rate:
+        description: 消费电池转换倍率, 奖励设置为按消费电池发放时生效
+        example: "0"
+        type: string
+      consume_reward_enabled:
+        description: 用户消费发放奖励, 0-不发放, 1-按消费电池发放, 2-按开通航海类型发放
+        example: "0"
+        type: string
+      governor_reward_amount:
+        description: 开通总督奖励数量, 奖励设置为按开通航海类型发放时生效
+        example: "0"
+        type: string
+      is_listening:
         description: 是否默认监听直播间, 0-否, 1-是
         example: "1"
         type: string
-      maxNameLength:
+      max_name_length:
         description: 用户名最大长度, 超过此长度则裁剪
         example: "8"
         type: string
-      nameTrimMode:
+      name_trim_mode:
         description: 裁剪方式, 0-省略后面, 1-省略前面
         example: "0"
+        type: string
+      reward_type:
+        description: 奖励类型, 0-星光, 1-积分
+        example: "1"
         type: string
     type: object
   resp.ShareConfigResp:
