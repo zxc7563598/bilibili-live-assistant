@@ -30,6 +30,8 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.6.1",
+    "@iconify-json/arcticons": "^1.2.57",
+    "@iconify-json/tabler": "^1.2.38",
     "@iconify/json": "^2.2.443",
     "@unocss/eslint-config": "^66.6.2",
     "@unocss/eslint-plugin": "^66.6.2",

@@ -29,5 +29,5 @@ export function getIcons() {
  */
 export function getPagePathes() {
   const files = globSync('src/views/**/*.vue')
-  return files.map(item => `/${path.normalize(item).replace(/\\/g, '/')}`)
+  return files.map(item => `/${path.normalize(item).replaceAll('\\', '/')}`)
 }
