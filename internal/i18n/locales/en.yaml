@@ -47,6 +47,7 @@
 # 03 Menu Module
 # 04 Live Module
 # 05 Robot Config Module
+# 06 Live Danmu Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -101,6 +102,15 @@ error:
   10303: Please enter the menu ID # The menu code cannot be empty
   10304: Please select menu type # Menu type cannot be empty
   10305: Please enter the menu name. # The menu name cannot be empty
+  10401: Invalid request parameters # Parameter validation failed (Live module)
+  10402: QR code key is required # QR code key cannot be empty
+  10403: Room ID is required # Room ID cannot be empty
+  10404: Invalid room ID format # Room ID format is invalid
+  10405: Please enter danmu content # Danmu content cannot be empty
+  10406: Danmu content is too short # Danmu content length is insufficient
+  10407: Danmu content is too long # Danmu content exceeds the maximum length limit
+  10501: Invalid request parameters # Parameter validation failed (Robot Config)
+  10601: Invalid request parameters # Parameter validation failed
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   30001: Unauthorized operation # The current account does not have access permission
@@ -113,6 +123,14 @@ error:
   40106: Captcha expired, please refresh and try again # altcha challenge expired
   40201: Binding failed, the administrator has already bound this role. # The current administrator already possesses this role
   40202: Binding failed, current role is unavailable # The current role has been deactivated
+  40401: Not logged in to Bilibili, please scan QR code first # Not logged in to Bilibili
+  40402: Listener is already running # Listener already running
+  40403: Listener is not running # Listener not running
+  40404: Invalid room ID # Room ID invalid
+  40405: Login failed or QR code expired # Login failed / QR code expired
+  40406: Failed to start listener # Start listener failed
+  40407: Failed to stop listener # Stop listener failed
+  40408: Listener connection error # Listener connection error
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
@@ -143,26 +161,11 @@ error:
   60303: Operation failed, please try again later # Menu information change failed
   60304: Operation failed, please try again later # Menu status switching failed
   60305: Operation failed, please try again later # Menu deletion failed
-  10401: Invalid request parameters # Parameter validation failed (Live module)
-  10402: QR code key is required # QR code key cannot be empty
-  10403: Room ID is required # Room ID cannot be empty
-  10404: Invalid room ID format # Room ID format is invalid
-  10405: Please enter danmu content # Danmu content cannot be empty
-  10406: Danmu content is too short # Danmu content length is insufficient
-  10407: Danmu content is too long # Danmu content exceeds the maximum length limit
-  10501: Invalid request parameters # Parameter validation failed (Robot Config)
-  40401: Not logged in to Bilibili, please scan QR code first # Not logged in to Bilibili
-  40402: Listener is already running # Listener already running
-  40403: Listener is not running # Listener not running
-  40404: Invalid room ID # Room ID invalid
-  40405: Login failed or QR code expired # Login failed / QR code expired
-  40406: Failed to start listener # Start listener failed
-  40407: Failed to stop listener # Stop listener failed
-  40408: Listener connection error # Listener connection error
   60401: Bilibili API request failed, please try again later # Bilibili API request failed
   60501: Failed to get config, please try again later # Database query error (Robot Config)
   60502: Failed to update config, please try again later # Database update error (Robot Config)
   60503: Failed to refresh config cache, please try again later # Cache reload error (Robot Config)
+  60601: System busy, please try again later # Database query exception
 
 gender:
   female: female

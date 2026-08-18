@@ -989,6 +989,62 @@
                 }
             }
         },
+        "/api/admin/livedanmu/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取弹幕列表，支持按房间ID，用户信息，弹幕信息，发送时间进行筛选",
+                "tags": [
+                    "弹幕管理"
+                ],
+                "summary": "分页查询弹幕列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveDanmuListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveDanmuListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/menu/buttons": {
             "post": {
                 "security": [
@@ -2427,6 +2483,21 @@
         }
     },
     "definitions": {
+        "enum.BadgeType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "BadgeTypeL0",
+                "BadgeTypeL3",
+                "BadgeTypeL2",
+                "BadgeTypeL1"
+            ]
+        },
         "input.AdConfigReq": {
             "type": "object",
             "required": [
@@ -2788,6 +2859,56 @@
                     "description": "展示数量, 0-禁用, 1-启用",
                     "type": "string",
                     "example": "1"
+                }
+            }
+        },
+        "input.LiveDanmuListPageReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "msg": {
+                    "description": "弹幕内容，支持模糊搜索",
+                    "type": "string",
+                    "example": "好耶"
+                },
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "room_id": {
+                    "description": "房间ID",
+                    "type": "integer",
+                    "example": 22384516
+                },
+                "send_at": {
+                    "description": "弹幕发送时间区间",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1183135260000,
+                        1787024216391
+                    ]
+                },
+                "uid": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称，支持模糊搜索",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
                 }
             }
         },
@@ -3750,6 +3871,77 @@
                     "description": "展示数量, 0-禁用, 1-启用",
                     "type": "string",
                     "example": "1"
+                }
+            }
+        },
+        "resp.LiveDanmuListPageItem": {
+            "type": "object",
+            "properties": {
+                "badge_level": {
+                    "description": "勋章等级",
+                    "type": "integer",
+                    "example": 30
+                },
+                "badge_name": {
+                    "description": "勋章名称",
+                    "type": "string",
+                    "example": "小米星"
+                },
+                "badge_room_id": {
+                    "description": "勋章房间ID",
+                    "type": "integer",
+                    "example": 22384516
+                },
+                "badge_type": {
+                    "description": "勋章类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.BadgeType"
+                        }
+                    ],
+                    "example": 1
+                },
+                "id": {
+                    "description": "弹幕ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "msg": {
+                    "description": "弹幕内容",
+                    "type": "string",
+                    "example": "好耶"
+                },
+                "send_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2025-01-02 12:22:22"
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 27461511
+                },
+                "uname": {
+                    "description": "用户名称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
+        "resp.LiveDanmuListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveDanmuListPageItem"
+                    }
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
                 }
             }
         },

@@ -1,5 +1,17 @@
 basePath: /
 definitions:
+  enum.BadgeType:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - BadgeTypeL0
+    - BadgeTypeL3
+    - BadgeTypeL2
+    - BadgeTypeL1
   input.AdConfigReq:
     properties:
       content:
@@ -276,6 +288,44 @@ definitions:
     - requirement
     - scene
     - show_count
+    type: object
+  input.LiveDanmuListPageReq:
+    properties:
+      msg:
+        description: 弹幕内容，支持模糊搜索
+        example: 好耶
+        type: string
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      room_id:
+        description: 房间ID
+        example: 22384516
+        type: integer
+      send_at:
+        description: 弹幕发送时间区间
+        example:
+        - 1183135260000
+        - 1787024216391
+        items:
+          type: integer
+        type: array
+      uid:
+        description: 用户ID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称，支持模糊搜索
+        example: 哎呀又胖啦
+        type: string
+    required:
+    - pageNo
+    - pageSize
     type: object
   input.LiveQRCodePollReq:
     properties:
@@ -998,6 +1048,58 @@ definitions:
         description: 展示数量, 0-禁用, 1-启用
         example: "1"
         type: string
+    type: object
+  resp.LiveDanmuListPageItem:
+    properties:
+      badge_level:
+        description: 勋章等级
+        example: 30
+        type: integer
+      badge_name:
+        description: 勋章名称
+        example: 小米星
+        type: string
+      badge_room_id:
+        description: 勋章房间ID
+        example: 22384516
+        type: integer
+      badge_type:
+        allOf:
+        - $ref: '#/definitions/enum.BadgeType'
+        description: 勋章类型
+        example: 1
+      id:
+        description: 弹幕ID
+        example: 1
+        type: integer
+      msg:
+        description: 弹幕内容
+        example: 好耶
+        type: string
+      send_at:
+        description: 创建时间
+        example: "2025-01-02 12:22:22"
+        type: string
+      uid:
+        description: 用户UID
+        example: 27461511
+        type: integer
+      uname:
+        description: 用户名称
+        example: 哎呀又胖啦
+        type: string
+    type: object
+  resp.LiveDanmuListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.LiveDanmuListPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
     type: object
   resp.LiveListenerStatusResp:
     properties:
@@ -2166,6 +2268,39 @@ paths:
       summary: 添加/更换监听直播间房间号
       tags:
       - 直播控制
+  /api/admin/livedanmu/list:
+    post:
+      description: 分页获取弹幕列表，支持按房间ID，用户信息，弹幕信息，发送时间进行筛选
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveDanmuListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveDanmuListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询弹幕列表
+      tags:
+      - 弹幕管理
   /api/admin/menu/buttons:
     post:
       description: 根据菜单 ID 获取其下的按钮权限列表（按钮类型菜单），用于前端页面按钮级权限控制
