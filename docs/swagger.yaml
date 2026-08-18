@@ -1049,6 +1049,20 @@ definitions:
         example: "1"
         type: string
     type: object
+  resp.LiveDanmuFetchRoomGroupsItem:
+    properties:
+      label:
+        type: string
+      value:
+        type: integer
+    type: object
+  resp.LiveDanmuFetchRoomGroupsResp:
+    properties:
+      option:
+        items:
+          $ref: '#/definitions/resp.LiveDanmuFetchRoomGroupsItem'
+        type: array
+    type: object
   resp.LiveDanmuListPageItem:
     properties:
       badge_level:
@@ -2299,6 +2313,33 @@ paths:
       security:
       - BearerAuth: []
       summary: 分页查询弹幕列表
+      tags:
+      - 弹幕管理
+  /api/admin/livedanmu/room:
+    post:
+      description: 获取弹幕记录的所有房间ID，用于列表选定房间搜索
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveDanmuFetchRoomGroupsResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取全部房间ID
       tags:
       - 弹幕管理
   /api/admin/menu/buttons:

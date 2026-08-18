@@ -1052,6 +1052,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/livedanmu/room": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取弹幕记录的所有房间ID，用于列表选定房间搜索",
+                "tags": [
+                    "弹幕管理"
+                ],
+                "summary": "获取全部房间ID",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveDanmuFetchRoomGroupsResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/menu/buttons": {
             "post": {
                 "security": [
@@ -3878,6 +3925,28 @@ const docTemplate = `{
                     "description": "展示数量, 0-禁用, 1-启用",
                     "type": "string",
                     "example": "1"
+                }
+            }
+        },
+        "resp.LiveDanmuFetchRoomGroupsItem": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "resp.LiveDanmuFetchRoomGroupsResp": {
+            "type": "object",
+            "properties": {
+                "option": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveDanmuFetchRoomGroupsItem"
+                    }
                 }
             }
         },
