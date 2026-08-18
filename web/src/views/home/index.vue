@@ -442,13 +442,13 @@ async function fetchLoginStatus() {
     }
   }
   catch {
-    loginStatus = ref({
+    loginStatus.value = {
       isLoggedIn: false,
       uid: 0,
       username: '',
       face: '',
       buvid: '',
-    })
+    }
   }
   finally {
     loginLoading.value = false
@@ -582,7 +582,7 @@ async function fetchListenerStatus() {
     }
   }
   catch {
-    listenerStatus = ref({
+    listenerStatus.value = {
       isRunning: false,
       roomId: 0,
       startTime: '',
@@ -596,7 +596,7 @@ async function fetchListenerStatus() {
       online: 0,
       attention: 0,
       liveTime: '',
-    })
+    }
     disconnectWebSocket()
   }
   finally {
