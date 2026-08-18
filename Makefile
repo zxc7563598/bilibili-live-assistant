@@ -17,6 +17,11 @@ VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo none)
 BUILD_TIME := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+# 导出给子 make：release 会并发派生子 make 重新解析本文件，
+# 若此时再跑 git describe（clean 已删除 docs/）会误判 -dirty，
+# 故在顶层解析时就固定好版本并传给子 make。
+export VERSION COMMIT BUILD_TIME
+
 # 链接参数：剥离符号表/调试信息(-s -w)、去除 buildid、注入版本信息
 LDFLAGS := -s -w -buildid= \
 	-X $(MODULE)/internal/version.Version=$(VERSION) \
