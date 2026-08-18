@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -87,11 +88,23 @@ func main() {
 	docs.SwaggerInfo.Host = fmt.Sprintf("localhost:%d", serverPort)
 	// 启动服务
 	go func() {
-		log.Printf("服务在 %s 启动 (版本: %s, 提交: %s)\n", addr, version.Version, version.Commit)
-		log.Printf("打开浏览器，前往：http://127.0.0.1%s/admin 访问后台\n", addr)
-		log.Printf("默认账号：admin\n")
-		log.Printf("默认密码：123456\n")
+		remoteVersion, needUpdate, err := version.CheckUpdate()
+		log.Printf("服务在 %s 启动 (版本: %s, 提交: %s)", addr, version.Version, version.Commit)
+		log.Printf("打开浏览器，前往：http://127.0.0.1%s/admin 访问后台", addr)
+		log.Printf("默认账号：admin")
+		log.Printf("默认密码：123456")
 		log.Printf("关闭该窗口后软件会自行退出，下次启动重新打开软件即可")
+		log.Println(strings.Repeat("-", 50))
+		if err != nil {
+			log.Printf("[警告] 检查更新失败: %s (请检查网络连接)", err)
+		} else {
+			if needUpdate {
+				log.Printf("[提示] 发现新版本！当前版本: %s，最新版本: %s，建议前往下载更新", version.Version, remoteVersion)
+			} else {
+				log.Printf("[提示] 当前已是最新版本 (%s)", version.Version)
+			}
+		}
+		log.Println(strings.Repeat("-", 50))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("监听错误: %v", err)
 		}
