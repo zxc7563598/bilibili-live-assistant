@@ -45,7 +45,9 @@ func unmarshalConfig(m map[string]string, v any) error {
 		if fv.Kind() == reflect.String {
 			fv.SetString(val)
 		} else {
-			// 非字符串类型统一用 JSON 反序列化，支持 []string、[]struct 等任意复合类型
+			if val == "" {
+				continue
+			}
 			dest := reflect.New(fv.Type())
 			if err := json.Unmarshal([]byte(val), dest.Interface()); err != nil {
 				return fmt.Errorf("解析字段 %s 失败: %w", field.Name, err)
