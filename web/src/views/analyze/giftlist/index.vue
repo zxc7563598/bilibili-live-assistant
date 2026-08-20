@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { NTag } from 'naive-ui'
+import { NTag, NTooltip } from 'naive-ui'
 import { MeCrud, MeQueryItem, StatisticsCard } from '@/components'
 import api from './api'
 
@@ -71,7 +71,18 @@ const columns = [
     },
   },
   { title: '用户昵称', key: 'uname', minWidth: 120 },
-  { title: '礼物名称', key: 'gift_name' },
+  { title: '礼物名称', key: 'gift_name', render(row) {
+    return row.message
+      ? h(
+          NTooltip,
+          { showArrow: false, trigger: 'hover' },
+          {
+            trigger: () => row.gift_name,
+            default: () => row.message,
+          },
+        )
+      : row.gift_name
+  } },
   {
     title: '单价',
     key: 'price',
