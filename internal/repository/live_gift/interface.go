@@ -36,6 +36,8 @@ type Repository interface {
 	BlindBoxListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) ([]model.LiveGift, int64, error)
 	// BlindBoxListStats 分页盲盒礼物列表聚合统计
 	BlindBoxListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (int64, int64, error)
+	// GetUserTotalGiftAmount 获取指定uid赠送总金额
+	GetUserTotalGiftAmount(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
 	// ListByUID 根据 UID 查询礼物，按 SendAt 倒序，limit 控制最大条数
 	ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveGift, error)
 	// ListByLiveID 根据 LiveID 查询礼物，按 SendAt 倒序，limit 控制最大条数
@@ -123,6 +125,18 @@ func (r *gormRepo) BlindBoxListStats(ctx context.Context, tx *gorm.DB, query mod
 		return 0, 0, err
 	}
 	return result.OriginalPrice, result.CurrentPrice, nil
+}
+
+// GetUserTotalGiftAmount 获取指定uid赠送总金额
+func (r *gormRepo) GetUserTotalGiftAmount(ctx context.Context, tx *gorm.DB, uid int64) (int64, error) {
+	var amount int64
+	err := r.getDB(ctx, tx).
+		Model(&model.LiveGift{}).
+		Where("uid = ?", uid).
+		Select(`COALESCE(SUM(num * price), 0)`).
+		Scan(&amount).
+		Error
+	return amount, err
 }
 
 // ListByUID 根据 UID 查询礼物

@@ -13,11 +13,11 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
-	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_sign_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
@@ -26,7 +26,7 @@ import (
 
 // danmuProcessor 处理弹幕消息（DANMU_MSG）
 type danmuProcessor struct {
-	liveUserRepo          live_user.Repository
+	liveUserSvc           *liveuser.Service
 	liveDanmuRepo         live_danmu.Repository
 	liveGiftRepo          live_gift.Repository
 	liveUserCreditLogRepo live_user_credit_log.Repository
@@ -39,9 +39,9 @@ type danmuProcessor struct {
 	enqueueDanmu          func(msg string, kind string)
 }
 
-func newDanmuProcessor(liveUserRepo live_user.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *danmuProcessor {
+func newDanmuProcessor(liveUserSvc *liveuser.Service, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *danmuProcessor {
 	return &danmuProcessor{
-		liveUserRepo:          liveUserRepo,
+		liveUserSvc:           liveUserSvc,
 		liveDanmuRepo:         liveDanmuRepo,
 		liveGiftRepo:          liveGiftRepo,
 		liveUserCreditLogRepo: liveUserCreditLogRepo,
@@ -225,13 +225,13 @@ func (p *danmuProcessor) resolveSignVars(ctx context.Context, info *live.DanmuMs
 	}
 	// 单次 IO：points 和 stars 共享一次 GetByUID
 	if needed["points"] || needed["stars"] {
-		user, err := p.liveUserRepo.GetByUID(ctx, nil, info.UID)
-		if err == nil && user != nil {
+		balance, err := p.liveUserSvc.GetUserBalance(ctx, info.UID)
+		if err == nil && balance != nil {
 			if needed["points"] {
-				vars["points"] = strconv.FormatInt(user.Points, 10)
+				vars["points"] = strconv.FormatInt(balance.Points, 10)
 			}
 			if needed["stars"] {
-				vars["stars"] = strconv.FormatInt(user.Stars, 10)
+				vars["stars"] = strconv.FormatInt(balance.Stars, 10)
 			}
 		}
 	}
@@ -271,21 +271,12 @@ func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, 
 
 // grantSignReward 注册用户（如不存在）并发放签到奖励
 func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMsgInfo, rewardType enum.CreditType, rewardAmount int64) error {
-	user, err := p.liveUserRepo.GetByUID(ctx, nil, info.UID)
+	userID, err := p.liveUserSvc.EnsureUser(ctx, info.UID, info.Uname)
 	if err != nil {
 		return err
 	}
-	if user == nil {
-		user, err = p.liveUserRepo.Create(ctx, nil, &model.LiveUser{
-			Uid:   info.UID,
-			Uname: info.Uname,
-		})
-		if err != nil {
-			return err
-		}
-	}
 	params := live_user_credit_log.AddCreditLogParams{
-		UserID:       user.ID,
+		UserID:       userID,
 		ChangeType:   enum.ChangeTypeIncrease,
 		ChangeAmount: rewardAmount,
 		BizType:      "sign",

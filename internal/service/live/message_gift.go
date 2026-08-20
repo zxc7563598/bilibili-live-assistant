@@ -14,10 +14,10 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
-	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
@@ -51,7 +51,7 @@ func newGiftMergeBuffer(interval time.Duration) *giftMergeBuffer {
 
 // giftProcessor 处理礼物相关消息（SEND_GIFT / SEND_GIFT_V2 / GUARD_BUY / SUPER_CHAT_MESSAGE）
 type giftProcessor struct {
-	liveUserRepo          live_user.Repository
+	liveUserSvc           *liveuser.Service
 	liveGiftRepo          live_gift.Repository
 	LiveUserBlacklistRepo live_user_blacklist.Repository
 	liveUserCreditLogRepo live_user_credit_log.Repository
@@ -78,9 +78,9 @@ type giftThankInfo struct {
 	BadgeType         enum.BadgeType // 牌子类型
 }
 
-func newGiftProcessor(liveUserRepo live_user.Repository, liveGiftRepo live_gift.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
+func newGiftProcessor(liveUserSvc *liveuser.Service, liveGiftRepo live_gift.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
 	return &giftProcessor{
-		liveUserRepo:          liveUserRepo,
+		liveUserSvc:           liveUserSvc,
 		liveGiftRepo:          liveGiftRepo,
 		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
 		liveUserCreditLogRepo: liveUserCreditLogRepo,
@@ -489,22 +489,13 @@ func (p *giftProcessor) processReward(ctx context.Context, thankInfo *giftThankI
 
 // processBatteryReward 按消费电池发放积分
 func (p *giftProcessor) processBatteryReward(ctx context.Context, uid int64, uname, giftName string, rewardType enum.RewardType, price, num, magnification int64) error {
-	user, err := p.liveUserRepo.GetByUID(ctx, nil, uid)
+	userID, err := p.liveUserSvc.EnsureUser(ctx, uid, uname)
 	if err != nil {
 		return err
 	}
-	if user == nil {
-		user, err = p.liveUserRepo.Create(ctx, nil, &model.LiveUser{
-			Uid:   uid,
-			Uname: uname,
-		})
-		if err != nil {
-			return err
-		}
-	}
 	battery := price / 10
 	params := live_user_credit_log.AddCreditLogParams{
-		UserID:       user.ID,
+		UserID:       userID,
 		ChangeType:   enum.ChangeTypeIncrease,
 		ChangeAmount: (battery * num) * magnification,
 		BizType:      "gift",
@@ -523,21 +514,9 @@ func (p *giftProcessor) processBatteryReward(ctx context.Context, uid int64, una
 
 // processVipReward 按航海类型发放积分
 func (p *giftProcessor) processVipReward(ctx context.Context, uid int64, uname string, rewardType enum.RewardType, level enum.BadgeType, reward int64) error {
-	user, err := p.liveUserRepo.GetByUID(ctx, nil, uid)
-	if err != nil {
-		return err
-	}
-	if user == nil {
-		user, err = p.liveUserRepo.Create(ctx, nil, &model.LiveUser{
-			Uid:   uid,
-			Uname: uname,
-		})
-		if err != nil {
-			return err
-		}
-	}
+	userID, err := p.liveUserSvc.EnsureUser(ctx, uid, uname)
 	params := live_user_credit_log.AddCreditLogParams{
-		UserID:       user.ID,
+		UserID:       userID,
 		ChangeType:   enum.ChangeTypeIncrease,
 		ChangeAmount: reward,
 		BizType:      "gift",

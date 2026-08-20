@@ -23,6 +23,8 @@ type Repository interface {
 	UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error
 	// CountByRoomIDAndTimeRange 统计指定房间在时间范围内的弹幕数量
 	CountByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
+	// CountByUID 统计指定uid的弹幕数量
+	CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -98,6 +100,16 @@ func (r *gormRepo) CountByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, s
 		Where("room_id = ? AND send_at >= ? AND send_at <= ?", roomID, startTime, endTime).
 		Count(&count).Error
 	return count, err
+}
+
+// CountByUID 统计指定uid的弹幕数量
+func (r *gormRepo) CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error) {
+	db := r.getDB(ctx, tx)
+	var total int64
+	if err := db.Model(&model.LiveDanmu{}).Where("uid = ?", uid).Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
 }
 
 // escapeLike 转义 LIKE 查询中的特殊字符 _ %
