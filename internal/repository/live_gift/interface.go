@@ -30,6 +30,8 @@ type Repository interface {
 	DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error)
 	// ListPage 分页查询礼物，Uname/GiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) ([]model.LiveGift, int64, error)
+	// ListStats 分页礼物列表聚合统计
+	ListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (int64, int64, error)
 	// ListByUID 根据 UID 查询礼物，按 SendAt 倒序，limit 控制最大条数
 	ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveGift, error)
 	// ListByLiveID 根据 LiveID 查询礼物，按 SendAt 倒序，limit 控制最大条数
@@ -62,35 +64,30 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGi
 	var total int64
 	db := r.getDB(ctx, tx)
 	db = db.Model(&model.LiveGift{})
-	if v := query.RoomID; v != nil {
-		db = db.Where("room_id = ?", *v)
-	}
-	if v := query.UID; v != nil {
-		db = db.Where("uid = ?", *v)
-	}
-	if v := query.Uname; v != nil && *v != "" {
-		db = db.Where("uname LIKE ?", "%"+escapeLike(*v)+"%")
-	}
-	if v := query.GiftName; v != nil && *v != "" {
-		db = db.Where("gift_name LIKE ?", "%"+escapeLike(*v)+"%")
-	}
-	if v := query.GiftType; v != nil {
-		db = db.Where("gift_type = ?", *v)
-	}
-	if v := query.Original; v != nil {
-		db = db.Where("original = ?", *v)
-	}
-	if v := query.SendAtStart; v != nil {
-		db = db.Where("send_at >= ?", *v)
-	}
-	if v := query.SendAtEnd; v != nil {
-		db = db.Where("send_at <= ?", *v)
-	}
+	db = r.applyLiveGiftListQuery(db, query)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 	err := db.Order("send_at desc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
+}
+
+// ListStats 分页礼物列表聚合统计
+func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (int64, int64, error) {
+	var result struct {
+		TotalNum    int64
+		TotalAmount int64
+	}
+	db := r.getDB(ctx, tx).Model(&model.LiveGift{})
+	db = r.applyLiveGiftListQuery(db, query)
+	err := db.Select(`
+		COALESCE(SUM(num), 0) AS total_num,
+		COALESCE(SUM(num * price), 0) AS total_amount
+	`).Scan(&result).Error
+	if err != nil {
+		return 0, 0, err
+	}
+	return result.TotalNum, result.TotalAmount, nil
 }
 
 // ListByUID 根据 UID 查询礼物
@@ -185,4 +182,39 @@ func escapeLike(s string) string {
 		b.WriteRune(r)
 	}
 	return b.String()
+}
+
+// applyLiveGiftQuery 构建礼物列表筛选条件
+func (r *gormRepo) applyLiveGiftListQuery(db *gorm.DB, query model.LiveGiftListPageQuery) *gorm.DB {
+	if v := query.RoomID; v != nil {
+		db = db.Where("room_id = ?", *v)
+	}
+	if v := query.UID; v != nil {
+		db = db.Where("uid = ?", *v)
+	}
+	if v := query.Uname; v != nil && *v != "" {
+		db = db.Where("uname LIKE ?", "%"+escapeLike(*v)+"%")
+	}
+	if v := query.GiftName; v != nil && *v != "" {
+		db = db.Where("gift_name LIKE ?", "%"+escapeLike(*v)+"%")
+	}
+	if v := query.GiftType; v != nil {
+		g := enum.GiftType(*v)
+		if g.IsValid() {
+			db = db.Where("gift_type = ?", g)
+		}
+	}
+	if v := query.Original; v != nil {
+		o := enum.YesNo(*v)
+		if o.IsValid() {
+			db = db.Where("original = ?", o)
+		}
+	}
+	if v := query.SendAtStart; v != nil {
+		db = db.Where("send_at >= ?", *v)
+	}
+	if v := query.SendAtEnd; v != nil {
+		db = db.Where("send_at <= ?", *v)
+	}
+	return db
 }

@@ -18,7 +18,6 @@
             <i class="i-fe:search mr-4" />
             搜索
           </n-button>
-
           <template v-if="expand">
             <n-button v-if="!isExpanded" type="primary" text @click="toggleExpand">
               <i class="i-fe:chevrons-down ml-4" />
@@ -31,6 +30,10 @@
           </template>
         </div>
       </form>
+    </AppCard>
+
+    <AppCard v-if="$slots.default" bordered bg="#fafafc dark:black" class="mb-30 min-h-60 rounded-4">
+      <slot name="statistic" />
     </AppCard>
 
     <NDataTable
@@ -110,7 +113,7 @@ const initQuery = { ...props.queryItems }
 const tableData = ref([])
 const pagination = reactive({
   page: 1,
-  pageSize: 10,
+  pageSize: 20,
   prefix({ itemCount }) {
     return `共 ${itemCount} 条数据`
   },

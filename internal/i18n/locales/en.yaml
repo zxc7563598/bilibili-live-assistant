@@ -48,6 +48,7 @@
 # 04 Live Module
 # 05 Robot Config Module
 # 06 Live Danmu Module
+# 07 Live Gift Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -166,6 +167,7 @@ error:
   60502: Failed to update config, please try again later # Database update error (Robot Config)
   60503: Failed to refresh config cache, please try again later # Cache reload error (Robot Config)
   60601: System busy, please try again later # Database query exception
+  60701: System busy, please try again later # Database query exception
 
 gender:
   female: female

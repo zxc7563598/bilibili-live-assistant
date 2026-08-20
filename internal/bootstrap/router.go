@@ -104,6 +104,9 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// 弹幕列表路由
 	adminApi.POST("/livedanmu/room", middleware.AdminAuth(rdb), handlers.LiveDanmu.FetchRoomGroups)
 	adminApi.POST("/livedanmu/list", middleware.AdminAuth(rdb), handlers.LiveDanmu.ListPage)
+	// 礼物列表路由
+	adminApi.POST("/livegift/room", middleware.AdminAuth(rdb), handlers.LiveGift.FetchRoomGroups)
+	adminApi.POST("/livegift/list", middleware.AdminAuth(rdb), handlers.LiveGift.ListPage)
 	return r
 }
 

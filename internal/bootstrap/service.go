@@ -8,6 +8,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livedanmu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/menu"
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
@@ -22,6 +23,7 @@ type Services struct {
 	Live        *live.Service
 	RobotConfig *robotconfigsvc.Service
 	LiveDanmu   livedanmu.Service
+	LiveGift    livegift.Service
 }
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache) *Services {
@@ -34,5 +36,6 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		Live:        live.New(cfg.Live, robotConfigSvc, configCache, repo.LiveDanmu, repo.LiveGift, repo.LiveSession, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveUserSignLog, repo.LiveUserBlacklist, repo.LiveInteractWord),
 		RobotConfig: robotConfigSvc,
 		LiveDanmu:   *livedanmu.New(repo.LiveDanmu),
+		LiveGift:    *livegift.New(repo.LiveGift),
 	}
 }
