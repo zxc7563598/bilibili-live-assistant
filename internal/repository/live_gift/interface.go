@@ -32,6 +32,10 @@ type Repository interface {
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) ([]model.LiveGift, int64, error)
 	// ListStats 分页礼物列表聚合统计
 	ListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (int64, int64, error)
+	// BlindBoxListPage 分页查询盲盒礼物，Uname/GiftName/OriginalGiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
+	BlindBoxListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) ([]model.LiveGift, int64, error)
+	// BlindBoxListStats 分页盲盒礼物列表聚合统计
+	BlindBoxListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (int64, int64, error)
 	// ListByUID 根据 UID 查询礼物，按 SendAt 倒序，limit 控制最大条数
 	ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveGift, error)
 	// ListByLiveID 根据 LiveID 查询礼物，按 SendAt 倒序，limit 控制最大条数
@@ -88,6 +92,37 @@ func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LiveG
 		return 0, 0, err
 	}
 	return result.TotalNum, result.TotalAmount, nil
+}
+
+// BlindBoxListPage 分页查询盲盒礼物，Uname/GiftName/OriginalGiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
+func (r *gormRepo) BlindBoxListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) ([]model.LiveGift, int64, error) {
+	var list []model.LiveGift
+	var total int64
+	db := r.getDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
+	db = r.applyLiveGiftBlindBoxListQuery(db, query)
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	err := db.Order("send_at desc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
+	return list, total, err
+}
+
+// BlindBoxListStats 分页盲盒礼物列表聚合统计
+func (r *gormRepo) BlindBoxListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (int64, int64, error) {
+	var result struct {
+		OriginalPrice int64
+		CurrentPrice  int64
+	}
+	db := r.getDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
+	db = r.applyLiveGiftBlindBoxListQuery(db, query)
+	err := db.Select(`
+		COALESCE(SUM(num * original_gift_price), 0) AS original_price,
+		COALESCE(SUM(num * price), 0) AS current_price
+	`).Scan(&result).Error
+	if err != nil {
+		return 0, 0, err
+	}
+	return result.OriginalPrice, result.CurrentPrice, nil
 }
 
 // ListByUID 根据 UID 查询礼物
@@ -209,6 +244,32 @@ func (r *gormRepo) applyLiveGiftListQuery(db *gorm.DB, query model.LiveGiftListP
 		if o.IsValid() {
 			db = db.Where("original = ?", o)
 		}
+	}
+	if v := query.SendAtStart; v != nil {
+		db = db.Where("send_at >= ?", *v)
+	}
+	if v := query.SendAtEnd; v != nil {
+		db = db.Where("send_at <= ?", *v)
+	}
+	return db
+}
+
+// applyLiveGiftBlindBoxListQuery 构建盲盒礼物列表筛选条件
+func (r *gormRepo) applyLiveGiftBlindBoxListQuery(db *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) *gorm.DB {
+	if v := query.RoomID; v != nil {
+		db = db.Where("room_id = ?", *v)
+	}
+	if v := query.UID; v != nil {
+		db = db.Where("uid = ?", *v)
+	}
+	if v := query.Uname; v != nil && *v != "" {
+		db = db.Where("uname LIKE ?", "%"+escapeLike(*v)+"%")
+	}
+	if v := query.GiftName; v != nil && *v != "" {
+		db = db.Where("gift_name LIKE ?", "%"+escapeLike(*v)+"%")
+	}
+	if v := query.OriginalGiftName; v != nil && *v != "" {
+		db = db.Where("original_gift_name LIKE ?", "%"+escapeLike(*v)+"%")
 	}
 	if v := query.SendAtStart; v != nil {
 		db = db.Where("send_at >= ?", *v)

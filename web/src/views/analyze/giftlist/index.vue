@@ -14,10 +14,10 @@
         <n-input v-model:value="query.gift_name" placeholder="支持模糊搜索" />
       </MeQueryItem>
       <MeQueryItem label="礼物类型">
-        <n-select v-model:value="query.gift_type" :options="giftTypeOptions" placeholder="请指定房间" />
+        <n-select v-model:value="query.gift_type" :options="giftTypeOptions" placeholder="请指定礼物类型" />
       </MeQueryItem>
       <MeQueryItem label="原始礼物">
-        <n-select v-model:value="query.original" :options="originalOptions" placeholder="请指定房间" />
+        <n-select v-model:value="query.original" :options="originalOptions" placeholder="是否是原始礼物" />
       </MeQueryItem>
       <MeQueryItem label="发送时间">
         <n-date-picker v-model:value="query.send_at" type="daterange" clearable />

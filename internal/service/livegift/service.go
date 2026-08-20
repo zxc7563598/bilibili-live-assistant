@@ -69,3 +69,37 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		},
 	}, 0, nil
 }
+
+// BlindBoxListPage 用于获取盲盒礼物列表信息
+func (s *Service) BlindBoxListPage(ctx context.Context, req BlindBoxListPageReq) (BlindBoxListPageResp, int, error) {
+	// 获取列表数据
+	offset, limit := req.OffsetLimit()
+	queue := model.LiveGiftBlindBoxListPageQuery{
+		RoomID:           req.RoomID,
+		UID:              req.UID,
+		Uname:            req.Uname,
+		GiftName:         req.GiftName,
+		OriginalGiftName: req.OriginalGiftName,
+		SendAtStart:      req.SendAtStart,
+		SendAtEnd:        req.SendAtEnd,
+		Offset:           offset,
+		Limit:            limit,
+	}
+	listGift, total, err := s.liveGiftRepo.BlindBoxListPage(ctx, nil, queue)
+	if err != nil {
+		return BlindBoxListPageResp{}, 60701, err
+	}
+	originalPrice, currentPrice, err := s.liveGiftRepo.BlindBoxListStats(ctx, nil, queue)
+	if err != nil {
+		return BlindBoxListPageResp{}, 60701, err
+	}
+	// 返回数据
+	return BlindBoxListPageResp{
+		Total:    total,
+		PageData: toBlindBoxListPageItems(listGift),
+		Stats: BlindBoxListPageStats{
+			OriginalPrice: originalPrice,
+			CurrentPrice:  currentPrice,
+		},
+	}, 0, nil
+}

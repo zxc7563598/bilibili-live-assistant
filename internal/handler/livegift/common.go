@@ -35,3 +35,24 @@ func toFetchRoomGroupsItems(list []livegift.FetchRoomGroupsResp) []resp.LiveGift
 	}
 	return res
 }
+
+func toLiveGiftBlindBoxListItems(list []livegift.BlindBoxListPageItem) []resp.LiveGiftBlindBoxListPageItem {
+	res := make([]resp.LiveGiftBlindBoxListPageItem, 0, len(list))
+	for _, v := range list {
+		res = append(res, resp.LiveGiftBlindBoxListPageItem{
+			ID:                v.ID,
+			UID:               v.UID,
+			Uname:             v.Uname,
+			GiftName:          v.GiftName,
+			Price:             v.Price,
+			Num:               v.Num,
+			OriginalGiftName:  v.OriginalGiftName,
+			OriginalGiftPrice: v.OriginalGiftPrice,
+			BadgeName:         v.BadgeName,
+			BadgeLevel:        v.BadgeLevel,
+			BadgeType:         v.BadgeType,
+			SendAt:            v.SendAt,
+		})
+	}
+	return res
+}

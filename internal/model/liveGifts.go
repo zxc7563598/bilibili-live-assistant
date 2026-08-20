@@ -43,3 +43,16 @@ type LiveGiftListPageQuery struct {
 	Offset      int
 	Limit       int
 }
+
+// LiveGiftBlindBoxListPageQuery 盲盒礼物分页查询入参，不对应数据库表
+type LiveGiftBlindBoxListPageQuery struct {
+	RoomID           *int64
+	UID              *int64
+	Uname            *string
+	GiftName         *string
+	OriginalGiftName *string
+	SendAtStart      *int64
+	SendAtEnd        *int64
+	Offset           int
+	Limit            int
+}
