@@ -3,6 +3,7 @@ package live_danmu
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
@@ -25,6 +26,11 @@ type Repository interface {
 	CountByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
 	// CountByUID 统计指定uid的弹幕数量
 	CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
+	// CountDailyByUID 根据uid统计用户在时间范围内的每日发言数量。
+	// 返回的 map key 为「当月第几天」(1-31)，value 为当日发言数。
+	CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, startAt int64, endAt int64) (map[int64]int64, error)
+	// GetMessagesByUID 根据uid获取用户全部弹幕信息
+	GetMessagesByUID(ctx context.Context, tx *gorm.DB, uid int64) ([]string, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -110,6 +116,32 @@ func (r *gormRepo) CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int6
 		return 0, err
 	}
 	return total, nil
+}
+
+// CountDailyByUID 根据uid统计用户在时间范围内的每日发言数量，
+// map key 为「当月第几天」(1-31)，value 为当日发言数
+func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, startAt int64, endAt int64) (map[int64]int64, error) {
+	db := r.getDB(ctx, tx)
+	var sendAts []int64
+	if err := db.Model(&model.LiveDanmu{}).Where("uid = ?", uid).Where("send_at >= ?", startAt).Where("send_at < ?", endAt).Pluck("send_at", &sendAts).Error; err != nil {
+		return nil, err
+	}
+	result := make(map[int64]int64)
+	for _, sendAt := range sendAts {
+		day := int64(time.Unix(sendAt, 0).In(time.Local).Day())
+		result[day]++
+	}
+	return result, nil
+}
+
+// GetMessagesByUID 根据uid获取用户全部弹幕信息
+func (r *gormRepo) GetMessagesByUID(ctx context.Context, tx *gorm.DB, uid int64) ([]string, error) {
+	db := r.getDB(ctx, tx)
+	var messages []string
+	if err := db.Model(&model.LiveDanmu{}).Where("uid = ?", uid).Pluck("msg", &messages).Error; err != nil {
+		return nil, err
+	}
+	return messages, nil
 }
 
 // escapeLike 转义 LIKE 查询中的特殊字符 _ %

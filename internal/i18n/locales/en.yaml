@@ -49,6 +49,7 @@
 # 05 Robot Config Module
 # 06 Live Danmu Module
 # 07 Live Gift Module
+# 08 User Analysis Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -110,8 +111,9 @@ error:
   10405: Please enter danmu content # Danmu content cannot be empty
   10406: Danmu content is too short # Danmu content length is insufficient
   10407: Danmu content is too long # Danmu content exceeds the maximum length limit
-  10501: Invalid request parameters # Parameter validation failed (Robot Config)
+  10501: Invalid request parameters # Parameter validation failed
   10601: Invalid request parameters # Parameter validation failed
+  10801: Invalid request parameters # Parameter validation failed
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   30001: Unauthorized operation # The current account does not have access permission
@@ -135,6 +137,7 @@ error:
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
+  50801: Tokenizer initialization failed # Tokenizer initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed
   60103: System busy, please try again later # refreshToken generation failed
@@ -168,6 +171,7 @@ error:
   60503: Failed to refresh config cache, please try again later # Cache reload error (Robot Config)
   60601: System busy, please try again later # Database query exception
   60701: System busy, please try again later # Database query exception
+  60801: System busy, please try again later # Database query exception
 
 gender:
   female: female

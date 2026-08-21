@@ -327,6 +327,94 @@ definitions:
     - pageNo
     - pageSize
     type: object
+  input.LiveGiftBlindBoxListPageReq:
+    properties:
+      gift_name:
+        description: 礼物名称，支持模糊搜索
+        example: 盲盒
+        type: string
+      original_gift_name:
+        description: 原礼物名称，支持模糊搜索
+        example: 盲盒
+        type: string
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      room_id:
+        description: 房间ID
+        example: 22384516
+        type: integer
+      send_at:
+        description: 礼物发送时间区间
+        example:
+        - 1183135260000
+        - 1787024216391
+        items:
+          type: integer
+        type: array
+      uid:
+        description: 用户ID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称，支持模糊搜索
+        example: 哎呀又胖啦
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
+  input.LiveGiftListPageReq:
+    properties:
+      gift_name:
+        description: 礼物名称，支持模糊搜索
+        example: 盲盒
+        type: string
+      gift_type:
+        description: 礼物类型
+        example: 1
+        type: integer
+      original:
+        description: 原始礼物
+        example: 1
+        type: integer
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      room_id:
+        description: 房间ID
+        example: 22384516
+        type: integer
+      send_at:
+        description: 礼物发送时间区间
+        example:
+        - 1183135260000
+        - 1787024216391
+        items:
+          type: integer
+        type: array
+      uid:
+        description: 用户ID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称，支持模糊搜索
+        example: 哎呀又胖啦
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
   input.LiveQRCodePollReq:
     properties:
       qrcodeKey:
@@ -345,6 +433,56 @@ definitions:
         type: integer
     required:
     - roomId
+    type: object
+  input.LiveUserListPageReq:
+    properties:
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      uid:
+        description: 用户UID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称，支持模糊搜索
+        example: 哎呀又胖啦
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
+  input.LiveUserUserDanmuAnalysisReq:
+    properties:
+      uid:
+        description: 用户UID
+        example: 1
+        type: integer
+    required:
+    - uid
+    type: object
+  input.LiveUserUserMonthlyAnalysisReq:
+    properties:
+      month:
+        description: 月份
+        example: 2
+        type: integer
+      uid:
+        description: 用户UID
+        example: 1
+        type: integer
+      year:
+        description: 年份
+        example: 2025
+        type: integer
+    required:
+    - month
+    - uid
+    - year
     type: object
   input.MenuButtonsReq:
     properties:
@@ -1115,6 +1253,170 @@ definitions:
         example: 100
         type: integer
     type: object
+  resp.LiveGiftBlindBoxListPageItem:
+    properties:
+      badge_level:
+        description: 勋章等级
+        example: 30
+        type: integer
+      badge_name:
+        description: 勋章名称
+        example: 小米星
+        type: string
+      badge_type:
+        allOf:
+        - $ref: '#/definitions/enum.BadgeType'
+        description: 勋章类型
+        example: 1
+      gift_name:
+        description: 礼物名称
+        example: 盲盒
+        type: string
+      id:
+        description: 礼物ID
+        example: 1
+        type: integer
+      num:
+        description: 数量
+        example: 1
+        type: integer
+      original_gift_name:
+        description: 原礼物名称
+        example: 盲盒
+        type: string
+      original_gift_price:
+        description: 原礼物单价（分）
+        example: 300
+        type: integer
+      price:
+        description: 礼物单价（分）
+        example: 300
+        type: integer
+      send_at:
+        description: 发送时间
+        example: "2025-01-02 12:22:22"
+        type: string
+      uid:
+        description: 用户UID
+        example: 27461511
+        type: integer
+      uname:
+        description: 用户名称
+        example: 哎呀又胖啦
+        type: string
+    type: object
+  resp.LiveGiftBlindBoxListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.LiveGiftBlindBoxListPageItem'
+        type: array
+      stats:
+        allOf:
+        - $ref: '#/definitions/resp.LiveGiftBlindBoxListPageStats'
+        description: 统计信息
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
+  resp.LiveGiftBlindBoxListPageStats:
+    properties:
+      current_price:
+        description: 礼物总金额（分）
+        type: integer
+      original_price:
+        description: 原礼物总金额（分）
+        type: integer
+    type: object
+  resp.LiveGiftFetchRoomGroupsItem:
+    properties:
+      label:
+        type: string
+      value:
+        type: integer
+    type: object
+  resp.LiveGiftFetchRoomGroupsResp:
+    properties:
+      option:
+        items:
+          $ref: '#/definitions/resp.LiveGiftFetchRoomGroupsItem'
+        type: array
+    type: object
+  resp.LiveGiftListPageItem:
+    properties:
+      badge_level:
+        description: 勋章等级
+        example: 30
+        type: integer
+      badge_name:
+        description: 勋章名称
+        example: 小米星
+        type: string
+      badge_type:
+        allOf:
+        - $ref: '#/definitions/enum.BadgeType'
+        description: 勋章类型
+        example: 1
+      gift_name:
+        description: 礼物名称
+        example: 盲盒
+        type: string
+      id:
+        description: 礼物ID
+        example: 1
+        type: integer
+      message:
+        description: 醒目留言内容
+        example: xxxxxxxxx
+        type: string
+      num:
+        description: 数量
+        example: 1
+        type: integer
+      price:
+        description: 礼物单价（分）
+        example: 300
+        type: integer
+      send_at:
+        description: 发送时间
+        example: "2025-01-02 12:22:22"
+        type: string
+      uid:
+        description: 用户UID
+        example: 27461511
+        type: integer
+      uname:
+        description: 用户名称
+        example: 哎呀又胖啦
+        type: string
+    type: object
+  resp.LiveGiftListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.LiveGiftListPageItem'
+        type: array
+      stats:
+        allOf:
+        - $ref: '#/definitions/resp.LiveGiftListPageStats'
+        description: 统计信息
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
+  resp.LiveGiftListPageStats:
+    properties:
+      total_amount:
+        description: 礼物总金额（分）
+        type: integer
+      total_num:
+        description: 礼物总数
+        type: integer
+    type: object
   resp.LiveListenerStatusResp:
     properties:
       attention:
@@ -1225,6 +1527,104 @@ definitions:
       url:
         description: 用以生成二维码的URL
         example: https://api.bilibili.com/x/...
+        type: string
+    type: object
+  resp.LiveUserListPageItem:
+    properties:
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      points:
+        description: 用户积分
+        example: 100
+        type: integer
+      stars:
+        description: 用户星光
+        example: 100
+        type: integer
+      total_danmu_count:
+        description: 累计发送弹幕数
+        example: 100
+        type: integer
+      total_gift_amount:
+        description: 累计赠送礼物金额(分)
+        example: 100
+        type: integer
+      uid:
+        description: 用户UID
+        example: 27461511
+        type: integer
+      uname:
+        description: 用户名称
+        example: 哎呀又胖啦
+        type: string
+    type: object
+  resp.LiveUserListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.LiveUserListPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
+  resp.LiveUserUserDanmuAnalysisResp:
+    properties:
+      bigrams:
+        description: 双词数据
+        items:
+          $ref: '#/definitions/resp.LiveUserWordFrequency'
+        type: array
+      messages:
+        description: 短句数据
+        items:
+          $ref: '#/definitions/resp.LiveUserWordFrequency'
+        type: array
+      trigrams:
+        description: 三词数据
+        items:
+          $ref: '#/definitions/resp.LiveUserWordFrequency'
+        type: array
+      words:
+        description: 单词数据
+        items:
+          $ref: '#/definitions/resp.LiveUserWordFrequency'
+        type: array
+    type: object
+  resp.LiveUserUserMonthlyAnalysisResp:
+    properties:
+      danmu_count:
+        additionalProperties:
+          format: int64
+          type: integer
+        description: 每日弹幕数量
+        type: object
+      gift_amount:
+        additionalProperties:
+          format: int64
+          type: integer
+        description: 每日礼物金额
+        type: object
+      gift_count:
+        additionalProperties:
+          format: int64
+          type: integer
+        description: 每日礼物数量
+        type: object
+    type: object
+  resp.LiveUserWordFrequency:
+    properties:
+      count:
+        description: 出现次数
+        example: 32
+        type: integer
+      word:
+        description: 内容
+        example: xxx
         type: string
     type: object
   resp.MenuButtonsResp:
@@ -2342,6 +2742,198 @@ paths:
       summary: 获取全部房间ID
       tags:
       - 弹幕管理
+  /api/admin/livegift/blindbox:
+    post:
+      description: 分页获取盲盒礼物列表，支持按房间ID，用户信息，礼物信息，赠送时间进行筛选
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveGiftBlindBoxListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveGiftBlindBoxListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询盲盒礼物列表
+      tags:
+      - 礼物管理
+  /api/admin/livegift/list:
+    post:
+      description: 分页获取礼物列表，支持按房间ID，用户信息，礼物信息，赠送时间进行筛选
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveGiftListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveGiftListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询礼物列表
+      tags:
+      - 礼物管理
+  /api/admin/livegift/room:
+    post:
+      description: 获取礼物记录的所有房间ID，用于列表选定房间搜索
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveGiftFetchRoomGroupsResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取全部房间ID
+      tags:
+      - 礼物管理
+  /api/admin/liveuser/danmu:
+    post:
+      description: 获取用户弹幕发言分析
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserUserDanmuAnalysisReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserUserDanmuAnalysisResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取用户弹幕分析
+      tags:
+      - 用户管理
+  /api/admin/liveuser/list:
+    post:
+      description: 分页获取用户列表，支持按用户信息进行筛选
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询用户列表
+      tags:
+      - 用户管理
+  /api/admin/liveuser/monthly:
+    post:
+      description: 获取用户指定月份在直播间的发言/打赏汇总
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserUserMonthlyAnalysisReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserUserMonthlyAnalysisResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取用户每日分析数据
+      tags:
+      - 用户管理
   /api/admin/menu/buttons:
     post:
       description: 根据菜单 ID 获取其下的按钮权限列表（按钮类型菜单），用于前端页面按钮级权限控制

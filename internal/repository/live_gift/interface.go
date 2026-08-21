@@ -3,6 +3,7 @@ package live_gift
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
@@ -52,6 +53,9 @@ type Repository interface {
 	CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
 	// SumBlindBoxProfit 统计盲盒盈利
 	SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxProfit, error)
+	// CountDailyByUID 根据uid统计用户在时间范围内的每日消费数量与金额，
+	// map key 为「当月第几天」(1-31)
+	CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, startAt int64, endAt int64) (map[int64]model.LiveGiftDailyGiftStatistics, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -219,6 +223,31 @@ func (r *gormRepo) SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, room
 		month.Start, month.End,
 	).Scan(&result).Error
 	return &result, err
+}
+
+// CountDailyByUID 根据uid统计用户在时间范围内的每日消费数量与金额，
+// map key 为「当月第几天」(1-31)，value 为该日的礼物数量与金额(分)
+func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, startAt int64, endAt int64) (map[int64]model.LiveGiftDailyGiftStatistics, error) {
+	db := r.getDB(ctx, tx)
+	type row struct {
+		SendAt int64
+		Num    int64
+		Price  int64
+	}
+	var rows []row
+	err := db.Model(&model.LiveGift{}).Select("send_at, num, price").Where("uid = ?", uid).Where("send_at >= ?", startAt).Where("send_at < ?", endAt).Find(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[int64]model.LiveGiftDailyGiftStatistics)
+	for _, row := range rows {
+		day := int64(time.Unix(row.SendAt, 0).In(time.Local).Day())
+		result[day] = model.LiveGiftDailyGiftStatistics{
+			Num:    result[day].Num + row.Num,
+			Amount: result[day].Amount + row.Num*row.Price,
+		}
+	}
+	return result, nil
 }
 
 // escapeLike 转义 LIKE 查询中的特殊字符 _ %

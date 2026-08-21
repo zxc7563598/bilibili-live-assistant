@@ -82,7 +82,7 @@ func (r *gormRepo) CreateIfNotExist(ctx context.Context, tx *gorm.DB, entity *mo
 	}
 	// 冲突未插入（RowsAffected == 0），返回已存在的记录
 	if res.RowsAffected == 0 {
-		return r.GetByUID(ctx, tx, entity.Uid)
+		return r.GetByUID(ctx, tx, entity.UID)
 	}
 	return entity, nil
 }

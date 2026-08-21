@@ -1092,6 +1092,333 @@
                 }
             }
         },
+        "/api/admin/livegift/blindbox": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取盲盒礼物列表，支持按房间ID，用户信息，礼物信息，赠送时间进行筛选",
+                "tags": [
+                    "礼物管理"
+                ],
+                "summary": "分页查询盲盒礼物列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveGiftBlindBoxListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveGiftBlindBoxListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/livegift/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取礼物列表，支持按房间ID，用户信息，礼物信息，赠送时间进行筛选",
+                "tags": [
+                    "礼物管理"
+                ],
+                "summary": "分页查询礼物列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveGiftListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveGiftListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/livegift/room": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取礼物记录的所有房间ID，用于列表选定房间搜索",
+                "tags": [
+                    "礼物管理"
+                ],
+                "summary": "获取全部房间ID",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveGiftFetchRoomGroupsResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/liveuser/danmu": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取用户弹幕发言分析",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户弹幕分析",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserUserDanmuAnalysisReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserUserDanmuAnalysisResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/liveuser/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取用户列表，支持按用户信息进行筛选",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "分页查询用户列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/liveuser/monthly": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取用户指定月份在直播间的发言/打赏汇总",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户每日分析数据",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserUserMonthlyAnalysisReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserUserMonthlyAnalysisResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/menu/buttons": {
             "post": {
                 "security": [
@@ -2959,6 +3286,121 @@
                 }
             }
         },
+        "input.LiveGiftBlindBoxListPageReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "gift_name": {
+                    "description": "礼物名称，支持模糊搜索",
+                    "type": "string",
+                    "example": "盲盒"
+                },
+                "original_gift_name": {
+                    "description": "原礼物名称，支持模糊搜索",
+                    "type": "string",
+                    "example": "盲盒"
+                },
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "room_id": {
+                    "description": "房间ID",
+                    "type": "integer",
+                    "example": 22384516
+                },
+                "send_at": {
+                    "description": "礼物发送时间区间",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1183135260000,
+                        1787024216391
+                    ]
+                },
+                "uid": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称，支持模糊搜索",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
+        "input.LiveGiftListPageReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "gift_name": {
+                    "description": "礼物名称，支持模糊搜索",
+                    "type": "string",
+                    "example": "盲盒"
+                },
+                "gift_type": {
+                    "description": "礼物类型",
+                    "type": "integer",
+                    "example": 1
+                },
+                "original": {
+                    "description": "原始礼物",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "room_id": {
+                    "description": "房间ID",
+                    "type": "integer",
+                    "example": 22384516
+                },
+                "send_at": {
+                    "description": "礼物发送时间区间",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1183135260000,
+                        1787024216391
+                    ]
+                },
+                "uid": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称，支持模糊搜索",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
         "input.LiveQRCodePollReq": {
             "type": "object",
             "required": [
@@ -2983,6 +3425,73 @@
                     "type": "integer",
                     "minimum": 1,
                     "example": 22384516
+                }
+            }
+        },
+        "input.LiveUserListPageReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称，支持模糊搜索",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
+        "input.LiveUserUserDanmuAnalysisReq": {
+            "type": "object",
+            "required": [
+                "uid"
+            ],
+            "properties": {
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "input.LiveUserUserMonthlyAnalysisReq": {
+            "type": "object",
+            "required": [
+                "month",
+                "uid",
+                "year"
+            ],
+            "properties": {
+                "month": {
+                    "description": "月份",
+                    "type": "integer",
+                    "example": 2
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "year": {
+                    "description": "年份",
+                    "type": "integer",
+                    "example": 2025
                 }
             }
         },
@@ -4014,6 +4523,237 @@
                 }
             }
         },
+        "resp.LiveGiftBlindBoxListPageItem": {
+            "type": "object",
+            "properties": {
+                "badge_level": {
+                    "description": "勋章等级",
+                    "type": "integer",
+                    "example": 30
+                },
+                "badge_name": {
+                    "description": "勋章名称",
+                    "type": "string",
+                    "example": "小米星"
+                },
+                "badge_type": {
+                    "description": "勋章类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.BadgeType"
+                        }
+                    ],
+                    "example": 1
+                },
+                "gift_name": {
+                    "description": "礼物名称",
+                    "type": "string",
+                    "example": "盲盒"
+                },
+                "id": {
+                    "description": "礼物ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "num": {
+                    "description": "数量",
+                    "type": "integer",
+                    "example": 1
+                },
+                "original_gift_name": {
+                    "description": "原礼物名称",
+                    "type": "string",
+                    "example": "盲盒"
+                },
+                "original_gift_price": {
+                    "description": "原礼物单价（分）",
+                    "type": "integer",
+                    "example": 300
+                },
+                "price": {
+                    "description": "礼物单价（分）",
+                    "type": "integer",
+                    "example": 300
+                },
+                "send_at": {
+                    "description": "发送时间",
+                    "type": "string",
+                    "example": "2025-01-02 12:22:22"
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 27461511
+                },
+                "uname": {
+                    "description": "用户名称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
+        "resp.LiveGiftBlindBoxListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveGiftBlindBoxListPageItem"
+                    }
+                },
+                "stats": {
+                    "description": "统计信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/resp.LiveGiftBlindBoxListPageStats"
+                        }
+                    ]
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "resp.LiveGiftBlindBoxListPageStats": {
+            "type": "object",
+            "properties": {
+                "current_price": {
+                    "description": "礼物总金额（分）",
+                    "type": "integer"
+                },
+                "original_price": {
+                    "description": "原礼物总金额（分）",
+                    "type": "integer"
+                }
+            }
+        },
+        "resp.LiveGiftFetchRoomGroupsItem": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "resp.LiveGiftFetchRoomGroupsResp": {
+            "type": "object",
+            "properties": {
+                "option": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveGiftFetchRoomGroupsItem"
+                    }
+                }
+            }
+        },
+        "resp.LiveGiftListPageItem": {
+            "type": "object",
+            "properties": {
+                "badge_level": {
+                    "description": "勋章等级",
+                    "type": "integer",
+                    "example": 30
+                },
+                "badge_name": {
+                    "description": "勋章名称",
+                    "type": "string",
+                    "example": "小米星"
+                },
+                "badge_type": {
+                    "description": "勋章类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.BadgeType"
+                        }
+                    ],
+                    "example": 1
+                },
+                "gift_name": {
+                    "description": "礼物名称",
+                    "type": "string",
+                    "example": "盲盒"
+                },
+                "id": {
+                    "description": "礼物ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "message": {
+                    "description": "醒目留言内容",
+                    "type": "string",
+                    "example": "xxxxxxxxx"
+                },
+                "num": {
+                    "description": "数量",
+                    "type": "integer",
+                    "example": 1
+                },
+                "price": {
+                    "description": "礼物单价（分）",
+                    "type": "integer",
+                    "example": 300
+                },
+                "send_at": {
+                    "description": "发送时间",
+                    "type": "string",
+                    "example": "2025-01-02 12:22:22"
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 27461511
+                },
+                "uname": {
+                    "description": "用户名称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
+        "resp.LiveGiftListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveGiftListPageItem"
+                    }
+                },
+                "stats": {
+                    "description": "统计信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/resp.LiveGiftListPageStats"
+                        }
+                    ]
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "resp.LiveGiftListPageStats": {
+            "type": "object",
+            "properties": {
+                "total_amount": {
+                    "description": "礼物总金额（分）",
+                    "type": "integer"
+                },
+                "total_num": {
+                    "description": "礼物总数",
+                    "type": "integer"
+                }
+            }
+        },
         "resp.LiveListenerStatusResp": {
             "type": "object",
             "properties": {
@@ -4156,6 +4896,140 @@
                     "description": "用以生成二维码的URL",
                     "type": "string",
                     "example": "https://api.bilibili.com/x/..."
+                }
+            }
+        },
+        "resp.LiveUserListPageItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "points": {
+                    "description": "用户积分",
+                    "type": "integer",
+                    "example": 100
+                },
+                "stars": {
+                    "description": "用户星光",
+                    "type": "integer",
+                    "example": 100
+                },
+                "total_danmu_count": {
+                    "description": "累计发送弹幕数",
+                    "type": "integer",
+                    "example": 100
+                },
+                "total_gift_amount": {
+                    "description": "累计赠送礼物金额(分)",
+                    "type": "integer",
+                    "example": 100
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 27461511
+                },
+                "uname": {
+                    "description": "用户名称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
+        "resp.LiveUserListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveUserListPageItem"
+                    }
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "resp.LiveUserUserDanmuAnalysisResp": {
+            "type": "object",
+            "properties": {
+                "bigrams": {
+                    "description": "双词数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveUserWordFrequency"
+                    }
+                },
+                "messages": {
+                    "description": "短句数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveUserWordFrequency"
+                    }
+                },
+                "trigrams": {
+                    "description": "三词数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveUserWordFrequency"
+                    }
+                },
+                "words": {
+                    "description": "单词数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveUserWordFrequency"
+                    }
+                }
+            }
+        },
+        "resp.LiveUserUserMonthlyAnalysisResp": {
+            "type": "object",
+            "properties": {
+                "danmu_count": {
+                    "description": "每日弹幕数量",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "gift_amount": {
+                    "description": "每日礼物金额",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                },
+                "gift_count": {
+                    "description": "每日礼物数量",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            }
+        },
+        "resp.LiveUserWordFrequency": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "出现次数",
+                    "type": "integer",
+                    "example": 32
+                },
+                "word": {
+                    "description": "内容",
+                    "type": "string",
+                    "example": "xxx"
                 }
             }
         },

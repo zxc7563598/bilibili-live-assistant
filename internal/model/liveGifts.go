@@ -56,3 +56,9 @@ type LiveGiftBlindBoxListPageQuery struct {
 	Offset           int
 	Limit            int
 }
+
+// LiveGiftDailyGiftStatistics 用户每日查询统计聚合参数
+type LiveGiftDailyGiftStatistics struct {
+	Num    int64
+	Amount int64
+}

@@ -22,6 +22,7 @@ var (
 	RobotConfigLogger *zap.Logger
 	LiveDanmuLogger   *zap.Logger
 	LiveGiftLogger    *zap.Logger
+	LiveUserLogger    *zap.Logger
 )
 
 // InitAll 初始化所有模块 logger
@@ -34,6 +35,7 @@ func InitAll() {
 	RobotConfigLogger = InitLogger("robotconfig", zapcore.InfoLevel)
 	LiveDanmuLogger = InitLogger("livedanmu", zapcore.InfoLevel)
 	LiveGiftLogger = InitLogger("livegift", zapcore.InfoLevel)
+	LiveUserLogger = InitLogger("liveuser", zapcore.InfoLevel)
 }
 
 // InitLogger 初始化指定模块的 logger
