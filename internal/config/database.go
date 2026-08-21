@@ -85,7 +85,7 @@ func initMySQL(cfg *Config) (*gorm.DB, error) {
 		m.Port,
 		m.DBName,
 	)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
@@ -108,7 +108,7 @@ func initSQLite(cfg *Config) (*gorm.DB, error) {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, fmt.Errorf("创建 SQLite 数据库目录失败: %w", err)
 	}
-	db, err := gorm.Open(sqlite.Open(filePath), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(filePath), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, fmt.Errorf("SQLite 数据库连接失败: %w", err)
 	}
@@ -152,7 +152,7 @@ func initPostgres(cfg *Config) (*gorm.DB, error) {
 		p.DBName,
 		p.Port,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}

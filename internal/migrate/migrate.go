@@ -6,6 +6,13 @@ import (
 )
 
 func Run(db *gorm.DB) error {
+	// 兼容历史数据：为 live_user_sign_logs 回填 sign_date 字段，并对重复记录去重
+	if err := backfillLiveUserSignLogSignDate(db); err != nil {
+		return err
+	}
+	if err := dedupeLiveUserSignLogSignDate(db); err != nil {
+		return err
+	}
 	return db.AutoMigrate(
 		&model.Admin{},
 		&model.Role{},

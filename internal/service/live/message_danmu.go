@@ -2,6 +2,7 @@ package live
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -14,7 +15,6 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
-	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_sign_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
@@ -22,6 +22,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/util"
+	"gorm.io/gorm"
 )
 
 // danmuProcessor 处理弹幕消息（DANMU_MSG）
@@ -29,7 +30,6 @@ type danmuProcessor struct {
 	liveUserSvc           *liveuser.Service
 	liveDanmuRepo         live_danmu.Repository
 	liveGiftRepo          live_gift.Repository
-	liveUserCreditLogRepo live_user_credit_log.Repository
 	liveUserSignLogRepo   live_user_sign_log.Repository
 	LiveUserBlacklistRepo live_user_blacklist.Repository
 	roomState             *RoomState
@@ -39,12 +39,11 @@ type danmuProcessor struct {
 	enqueueDanmu          func(msg string, kind string)
 }
 
-func newDanmuProcessor(liveUserSvc *liveuser.Service, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *danmuProcessor {
+func newDanmuProcessor(liveUserSvc *liveuser.Service, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *danmuProcessor {
 	return &danmuProcessor{
 		liveUserSvc:           liveUserSvc,
 		liveDanmuRepo:         liveDanmuRepo,
 		liveGiftRepo:          liveGiftRepo,
-		liveUserCreditLogRepo: liveUserCreditLogRepo,
 		liveUserSignLogRepo:   liveUserSignLogRepo,
 		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
 		roomState:             roomState,
@@ -80,20 +79,35 @@ func (p *danmuProcessor) Process(ctx context.Context, cmd live.Cmd, data any, ro
 		BadgeType:   enum.BadgeType(info.BadgeType),
 		SendAt:      time.Now().Unix(),
 	}
+	// 注册用户
+	userID, err := p.liveUserSvc.EnsureUser(ctx, info.UID, info.Uname)
+	if err != nil {
+		log.Printf("[live.Danmu] 注册并获取用户信息失败: %v", err)
+		return nil
+	}
 	if _, err := p.liveDanmuRepo.Create(ctx, nil, danmu); err != nil {
 		log.Printf("[live.Danmu] 弹幕存储失败: %v", err)
+		return nil
 	}
+	// 追加用户累计发送弹幕数
+	if userID > 0 {
+		if err := p.liveUserSvc.AddTotalDanmuCount(ctx, userID); err != nil {
+			log.Printf("[live.Danmu] 追加用户累计发送弹幕数失败: %v", err)
+			return nil
+		}
+	}
+	// 处理后续事件
 	botUID := p.getBotUID()
 	liveStatus := p.roomState.LiveStatus()
 	// 签到检测
-	p.processSignIn(ctx, info, roomID, botUID, liveStatus)
+	p.processSignIn(ctx, info, userID, roomID, botUID, liveStatus)
 	// 自动回复关键词检测
 	p.processReplyIn(ctx, info, roomID, botUID, liveStatus)
 	return nil
 }
 
 // processSignIn 处理签到逻辑
-func (p *danmuProcessor) processSignIn(ctx context.Context, info *live.DanmuMsgInfo, roomID, botUID int64, liveStatus int) {
+func (p *danmuProcessor) processSignIn(ctx context.Context, info *live.DanmuMsgInfo, userID, roomID, botUID int64, liveStatus int) {
 	if botUID == info.UID {
 		return
 	}
@@ -109,7 +123,7 @@ func (p *danmuProcessor) processSignIn(ctx context.Context, info *live.DanmuMsgI
 		return
 	}
 	if strings.Contains(info.Msg, signCfg.Keyword) {
-		p.handleSignIn(ctx, signCfg, info)
+		p.handleSignIn(ctx, userID, signCfg, info)
 	}
 	if strings.Contains(info.Msg, signCfg.QueryKeyword) {
 		p.handleSignQuery(ctx, signCfg, info)
@@ -159,22 +173,13 @@ func (p *danmuProcessor) checkSignCondition(signCfg robotconfig.SignConfig, info
 	return true
 }
 
-// handleSignIn 处理签到：查重 → 已签到发重复回复 / 未签到则记录、发奖励、发成功回复
-func (p *danmuProcessor) handleSignIn(ctx context.Context, signCfg robotconfig.SignConfig, info *live.DanmuMsgInfo) {
-	exists, err := p.liveUserSignLogRepo.ExistsByUIDToday(ctx, nil, info.UID)
-	if err != nil {
-		log.Printf("[live.Sign] 查询用户签到信息失败: %v", err)
-		return
-	}
-	if exists {
-		p.sendSignReply(ctx, signCfg.RepeatReply, info)
-		return
-	}
-	// 记录签到
+// handleSignIn 处理签到：直接插入签到记录，依靠 (uid, sign_date) 唯一索引保证一天只能签到一次
+func (p *danmuProcessor) handleSignIn(ctx context.Context, userID int64, signCfg robotconfig.SignConfig, info *live.DanmuMsgInfo) {
 	rewardType := ptr.ParseEnumInt[enum.CreditType](signCfg.RewardType)
 	rewardAmount, _ := strconv.ParseInt(signCfg.RewardAmount, 10, 64)
 	if _, err := p.liveUserSignLogRepo.Create(ctx, nil, &model.LiveUserSignLog{
 		UID:          info.UID,
+		SignDate:     time.Now().Format(time.DateOnly),
 		Uname:        info.Uname,
 		Msg:          info.Msg,
 		BadgeUID:     info.BadgeUID,
@@ -186,11 +191,17 @@ func (p *danmuProcessor) handleSignIn(ctx context.Context, signCfg robotconfig.S
 		RewardType:   rewardType,
 		RewardAmount: rewardAmount,
 	}); err != nil {
+		// 唯一索引冲突说明今天已签到
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			p.sendSignReply(ctx, signCfg.RepeatReply, info)
+			return
+		}
 		log.Printf("[live.Sign] 签到信息添加失败: %v", err)
+		return
 	}
 	// 发放奖励
 	if rewardAmount > 0 {
-		if err := p.grantSignReward(ctx, info, rewardType, rewardAmount); err != nil {
+		if err := p.grantSignReward(ctx, info, userID, rewardType, rewardAmount); err != nil {
 			log.Printf("[live.Sign] 签到奖励发放失败: %v", err)
 		}
 	}
@@ -269,13 +280,9 @@ func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, 
 	p.enqueueDanmu(msg, "sign")
 }
 
-// grantSignReward 注册用户（如不存在）并发放签到奖励
-func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMsgInfo, rewardType enum.CreditType, rewardAmount int64) error {
-	userID, err := p.liveUserSvc.EnsureUser(ctx, info.UID, info.Uname)
-	if err != nil {
-		return err
-	}
-	params := live_user_credit_log.AddCreditLogParams{
+// grantSignReward 发放签到奖励
+func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMsgInfo, userID int64, rewardType enum.CreditType, rewardAmount int64) error {
+	params := liveuser.AddCreditLogParams{
 		UserID:       userID,
 		ChangeType:   enum.ChangeTypeIncrease,
 		ChangeAmount: rewardAmount,
@@ -284,11 +291,12 @@ func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMs
 		OperatorType: enum.OperatorTypeSystem,
 		OperatorID:   0,
 	}
+	var err error
 	switch rewardType {
 	case enum.CreditTypePoints:
-		_, err = p.liveUserCreditLogRepo.AddPointsLog(ctx, nil, params)
+		err = p.liveUserSvc.AddPointsLog(ctx, params)
 	case enum.CreditTypeStars:
-		_, err = p.liveUserCreditLogRepo.AddStarsLog(ctx, nil, params)
+		err = p.liveUserSvc.AddStarsLog(ctx, params)
 	}
 	return err
 }

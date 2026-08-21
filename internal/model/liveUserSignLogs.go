@@ -9,7 +9,8 @@ import (
 
 type LiveUserSignLog struct {
 	ID           int64           `gorm:"primaryKey"`
-	UID          int64           `gorm:"not null;comment:用户UID"`
+	UID          int64           `gorm:"not null;uniqueIndex:uk_uid_sign_date;comment:用户UID"`
+	SignDate     string          `gorm:"type:varchar(10);not null;uniqueIndex:uk_uid_sign_date;comment:签到日期(YYYY-MM-DD)"`
 	Uname        string          `gorm:"type:varchar(100);comment:用户名"`
 	Msg          string          `gorm:"type:varchar(255);comment:签到弹幕内容"`
 	BadgeUID     int64           `gorm:"not null;default:0;comment:勋章主播UID"`
