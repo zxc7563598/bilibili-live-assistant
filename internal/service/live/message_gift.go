@@ -398,7 +398,7 @@ func (p *giftProcessor) sendGiftReply(infos []*giftThankInfo) {
 	if tmpl == "" {
 		return
 	}
-	needed := CollectVars(giftCfg.Content)
+	needed := CollectVars([]string{tmpl})
 	vars := p.resolveGiftVars(infos, needed, ptr.ParseBool(giftCfg.ShowCount), roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	// 追加盲盒盈亏（按数量累加）

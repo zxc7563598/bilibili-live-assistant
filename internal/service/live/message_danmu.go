@@ -263,7 +263,7 @@ func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, 
 		log.Printf("[live.Sign] 加载房间配置失败: %v", err)
 		return
 	}
-	needed := CollectVars(templates)
+	needed := CollectVars([]string{tmpl})
 	vars := p.resolveSignVars(ctx, info, needed, roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	p.enqueueDanmu(msg, "sign")
@@ -411,7 +411,7 @@ func (p *danmuProcessor) sendReply(ctx context.Context, templates []string, info
 		log.Printf("[live.Reply] 加载房间配置失败: %v", err)
 		return
 	}
-	needed := CollectVars(templates)
+	needed := CollectVars([]string{tmpl})
 	vars := p.resolveReplyVars(ctx, info, needed, roomID, roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	p.enqueueDanmu(msg, "reply")

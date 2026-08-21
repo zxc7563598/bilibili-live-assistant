@@ -210,7 +210,7 @@ func (p *interactProcessor) sendInteractReply(ctx context.Context, kind interact
 		log.Printf("[live.%s] 加载房间配置失败: %v", kind.tag, err)
 		return
 	}
-	needed := CollectVars(templates)
+	needed := CollectVars([]string{tmpl})
 	vars := p.resolveInteractVars(ctx, kind, info, needed, roomCfg)
 	msg := RenderTemplate(tmpl, vars)
 	p.enqueueDanmu(msg, kind.danmuKind)
