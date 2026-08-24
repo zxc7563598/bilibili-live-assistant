@@ -30,7 +30,7 @@ type Services struct {
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache) *Services {
 	robotConfigSvc := robotconfigsvc.New(repo.RobotConfig, configCache, db)
-	liveUserSvc := liveuser.New(db, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveDanmu, repo.LiveGift)
+	liveUserSvc := liveuser.New(db, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveDanmu, repo.LiveGift, repo.LiveSession)
 	return &Services{
 		Admin:       *admin.New(repo.Admin, repo.AdminRole, repo.Role, db, rdb),
 		Role:        *role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),

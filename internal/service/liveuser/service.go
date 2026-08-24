@@ -9,6 +9,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/tokenizer"
@@ -21,17 +22,19 @@ type Service struct {
 	liveUserCreditLogRepo live_user_credit_log.Repository
 	liveDanmuRepo         live_danmu.Repository
 	liveGiftRepo          live_gift.Repository
+	liveSessionRepo       live_session.Repository
 }
 
 const userDanmuAnalysisLimit = 20
 
-func New(db *gorm.DB, liveUserRepo live_user.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository) *Service {
+func New(db *gorm.DB, liveUserRepo live_user.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository) *Service {
 	return &Service{
 		db:                    db,
 		liveUserRepo:          liveUserRepo,
 		liveUserCreditLogRepo: liveUserCreditLogRepo,
 		liveDanmuRepo:         liveDanmuRepo,
 		liveGiftRepo:          liveGiftRepo,
+		liveSessionRepo:       liveSessionRepo,
 	}
 }
 
@@ -81,10 +84,16 @@ func (s *Service) GetUserMonthlyAnalysis(ctx context.Context, UID, year, month i
 		giftCount[int64(day)] = item.Num
 		giftAmount[int64(day)] = item.Amount
 	}
+	// 本月开播记录（不区分房间ID/主播，按开播时间 start_at 落在当月统计）
+	liveDays, err := s.liveSessionRepo.DistinctLiveDays(ctx, nil, startTimestamp, endTimestamp)
+	if err != nil {
+		return GetUserMonthlyAnalysisResp{}, 60801, err
+	}
 	return GetUserMonthlyAnalysisResp{
 		DanmuCount: danmu,
 		GiftCount:  giftCount,
 		GiftAmount: giftAmount,
+		LiveDays:   liveDays,
 	}, 0, nil
 }
 

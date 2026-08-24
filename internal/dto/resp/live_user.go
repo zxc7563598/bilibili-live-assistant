@@ -33,6 +33,8 @@ type LiveUserUserMonthlyAnalysisResp struct {
 	GiftCount map[int64]int64 `json:"gift_count"`
 	// 每日礼物金额
 	GiftAmount map[int64]int64 `json:"gift_amount"`
+	// 每日是否有开播
+	LiveDays map[int64]bool `json:"live_days"`
 }
 
 // LiveUserUserDanmuAnalysisResp 获取用户弹幕分析返回

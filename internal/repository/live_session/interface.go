@@ -2,6 +2,7 @@ package live_session
 
 import (
 	"context"
+	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
@@ -24,6 +25,8 @@ type Repository interface {
 	ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSession, error)
 	// ListActiveByRoomID 获取指定房间所有未下播的记录
 	ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID int64) ([]model.LiveSession, error)
+	// DistinctLiveDays 统计时间范围内每天是否有开播记录（不区分主播/房间，通常只有一个主播），map key 为「当月第几天」(1-31)，value 固定为 true 表示当天有开播
+	DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt int64, endAt int64) (map[int64]bool, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -141,4 +144,22 @@ func (r *gormRepo) ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID i
 	var list []model.LiveSession
 	err := db.Where("end_at = 0 AND room_id = ?", roomID).Order("start_at asc").Find(&list).Error
 	return list, err
+}
+
+// DistinctLiveDays 统计时间范围内每天是否有开播记录（不区分主播/房间，通常只有一个主播），map key 为「当月第几天」(1-31)，value 固定为 true 表示当天有开播
+func (r *gormRepo) DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt int64, endAt int64) (map[int64]bool, error) {
+	db := r.getDB(ctx, tx)
+	var startAts []int64
+	if err := db.Model(&model.LiveSession{}).
+		Where("start_at >= ?", startAt).
+		Where("start_at < ?", endAt).
+		Pluck("start_at", &startAts).Error; err != nil {
+		return nil, err
+	}
+	result := make(map[int64]bool)
+	for _, start := range startAts {
+		day := int64(time.Unix(start, 0).In(time.Local).Day())
+		result[day] = true
+	}
+	return result, nil
 }

@@ -134,6 +134,7 @@ func (h *Handler) UserMonthlyAnalysis(c *gin.Context) {
 		DanmuCount: svcResp.DanmuCount,
 		GiftCount:  svcResp.GiftCount,
 		GiftAmount: svcResp.GiftAmount,
+		LiveDays:   svcResp.LiveDays,
 	})
 }
 

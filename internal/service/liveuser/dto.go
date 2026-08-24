@@ -44,6 +44,7 @@ type GetUserMonthlyAnalysisResp struct {
 	DanmuCount map[int64]int64 // 每日弹幕数量
 	GiftCount  map[int64]int64 // 每日礼物数量
 	GiftAmount map[int64]int64 // 每日礼物金额
+	LiveDays   map[int64]bool  // 每日是否有开播
 }
 
 // GetUserDanmuAnalysis 请求返回
