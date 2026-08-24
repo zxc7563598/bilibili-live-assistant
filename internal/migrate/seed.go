@@ -259,6 +259,21 @@ func seedMenus(db *gorm.DB) error {
 			Component: "/src/views/analyze/blindbox/index.vue",
 			Order:     2,
 		},
+		{
+			ID:        15,
+			Code:      "UserAnalysis",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  11,
+			Name:      "用户分析",
+			Icon:      "i-fe:activity",
+			Path:      "/user/analysis",
+			Component: "/src/views/analyze/user/index.vue",
+			Order:     3,
+		},
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "code"}},
