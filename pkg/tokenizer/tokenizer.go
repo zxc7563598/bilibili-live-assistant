@@ -37,7 +37,8 @@ func New() (*Tokenizer, error) {
 	t := &Tokenizer{
 		stopWords: defaultStopWords,
 	}
-	if err := t.segmenter.LoadDict(); err != nil {
+	// 使用 gse 内置 embed 词典，避免加载文件系统路径
+	if err := t.segmenter.LoadDictEmbed(); err != nil {
 		return nil, err
 	}
 	return t, nil
