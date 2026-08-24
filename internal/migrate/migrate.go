@@ -13,7 +13,7 @@ func Run(db *gorm.DB) error {
 	if err := dedupeLiveUserSignLogSignDate(db); err != nil {
 		return err
 	}
-	return db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&model.Admin{},
 		&model.Role{},
 		&model.Menu{},
@@ -28,5 +28,9 @@ func Run(db *gorm.DB) error {
 		&model.LiveUserBlacklist{},
 		&model.LiveInteractWord{},
 		&model.LiveUserCreditLog{},
-	)
+	); err != nil {
+		return err
+	}
+	// 升级已有系统：为 live_users 回填累计弹幕数/礼物金额
+	return backfillLiveUserDanmuGift(db)
 }
