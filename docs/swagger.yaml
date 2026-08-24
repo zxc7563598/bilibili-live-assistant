@@ -1615,6 +1615,11 @@ definitions:
           type: integer
         description: 每日礼物数量
         type: object
+      live_days:
+        additionalProperties:
+          type: boolean
+        description: 每日是否有开播
+        type: object
     type: object
   resp.LiveUserWordFrequency:
     properties:

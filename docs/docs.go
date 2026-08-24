@@ -5022,6 +5022,13 @@ const docTemplate = `{
                         "type": "integer",
                         "format": "int64"
                     }
+                },
+                "live_days": {
+                    "description": "每日是否有开播",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
                 }
             }
         },
