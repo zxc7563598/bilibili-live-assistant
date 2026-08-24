@@ -8,77 +8,77 @@
         <n-input v-model:value="query.uname" placeholder="支持模糊搜索" />
       </MeQueryItem>
     </MeCrud>
+
+    <n-modal v-model:show="showMonthlyModal" title="每日分析" preset="card" style="width: 840px" :mask-closable="false">
+      <n-spin :show="monthlyLoading">
+        <n-calendar v-model:value="todayDate" #="{ year, month, date }" :on-panel-change="handleUpdateValue" class="mc-calendar">
+          <div v-if="isPanelCell(year, month)" class="mc-cell">
+            <span class="mc-live-dot" :class="monthlyInfo.live_days[date] ? 'is-live' : ''" :title="monthlyInfo.live_days[date] ? '已开播' : '未开播'" />
+            <div v-if="getCellData(date).length" class="mc-stats">
+              <span v-for="item in getCellData(date)" :key="item.key" class="mc-stat" :class="`is-${item.key}`" :title="item.title">
+                <i :class="item.icon" />
+                {{ item.label }}
+              </span>
+            </div>
+          </div>
+        </n-calendar>
+      </n-spin>
+    </n-modal>
+
+    <n-modal v-model:show="showDanmuModal" title="弹幕分析" preset="card" style="width: 840px" :mask-closable="false">
+      <n-spin :show="danmuLoading">
+        <div class="mc-danmu">
+          <div class="mc-wordcloud">
+            <Vue3WordCloud :words="defaultWords" :color="colorHandler" :font-size-ratio="4" font-family="PingFang SC, Microsoft YaHei, sans-serif">
+              <template #default="{ text, weight }">
+                <span :title="`${text} × ${weight}`" style="cursor: pointer">
+                  {{ text }}
+                </span>
+              </template>
+            </Vue3WordCloud>
+          </div>
+
+          <div v-if="hasReport" class="mc-report">
+            <div class="mc-report-sec">
+              <div class="mc-report-title">
+                高频词
+              </div>
+              <div class="mc-chips">
+                <span v-for="item in topWords" :key="item.word" class="mc-chip">
+                  {{ item.word }}
+                  <em>{{ item.count }}</em>
+                </span>
+              </div>
+            </div>
+            <div class="mc-report-sec">
+              <div class="mc-report-title">
+                高频词组
+              </div>
+              <div class="mc-chips">
+                <span v-for="item in topPhrases" :key="item.word" class="mc-chip mc-chip-phrase">
+                  {{ item.word }}
+                  <em>{{ item.count }}</em>
+                </span>
+              </div>
+            </div>
+            <div class="mc-report-sec">
+              <div class="mc-report-title">
+                高频句子
+              </div>
+              <ol class="mc-sentences">
+                <li v-for="(item, index) in topMessages" :key="item.word" :data-rank="index + 1">
+                  <span class="mc-sentence-text">「{{ item.word }}」</span>
+                  <em>{{ item.count }} 次</em>
+                </li>
+              </ol>
+            </div>
+          </div>
+
+          <n-empty v-else-if="!danmuLoading" description="暂无弹幕数据" size="small" style="padding: 24px 0" />
+        </div>
+      </n-spin>
+    </n-modal>
   </CommonPage>
-
-  <n-modal v-model:show="showMonthlyModal" title="每日分析" preset="card" style="width: 840px" :mask-closable="false">
-    <n-spin :show="monthlyLoading">
-      <n-calendar v-model:value="todayDate" #="{ year, month, date }" :on-panel-change="handleUpdateValue" class="mc-calendar">
-        <div v-if="isPanelCell(year, month)" class="mc-cell">
-          <span class="mc-live-dot" :class="monthlyInfo.live_days[date] ? 'is-live' : ''" :title="monthlyInfo.live_days[date] ? '已开播' : '未开播'" />
-          <div v-if="getCellData(date).length" class="mc-stats">
-            <span v-for="item in getCellData(date)" :key="item.key" class="mc-stat" :class="`is-${item.key}`" :title="item.title">
-              <i :class="item.icon" />
-              {{ item.label }}
-            </span>
-          </div>
-        </div>
-      </n-calendar>
-    </n-spin>
-  </n-modal>
-
-  <n-modal v-model:show="showDanmuModal" title="弹幕分析" preset="card" style="width: 840px" :mask-closable="false">
-    <n-spin :show="danmuLoading">
-      <div class="mc-danmu">
-        <div class="mc-wordcloud">
-          <Vue3WordCloud :words="defaultWords" :color="colorHandler" :font-size-ratio="4" font-family="PingFang SC, Microsoft YaHei, sans-serif">
-            <template #default="{ text, weight }">
-              <span :title="`${text} × ${weight}`" style="cursor: pointer">
-                {{ text }}
-              </span>
-            </template>
-          </Vue3WordCloud>
-        </div>
-
-        <div v-if="hasReport" class="mc-report">
-          <div class="mc-report-sec">
-            <div class="mc-report-title">
-              高频词
-            </div>
-            <div class="mc-chips">
-              <span v-for="item in topWords" :key="item.word" class="mc-chip">
-                {{ item.word }}
-                <em>{{ item.count }}</em>
-              </span>
-            </div>
-          </div>
-          <div class="mc-report-sec">
-            <div class="mc-report-title">
-              高频词组
-            </div>
-            <div class="mc-chips">
-              <span v-for="item in topPhrases" :key="item.word" class="mc-chip mc-chip-phrase">
-                {{ item.word }}
-                <em>{{ item.count }}</em>
-              </span>
-            </div>
-          </div>
-          <div class="mc-report-sec">
-            <div class="mc-report-title">
-              高频句子
-            </div>
-            <ol class="mc-sentences">
-              <li v-for="(item, index) in topMessages" :key="item.word" :data-rank="index + 1">
-                <span class="mc-sentence-text">「{{ item.word }}」</span>
-                <em>{{ item.count }} 次</em>
-              </li>
-            </ol>
-          </div>
-        </div>
-
-        <n-empty v-else-if="!danmuLoading" description="暂无弹幕数据" size="small" style="padding: 24px 0" />
-      </div>
-    </n-spin>
-  </n-modal>
 </template>
 
 <script setup>
