@@ -26,6 +26,7 @@
     "vue": "^3.5.29",
     "vue-echarts": "^8.0.1",
     "vue-router": "^5.0.3",
+    "vue3-word-cloud": "^1.0.4",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
