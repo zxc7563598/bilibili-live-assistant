@@ -32,7 +32,7 @@
       </form>
     </AppCard>
 
-    <AppCard v-if="$slots.default" bordered bg="#fafafc dark:black" class="mb-30 min-h-60 rounded-4">
+    <AppCard v-if="$slots.statistic" bordered bg="#fafafc dark:black" class="mb-30 min-h-60 rounded-4">
       <slot name="statistic" />
     </AppCard>
 
