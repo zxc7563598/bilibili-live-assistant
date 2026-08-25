@@ -100,7 +100,7 @@ function next() {
       step.value = 2
     }
     else {
-      toast.error('res.msg')
+      toast.error(res.msg)
     }
   }).finally(() => {
     nextLoading.value = false
