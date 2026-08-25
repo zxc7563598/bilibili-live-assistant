@@ -34,6 +34,9 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// web路由
 	admin := r.Group("/admin")
 	registerWeb(admin)
+	// shop路由
+	shop := r.Group("/shop")
+	registerShop(shop)
 	// api路由
 	adminApi := r.Group("/api/admin")
 	// 登录接口：如有需要可以自行实现限流器
@@ -115,22 +118,52 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	return r
 }
 
-func registerWeb(admin *gin.RouterGroup) {
+func registerWeb(route *gin.RouterGroup) {
 	sub, err := fs.Sub(webui.Dist, "dist")
 	if err != nil {
 		panic(err)
 	}
 	fileServer := http.FileServer(http.FS(sub))
-	admin.GET("", func(c *gin.Context) {
+	route.GET("", func(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin/")
 	})
-	admin.GET("/*filepath", func(c *gin.Context) {
+	route.GET("/*filepath", func(c *gin.Context) {
 		path := c.Param("filepath")
 		if len(path) > 0 && path[0] == '/' {
 			path = path[1:]
 		}
 		if _, err := sub.Open(path); err == nil {
 			http.StripPrefix("/admin/", fileServer).ServeHTTP(c.Writer, c.Request)
+			return
+		}
+		index, err := sub.Open("index.html")
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		defer index.Close()
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Status(http.StatusOK)
+		io.Copy(c.Writer, index)
+	})
+}
+
+func registerShop(route *gin.RouterGroup) {
+	sub, err := fs.Sub(webui.Shop, "shop")
+	if err != nil {
+		panic(err)
+	}
+	fileServer := http.FileServer(http.FS(sub))
+	route.GET("", func(c *gin.Context) {
+		c.Redirect(http.StatusFound, "/shop/")
+	})
+	route.GET("/*filepath", func(c *gin.Context) {
+		path := c.Param("filepath")
+		if len(path) > 0 && path[0] == '/' {
+			path = path[1:]
+		}
+		if _, err := sub.Open(path); err == nil {
+			http.StripPrefix("/shop/", fileServer).ServeHTTP(c.Writer, c.Request)
 			return
 		}
 		index, err := sub.Open("index.html")

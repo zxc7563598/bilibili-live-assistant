@@ -41,6 +41,7 @@ go.work.sum
 tmp/
 
 /internal/webui/dist
+/internal/webui/shop
 config.yaml
 /bin
 /logs

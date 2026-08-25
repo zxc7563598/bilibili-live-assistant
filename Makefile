@@ -38,11 +38,13 @@ help:
 	@echo "  make dev           启动开发环境 (Go + Web)"
 	@echo "  make dev-go        仅启动 Go 服务"
 	@echo "  make dev-web       仅启动 Web dev server"
+	@echo "  make dev-shop      仅启动 Shop dev server"
 	@echo "  make swagger       生成 Swagger 文档"
 	@echo ""
 	@echo "构建命令:"
 	@echo "  make build         构建当前平台 (release 优化)"
 	@echo "  make build-web     构建 Web 前端"
+	@echo "  make build-shop    构建 Shop 前端"
 	@echo ""
 	@echo "打包命令:"
 	@echo "  make build-linux-amd64    构建 linux/amd64"
@@ -70,6 +72,10 @@ dev-web:
 	@echo "启动 Web dev server..."
 	@cd ./web && npm install && npm run dev
 
+dev-shop:
+	@echo "启动 Shop dev server..."
+	@cd ./shop && npm install && npm run dev
+
 swagger:
 	@command -v swag >/dev/null 2>&1 || { \
 		echo "❌ 未安装 swag，请执行: go install github.com/swaggo/swag/cmd/swag@latest"; \
@@ -91,16 +97,29 @@ build-web:
 	@mkdir -p ./internal/webui
 	@cp -R ./web/dist ./internal/webui/dist
 
+build-shop:
+	@echo "构建 Shop 站点页面..."
+	@command -v npm >/dev/null 2>&1 || { \
+		echo "❌ 未检测到 npm，请先安装 Node.js (https://nodejs.org)"; \
+		exit 1; \
+	}
+	@echo "检测到 npm，开始构建 Shop 站点..."
+	@cd ./shop && npm install && npm run build
+	@echo "同步 dist 到 internal/webui/shop"
+	@rm -rf ./internal/webui/shop
+	@mkdir -p ./internal/webui
+	@cp -R ./shop/dist ./internal/webui/shop
+
 # 前端资源 + Swagger 文档构建标记：并发 release 时只构建一次
 PREPARE_STAMP := $(BUILD_DIR)/.prepared
 
 $(PREPARE_STAMP):
-	@$(MAKE) build-web
+	@$(MAKE) build-web build-shop
 	@mkdir -p $(BUILD_DIR)
 	@touch $(PREPARE_STAMP)
 
 # 构建当前平台（release 优化，始终刷新前端）
-build: build-web swagger
+build: build-web build-shop swagger
 	@echo "构建 $(APP_NAME)（当前平台）..."
 	@mkdir -p $(BUILD_DIR)
 	CGO_ENABLED=$(CGO_ENABLED) $(GO_BUILD) $(GO_BUILD_FLAGS) -o $(BUILD_DIR)/$(APP_NAME) $(CMD_DIR)
