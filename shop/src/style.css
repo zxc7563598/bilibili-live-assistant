@@ -1,0 +1,232 @@
+@import 'tailwindcss';
+
+@theme {
+  /* 颜色 → v4 命名空间（值仍指向下方 :root / [data-theme] 里的原始变量，运行时按主题切换） */
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--bg-soft);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-starlight: var(--starlight);
+  --color-starlight-soft: var(--starlight-soft);
+  --color-on-starlight: var(--on-starlight);
+  --color-glass: var(--glass);
+
+  /* 字体（对应参考 config 的 fontFamily.sans） */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* ==========================================================================
+   设计令牌（Design Tokens）
+   --------------------------------------------------------------------------
+   - 全部颜色由 CSS 变量控制，日间 / 暗夜双模式在 [data-theme="dark"] 下切换。
+   - 商户主题色 --primary 运行时由 JS 注入（见 utils/color.js），
+     派生的 hover / active / soft / ring 全部用 color-mix() 基于 --primary 计算，
+     因此商户在后台随意更换主题色都无需重建样式。
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* ---- 商户主题色（接口获取，示例默认值） ---- */
+  --primary-base: #2563eb; /* 原始色码（JS 写入） */
+  --primary: var(--primary-base); /* 日间实际使用 */
+  --primary-dark: var(--primary-base); /* 暗夜实际使用（JS 调亮后写入） */
+  --on-primary: #ffffff; /* 主题色上的文字（JS 按对比度写入） */
+  --on-primary-dark: #ffffff;
+
+  /* ---- 由 --primary 派生的次要色 ---- */
+  --primary-hover: color-mix(in srgb, var(--primary) 86%, #000);
+  --primary-active: color-mix(in srgb, var(--primary) 72%, #000);
+  --primary-soft: color-mix(in srgb, var(--primary) 11%, var(--surface));
+  --primary-ring: color-mix(in srgb, var(--primary) 45%, transparent);
+  --primary-gradient: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 82%, #000) 100%);
+
+  /* ---- 中性色（日间） ---- */
+  --bg: #f5f6f8;
+  --bg-soft: #eef0f4;
+  --surface: #ffffff;
+  --surface-2: #f8f9fb;
+  --fg: #0f172a;
+  --fg-2: #475569;
+  --fg-3: #94a3b8;
+  --line: #e8eaee;
+  --line-strong: #d6dbe2;
+
+  /* ---- 毛玻璃 ---- */
+  --glass: rgba(255, 255, 255, 0.55);
+  --glass-strong: rgba(255, 255, 255, 0.74);
+  --glass-border: rgba(255, 255, 255, 0.6);
+
+  /* ---- 状态色 ---- */
+  --danger: #e11d48;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --info: #0ea5e9;
+
+  /* ---- 第二货币：星光（琥珀金，与积分独立，日间用深金保证对比度） ---- */
+  --starlight: #b45309;
+  --starlight-soft: color-mix(in srgb, var(--starlight) 12%, var(--surface));
+  --on-starlight: #ffffff;
+
+  /* ---- Soft UI 柔和阴影 ---- */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 30px -12px rgba(15, 23, 42, 0.12);
+  --shadow-pop: 0 20px 44px -16px rgba(15, 23, 42, 0.22);
+  --shadow-btn: 0 10px 22px -10px var(--primary-ring);
+
+  --radius-lg: 1.25rem;
+  --radius-md: 1rem;
+  --radius-sm: 0.75rem;
+}
+
+/* ---- 暗夜模式 ---- */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --primary: var(--primary-dark);
+  --on-primary: var(--on-primary-dark);
+
+  /* 深色半透明玻璃、文字反白 */
+  --bg: #0b0d12;
+  --bg-soft: #131722;
+  --surface: #161b26;
+  --surface-2: #1d2432;
+  --fg: #f2f4f8;
+  --fg-2: #b5bdcb;
+  --fg-3: #6b7484;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+
+  --glass: rgba(22, 27, 38, 0.55);
+  --glass-strong: rgba(22, 27, 38, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.09);
+
+  /* 暗夜下星光调亮保证可读性 */
+  --starlight: #fbbf24;
+  --on-starlight: #201500;
+
+  /* 阴影在暗色下不可见 → 用极淡发光边框 / 内发光保持层次 */
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 14px 36px -18px rgba(0, 0, 0, 0.7);
+  --shadow-pop: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 60px -18px rgba(0, 0, 0, 0.85);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg font-sans text-fg antialiased;
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    min-height: 100dvh;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* 数字用等宽数字，避免积分/价格跳动 */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 无障碍：键盘焦点可见 */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* 尊重系统减弱动效偏好 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* 纯毛玻璃 */
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-strong {
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+    backdrop-filter: blur(24px) saturate(170%);
+    border: 1px solid var(--glass-border);
+  }
+
+  /* Soft UI 卡片 */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* 按压反馈 */
+  .press {
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease;
+  }
+  .press:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hairline {
+    border-bottom: 0.5px solid var(--line);
+  }
+
+  /* 安全区 */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}

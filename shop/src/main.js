@@ -1,0 +1,34 @@
+import { createApp } from 'vue'
+import AppIcon from '@/components/base/AppIcon.vue'
+import AppImage from '@/components/base/AppImage.vue'
+import App from './App.vue'
+import router from './router/index.js'
+import { applyPrimaryColor } from './utils/color'
+import { initTheme } from './utils/theme'
+import './style.css'
+
+// 主题初始化
+initTheme()
+
+// 商户主题色：示例默认色
+applyPrimaryColor('#965bff')
+
+const app = createApp(App)
+
+// 在路由切换时修改页面的title和meta标签
+router.beforeEach((to) => {
+  document.title = to.meta.title
+  const metaTags = to.meta.metaTags || []
+  metaTags.forEach((tag) => {
+    const tagElement = document.createElement('meta')
+    Object.keys(tag).forEach((key) => {
+      tagElement.setAttribute(key, tag[key])
+    })
+    document.head.appendChild(tagElement)
+  })
+})
+
+app.component('AppImage', AppImage)
+app.component('AppIcon', AppIcon)
+app.use(router)
+app.mount('#app')

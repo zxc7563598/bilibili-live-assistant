@@ -1,0 +1,27 @@
+<script setup>
+import { computed } from 'vue'
+
+// 全局注册，任意组件直接用 <AppIcon name="..." />
+const props = defineProps({
+  name: { type: String, required: true },
+  size: { type: [Number, String], default: 24 },
+  strokeWidth: { type: [Number, String], default: 1.8 },
+})
+
+const icons = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1V10"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/>',
+  store: '<path d="M3 9 4 3h16l1 6"/><path d="M4 9v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/><path d="M9 21v-8h6v8"/>',
+  points: '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20"/><path d="M9 3l3 6 3-6"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+}
+
+const markup = computed(() => icons[props.name] || icons.image)
+</script>
+
+<template>
+  <svg :width="size" :height="size" viewBox="0 0 24 24" fill="none" stroke="currentColor" :stroke-width="strokeWidth" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <g v-html="markup" />
+  </svg>
+</template>
