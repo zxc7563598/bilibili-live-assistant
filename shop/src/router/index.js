@@ -30,7 +30,7 @@ const routes = [{
 // 设置路由
 const router = createRouter({
   routes,
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory('/shop'),
 })
 
 // 导出路由

@@ -1,4 +1,5 @@
 <script setup>
+import AppToast from './components/base/AppToast.vue'
 import PWABadge from './components/PWABadge.vue'
 </script>
 
@@ -7,6 +8,7 @@ import PWABadge from './components/PWABadge.vue'
     <router-view />
   </div>
   <PWABadge />
+  <AppToast />
 </template>
 
 <style scoped></style>

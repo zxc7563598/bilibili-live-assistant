@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import AppButton from '@/components/base/AppButton.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import AppImage from '@/components/base/AppImage.vue'
 import App from './App.vue'
@@ -28,7 +29,9 @@ router.beforeEach((to) => {
   })
 })
 
+app.component('AppButton', AppButton)
 app.component('AppImage', AppImage)
 app.component('AppIcon', AppIcon)
+
 app.use(router)
 app.mount('#app')
