@@ -44,7 +44,7 @@ export default {
                 name: '定制帆布手提包',
                 cover: 'https://shub.points.xin/attachment/goods/cover_image/image_681ad8392a90b5.30457608.png',
                 amount: 4200,
-                type: 1,
+                type: 0,
               },
               {
                 id: 4,
