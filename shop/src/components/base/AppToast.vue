@@ -29,7 +29,7 @@ const types = {
 
 <template>
   <Teleport to="body">
-    <div class="pointer-events-none fixed inset-0 z-[100] flex flex-col justify-between">
+    <div class="pointer-events-none fixed inset-0 z-100 flex flex-col justify-between">
       <div v-for="g in groups" :key="g.name" class="px-4" :class="g.pad">
         <TransitionGroup :name="g.name" tag="div" :class="g.stack">
           <div v-for="t in g.items" :key="t.id" role="status" class="pointer-events-auto inline-flex max-w-[85vw] items-center gap-2.5 rounded-full border border-line-strong bg-surface py-2.5 pl-3 pr-4 shadow-(--shadow-pop)">
