@@ -120,7 +120,6 @@ function submit() {
   submitLoading.value = true
   api.login(uid.value, password.value).then((res) => {
     if (res.code === 0) {
-      console.warn(res.data)
       toast.success('登录成功')
       router.replace('/')
     }
