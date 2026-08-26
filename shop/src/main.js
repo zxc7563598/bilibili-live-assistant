@@ -2,6 +2,8 @@ import { createApp } from 'vue'
 import AppButton from '@/components/base/AppButton.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import AppImage from '@/components/base/AppImage.vue'
+import AppSwitch from '@/components/base/AppSwitch.vue'
+import Tag from '@/components/base/Tag.vue'
 import App from './App.vue'
 import router from './router/index.js'
 import { applyPrimaryColor } from './utils/color'
@@ -29,9 +31,11 @@ router.beforeEach((to) => {
   })
 })
 
+app.component('AppSwitch', AppSwitch)
 app.component('AppButton', AppButton)
 app.component('AppImage', AppImage)
 app.component('AppIcon', AppIcon)
+app.component('Tag', Tag)
 
 app.use(router)
 app.mount('#app')
