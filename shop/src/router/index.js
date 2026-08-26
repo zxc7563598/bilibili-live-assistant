@@ -34,6 +34,15 @@ const routes = [
     },
   },
   {
+    path: '/confirm',
+    name: 'confirm',
+    component: () => import('../pages/confirm/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('../pages/profile/index.vue'),
