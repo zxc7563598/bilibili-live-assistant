@@ -35,7 +35,7 @@
     </div>
     <main class="mx-auto w-full max-w-5xl px-4 pt-4">
       <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        <router-link v-for="(p, i) in products" :key="`${p.id}-${i}`" :to="`/product/${p.id}`" class="card press block overflow-hidden">
+        <router-link v-for="(p, i) in products" :key="`${p.id}-${i}`" :to="`/details/${p.id}`" class="card press block overflow-hidden">
           <AppImage :src="p.cover" :label="p.name" ratio="1 / 1" rounded="rounded-none" />
           <div class="p-3">
             <p class="line-clamp-2 text-sm font-medium leading-snug">

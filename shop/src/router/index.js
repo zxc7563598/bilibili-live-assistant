@@ -25,6 +25,15 @@ const routes = [
     },
   },
   {
+    path: '/details/:id',
+    name: 'details',
+    component: () => import('../pages/details/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
     path: '/profile',
     name: 'profile',
     component: () => import('../pages/profile/index.vue'),
