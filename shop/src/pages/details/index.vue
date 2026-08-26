@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-dvh pb-24">
+  <div v-if="product.id" class="min-h-dvh pb-24">
     <div class="relative">
       <AppCarousel :items="product.slides" ratio="1 / 1" interval="5000" />
       <div class="safe-top absolute inset-x-0 top-0 z-10 flex items-center justify-between px-3 pt-2">
@@ -141,6 +141,7 @@ onMounted(() => {
     }
     else {
       toast.error(res.msg)
+      router.replace('/')
     }
   })
 })
