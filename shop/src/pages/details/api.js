@@ -30,7 +30,7 @@ export default {
           },
           msg: 'success',
         })
-      }, 300)
+      }, 1500)
     })
   },
 }

@@ -13,7 +13,7 @@ export default {
           },
           msg: 'success',
         })
-      }, 500)
+      }, 1500)
     })
   },
   getRoomID: () => {
@@ -26,7 +26,7 @@ export default {
           },
           msg: 'success',
         })
-      }, 800)
+      }, 1500)
     })
   },
   logout: () => {
@@ -37,7 +37,7 @@ export default {
           data: {},
           msg: 'success',
         })
-      }, 800)
+      }, 1500)
     })
   },
 }

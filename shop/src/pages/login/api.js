@@ -12,7 +12,7 @@ export default {
           },
           message: 'success',
         })
-      }, 300)
+      }, 1500)
     })
   },
   getAccount: (account) => {
@@ -25,7 +25,7 @@ export default {
           },
           message: 'success',
         })
-      }, 300)
+      }, 1500)
     })
   },
   login: (uid, password) => {
@@ -39,7 +39,7 @@ export default {
           },
           message: 'success',
         })
-      }, 2000)
+      }, 1500)
     })
   },
 }

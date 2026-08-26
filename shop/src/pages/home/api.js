@@ -13,7 +13,7 @@ export default {
           },
           msg: 'success',
         })
-      }, 300)
+      }, 1500)
     })
   },
   getShopList: (page, search) => {
@@ -85,7 +85,7 @@ export default {
           },
           msg: 'success',
         })
-      }, 2000)
+      }, 1500)
     })
   },
 }
