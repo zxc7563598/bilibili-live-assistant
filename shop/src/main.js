@@ -3,6 +3,7 @@ import AppButton from '@/components/base/AppButton.vue'
 import AppCarousel from '@/components/base/AppCarousel.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import AppImage from '@/components/base/AppImage.vue'
+import AppNavBar from '@/components/base/AppNavBar.vue'
 import AppSwitch from '@/components/base/AppSwitch.vue'
 import Tag from '@/components/base/Tag.vue'
 import App from './App.vue'
@@ -33,6 +34,7 @@ router.beforeEach((to) => {
 })
 
 app.component('AppCarousel', AppCarousel)
+app.component('AppNavBar', AppNavBar)
 app.component('AppSwitch', AppSwitch)
 app.component('AppButton', AppButton)
 app.component('AppImage', AppImage)
