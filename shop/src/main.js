@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import AppBottomSheet from '@/components/base/AppBottomSheet.vue'
 import AppButton from '@/components/base/AppButton.vue'
 import AppCarousel from '@/components/base/AppCarousel.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
@@ -33,6 +34,7 @@ router.beforeEach((to) => {
   })
 })
 
+app.component('AppBottomSheet', AppBottomSheet)
 app.component('AppCarousel', AppCarousel)
 app.component('AppNavBar', AppNavBar)
 app.component('AppSwitch', AppSwitch)
