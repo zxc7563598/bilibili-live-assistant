@@ -1,4 +1,5 @@
 <script setup>
+import AppDialog from './components/base/AppDialog.vue'
 import AppToast from './components/base/AppToast.vue'
 import PWABadge from './components/PWABadge.vue'
 </script>
@@ -9,6 +10,7 @@ import PWABadge from './components/PWABadge.vue'
   </div>
   <PWABadge />
   <AppToast />
+  <AppDialog />
 </template>
 
 <style scoped></style>
