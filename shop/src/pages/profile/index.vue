@@ -130,11 +130,11 @@ function logout() {
 }
 
 const menus = [
-  { icon: 'box', label: '我的订单', to: '/orders' },
-  { icon: 'clock', label: '账户记录', to: '/assets' },
+  { icon: 'box', label: '我的订单', to: '/user/orders' },
+  { icon: 'clock', label: '账户记录', to: '/user/assets' },
   { icon: 'map-pin', label: '收货地址', to: '/user/address' },
-  { icon: 'message', label: '投诉建议', to: '/feedback' },
-  { icon: 'lock', label: '修改密码', to: '/password' },
+  { icon: 'message', label: '投诉建议', to: '/user/feedback' },
+  { icon: 'lock', label: '修改密码', to: '/user/password' },
 ]
 
 onMounted(() => {

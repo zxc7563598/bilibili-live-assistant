@@ -70,6 +70,15 @@ const routes = [
     },
   },
   {
+    path: '/user/orders',
+    name: 'orders',
+    component: () => import('../pages/user/orders/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
   // 匹配为定义路由然后重定向到404页面
     path: '/:pathMath(.*)',
     redirect: '/',
