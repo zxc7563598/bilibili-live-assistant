@@ -88,6 +88,24 @@ const routes = [
     },
   },
   {
+    path: '/user/feedback',
+    name: 'feedback',
+    component: () => import('../pages/user/feedback/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/password',
+    name: 'password',
+    component: () => import('../pages/user/password/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
   // 匹配为定义路由然后重定向到404页面
     path: '/:pathMath(.*)',
     redirect: '/',
