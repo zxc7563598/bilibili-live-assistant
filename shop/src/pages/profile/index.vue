@@ -132,7 +132,7 @@ function logout() {
 const menus = [
   { icon: 'box', label: '我的订单', to: '/orders' },
   { icon: 'clock', label: '账户记录', to: '/assets' },
-  { icon: 'map-pin', label: '收货地址', to: '/address' },
+  { icon: 'map-pin', label: '收货地址', to: '/user/address' },
   { icon: 'message', label: '投诉建议', to: '/feedback' },
   { icon: 'lock', label: '修改密码', to: '/password' },
 ]

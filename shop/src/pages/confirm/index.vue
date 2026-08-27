@@ -51,7 +51,7 @@
         <AppIcon name="chevron-right" :size="18" class="text-fg-3" />
       </div>
     </button>
-    <button v-if="!addressLoading && !selectedAddress.id" class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="router.push('/address')">
+    <button v-if="!addressLoading && !selectedAddress.id" class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="router.push('/user/address/edit')">
       <div class="card flex items-center justify-center gap-2 border-dashed p-4 text-primary">
         <AppIcon name="plus" :size="20" />
         <span class="text-sm font-medium">添加收货地址</span>

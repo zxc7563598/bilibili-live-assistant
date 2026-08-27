@@ -52,6 +52,24 @@ const routes = [
     },
   },
   {
+    path: '/user/address',
+    name: 'address',
+    component: () => import('../pages/user/address/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/address/edit/:id?',
+    name: 'addressEdit',
+    component: () => import('../pages/user/address/edit.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
   // 匹配为定义路由然后重定向到404页面
     path: '/:pathMath(.*)',
     redirect: '/',
