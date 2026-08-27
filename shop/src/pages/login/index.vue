@@ -132,11 +132,18 @@ function submit() {
 }
 
 onMounted(() => {
-  api.getConfig().then(({ data }) => {
-    logo.value = data.logo
-    loginBg.value = data.loginBg
-    title.value = data.title
-    slogan.value = data.slogan
+  api.getConfig().then((res) => {
+    if (res.code === 0) {
+      logo.value = res.data.logo
+      loginBg.value = res.data.loginBg
+      title.value = res.data.title
+      slogan.value = res.data.slogan
+    }
+    else {
+      toast.error(res.msg || res.message)
+    }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
   })
 })
 </script>

@@ -14,6 +14,10 @@ const contact = ref('')
 const saveLoading = ref(false)
 
 function submit() {
+  if (!content.value.trim()) {
+    toast.error('请填写问题描述')
+    return
+  }
   if (type.value === '单纯发癫') {
     dialog.warning({
       title: '认真的？',
@@ -34,7 +38,6 @@ function save() {
   saveLoading.value = true
   api.savedFeedback(type.value, content.value, contact.value).then((res) => {
     if (res.code === 0) {
-      console.warn(res)
       toast.success('反馈成功，请等待主播与您联系')
       if (window.history.length > 1) {
         router.back()
@@ -46,6 +49,8 @@ function save() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
   }).finally(() => {
     saveLoading.value = false
   })

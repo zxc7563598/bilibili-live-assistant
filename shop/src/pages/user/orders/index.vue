@@ -4,42 +4,44 @@
     <div class="sticky top-14 z-30 bg-bg px-4 py-3">
       <AppSegmentedControl v-model="status" :options="options" class="w-full" @click="updateStatus" />
     </div>
-    <main class="mx-auto w-full max-w-5xl space-y-3 px-4">
-      <div v-for="o in data.pageData" :key="o.id" class="card p-4">
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-fg-3">订单号 {{ o.id }}</span>
-          <Tag :color="statusColor[o.status]">
-            {{ o.statusText }}
-          </Tag>
-        </div>
-        <div class="mt-3 flex items-center gap-3">
-          <div class="w-16 shrink-0">
-            <AppImage :src="o.cover" :label="o.title" ratio="1 / 1" rounded="rounded-lg" />
+    <main class="mx-auto w-full max-w-5xl px-4">
+      <TransitionGroup name="list" tag="div" class="space-y-3">
+        <div v-for="o in data.pageData" :key="o.id" class="card p-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-fg-3">订单号 {{ o.id }}</span>
+            <Tag :color="statusColor[o.status]">
+              {{ o.statusText }}
+            </Tag>
           </div>
-          <div class="min-w-0 flex-1">
-            <p class="line-clamp-2 text-sm font-medium leading-snug">
-              {{ o.title }}
-            </p>
-            <p class="mt-1 text-xs text-fg-3">
-              {{ o.sku.join('·') }} · x{{ o.count }}
-            </p>
+          <div class="mt-3 flex items-center gap-3">
+            <div class="w-16 shrink-0">
+              <AppImage :src="o.cover" :label="o.title" ratio="1 / 1" rounded="rounded-lg" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="line-clamp-2 text-sm font-medium leading-snug">
+                {{ o.title }}
+              </p>
+              <p class="mt-1 text-xs text-fg-3">
+                {{ o.sku.join('·') }} · x{{ o.count }}
+              </p>
+            </div>
+            <div class="flex shrink-0 items-center gap-1" :class="o.type === 0 ? 'text-starlight' : 'text-primary'">
+              <AppIcon :name="o.type === 0 ? 'star' : 'points'" :size="15" />
+              <span class="font-bold tabular-nums">{{ o.amount }}</span>
+            </div>
           </div>
-          <div class="flex shrink-0 items-center gap-1" :class="o.type === 0 ? 'text-starlight' : 'text-primary'">
-            <AppIcon :name="o.type === 0 ? 'star' : 'points'" :size="15" />
-            <span class="font-bold tabular-nums">{{ o.amount }}</span>
+          <div class="mt-3 flex items-center justify-between border-t border-line pt-3 text-xs text-fg-3">
+            <span class="flex items-center gap-1"><AppIcon name="clock" :size="13" />{{ o.time }}</span>
           </div>
         </div>
-        <div class="mt-3 flex items-center justify-between border-t border-line pt-3 text-xs text-fg-3">
-          <span class="flex items-center gap-1"><AppIcon name="clock" :size="13" />{{ o.time }}</span>
-        </div>
-      </div>
-      <div v-if="!data.pageData.length" class="py-10 text-center text-sm text-fg-3">
-        <span v-if="loading" class="inline-flex items-center gap-1">
+      </TransitionGroup>
+      <div v-if="loading && !data.pageData.length" class="py-10 text-center text-sm text-fg-3">
+        <span class="inline-flex items-center gap-1">
           <AppIcon name="refresh" :size="14" class="animate-spin" />
           加载中...
         </span>
-        <span v-else>暂无相关订单</span>
       </div>
+      <AppEmpty v-else-if="!data.pageData.length" icon="box" title="暂无相关订单" />
       <div ref="sentinelRef" class="py-6 text-center text-sm text-fg-3">
         <span v-if="loading && data.pageData.length" class="inline-flex items-center gap-1">
           <AppIcon name="refresh" :size="14" class="animate-spin" />
@@ -97,6 +99,9 @@ function loadList() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    if (seq === requestSeq)
+      toast.error('加载失败，请重试')
   }).finally(() => {
     if (seq === requestSeq)
       loading.value = false

@@ -12,9 +12,17 @@ const confirmPwd = ref('')
 const saveLoading = ref(false)
 
 function submit() {
+  if (!oldPwd.value) {
+    toast.error('请输入当前密码')
+    return
+  }
+  if (!newPwd.value) {
+    toast.error('请输入新密码')
+    return
+  }
   if (newPwd.value !== confirmPwd.value) {
     toast.error('两次输入的密码不一致')
-    return false
+    return
   }
   saveLoading.value = true
   api.savedPassword(oldPwd.value, newPwd.value).then((res) => {
@@ -27,11 +35,15 @@ function submit() {
         else {
           toast.error(res.msg)
         }
+      }).catch(() => {
+        toast.error('加载失败，请重试')
       })
     }
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
   }).finally(() => {
     saveLoading.value = false
   })

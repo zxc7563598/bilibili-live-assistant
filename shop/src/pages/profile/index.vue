@@ -4,17 +4,25 @@
       <div class="mx-auto w-full max-w-5xl px-4 pt-6">
         <div class="flex items-center gap-4">
           <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-primary">
-            <AppImage v-if="user.avatar" :src="user.avatar" rounded="rounded-full" class="w-32" />
-            <AppIcon v-else name="user" :size="32" />
+            <template v-if="!userLoading">
+              <AppImage v-if="user.avatar" :src="user.avatar" rounded="rounded-full" />
+              <AppIcon v-else name="user" :size="32" />
+            </template>
           </div>
           <div class="min-w-0 flex-1">
-            <p class="text-lg font-bold">
-              {{ user.name }}
-            </p>
-            <button class="mt-1 flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-xs text-fg-2 press" @click="copyUid">
-              UID：{{ user.uid }}
-              <AppIcon :name="copied ? 'check' : 'copy'" :size="13" :class="copied ? 'text-success' : ''" />
-            </button>
+            <template v-if="userLoading">
+              <AppSkeleton class="h-6 w-28" />
+              <AppSkeleton class="mt-2 h-4 w-20 rounded-full" />
+            </template>
+            <template v-else>
+              <p class="text-lg font-bold">
+                {{ user.name }}
+              </p>
+              <button class="mt-1 flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-xs text-fg-2 press" @click="copyUid">
+                UID：{{ user.uid }}
+                <AppIcon :name="copied ? 'check' : 'copy'" :size="13" :class="copied ? 'text-success' : ''" />
+              </button>
+            </template>
           </div>
           <Tag color="primary">
             普通用户
@@ -33,7 +41,10 @@
             <p class="flex items-center gap-1 text-xs text-fg-2">
               <AppIcon name="points" :size="14" class="text-primary" />积分
             </p>
-            <p class="mt-1.5 text-2xl font-extrabold text-primary tabular-nums">
+            <p v-if="userLoading" class="mt-1.5">
+              <AppSkeleton class="h-7 w-16" />
+            </p>
+            <p v-else class="mt-1.5 text-2xl font-extrabold text-primary tabular-nums">
               {{ user.points }}
             </p>
           </div>
@@ -41,12 +52,18 @@
             <p class="flex items-center gap-1 text-xs text-fg-2">
               <AppIcon name="star" :size="14" class="text-starlight" />星光
             </p>
-            <p class="mt-1.5 text-2xl font-extrabold text-starlight tabular-nums">
+            <p v-if="userLoading" class="mt-1.5">
+              <AppSkeleton class="h-7 w-16" />
+            </p>
+            <p v-else class="mt-1.5 text-2xl font-extrabold text-starlight tabular-nums">
               {{ user.stars }}
             </p>
           </div>
         </div>
-        <div v-if="roomID > 0" class="mt-4 flex flex-wrap gap-2">
+        <div v-if="roomLoading" class="mt-4">
+          <AppSkeleton class="h-9 w-full rounded-full" />
+        </div>
+        <div v-else-if="roomID > 0" class="mt-4 flex flex-wrap gap-2">
           <AppButton size="sm" block @click="enterLive">
             <AppIcon name="tv" :size="16" />火速进入直播间爆米
           </AppButton>
@@ -69,11 +86,11 @@
           <span class="flex-1 text-[15px] font-medium">暗夜模式</span>
           <AppSwitch :model-value="isDark" @update:model-value="toggleTheme" />
         </div>
-        <button class="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 press" @click="logout">
+        <button class="flex w-full items-center gap-3 rounded-2xl px-4 py-3.5 press disabled:opacity-60" :disabled="logoutLoading" @click="logout">
           <div class="flex h-9 w-9 items-center justify-center rounded-full text-danger" style="background: color-mix(in srgb, var(--danger) 10%, transparent)">
-            <AppIcon name="logout" :size="18" />
+            <AppIcon :name="logoutLoading ? 'refresh' : 'logout'" :size="18" :class="logoutLoading ? 'animate-spin' : ''" />
           </div>
-          <span class="flex-1 text-left text-[15px] font-medium text-danger">退出登录</span>
+          <span class="flex-1 text-left text-[15px] font-medium text-danger">{{ logoutLoading ? '退出中...' : '退出登录' }}</span>
         </button>
       </section>
     </main>
@@ -101,6 +118,9 @@ const user = ref({
 })
 
 const roomID = ref(0)
+const userLoading = ref(true)
+const roomLoading = ref(true)
+const logoutLoading = ref(false)
 
 async function copyUid() {
   try {
@@ -118,6 +138,9 @@ function enterLive() {
 }
 
 function logout() {
+  if (logoutLoading.value)
+    return
+  logoutLoading.value = true
   api.logout().then((res) => {
     if (res.code === 0) {
       toast.success('退出成功')
@@ -126,6 +149,10 @@ function logout() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+  }).finally(() => {
+    logoutLoading.value = false
   })
 }
 
@@ -145,6 +172,10 @@ onMounted(() => {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+  }).finally(() => {
+    userLoading.value = false
   })
   api.getRoomID().then((res) => {
     if (res.code === 0) {
@@ -153,6 +184,10 @@ onMounted(() => {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+  }).finally(() => {
+    roomLoading.value = false
   })
 })
 </script>

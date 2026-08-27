@@ -1,7 +1,17 @@
 <template>
   <div class="min-h-dvh bg-bg pb-28">
     <AppNavBar title="确认订单" />
-    <section v-if="confirm.product.id > 0" class="mx-auto mt-3 w-full max-w-5xl px-4">
+    <section v-if="confirmLoading" class="mx-auto mt-3 w-full max-w-5xl px-4">
+      <div class="card flex items-center gap-3 p-4">
+        <AppSkeleton class="h-10 w-10 rounded-full" />
+        <div class="flex-1 space-y-2">
+          <AppSkeleton class="h-4 w-2/3" />
+          <AppSkeleton class="h-3 w-1/2" />
+        </div>
+        <AppSkeleton class="h-7 w-12 rounded-full" />
+      </div>
+    </section>
+    <section v-else-if="confirm.product.id > 0" class="mx-auto mt-3 w-full max-w-5xl px-4">
       <div v-if="!expired" class="card flex items-center gap-3 border-warning/40 bg-warning/10 p-4">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning">
           <AppIcon name="clock" :size="20" />
@@ -35,7 +45,16 @@
         </AppButton>
       </div>
     </section>
-    <button v-if="!addressLoading && selectedAddress.id" class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="showAddressSheet = true">
+    <div v-if="addressLoading" class="mx-auto mt-3 w-full max-w-5xl px-4">
+      <div class="card flex items-center gap-3 p-4">
+        <AppSkeleton class="h-10 w-10 rounded-full" />
+        <div class="flex-1 space-y-2">
+          <AppSkeleton class="h-4 w-1/2" />
+          <AppSkeleton class="h-3 w-3/4" />
+        </div>
+      </div>
+    </div>
+    <button v-else-if="selectedAddress.id" class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="showAddressSheet = true">
       <div class="card flex w-full items-center gap-3 p-4 text-left">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
           <AppIcon :name="selectedAddress.type === 0 ? 'mail' : 'map-pin'" :size="20" />
@@ -51,13 +70,24 @@
         <AppIcon name="chevron-right" :size="18" class="text-fg-3" />
       </div>
     </button>
-    <button v-if="!addressLoading && !selectedAddress.id" class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="router.push('/user/address/edit')">
+    <button v-else class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="router.push('/user/address/edit')">
       <div class="card flex items-center justify-center gap-2 border-dashed p-4 text-primary">
         <AppIcon name="plus" :size="20" />
         <span class="text-sm font-medium">添加收货地址</span>
       </div>
     </button>
-    <section v-if="confirm.product.id > 0" class="mx-auto mt-3 w-full max-w-5xl px-4">
+    <section v-if="confirmLoading" class="mx-auto mt-3 w-full max-w-5xl px-4">
+      <div class="card flex items-center gap-3 p-4">
+        <AppSkeleton class="h-20 w-20 rounded-lg" />
+        <div class="flex-1 space-y-2">
+          <AppSkeleton class="h-4 w-full" />
+          <AppSkeleton class="h-3 w-2/3" />
+          <AppSkeleton class="h-3 w-1/3" />
+        </div>
+        <AppSkeleton class="h-5 w-12" />
+      </div>
+    </section>
+    <section v-else-if="confirm.product.id > 0" class="mx-auto mt-3 w-full max-w-5xl px-4">
       <div class="card flex items-center gap-3 p-4">
         <div class="w-20 shrink-0">
           <AppImage :src="confirm.product.cover" :label="confirm.product.name" ratio="1 / 1" rounded="rounded-lg" />
@@ -79,7 +109,14 @@
         </div>
       </div>
     </section>
-    <section v-if="confirm.product.id > 0" class="mx-auto mt-3 w-full max-w-5xl px-4">
+    <section v-if="confirmLoading" class="mx-auto mt-3 w-full max-w-5xl px-4">
+      <div class="card space-y-3 p-4">
+        <AppSkeleton class="h-4 w-full" />
+        <AppSkeleton class="h-4 w-full" />
+        <AppSkeleton class="h-4 w-2/3" />
+      </div>
+    </section>
+    <section v-else-if="confirm.product.id > 0" class="mx-auto mt-3 w-full max-w-5xl px-4">
       <div class="card divide-y divide-line p-4 text-sm">
         <div class="flex items-center justify-between py-2.5">
           <span class="text-fg-2">商品{{ confirm.product.type === 0 ? '星光' : '积分' }}</span>
@@ -175,6 +212,7 @@ const confirm = ref({
 })
 
 const confirmPaymentLoading = ref(false)
+const confirmLoading = ref(true)
 
 // 倒计时：每秒刷新 now，剩余时间由 expireAt 推算（墙钟制，切后台不漂移）
 const now = ref(Date.now())
@@ -218,18 +256,24 @@ const addressLine = computed(() => {
 })
 
 function loadConfirm(reorder = false) {
+  // 仅首次进入显示骨架屏，重新购买刷新倒计时时不重放骨架
+  if (!reorder)
+    confirmLoading.value = true
   api.getConfirm().then((res) => {
     if (res.code === 0) {
       Object.assign(confirm.value, res.data)
       now.value = Date.now()
-      if (reorder) {
+      if (reorder)
         toast.success('已重新锁定库存，请尽快完成支付')
-        reOrderLoading.value = false
-      }
     }
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+  }).finally(() => {
+    if (!reorder)
+      confirmLoading.value = false
   })
 }
 
@@ -242,6 +286,10 @@ function reOrder() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+  }).finally(() => {
+    reOrderLoading.value = false
   })
 }
 
@@ -255,6 +303,8 @@ function confirmPayment() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
   }).finally(() => {
     confirmPaymentLoading.value = false
   })
@@ -279,6 +329,9 @@ onMounted(() => {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+  }).finally(() => {
     addressLoading.value = false
   })
   loadConfirm()

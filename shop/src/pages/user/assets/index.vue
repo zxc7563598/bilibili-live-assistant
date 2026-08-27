@@ -4,35 +4,37 @@
     <div class="sticky top-14 z-30 bg-bg px-4 py-3">
       <AppSegmentedControl v-model="type" :options="options" class="w-full" @click="updateType" />
     </div>
-    <main class="mx-auto w-full max-w-5xl space-y-3 px-4">
-      <div v-for="l in list" :key="l.id" class="card flex items-center gap-3 p-4">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" :class="l.positive ? 'text-success' : 'text-danger'" :style="{ background: `color-mix(in srgb, ${l.positive ? 'var(--success)' : 'var(--danger)'} 10%, transparent)` }">
-          <AppIcon :name="l.positive ? 'plus' : 'minus'" :size="20" />
+    <main class="mx-auto w-full max-w-5xl px-4">
+      <TransitionGroup name="list" tag="div" class="space-y-3">
+        <div v-for="l in list" :key="l.id" class="card flex items-center gap-3 p-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" :class="l.positive ? 'text-success' : 'text-danger'" :style="{ background: `color-mix(in srgb, ${l.positive ? 'var(--success)' : 'var(--danger)'} 10%, transparent)` }">
+            <AppIcon :name="l.positive ? 'plus' : 'minus'" :size="20" />
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-medium">
+              {{ l.title }}
+            </p>
+            <p class="mt-0.5 flex items-center gap-1 text-xs text-fg-3">
+              <AppIcon :name="l.type === 0 ? 'star' : 'points'" :size="12" />{{ l.time }}
+            </p>
+          </div>
+          <div class="shrink-0 text-right">
+            <p class="font-bold tabular-nums" :class="l.positive ? 'text-success' : 'text-fg'">
+              {{ l.value }}
+            </p>
+            <p class="mt-0.5 text-xs text-fg-3 tabular-nums">
+              余额 {{ l.balance }}
+            </p>
+          </div>
         </div>
-        <div class="min-w-0 flex-1">
-          <p class="text-sm font-medium">
-            {{ l.title }}
-          </p>
-          <p class="mt-0.5 flex items-center gap-1 text-xs text-fg-3">
-            <AppIcon :name="l.type === 0 ? 'star' : 'points'" :size="12" />{{ l.time }}
-          </p>
-        </div>
-        <div class="shrink-0 text-right">
-          <p class="font-bold tabular-nums" :class="l.positive ? 'text-success' : 'text-fg'">
-            {{ l.value }}
-          </p>
-          <p class="mt-0.5 text-xs text-fg-3 tabular-nums">
-            余额 {{ l.balance }}
-          </p>
-        </div>
-      </div>
-      <div v-if="!list.length" class="py-10 text-center text-sm text-fg-3">
-        <span v-if="loading" class="inline-flex items-center gap-1">
+      </TransitionGroup>
+      <div v-if="loading && !list.length" class="py-10 text-center text-sm text-fg-3">
+        <span class="inline-flex items-center gap-1">
           <AppIcon name="refresh" :size="14" class="animate-spin" />
           加载中...
         </span>
-        <span v-else>暂无记录</span>
       </div>
+      <AppEmpty v-else-if="!list.length" icon="box" title="暂无记录" />
       <div ref="sentinelRef" class="py-6 text-center text-sm text-fg-3">
         <span v-if="loading && list.length" class="inline-flex items-center gap-1">
           <AppIcon name="refresh" :size="14" class="animate-spin" />
@@ -83,6 +85,9 @@ function loadList() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    if (seq === requestSeq)
+      toast.error('加载失败，请重试')
   }).finally(() => {
     if (seq === requestSeq)
       loading.value = false

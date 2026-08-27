@@ -2,12 +2,14 @@ import { createApp } from 'vue'
 import AppBottomSheet from '@/components/base/AppBottomSheet.vue'
 import AppButton from '@/components/base/AppButton.vue'
 import AppCarousel from '@/components/base/AppCarousel.vue'
+import AppEmpty from '@/components/base/AppEmpty.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import AppImage from '@/components/base/AppImage.vue'
 import AppInput from '@/components/base/AppInput.vue'
 import AppNavBar from '@/components/base/AppNavBar.vue'
 import AppSegmentedControl from '@/components/base/AppSegmentedControl.vue'
 import AppSelect from '@/components/base/AppSelect.vue'
+import AppSkeleton from '@/components/base/AppSkeleton.vue'
 import AppSwitch from '@/components/base/AppSwitch.vue'
 import Tag from '@/components/base/Tag.vue'
 import App from './App.vue'
@@ -47,6 +49,8 @@ app.component('AppSelect', AppSelect)
 app.component('AppButton', AppButton)
 app.component('AppImage', AppImage)
 app.component('AppIcon', AppIcon)
+app.component('AppEmpty', AppEmpty)
+app.component('AppSkeleton', AppSkeleton)
 app.component('Tag', Tag)
 
 app.use(router)

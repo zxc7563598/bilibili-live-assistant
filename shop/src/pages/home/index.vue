@@ -5,16 +5,24 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary">
-              <AppImage v-if="user.avatar" :src="user.avatar" rounded="rounded-full" class="w-20" />
-              <AppIcon v-else name="store" :size="20" />
+              <template v-if="!userLoading">
+                <AppImage v-if="user.avatar" :src="user.avatar" rounded="rounded-full" />
+                <AppIcon v-else name="store" :size="20" />
+              </template>
             </div>
             <div>
-              <p class="text-xs text-fg-3">
+              <p v-if="userLoading" class="text-xs text-fg-3">
+                <AppSkeleton class="h-3 w-16" rounded="rounded-full" />
+              </p>
+              <p v-else class="text-xs text-fg-3">
                 你好，{{ user.name }}
               </p>
             </div>
           </div>
-          <div class="flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1.5 text-primary">
+          <div v-if="userLoading" class="flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1.5">
+            <AppSkeleton class="h-5 w-24" rounded="rounded-full" />
+          </div>
+          <div v-else class="flex items-center gap-1 rounded-full bg-primary-soft px-3 py-1.5 text-primary">
             <AppIcon name="points" :size="16" />
             <span class="text-sm font-bold tabular-nums">{{ user.points }}</span>
             ｜
@@ -34,7 +42,18 @@
       </button>
     </div>
     <main class="mx-auto w-full max-w-5xl px-4 pt-4">
-      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+      <!-- 首屏 / 搜索骨架屏 -->
+      <div v-if="!products.length && loading" class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        <div v-for="n in 6" :key="n" class="card overflow-hidden">
+          <AppSkeleton class="aspect-square" rounded="rounded-none" />
+          <div class="space-y-2 p-3">
+            <AppSkeleton class="h-4 w-3/4" />
+            <AppSkeleton class="h-4 w-1/2" />
+          </div>
+        </div>
+      </div>
+      <!-- 商品列表 -->
+      <TransitionGroup v-else name="list" tag="div" class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
         <router-link v-for="(p, i) in products" :key="`${p.id}-${i}`" :to="`/details/${p.id}`" class="card press block overflow-hidden">
           <AppImage :src="p.cover" :label="p.name" ratio="1 / 1" rounded="rounded-none" />
           <div class="p-3">
@@ -50,9 +69,11 @@
             </div>
           </div>
         </router-link>
-      </div>
+      </TransitionGroup>
+      <!-- 空态 -->
+      <AppEmpty v-if="!loading && finished && !products.length" icon="store" title="暂无商品" description="换个关键词试试" />
       <div ref="sentinelRef" class="py-6 text-center text-sm text-fg-3">
-        <span v-if="loading" class="inline-flex items-center gap-1">
+        <span v-if="loading && products.length" class="inline-flex items-center gap-1">
           <AppIcon name="refresh" :size="14" class="animate-spin" />
           加载中...
         </span>
@@ -76,6 +97,8 @@ const user = ref({
   points: 0, // 积分余额
   stars: 0, // 星光余额
 })
+
+const userLoading = ref(true)
 
 const categories = ref([])
 const products = ref([])
@@ -149,6 +172,9 @@ function loadList() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    if (seq === requestSeq)
+      toast.error('加载失败，请重试')
   }).finally(() => {
     if (seq === requestSeq) {
       loading.value = false
@@ -177,6 +203,10 @@ onMounted(() => {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+  }).finally(() => {
+    userLoading.value = false
   })
   resetAndLoad()
   observer = new IntersectionObserver((entries) => {

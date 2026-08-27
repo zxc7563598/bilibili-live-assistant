@@ -1,7 +1,20 @@
 <template>
   <div class="min-h-dvh bg-bg pb-10">
     <AppNavBar title="编辑地址" />
-    <main v-if="!route.params.id || route.params.id === id" class="mx-auto w-full max-w-5xl space-y-4 px-4 pt-3">
+    <!-- 编辑态骨架屏 -->
+    <main v-if="loading" class="mx-auto w-full max-w-5xl space-y-4 px-4 pt-3">
+      <AppSkeleton class="h-10 w-full rounded-full" />
+      <AppSkeleton class="h-12 w-full rounded-2xl" />
+      <AppSkeleton class="h-12 w-full rounded-2xl" />
+      <AppSkeleton class="h-12 w-full rounded-2xl" />
+      <AppSkeleton class="h-24 w-full rounded-2xl" />
+      <div class="card flex items-center justify-between p-4">
+        <AppSkeleton class="h-4 w-24" />
+        <AppSkeleton class="h-7 w-12 rounded-full" />
+      </div>
+      <AppSkeleton class="h-13 w-full rounded-full" />
+    </main>
+    <main v-else class="mx-auto w-full max-w-5xl space-y-4 px-4 pt-3">
       <AppSegmentedControl v-model="type" :options="typeOptions" class="w-full" />
       <template v-if="type === 1">
         <AppInput v-model="name" label="收件人" placeholder="请输入收件人姓名" />
@@ -41,6 +54,7 @@ const router = useRouter()
 const route = useRoute()
 const regions = ref([]) // 静态省市区树
 
+const loading = ref(false)
 const id = ref(0)
 const type = ref(1)
 const name = ref('')
@@ -56,11 +70,38 @@ const typeOptions = [
   { label: '虚拟地址', value: 0 },
 ]
 
+function validate() {
+  if (!name.value) {
+    toast.error('请填写收件人')
+    return false
+  }
+  if (type.value === 1) {
+    if (!phone.value) {
+      toast.error('请填写手机号')
+      return false
+    }
+    if (!regionCode.value.length) {
+      toast.error('请选择所在地区')
+      return false
+    }
+    if (!detail.value) {
+      toast.error('请填写详细地址')
+      return false
+    }
+  }
+  else if (!email.value) {
+    toast.error('请填写电子邮箱')
+    return false
+  }
+  return true
+}
+
 function save() {
+  if (!validate())
+    return
   saveLoading.value = true
   api.savedAddress(id.value, type.value, name.value, phone.value, regionCode.value, detail.value, email.value, isDefault.value).then((res) => {
     if (res.code === 0) {
-      console.warn(res)
       toast.success(id.value > 0 ? '保存成功' : '添加成功')
       if (window.history.length > 1) {
         router.back()
@@ -72,6 +113,8 @@ function save() {
     else {
       toast.error(res.msg)
     }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
   }).finally(() => {
     saveLoading.value = false
   })
@@ -86,7 +129,8 @@ async function loadRegions() {
 onMounted(() => {
   loadRegions()
   if (route.params.id && route.params.id > 0) {
-    api.getAddressDetails(id).then((res) => {
+    loading.value = true
+    api.getAddressDetails(route.params.id).then((res) => {
       if (res.code === 0) {
         id.value = route.params.id
         type.value = res.data.type
@@ -100,6 +144,10 @@ onMounted(() => {
       else {
         toast.error(res.msg)
       }
+    }).catch(() => {
+      toast.error('加载失败，请重试')
+    }).finally(() => {
+      loading.value = false
     })
   }
 })
