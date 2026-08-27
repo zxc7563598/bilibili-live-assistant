@@ -250,7 +250,7 @@ function confirmPayment() {
   api.confirmPayment(confirm.value.id, selectedAddress.value.id).then((res) => {
     if (res.code === 0) {
       toast.success('支付成功')
-      router.replace('/')
+      router.replace('/user/orders')
     }
     else {
       toast.error(res.msg)
