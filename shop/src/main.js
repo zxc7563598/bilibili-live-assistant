@@ -15,6 +15,7 @@ import Tag from '@/components/base/Tag.vue'
 import App from './App.vue'
 import router from './router/index.js'
 import { applyPrimaryColor } from './utils/color'
+import { applySiteConfig, loadSiteConfig, siteConfig } from './utils/pwa'
 import { initTheme } from './utils/theme'
 import './style.css'
 
@@ -24,11 +25,14 @@ initTheme()
 // 商户主题色：示例默认色
 applyPrimaryColor('#965bff')
 
+// 加载后台站点配置，动态设置 title / theme-color / favicon 等
+loadSiteConfig().then(applySiteConfig)
+
 const app = createApp(App)
 
 // 在路由切换时修改页面的title和meta标签
 router.beforeEach((to) => {
-  document.title = to.meta.title
+  document.title = siteConfig.value.name || to.meta.title
   const metaTags = to.meta.metaTags || []
   metaTags.forEach((tag) => {
     const tagElement = document.createElement('meta')

@@ -13,18 +13,10 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,
-      pwaAssets: {
-        disabled: false,
-        config: true,
-      },
-      manifest: {
-        name: '积分商城',
-        short_name: '积分商城的short',
-        description: '积分商城的Description',
-        theme_color: '#ffffff',
-      },
+      pwaAssets: false,
+      manifest: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        globPatterns: ['**/*.{js,css,html}'],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
       },
