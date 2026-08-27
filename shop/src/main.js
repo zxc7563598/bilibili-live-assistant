@@ -4,7 +4,10 @@ import AppButton from '@/components/base/AppButton.vue'
 import AppCarousel from '@/components/base/AppCarousel.vue'
 import AppIcon from '@/components/base/AppIcon.vue'
 import AppImage from '@/components/base/AppImage.vue'
+import AppInput from '@/components/base/AppInput.vue'
 import AppNavBar from '@/components/base/AppNavBar.vue'
+import AppSegmentedControl from '@/components/base/AppSegmentedControl.vue'
+import AppSelect from '@/components/base/AppSelect.vue'
 import AppSwitch from '@/components/base/AppSwitch.vue'
 import Tag from '@/components/base/Tag.vue'
 import App from './App.vue'
@@ -34,10 +37,13 @@ router.beforeEach((to) => {
   })
 })
 
+app.component('AppSegmentedControl', AppSegmentedControl)
 app.component('AppBottomSheet', AppBottomSheet)
 app.component('AppCarousel', AppCarousel)
 app.component('AppNavBar', AppNavBar)
 app.component('AppSwitch', AppSwitch)
+app.component('AppInput', AppInput)
+app.component('AppSelect', AppSelect)
 app.component('AppButton', AppButton)
 app.component('AppImage', AppImage)
 app.component('AppIcon', AppIcon)

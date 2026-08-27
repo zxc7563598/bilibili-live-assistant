@@ -12,7 +12,7 @@ function close() {
 <template>
   <Teleport to="body">
     <Transition name="sheet">
-      <div v-if="modelValue" class="fixed inset-0 z-[60]">
+      <div v-if="modelValue" class="fixed inset-0 z-60">
         <div class="absolute inset-0 bg-black/40" @click="close" />
         <div class="absolute inset-x-0 bottom-0 mx-auto max-w-lg rounded-t-3xl bg-surface shadow-pop">
           <div class="flex items-center justify-between px-5 pb-2 pt-4">
