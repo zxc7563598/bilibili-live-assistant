@@ -32,14 +32,14 @@ export async function loadSiteConfig() {
   return siteConfig.value
 }
 
-// 根据配置动态设置 head 中的内容（title / theme-color / favicon / apple-touch-icon / manifest）
+// 根据配置动态设置 head 中的内容（title / favicon / apple-touch-icon / manifest）。
+// 注意：meta theme-color 由 utils/theme.js 按亮暗主题接管，这里不再覆盖。
 export function applySiteConfig(config) {
   const cfg = config || siteConfig.value
 
   if (cfg.name)
     document.title = cfg.name
 
-  setMeta('theme-color', cfg.theme_color)
   setLink('icon', cfg.favicon)
 
   if (cfg.apple_touch_icon)
@@ -63,18 +63,6 @@ function applyManifest(cfg) {
   }
   const url = `data:application/manifest+json,${encodeURIComponent(JSON.stringify(manifest))}`
   setLink('manifest', url)
-}
-
-function setMeta(name, content) {
-  if (!content)
-    return
-  let el = document.querySelector(`meta[name="${name}"]`)
-  if (!el) {
-    el = document.createElement('meta')
-    el.setAttribute('name', name)
-    document.head.appendChild(el)
-  }
-  el.setAttribute('content', content)
 }
 
 function setLink(rel, href) {

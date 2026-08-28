@@ -25,7 +25,7 @@ initTheme()
 // 商户主题色：示例默认色
 applyPrimaryColor('#965bff')
 
-// 加载后台站点配置，动态设置 title / theme-color / favicon 等
+// 加载后台站点配置，动态设置 title / favicon 等（theme-color 由 utils/theme.js 接管）
 loadSiteConfig().then(applySiteConfig)
 
 const app = createApp(App)
