@@ -22,6 +22,37 @@ func New(rdb *redis.Client) *Handler {
 	return &Handler{rdb: rdb}
 }
 
+// @Summary 获取 App 的 Manifest 信息
+// @Description 获取 App 的 Manifest 信息，用于前端构建 PWA 应用
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Success 200 {object} response.Response{data=resp.AppShopManifestResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/manifest [get]
+func (h *Handler) GetManifest(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	response.Success(c, lang, resp.AppShopManifestResp{
+		Name:            "哎呀又胖啦的积分商城",
+		ShortName:       "哎呀商城",
+		Description:     "关于我也不知道在哪里才能看到的说明",
+		ThemeColor:      "#ffffff",
+		BackgroundColor: "#ffffff",
+		Favicon:         "https://cdn.hejunjie.life/avatars/AIOVTUE-%E9%9B%AA-1782904215522.PNG",
+		AppleTouchIcon:  "https://cdn.hejunjie.life/avatars/AIOVTUE-%E9%9B%AA-1782904215522.PNG",
+		StartURL:        "/shop/",
+		Scope:           "/shop/",
+		Display:         "standalone",
+		Icons: []resp.AppShopManifestIcon{
+			resp.AppShopManifestIcon{
+				Src:     "https://cdn.hejunjie.life/avatars/AIOVTUE-%E9%9B%AA-1782904215522.PNG",
+				Sizes:   "512x512",
+				Type:    "image/png",
+				Purpose: "any",
+			},
+		},
+	})
+}
+
 // @Summary 获取 RSA 公钥（带 HMAC 验签）
 // @Description 获取用于前端 RSA-OAEP 加密的 RSA 公钥（SPKI DER 的 base64），并附带 HMAC 签名供前端验签
 // @Tags 移动端

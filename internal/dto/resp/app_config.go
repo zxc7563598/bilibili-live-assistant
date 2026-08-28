@@ -1,5 +1,43 @@
 package resp
 
+// AppShopManifestResp 商城 PWA / 站点配置返回
+type AppShopManifestResp struct {
+	// 应用名称（全称，用于页面标题与安装名称）
+	Name string `json:"name" example:"积分商城"`
+	// 应用短名称（空间不足时展示）
+	ShortName string `json:"short_name" example:"商城"`
+	// 应用描述
+	Description string `json:"description" example:"积分商城的描述"`
+	// 主题色（浏览器地址栏 / 窗口标题栏颜色）
+	ThemeColor string `json:"theme_color" example:"#ffffff"`
+	// 启动屏背景色
+	BackgroundColor string `json:"background_color" example:"#ffffff"`
+	// 浏览器标签页小图标
+	Favicon string `json:"favicon" example:"https://cdn.example.com/favicon.svg"`
+	// iOS 添加到主屏的图标（180x180 PNG）
+	AppleTouchIcon string `json:"apple_touch_icon" example:"https://cdn.example.com/icon-180.png"`
+	// 启动地址
+	StartURL string `json:"start_url" example:"/shop/"`
+	// 作用域
+	Scope string `json:"scope" example:"/shop/"`
+	// 显示模式
+	Display string `json:"display" example:"standalone"`
+	// 安装图标列表
+	Icons []AppShopManifestIcon `json:"icons"`
+}
+
+// AppShopManifestIcon 商城 PWA 安装图标
+type AppShopManifestIcon struct {
+	// 图标地址
+	Src string `json:"src" example:"https://cdn.example.com/icon-192.png"`
+	// 尺寸
+	Sizes string `json:"sizes" example:"192x192"`
+	// 图片类型
+	Type string `json:"type" example:"image/png"`
+	// 用途（any / maskable）
+	Purpose string `json:"purpose" example:"any"`
+}
+
 // AppPublicKeyResp 商城前端加密所需的 RSA 公钥响应
 type AppPublicKeyResp struct {
 	// 公钥标识（公钥内容 sha256 前 16 位 hex，用于前端验签与密钥轮换识别）
