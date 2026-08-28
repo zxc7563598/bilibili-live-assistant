@@ -27,6 +27,9 @@ func Seed(db *gorm.DB) error {
 	if err := seedRobotConfigs(db); err != nil {
 		return err
 	}
+	if err := seedAppConfigs(db); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -646,6 +649,24 @@ func seedRobotConfigs(db *gorm.DB) error {
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "group_name"}, {Name: "config_key"}},
+		DoNothing: true,
+	}).Create(&configs).Error
+}
+
+// seedAppConfigs 初始化 APP 配置表
+//
+// 以 config_key 为唯一键做幂等 upsert：
+// 已存在的配置项跳过（不覆盖用户在后台改过的值），未来新增的配置项会自动追加。
+func seedAppConfigs(db *gorm.DB) error {
+	configs := []model.AppConfig{
+		{
+			ConfigKey:   "site_name",
+			ConfigValue: "积分商城",
+			Remark:      "站点名称",
+		},
+	}
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "config_key"}},
 		DoNothing: true,
 	}).Create(&configs).Error
 }
