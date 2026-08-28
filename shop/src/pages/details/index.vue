@@ -34,14 +34,14 @@
           <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="返回" @click="onBack">
             <AppIcon name="chevron-left" :size="22" />
           </button>
-          <div class="flex items-center gap-2">
+          <!-- <div class="flex items-center gap-2">
             <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" :class="liked ? 'text-danger' : ''" aria-label="收藏" @click="liked = !liked">
               <AppIcon name="heart" :size="20" :class="liked ? 'fill-current' : ''" />
             </button>
             <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="分享">
               <AppIcon name="share" :size="20" />
             </button>
-          </div>
+          </div> -->
         </div>
       </div>
       <section class="card mx-auto mt-4 w-[calc(100%-2rem)] max-w-5xl p-4">
@@ -155,7 +155,6 @@ const product = ref({
 const loading = ref(true)
 const selected = ref({})
 const count = ref(1)
-const liked = ref(false)
 
 function select(group, opt) {
   selected.value = { ...selected.value, [group]: opt }
