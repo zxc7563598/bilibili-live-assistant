@@ -45,7 +45,3 @@ type LiveUserOrderListPageQuery struct {
 	Offset      int
 	Limit       int
 }
-
-// 数据库暂时需要实现的方法：
-// - 获取用户订单分页列表（跟其他分页列表一样，获取 userID === 用户ID 的数据，按 CreatedAt 排序，可以通过 OrderStatus 筛选）
-// 暂时没想到什么其他的定的，根据这个表的内容帮我做一些常用的查询/变更方法吧

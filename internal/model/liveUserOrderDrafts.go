@@ -18,6 +18,3 @@ type LiveUserOrderDraft struct {
 func (LiveUserOrderDraft) TableName() string {
 	return "live_user_order_drafts"
 }
-
-// 数据库暂时需要实现的方法：
-// 暂时没想到什么其他的定的，根据这个表的内容帮我做一些常用的查询/变更方法吧

@@ -28,8 +28,3 @@ type ProductListPageQuery struct {
 	Offset int
 	Limit  int
 }
-
-// 数据库暂时需要实现的方法：
-// - 获取商品分页列表（跟其他分页列表一样，获取 Enable === enum.EnableEnable 的数据，按 Order 排序，可以通过 Name 模糊查询）
-// - 根据商品ID获取单挑详细信息
-// 暂时没想到什么其他的定的，根据其他几个product相关的表帮我做一些常用的查询/变更方法吧

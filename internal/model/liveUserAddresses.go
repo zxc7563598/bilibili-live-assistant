@@ -19,8 +19,3 @@ type LiveUserAddress struct {
 func (LiveUserAddress) TableName() string {
 	return "live_user_addresses"
 }
-
-// 数据库暂时需要实现的方法：
-// 根据用户ID获取全部数据
-// 根据ID变更Default（用户只能有一个 Default === enum.Yes 的数据，每次变更时需要先吧用户所有的数据置换为 No 然后再变更）
-// 暂时没想到什么其他的定的，根据这个表的内容帮我做一些常用的查询/变更方法吧

@@ -14,6 +14,3 @@ type ProductSku struct {
 func (ProductSku) TableName() string {
 	return "product_skus"
 }
-
-// 数据库暂时需要实现的方法：
-// 暂时没想到什么其他的定的，根据其他几个product相关的表帮我做一些常用的查询/变更方法吧
