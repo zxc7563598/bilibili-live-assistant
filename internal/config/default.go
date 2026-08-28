@@ -60,22 +60,32 @@ cors: # CORS 跨域配置
 altcha: # altcha 验证码配置（hmac_key 留空则关闭验证码）
   hmac_key: ""
 
+crypto: # 商城请求加密配置
+  sign_secret: "{{CRYPTO_SIGN_SECRET}}" # 自动生成的随机 HMAC 签名密钥，预构建前端前需将该值同步到 shop/.env 的 VITE_SIGN_SECRET
+  timestamp: 60 # 请求时间偏差窗口（秒），用户请求数据中携带的时间与服务器时间误差超过此设置时视为重放攻击
+  require_encryption: false # 是否强制请求体必须加密（仅全 HTTPS 部署可置 true，纯 HTTP 部署必须保持 false）
+
 live: # B站 直播监听配置
   state_file: "bilibili_state.json" # B站 Cookie 持久化文件路径
   test_uids: [] # 测试机器人 UID 白名单，命中的机器人只记录日志不真正发送弹幕（可为空）
 `
 
-// defaultConfigContent 返回填充了随机 JWT 密钥的默认配置内容
+// defaultConfigContent 返回填充了随机密钥的默认配置内容
 func defaultConfigContent() (string, error) {
-	secret, err := randomJWTSecret()
+	secret, err := randomSecret()
 	if err != nil {
 		return "", err
 	}
-	return strings.Replace(defaultConfigYAML, "{{JWT_SECRET}}", secret, 1), nil
+	cryptoSecret, err := randomSecret()
+	if err != nil {
+		return "", err
+	}
+	content := strings.Replace(defaultConfigYAML, "{{JWT_SECRET}}", secret, 1)
+	return strings.Replace(content, "{{CRYPTO_SIGN_SECRET}}", cryptoSecret, 1), nil
 }
 
-// randomJWTSecret 使用 crypto/rand 生成 32 字节随机密钥并十六进制编码（64 字符）
-func randomJWTSecret() (string, error) {
+// randomSecret 使用 crypto/rand 生成 32 字节随机密钥并十六进制编码（64 字符）
+func randomSecret() (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", err

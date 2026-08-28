@@ -14,7 +14,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/webui"
 )
 
-func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg config.CORSConfig) *gin.Engine {
+func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg config.CORSConfig, cryptoCfg config.CryptoConfig) *gin.Engine {
 	r.RedirectTrailingSlash = false
 	r.RedirectFixedPath = false
 	// 日志注册
@@ -37,6 +37,11 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// shop路由
 	shop := r.Group("/shop")
 	registerShop(shop)
+	// shop api路由
+	shopApi := r.Group("/api/shop")
+	// 请求体解密中间件：验证/解密前端 encryptRequest 加密的请求体，明文请求按策略放行或拒绝
+	shopApi.Use(middleware.ShopEncrypt(cryptoCfg.RequireEncryption))
+	shopApi.GET("/public-key", handlers.AppConfig.GetPublicKey)
 	// api路由
 	adminApi := r.Group("/api/admin")
 	// 登录接口：如有需要可以自行实现限流器

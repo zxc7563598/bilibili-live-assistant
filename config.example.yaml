@@ -49,6 +49,11 @@ cors: # CORS 跨域配置
 altcha: # altcha 验证码配置
   hmac_key: "your-secret-at-least-32-characters-long!!"
 
+crypto: # 商城请求加密配置
+  sign_secret: "your-secret-at-least-32-characters-long!!" # 请求加密 HMAC 签名密钥，必须与前端 shop/.env 中 VITE_SIGN_SECRET 保持一致，生产环境务必修改
+  timestamp: 60 # 请求时间偏差窗口（秒），用户请求数据中携带的时间与服务器时间误差超过此设置时视为重放攻击
+  require_encryption: false # 是否强制请求体必须加密（仅全 HTTPS 部署可置 true，纯 HTTP 部署必须保持 false）
+
 live: # B站 直播监听配置
   state_file: "bilibili_state.json" # B站 Cookie 持久化文件路径
   test_uids: [] # 测试机器人 UID 白名单，命中的机器人只记录日志不真正发送弹幕（可为空）

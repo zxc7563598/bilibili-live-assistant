@@ -83,6 +83,7 @@ error:
   10006: Login status is abnormal, please log in again # Redis accessToken parsing failed
   10007: Login status is abnormal, please log in again # Redis accessToken data is abnormal
   10008: Login status is abnormal, please log in again # Redis accessToken has been refreshed
+  10009: Request parameter is invalid # Encryption parameter decryption failed (generic)
   10101: Invalid request parameters # Parameter validation failed
   10102: Please enter account # Account cannot be empty
   10103: Please enter password # Password cannot be empty
@@ -138,6 +139,7 @@ error:
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
   50801: Tokenizer initialization failed # Tokenizer initialization failed
+  60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed
   60103: System busy, please try again later # refreshToken generation failed

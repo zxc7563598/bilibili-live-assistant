@@ -52,6 +52,13 @@ type AltchaConfig struct {
 	HMACKey string `yaml:"hmac_key"`
 }
 
+// CryptoConfig 商城请求加解密配置
+type CryptoConfig struct {
+	SignSecret        string `yaml:"sign_secret"`
+	Timestamp         int    `yaml:"timestamp"`
+	RequireEncryption bool   `yaml:"require_encryption"`
+}
+
 type CORSConfig struct {
 	AllowedOrigins []string `yaml:"allowed_origins"`
 }
@@ -83,6 +90,7 @@ type Config struct {
 	JWT      JWTConfig          `yaml:"jwt"`
 	CORS     CORSConfig         `yaml:"cors"`
 	Altcha   AltchaConfig       `yaml:"altcha"`
+	Crypto   CryptoConfig       `yaml:"crypto"`
 	Live     LiveConfig         `yaml:"live"`
 }
 
@@ -185,6 +193,10 @@ func ValidateConfig(cfg *Config) error {
 	}
 	if cfg.JWT.RefreshTTL <= 0 {
 		return fmt.Errorf("refresh ttl 必须大于 0")
+	}
+	// 请求时间偏差窗口默认值（未配置时与 pkg/crypto 内置默认一致）
+	if cfg.Crypto.Timestamp == 0 {
+		cfg.Crypto.Timestamp = 60
 	}
 	return nil
 }

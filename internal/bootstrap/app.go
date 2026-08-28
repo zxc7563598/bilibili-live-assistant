@@ -14,6 +14,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/cron"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"gorm.io/gorm"
 )
@@ -54,6 +55,12 @@ func NewApp(cfg *config.Config) *App {
 	}
 	// 初始化jwt
 	jwt.Init(cfg.JWT)
+	// 注入商城请求加密 HMAC 签名密钥（config.yaml crypto.sign_secret，未配置则用占位值）
+	crypto.SetSignSecret(cfg.Crypto.SignSecret, int64(cfg.Crypto.Timestamp))
+	// 确保 RSA 密钥对存在（不存在则自动生成到二进制同目录）
+	if _, err := crypto.EnsureRSAKeyPair(); err != nil {
+		log.Fatalf("RSA 密钥对初始化失败: %v", err)
+	}
 	// 处理依赖注入
 	// repository
 	repos := InitRepositories(db)
@@ -87,7 +94,7 @@ func NewApp(cfg *config.Config) *App {
 	}
 	// 注册路由
 	r := gin.New()
-	r = RouteRegister(r, rdb, handlers, cfg.CORS)
+	r = RouteRegister(r, rdb, handlers, cfg.CORS, cfg.Crypto)
 	return &App{
 		Engine:      r,
 		DB:          db,
