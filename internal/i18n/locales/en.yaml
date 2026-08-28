@@ -266,6 +266,43 @@ reward_type:
   stars: stars
   points: points
 
+product_image_type:
+  banner: banner
+  detail: detail
+
+stock_change_type:
+  order_deduct: order_deduct
+  return_refund: return_refund
+  admin_add: admin_add
+  admin_reduce: admin_reduce
+
+address_type:
+  virtual: virtual
+  actual: actual
+
+order_status:
+  pending_payment: pending_payment
+  pending_shipment: pending_shipment
+  pending_receipt: pending_receipt
+  completed: completed
+  cancelled: cancelled
+  after_sales: after_sales
+
+pay_status:
+  unpaid: unpaid
+  paid: paid
+  refunded: refunded
+
+ship_status:
+  pending: pending
+  shipped: shipped
+  delivered: delivered
+
+draft_status:
+  active: active
+  redeemed: redeemed
+  cancelled: cancelled
+
 no: no
 yes: yes
 unknown: unknown
