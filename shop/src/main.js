@@ -12,6 +12,7 @@ import AppSelect from '@/components/base/AppSelect.vue'
 import AppSkeleton from '@/components/base/AppSkeleton.vue'
 import AppSwitch from '@/components/base/AppSwitch.vue'
 import Tag from '@/components/base/Tag.vue'
+import request from '@/static/request'
 import App from './App.vue'
 import router from './router/index.js'
 import { applyPrimaryColor } from './utils/color'
@@ -22,8 +23,15 @@ import './style.css'
 // 主题初始化
 initTheme()
 
-// 商户主题色：示例默认色
-applyPrimaryColor('#965bff')
+// 商户主题色：先应用默认色，再从后台读取服务端配置覆盖
+applyPrimaryColor('#ff0000')
+request.get('/api/shop/theme-color').then((res) => {
+  if (res?.data?.color) {
+    applyPrimaryColor(res.data.color)
+  }
+}).catch((e) => {
+  console.warn('[theme] 加载主题色失败，使用默认色', e)
+})
 
 // 加载后台站点配置，动态设置 title / favicon 等（theme-color 由 utils/theme.js 接管）
 loadSiteConfig().then(applySiteConfig)

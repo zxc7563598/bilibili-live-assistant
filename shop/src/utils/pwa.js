@@ -36,15 +36,13 @@ export async function loadSiteConfig() {
 // 注意：meta theme-color 由 utils/theme.js 按亮暗主题接管，这里不再覆盖。
 export function applySiteConfig(config) {
   const cfg = config || siteConfig.value
-
-  if (cfg.name)
+  if (cfg.name) {
     document.title = cfg.name
-
+  }
   setLink('icon', cfg.favicon)
-
-  if (cfg.apple_touch_icon)
+  if (cfg.apple_touch_icon) {
     setLink('apple-touch-icon', cfg.apple_touch_icon)
-
+  }
   applyManifest(cfg)
 }
 
