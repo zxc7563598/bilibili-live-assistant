@@ -662,7 +662,27 @@ func seedAppConfigs(db *gorm.DB) error {
 		{
 			ConfigKey:   "site_name",
 			ConfigValue: "积分商城",
-			Remark:      "站点名称",
+			Remark:      "显示在浏览器标签栏、收藏夹以及手机桌面图标下方的名称",
+		},
+		{
+			ConfigKey:   "site_description",
+			ConfigValue: "这是xxxxx的积分商城",
+			Remark:      "PWA 应用描述（手机浏览器提示「添加到主屏幕」时显示的说明文案）",
+		},
+		{
+			ConfigKey:   "site_background_color",
+			ConfigValue: "#f5f6f8",
+			Remark:      "PWA 启动页背景色（应用打开瞬间到首页渲染完成前显示的背景颜色）",
+		},
+		{
+			ConfigKey:   "site_theme_color",
+			ConfigValue: "#965bff",
+			Remark:      "网站主题色（应用于按钮、边框、图标、选中状态等主要 UI 元素的颜色）",
+		},
+		{
+			ConfigKey:   "site_icon",
+			ConfigValue: "https://cdn.hejunjie.life/avatars/shop.png",
+			Remark:      "浏览器标签页图标，同时也是手机添加到桌面时的应用图标",
 		},
 	}
 	return db.Clauses(clause.OnConflict{

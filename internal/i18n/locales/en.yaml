@@ -50,6 +50,7 @@
 # 06 Live Danmu Module
 # 07 Live Gift Module
 # 08 User Analysis Module
+# 09 App Config Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -115,6 +116,7 @@ error:
   10501: Invalid request parameters # Parameter validation failed
   10601: Invalid request parameters # Parameter validation failed
   10801: Invalid request parameters # Parameter validation failed
+  10901: Illegal image information # Image MIME type retrieval failed
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   30001: Unauthorized operation # The current account does not have access permission

@@ -7,50 +7,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
 )
 
 // Handler 直播控制 HTTP 接口处理器
 type Handler struct {
-	rdb *redis.Client
+	appConfigSvc *appconfig.Service
+	rdb          *redis.Client
 }
 
 // New 创建 Handler 实例
-func New(rdb *redis.Client) *Handler {
-	return &Handler{rdb: rdb}
-}
-
-// @Summary 获取 App 的 Manifest 信息
-// @Description 获取 App 的 Manifest 信息，用于前端构建 PWA 应用
-// @Tags 移动端
-// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Success 200 {object} response.Response{data=resp.AppShopManifestResp} "统一响应（code=0成功，其它失败）"
-// @Router /api/shop/manifest [get]
-func (h *Handler) GetManifest(c *gin.Context) {
-	ctx := c.Request.Context()
-	lang := i18n.GetLang(ctx)
-	response.Success(c, lang, resp.AppShopManifestResp{
-		Name:            "哎呀又胖啦的积分商城",
-		ShortName:       "哎呀商城",
-		Description:     "关于我也不知道在哪里才能看到的说明",
-		ThemeColor:      "#f5f6f8",
-		BackgroundColor: "#f5f6f8",
-		Favicon:         "https://cdn.hejunjie.life/avatars/AIOVTUE-%E9%9B%AA-1782904215522.PNG",
-		AppleTouchIcon:  "https://cdn.hejunjie.life/avatars/AIOVTUE-%E9%9B%AA-1782904215522.PNG",
-		StartURL:        "/shop/",
-		Scope:           "/shop/",
-		Display:         "standalone",
-		Icons: []resp.AppShopManifestIcon{
-			resp.AppShopManifestIcon{
-				Src:     "https://cdn.hejunjie.life/avatars/AIOVTUE-%E9%9B%AA-1782904215522.PNG",
-				Sizes:   "512x512",
-				Type:    "image/png",
-				Purpose: "any",
-			},
-		},
-	})
+func New(appConfigSvc *appconfig.Service, rdb *redis.Client) *Handler {
+	return &Handler{
+		appConfigSvc: appConfigSvc,
+		rdb:          rdb,
+	}
 }
 
 // @Summary 获取 RSA 公钥（带 HMAC 验签）
@@ -76,5 +52,42 @@ func (h *Handler) GetPublicKey(c *gin.Context) {
 		PublicKey: pubKeyB64,
 		Timestamp: ts,
 		Sign:      crypto.HMACSHA256(msg, crypto.SignSecret),
+	})
+}
+
+// @Summary 获取 App 的 Manifest 信息
+// @Description 获取 App 的 Manifest 信息，用于前端构建 PWA 应用
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Success 200 {object} response.Response{data=resp.AppShopManifestResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/manifest [get]
+func (h *Handler) GetManifest(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	svcResp, errCode, err := h.appConfigSvc.Manifest()
+	if errCode != 0 {
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.Manifest 调用失败", errCode, err)
+		response.Error(c, lang, errCode)
+		return
+	}
+	response.Success(c, lang, resp.AppShopManifestResp{
+		Name:            svcResp.Name,
+		ShortName:       svcResp.Name,
+		Description:     svcResp.Description,
+		ThemeColor:      svcResp.BackgroundColor,
+		BackgroundColor: svcResp.BackgroundColor,
+		Favicon:         svcResp.Icon,
+		AppleTouchIcon:  svcResp.Icon,
+		StartURL:        "/shop/",
+		Scope:           "/shop/",
+		Display:         "standalone",
+		Icons: []resp.AppShopManifestIcon{
+			resp.AppShopManifestIcon{
+				Src:     svcResp.Icon,
+				Sizes:   "512x512",
+				Type:    svcResp.IconType,
+				Purpose: "any",
+			},
+		},
 	})
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
@@ -21,12 +22,13 @@ import (
 
 // App 包含应用运行时依赖
 type App struct {
-	Engine      *gin.Engine
-	DB          *gorm.DB
-	Redis       *redis.Client
-	LiveService *live.Service
-	ConfigCache *robotconfig.Cache
-	Scheduler   *cron.Scheduler
+	Engine         *gin.Engine
+	DB             *gorm.DB
+	Redis          *redis.Client
+	LiveService    *live.Service
+	ConfigCache    *robotconfig.Cache
+	AppConfigCache *appconfig.Cache
+	Scheduler      *cron.Scheduler
 }
 
 func NewApp(cfg *config.Config) *App {
@@ -69,8 +71,13 @@ func NewApp(cfg *config.Config) *App {
 	if err := configCache.Init(context.Background()); err != nil {
 		log.Fatalf("机器人配置加载失败: %v", err)
 	}
+	// 初始化应用配置缓存
+	appConfigCache := appconfig.New(repos.AppConfig)
+	if err := appConfigCache.Init(context.Background()); err != nil {
+		log.Fatalf("应用配置加载失败: %v", err)
+	}
 	// service
-	services := InitServices(repos, db, rdb, cfg, configCache)
+	services := InitServices(repos, db, rdb, cfg, configCache, appConfigCache)
 	// 定时任务调度器（项目启动后常驻，退出时在 main.go 中统一停止）
 	scheduler := cron.New(cron.Job{
 		Name:     "live-unmute",
@@ -96,11 +103,12 @@ func NewApp(cfg *config.Config) *App {
 	r := gin.New()
 	r = RouteRegister(r, rdb, handlers, cfg.CORS, cfg.Crypto)
 	return &App{
-		Engine:      r,
-		DB:          db,
-		Redis:       rdb,
-		LiveService: services.Live,
-		ConfigCache: configCache,
-		Scheduler:   scheduler,
+		Engine:         r,
+		DB:             db,
+		Redis:          rdb,
+		LiveService:    services.Live,
+		ConfigCache:    configCache,
+		AppConfigCache: appConfigCache,
+		Scheduler:      scheduler,
 	}
 }

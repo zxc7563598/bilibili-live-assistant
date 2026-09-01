@@ -38,6 +38,6 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		LiveDanmu:   livedanmu.New(&svc.LiveDanmu),
 		LiveGift:    livegift.New(&svc.LiveGift),
 		LiveUser:    liveuser.New(svc.LiveUser),
-		AppConfig:   appconfig.New(rdb),
+		AppConfig:   appconfig.New(&svc.AppConfig, rdb),
 	}
 }

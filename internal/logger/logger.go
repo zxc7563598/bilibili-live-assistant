@@ -15,6 +15,7 @@ import (
 // 可以定义多个 *zap.Logger 类型的 logger
 var (
 	AdminLogger       *zap.Logger
+	AppConfigLogger   *zap.Logger
 	RoleLogger        *zap.Logger
 	MenuLogger        *zap.Logger
 	AltchaLogger      *zap.Logger
@@ -28,6 +29,7 @@ var (
 // InitAll 初始化所有模块 logger
 func InitAll() {
 	AdminLogger = InitLogger("admin", zapcore.InfoLevel)
+	AppConfigLogger = InitLogger("appconfig", zapcore.InfoLevel)
 	RoleLogger = InitLogger("role", zapcore.InfoLevel)
 	MenuLogger = InitLogger("menu", zapcore.InfoLevel)
 	AltchaLogger = InitLogger("altcha", zapcore.InfoLevel)

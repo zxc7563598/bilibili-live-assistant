@@ -2,10 +2,12 @@ package bootstrap
 
 import (
 	"github.com/redis/go-redis/v9"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
+	appconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livedanmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
@@ -26,9 +28,10 @@ type Services struct {
 	LiveDanmu   livedanmu.Service
 	LiveGift    livegift.Service
 	LiveUser    *liveuser.Service
+	AppConfig   appconfigsvc.Service
 }
 
-func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache) *Services {
+func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache, appConfigCache *appconfig.Cache) *Services {
 	robotConfigSvc := robotconfigsvc.New(repo.RobotConfig, configCache, db)
 	liveUserSvc := liveuser.New(db, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveDanmu, repo.LiveGift, repo.LiveSession)
 	return &Services{
@@ -41,5 +44,6 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		LiveDanmu:   *livedanmu.New(repo.LiveDanmu),
 		LiveGift:    *livegift.New(repo.LiveGift),
 		LiveUser:    liveUserSvc,
+		AppConfig:   *appconfigsvc.New(appConfigCache, repo.AppConfig),
 	}
 }
