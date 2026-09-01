@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { clearAuthCookies } from '@/utils/auth'
 import toast from '@/utils/toast'
 import api from './api'
 
@@ -30,6 +31,7 @@ function submit() {
       api.logout().then((res) => {
         if (res.code === 0) {
           toast.success('修改成功')
+          clearAuthCookies()
           router.replace('/login')
         }
         else {

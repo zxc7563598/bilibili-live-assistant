@@ -1,3 +1,5 @@
+import request from '@/static/request'
+
 export default {
   getUserInfo: () => {
     return new Promise((resolve) => {
@@ -29,15 +31,5 @@ export default {
       }, 1500)
     })
   },
-  logout: () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          code: 0,
-          data: {},
-          msg: 'success',
-        })
-      }, 1500)
-    })
-  },
+  logout: () => request.post('/api/shop/liveuser/logout'),
 }

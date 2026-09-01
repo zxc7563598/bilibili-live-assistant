@@ -102,6 +102,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import TabBar from '@/components/base/TabBar.vue'
+import { clearAuthCookies } from '@/utils/auth'
 import { isDark, toggleTheme } from '@/utils/theme'
 import toast from '@/utils/toast'
 import api from './api'
@@ -144,6 +145,7 @@ function logout() {
   api.logout().then((res) => {
     if (res.code === 0) {
       toast.success('退出成功')
+      clearAuthCookies()
       router.replace('/login')
     }
     else {
