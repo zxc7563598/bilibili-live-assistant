@@ -91,3 +91,23 @@ func (h *Handler) GetManifest(c *gin.Context) {
 		},
 	})
 }
+
+// @Summary 获取 App 主题色
+// @Description 获取 App 主题色，用于前端构建样式
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Success 200 {object} response.Response{data=resp.AppShopManifestResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/theme-color [get]
+func (h *Handler) GetThemeColor(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	svcResp, errCode, err := h.appConfigSvc.ThemeColor()
+	if errCode != 0 {
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.ThemeColor 调用失败", errCode, err)
+		response.Error(c, lang, errCode)
+		return
+	}
+	response.Success(c, lang, resp.AppShopThemeColorResp{
+		Color: svcResp,
+	})
+}

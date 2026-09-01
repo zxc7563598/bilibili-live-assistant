@@ -30,9 +30,9 @@ func New(appConfigCache *appconfig.Cache, appConfigRepo app_config.Repository) *
 // Manifest 组装 PWA manifest 配置
 //
 // 配置缺失时不强校验、直接返回空值：
-//   - 文本字段（站点名、描述、颜色）允许为空，由前端自行兜底；
-//   - 站点图标未配置时跳过 MIME 检测，避免整份 manifest 因缺图标而失败；
-//   - 图标已配置但无法识别时返回 10901，便于定位配置问题。
+//   - 文本字段（站点名、描述、颜色）允许为空，由前端自行兜底
+//   - 站点图标未配置时跳过 MIME 检测，避免整份 manifest 因缺图标而失败
+//   - 图标已配置但无法识别时返回 10901，便于定位配置问题
 func (s *Service) Manifest() (ManifestResp, int, error) {
 	resp := ManifestResp{
 		Name:            s.configValue(keySiteName),
@@ -50,4 +50,9 @@ func (s *Service) Manifest() (ManifestResp, int, error) {
 	resp.Icon = icon
 	resp.IconType = mimeType
 	return resp, 0, nil
+}
+
+// ThemeColor 获取网站主题色
+func (s *Service) ThemeColor() (string, int, error) {
+	return s.configValue(keySiteThemeColor), 0, nil
 }

@@ -49,3 +49,8 @@ type AppPublicKeyResp struct {
 	// HMAC-SHA256 签名（对 "pubkey:"+key_id+public_key+timestamp 计算，hex 编码）
 	Sign string `json:"sign" example:"a1b2c3d4e5f60718293a4b5c6d7e8f90..."`
 }
+
+// AppShopThemeColorResp 商城 PWA / 站点配置返回
+type AppShopThemeColorResp struct {
+	Color string `json:"color" example:"#ffffff"`
+}

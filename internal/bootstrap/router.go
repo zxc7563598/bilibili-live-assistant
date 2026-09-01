@@ -42,6 +42,7 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// 请求体解密中间件：验证/解密前端 encryptRequest 加密的请求体，明文请求按策略放行或拒绝
 	shopApi.Use(middleware.ShopEncrypt(cryptoCfg.RequireEncryption))
 	shopApi.GET("/manifest", handlers.AppConfig.GetManifest)
+	shopApi.GET("/theme-color", handlers.AppConfig.GetThemeColor)
 	shopApi.GET("/public-key", handlers.AppConfig.GetPublicKey)
 	// api路由
 	adminApi := r.Group("/api/admin")
