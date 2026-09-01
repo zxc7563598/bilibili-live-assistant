@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -43,11 +44,18 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	shopApi.Use(middleware.ShopEncrypt(cryptoCfg.RequireEncryption))
 	shopApi.GET("/manifest", handlers.AppConfig.GetManifest)
 	shopApi.GET("/theme-color", handlers.AppConfig.GetThemeColor)
+	shopApi.GET("/login", handlers.AppConfig.GetLoginConfig)
 	shopApi.GET("/public-key", handlers.AppConfig.GetPublicKey)
+	// 按账号(UID)固定窗口限流：防止对同一账号暴力撞库 / 频繁探测。
+	// account 探测与 login 共用同一预算，避免交替请求绕过单接口上限。
+	accountLoginLimiter := middleware.NewAccountRateLimiter(10, time.Minute)
+	shopApi.POST("/liveuser/account", accountLoginLimiter, handlers.LiveUser.ExistsAccount)
+	shopApi.POST("/liveuser/login", accountLoginLimiter, handlers.LiveUser.Login)
+	shopApi.POST("/liveuser/refresh", handlers.LiveUser.Refresh)
+	shopApi.POST("/liveuser/logout", middleware.UserAuth(rdb), handlers.LiveUser.Logout)
 	// api路由
 	adminApi := r.Group("/api/admin")
-	// 登录接口：如有需要可以自行实现限流器
-	// loginLimiter := middleware.NewRateLimiter(10, 1*time.Minute)
+	// 登录接口：如需限流可参考 shop 端的按账号限流（middleware.NewAccountRateLimiter(10, time.Minute)）
 	adminApi.POST("/auth/login", handlers.Admin.Login)
 	adminApi.POST("/auth/captcha", handlers.Admin.CaptchaStatus)
 	// 认证路由（所有登录用户可访问）
