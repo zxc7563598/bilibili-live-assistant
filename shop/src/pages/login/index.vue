@@ -30,7 +30,7 @@
       <div v-if="step === 1" class="mt-6 space-y-4">
         <label class="block">
           <span class="mb-1.5 block text-sm font-medium text-fg-2">B站UID</span>
-          <input v-model="uid" type="number" inputmode="numeric" placeholder="请输入你的 UID" class="h-12 w-full rounded-2xl border border-line bg-surface px-4 text-[15px] outline-none transition placeholder:text-fg-3 focus:border-primary">
+          <input v-model.number="uid" type="number" inputmode="numeric" placeholder="请输入你的 UID" class="h-12 w-full rounded-2xl border border-line bg-surface px-4 text-[15px] outline-none transition placeholder:text-fg-3 focus:border-primary">
         </label>
         <AppButton block size="lg" :loading="nextLoading" @click="next">
           下一步
@@ -63,6 +63,7 @@
 </template>
 
 <script setup>
+import Cookies from 'js-cookie'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { isDark, toggleTheme } from '@/utils/theme'
@@ -76,10 +77,11 @@ const loginBg = ref('')
 const logo = ref('')
 const title = ref('')
 const slogan = ref('')
+const register = ref(false)
 
 // 表单信息
 const step = ref(1)
-const uid = ref('')
+const uid = ref(null)
 const password = ref('')
 const confirmPwd = ref('')
 const needSetup = ref(false)
@@ -96,8 +98,13 @@ function next() {
   nextLoading.value = true
   api.getAccount(uid.value).then((res) => {
     if (res.code === 0) {
-      needSetup.value = res.data.account
-      step.value = 2
+      needSetup.value = !res.data.exist
+      if (!register.value && needSetup.value) {
+        toast.warning('当前账号并未注册')
+      }
+      else {
+        step.value = 2
+      }
     }
     else {
       toast.error(res.msg)
@@ -121,6 +128,8 @@ function submit() {
   api.login(uid.value, password.value).then((res) => {
     if (res.code === 0) {
       toast.success('登录成功')
+      Cookies.set('user_access_token', res.data.access_token)
+      Cookies.set('user_refresh_token', res.data.refresh_token)
       router.replace('/')
     }
     else {
@@ -135,9 +144,10 @@ onMounted(() => {
   api.getConfig().then((res) => {
     if (res.code === 0) {
       logo.value = res.data.logo
-      loginBg.value = res.data.loginBg
+      loginBg.value = res.data.login_bg
       title.value = res.data.title
       slogan.value = res.data.slogan
+      register.value = res.data.register
     }
     else {
       toast.error(res.msg || res.message)
