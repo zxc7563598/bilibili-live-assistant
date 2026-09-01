@@ -8,9 +8,14 @@ import (
 
 // AdminInfo JWT 中管理员信息
 type AdminInfo struct {
-	AdminID  int64 `json:"admin_id"`
-	RoleID   int64 `json:"role_id"`
+	AdminID  int64  `json:"admin_id"`
+	RoleID   int64  `json:"role_id"`
 	RoleCode string `json:"role_code"`
+}
+
+// UserInfo JWT 中用户信息
+type UserInfo struct {
+	UserID int64 `json:"user_id"`
 }
 
 // GetAdminInfo 获取 JWT 携带的管理员信息
@@ -43,6 +48,21 @@ func GetAdminInfo(c *gin.Context) (AdminInfo, bool) {
 		AdminID:  adminID,
 		RoleID:   roleID,
 		RoleCode: roleCode,
+	}, true
+}
+
+// GetUserInfo 获取 JWT 携带的用户信息
+func GetUserInfo(c *gin.Context) (UserInfo, bool) {
+	userIDVal, ok := c.Get("userID")
+	if !ok {
+		return UserInfo{}, false
+	}
+	userID, ok := userIDVal.(int64)
+	if !ok {
+		return UserInfo{}, false
+	}
+	return UserInfo{
+		UserID: userID,
 	}, true
 }
 

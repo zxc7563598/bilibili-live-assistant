@@ -684,6 +684,31 @@ func seedAppConfigs(db *gorm.DB) error {
 			ConfigValue: "https://cdn.hejunjie.life/avatars/shop.png",
 			Remark:      "浏览器标签页图标，同时也是手机添加到桌面时的应用图标",
 		},
+		{
+			ConfigKey:   "register",
+			ConfigValue: "1",
+			Remark:      "是否允许用户自助注册。0-禁止注册，1-允许注册（默认开启）",
+		},
+		{
+			ConfigKey:   "logo",
+			ConfigValue: "https://cdn.hejunjie.life/avatars/shop.png",
+			Remark:      "网站 Logo 图片地址。建议与浏览器 favicon 图标保持一致，以便在标签页和收藏夹中统一显示",
+		},
+		{
+			ConfigKey:   "login_bg",
+			ConfigValue: "",
+			Remark:      "登录页背景图片地址。留空则自动根据当前主题主色生成纯色背景",
+		},
+		{
+			ConfigKey:   "login_title",
+			ConfigValue: "积分商城",
+			Remark:      "登录页顶部显示的主标题，用于品牌或产品名称展示",
+		},
+		{
+			ConfigKey:   "login_slogan",
+			ConfigValue: "纯美女神伊德利拉美貌盖世无双！",
+			Remark:      "登录页副标题或宣传语（Slogan），可填写品牌口号、活动标语等内容",
+		},
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "config_key"}},

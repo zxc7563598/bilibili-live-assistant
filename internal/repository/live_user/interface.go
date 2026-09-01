@@ -31,19 +31,32 @@ type Repository interface {
 	base.Repository[model.LiveUser]
 	// GetByUID 根据 B站 UID 查询单条用户记录
 	GetByUID(ctx context.Context, tx *gorm.DB, uid int64) (*model.LiveUser, error)
+	// ExistsByUID 根据 B站 UID 获取用户是否存在
+	ExistsByUID(ctx context.Context, tx *gorm.DB, uid int64) (bool, error)
 	// UpdateName 根据 ID 变更用户昵称
 	UpdateName(ctx context.Context, tx *gorm.DB, id int64, uname string) error
+	// UpdateFace 根据 ID 变更用户头像 URL
+	UpdateFace(ctx context.Context, tx *gorm.DB, id int64, face string) error
+	// UpdatePassword 根据 ID 变更用户密码
+	UpdatePassword(ctx context.Context, tx *gorm.DB, id int64, password string) error
 	// CreateIfNotExist 若 uid 已存在则忽略创建并返回已有记录，否则创建新记录
 	CreateIfNotExist(ctx context.Context, tx *gorm.DB, entity *model.LiveUser) (*model.LiveUser, error)
 	// ListPage 分页查询用户，UID 精确匹配，Uname 模糊匹配，按 CreatedAt 倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery) ([]model.LiveUser, int64, error)
 	// AddCredit 原子增减用户资产（积分/星光），返回变更前、变更后的数值
 	AddCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (int64, int64, error)
+	// UpdateTokenByID 根据 id 更换用户 refreshToken
+	UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error
 }
 
 // GetByUID 根据 B站 UID 查询单条用户记录
 func (r *gormRepo) GetByUID(ctx context.Context, tx *gorm.DB, uid int64) (*model.LiveUser, error) {
 	return r.FindOneByField(ctx, tx, "uid", uid)
+}
+
+// ExistsByUID 根据 B站 UID 获取用户是否存在
+func (r *gormRepo) ExistsByUID(ctx context.Context, tx *gorm.DB, uid int64) (bool, error) {
+	return r.Exists(ctx, tx, "uid", uid)
 }
 
 // ListPage 分页查询用户
@@ -68,6 +81,16 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 // UpdateName 根据 ID 变更用户昵称
 func (r *gormRepo) UpdateName(ctx context.Context, tx *gorm.DB, id int64, uname string) error {
 	return r.UpdateField(ctx, tx, id, "uname", uname)
+}
+
+// UpdateFace 根据 ID 变更用户头像 URL
+func (r *gormRepo) UpdateFace(ctx context.Context, tx *gorm.DB, id int64, face string) error {
+	return r.UpdateField(ctx, tx, id, "face", face)
+}
+
+// UpdatePassword 根据 ID 变更用户密码
+func (r *gormRepo) UpdatePassword(ctx context.Context, tx *gorm.DB, id int64, password string) error {
+	return r.UpdateField(ctx, tx, id, "password", password)
 }
 
 // CreateIfNotExist 若 uid 已存在则忽略创建并返回已有记录，否则创建新记录
@@ -123,6 +146,11 @@ func (r *gormRepo) AddCredit(ctx context.Context, tx *gorm.DB, id int64, field s
 		return 0, 0, err
 	}
 	return after - delta, after, nil
+}
+
+// UpdateTokenByID 根据 id 更换用户 refreshToken
+func (r *gormRepo) UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error {
+	return r.UpdateField(ctx, tx, id, "token", token)
 }
 
 // escapeLike 转义 LIKE 查询中的特殊字符 _ %

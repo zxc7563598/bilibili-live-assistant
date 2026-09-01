@@ -96,7 +96,7 @@ func (h *Handler) GetManifest(c *gin.Context) {
 // @Description 获取 App 主题色，用于前端构建样式
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Success 200 {object} response.Response{data=resp.AppShopManifestResp} "统一响应（code=0成功，其它失败）"
+// @Success 200 {object} response.Response{data=resp.AppShopThemeColorResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/shop/theme-color [get]
 func (h *Handler) GetThemeColor(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -109,5 +109,29 @@ func (h *Handler) GetThemeColor(c *gin.Context) {
 	}
 	response.Success(c, lang, resp.AppShopThemeColorResp{
 		Color: svcResp,
+	})
+}
+
+// @Summary 获取登录页面配置信息
+// @Description 获取登录页配置（注册开关、Logo、背景图、标题、Slogan）
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Success 200 {object} response.Response{data=resp.AppShopLoginConfigResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/login [get]
+func (h *Handler) GetLoginConfig(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	svcResp, errCode, err := h.appConfigSvc.LoginConfig()
+	if errCode != 0 {
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.LoginConfig 调用失败", errCode, err)
+		response.Error(c, lang, errCode)
+		return
+	}
+	response.Success(c, lang, resp.AppShopLoginConfigResp{
+		Register: svcResp.Register,
+		Logo:     svcResp.Logo,
+		LoginBg:  svcResp.LoginBg,
+		Title:    svcResp.Title,
+		Slogan:   svcResp.Slogan,
 	})
 }

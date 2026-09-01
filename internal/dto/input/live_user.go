@@ -27,3 +27,23 @@ type LiveUserUserDanmuAnalysisReq struct {
 	// 用户UID
 	UID int64 `json:"uid" binding:"required" err:"required=10801" example:"1"`
 }
+
+// LiveUserExistsAccountReq 判断用户账号是否存在请求
+type LiveUserExistsAccountReq struct {
+	// 用户账号(UID)
+	Account int64 `json:"account" binding:"required" err:"required=10801" example:"1"`
+}
+
+// LiveUserLoginReq 用户登录请求
+type LiveUserLoginReq struct {
+	// 用户账号(UID)
+	Account int64 `json:"account" binding:"required" err:"required=10801" example:"1"`
+	// 用户密码
+	Password string `json:"password" binding:"required" err:"required=10801" example:"1"`
+}
+
+// LiveUserRefreshReq 刷新登录凭证请求
+type LiveUserRefreshReq struct {
+	// refresh token
+	Token string `json:"token" binding:"required" err:"required=10801" example:"Bearer xxxxxxxxxx"`
+}

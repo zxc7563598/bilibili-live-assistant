@@ -22,6 +22,11 @@ func (r *PageResp) OffsetLimit() (int, int) {
 	return offset, r.PageSize
 }
 
+type TokenResp struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
 // UserBalance 用户余额响应结构
 type UserBalance struct {
 	Points int64 // 积分

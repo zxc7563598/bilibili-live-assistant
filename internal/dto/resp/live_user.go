@@ -55,3 +55,17 @@ type LiveUserWordFrequency struct {
 	// 出现次数
 	Count int64 `json:"count" example:"32"`
 }
+
+// LiveUserExistsAccountResp 判断用户账号是否存在返回
+type LiveUserExistsAccountResp struct {
+	// 是否存在
+	Exist bool `json:"exist"  example:"false"`
+}
+
+// LiveUserLoginResp 用户登录返回
+type LiveUserLoginResp struct {
+	// access token
+	AccessToken string `json:"access_token" example:"Bearer xxxxxxxxxx"`
+	// refresh token
+	RefreshToken string `json:"refresh_token" example:"Bearer xxxxxxxxxx"`
+}

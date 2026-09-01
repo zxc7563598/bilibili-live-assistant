@@ -49,7 +49,7 @@
 # 05 Robot Config Module
 # 06 Live Danmu Module
 # 07 Live Gift Module
-# 08 User Analysis Module
+# 08 Live User Module
 # 09 App Config Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
@@ -137,10 +137,13 @@ error:
   40406: Failed to start listener # Start listener failed
   40407: Failed to stop listener # Stop listener failed
   40408: Listener connection error # Listener connection error
+  40801: Incorrect account or password # Password error (avoid being too specific)
+  40802: Account unavailable # User account disabled
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
   50801: Tokenizer initialization failed # Tokenizer initialization failed
+  50802: Unknown User # Failed to query user information
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed
@@ -176,6 +179,12 @@ error:
   60601: System busy, please try again later # Database query exception
   60701: System busy, please try again later # Database query exception
   60801: System busy, please try again later # Database query exception
+  60802: System busy, please try again later # accessToken generation failed
+  60803: System busy, please try again later # refreshToken generation failed
+  60804: System busy, please try again later # Update admin token failed
+  60805: System busy, please try again later # Redis store accessToken failed
+  60806: System busy, please try again later # Redis store refreshToken failed
+  60807: System busy, please try again later # Redis clear token failed
 
 gender:
   female: female

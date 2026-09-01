@@ -2,17 +2,24 @@ package appconfig
 
 import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/app_config"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/imagetype"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 )
 
-// 站点基础配置键（与 internal/migrate/seed.go seedAppConfigs 保持一致）
+// 站点基础配置键
 const (
 	keySiteName            = "site_name"
 	keySiteDescription     = "site_description"
 	keySiteBackgroundColor = "site_background_color"
 	keySiteThemeColor      = "site_theme_color"
 	keySiteIcon            = "site_icon"
+	keyRegister            = "register"
+	keyLogo                = "logo"
+	keyLoginBg             = "login_bg"
+	keyTitle               = "login_title"
+	keySlogan              = "login_slogan"
 )
 
 type Service struct {
@@ -55,4 +62,20 @@ func (s *Service) Manifest() (ManifestResp, int, error) {
 // ThemeColor 获取网站主题色
 func (s *Service) ThemeColor() (string, int, error) {
 	return s.configValue(keySiteThemeColor), 0, nil
+}
+
+// LoginConfig 获取登录页配置
+func (s *Service) LoginConfig() (LoginConfig, int, error) {
+	resp := LoginConfig{
+		Logo:     s.configValue(keyLogo),
+		LoginBg:  s.configValue(keyLoginBg),
+		Title:    s.configValue(keyTitle),
+		Slogan:   s.configValue(keySlogan),
+		Register: false,
+	}
+	register := ptr.ParseEnumInt[enum.YesNo](s.configValue(keyRegister))
+	if register == enum.Yes {
+		resp.Register = true
+	}
+	return resp, 0, nil
 }

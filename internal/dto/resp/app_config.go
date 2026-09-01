@@ -54,3 +54,12 @@ type AppPublicKeyResp struct {
 type AppShopThemeColorResp struct {
 	Color string `json:"color" example:"#ffffff"`
 }
+
+// AppShopLoginConfigResp 获取登录页面配置信息返回
+type AppShopLoginConfigResp struct {
+	Register bool   `json:"register" example:"false"`
+	Logo     string `json:"logo" example:"https://cdn.hejunjie.life/avatars/shop.png"`
+	LoginBg  string `json:"login_bg" example:""`
+	Title    string `json:"title" example:"积分商城"`
+	Slogan   string `json:"slogan" example:"登录后可兑换积分好礼"`
+}

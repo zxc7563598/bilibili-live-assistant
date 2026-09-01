@@ -190,3 +190,166 @@ func (h *Handler) UserDanmuAnalysis(c *gin.Context) {
 		Messages: toLiveUserWordFrequencyItems(svcResp.Messages),
 	})
 }
+
+// 移动端 ------------------
+
+// @Summary 判断用户账号是否存在
+// @Description 判断指定 UID 的账号是否存在，用于登录页预校验
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserExistsAccountReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.LiveUserExistsAccountResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/liveuser/account [post]
+func (h *Handler) ExistsAccount(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取请求参数
+	var req input.LiveUserExistsAccountReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"ExistsAccount 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	exist, errCode, err := h.liveuserSvc.ExistsAccount(ctx, req.Account)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.ExistsAccount 调用失败",
+			errCode,
+			err,
+			zap.Any("req.account", req.Account),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserExistsAccountResp{
+		Exist: exist,
+	})
+}
+
+// @Summary 用户登录
+// @Description 用户通过uid与密码进行登录，登录成功后返回 access_token 和 refresh_token，用于后续接口鉴权
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserLoginReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.LiveUserLoginResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/liveuser/login [post]
+func (h *Handler) Login(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取请求参数
+	var req input.LiveUserLoginReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"Login 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.liveuserSvc.Login(ctx, req.Account, req.Password)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.Login 调用失败",
+			errCode,
+			err,
+			zap.Any("req.account", req.Account),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserLoginResp{
+		AccessToken:  svcResp.AccessToken,
+		RefreshToken: svcResp.RefreshToken,
+	})
+}
+
+// @Summary 刷新登录凭证
+// @Description 使用 refresh_token 刷新登录状态，获取新的 access_token 和 refresh_token，用于延长会话有效期
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserRefreshReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.LiveUserLoginResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/liveuser/refresh [post]
+func (h *Handler) Refresh(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取请求参数
+	var req input.LiveUserRefreshReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"Refresh 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.liveuserSvc.RefreshLogin(ctx, req.Token)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.RefreshLogin 调用失败",
+			errCode,
+			err,
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserLoginResp{
+		AccessToken:  svcResp.AccessToken,
+		RefreshToken: svcResp.RefreshToken,
+	})
+}
+
+// @Summary 退出登录
+// @Description 清除用户登录态，使当前 access_token 与 refresh_token 立即失效
+// @Tags 移动端
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Security BearerAuth
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/liveuser/logout [post]
+func (h *Handler) Logout(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	userInfo, ok := handler.GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 执行请求
+	errCode, err := h.liveuserSvc.Logout(ctx, userInfo.UserID)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.Logout 调用失败",
+			errCode,
+			err,
+			zap.Any("userInfo", userInfo),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}

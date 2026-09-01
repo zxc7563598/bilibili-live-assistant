@@ -16,10 +16,10 @@ var (
 )
 
 type Claims struct {
-	ID       int64 `json:"id"`
+	ID       int64  `json:"id"`
 	Type     string `json:"type"`     // access / refresh
 	Identity string `json:"identity"` // admin / user
-	RoleID   int64 `json:"role_id"`  // 0 and role_id
+	RoleID   int64  `json:"role_id"`  // 0 and role_id
 	RoleCode string `json:"role_code"`
 	jwt.RegisteredClaims
 }
@@ -103,4 +103,12 @@ func AdminTokenKey(id int64) string {
 
 func AdminRefreshKey(id int64) string {
 	return fmt.Sprintf("admin:refresh:%d", id)
+}
+
+func UserTokenKey(id int64) string {
+	return fmt.Sprintf("user:token:%d", id)
+}
+
+func UserRefreshKey(id int64) string {
+	return fmt.Sprintf("user:refresh:%d", id)
 }
