@@ -39,6 +39,7 @@ help:
 	@echo "  make dev-go        仅启动 Go 服务"
 	@echo "  make dev-web       仅启动 Web dev server"
 	@echo "  make dev-shop      仅启动 Shop dev server"
+	@echo "  make seed-products 填充商城商品测试数据（手动，不启动服务）"
 	@echo "  make swagger       生成 Swagger 文档"
 	@echo ""
 	@echo "构建命令:"
@@ -75,6 +76,10 @@ dev-web:
 dev-shop:
 	@echo "启动 Shop dev server..."
 	@cd ./shop && npm install && npm run dev
+
+seed-products:
+	@echo "填充商城商品测试数据..."
+	$(GO_RUN) $(CMD_DIR)/main.go -seed-products
 
 swagger:
 	@command -v swag >/dev/null 2>&1 || { \
