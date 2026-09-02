@@ -69,3 +69,17 @@ type LiveUserLoginResp struct {
 	// refresh token
 	RefreshToken string `json:"refresh_token" example:"Bearer xxxxxxxxxx"`
 }
+
+// LiveUserUserInfoResp 获取用户基本信息返回
+type LiveUserUserInfoResp struct {
+	UID    int64  `json:"uid" example:"4325051"`
+	Avatar string `json:"avatar" example:"https://xxxxxx.xxx.com"`
+	Name   string `json:"name" example:"哎呀又胖啦"`
+	Points int64  `json:"points" example:"30"`
+	Stars  int64  `json:"stars" example:"50"`
+}
+
+// LiveUserGetRoomIDResp 获取直播间房间号返回
+type LiveUserGetRoomIDResp struct {
+	RoomID int64 `json:"room_id" example:"22384516"`
+}

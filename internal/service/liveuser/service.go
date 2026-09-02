@@ -358,10 +358,6 @@ func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (TokenR
 }
 
 // Logout 用于退出用户登录
-//
-// 清库顺序说明（有意为之）：先清 Redis 再清 DB。
-// 先清 Redis 能立即让当前 access_token 失效（单点登录校验），保证登出即时生效；
-// DB 仅存 refresh_token，即使清理失败也只会残留旧 refresh_token，不影响登出主流程。
 func (s *Service) Logout(ctx context.Context, userID int64) (int, error) {
 	// 清空用户token
 	if s.rdb != nil {
@@ -378,6 +374,25 @@ func (s *Service) Logout(ctx context.Context, userID int64) (int, error) {
 	}
 	// 返回数据
 	return 0, nil
+}
+
+// UserInfo 获取用户基本信息
+func (s *Service) UserInfo(ctx context.Context, userID int64) (UserInfoResp, int, error) {
+	// 根据主键ID获取用户信息
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return UserInfoResp{}, 60801, err
+	}
+	if user == nil {
+		return UserInfoResp{}, 50802, nil
+	}
+	return UserInfoResp{
+		UID:    user.UID,
+		Avatar: user.Face,
+		Name:   user.Uname,
+		Points: user.Points,
+		Stars:  user.Stars,
+	}, 0, nil
 }
 
 // addCreditLog 增加用户资产记录（增加或减少）

@@ -9,17 +9,22 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 	"go.uber.org/zap"
 )
 
 // Handler 直播控制 HTTP 接口处理器
 type Handler struct {
-	liveuserSvc *liveuser.Service
+	liveuserSvc    *liveuser.Service
+	robotConfigSvc *robotconfig.Service
 }
 
 // New 创建 Handler 实例
-func New(liveuserSvc *liveuser.Service) *Handler {
-	return &Handler{liveuserSvc: liveuserSvc}
+func New(liveuserSvc *liveuser.Service, robotConfigSvc *robotconfig.Service) *Handler {
+	return &Handler{
+		liveuserSvc:    liveuserSvc,
+		robotConfigSvc: robotConfigSvc,
+	}
 }
 
 // @Summary 分页查询用户列表
@@ -194,7 +199,7 @@ func (h *Handler) UserDanmuAnalysis(c *gin.Context) {
 // 移动端 ------------------
 
 // @Summary 判断用户账号是否存在
-// @Description 判断指定 UID 的账号是否存在，用于登录页预校验
+// @Description 校验指定账号（UID）是否已存在，供登录页在提交前进行预检
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Param data body input.LiveUserExistsAccountReq true "请求参数"
@@ -236,7 +241,7 @@ func (h *Handler) ExistsAccount(c *gin.Context) {
 }
 
 // @Summary 用户登录
-// @Description 用户通过uid与密码进行登录，登录成功后返回 access_token 和 refresh_token，用于后续接口鉴权
+// @Description 用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Param data body input.LiveUserLoginReq true "请求参数"
@@ -279,7 +284,7 @@ func (h *Handler) Login(c *gin.Context) {
 }
 
 // @Summary 刷新登录凭证
-// @Description 使用 refresh_token 刷新登录状态，获取新的 access_token 和 refresh_token，用于延长会话有效期
+// @Description 使用 refresh_token 换取新的 access_token 与 refresh_token，以延长会话有效期
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Param data body input.LiveUserRefreshReq true "请求参数"
@@ -331,7 +336,7 @@ func (h *Handler) Logout(c *gin.Context) {
 	// 获取上下文/语言配置
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-	// 获取管理员ID
+	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
 		response.Error(c, lang, 20001)
@@ -352,4 +357,69 @@ func (h *Handler) Logout(c *gin.Context) {
 	}
 	// 返回结果
 	response.Success(c, lang, nil)
+}
+
+// @Summary 获取用户基本信息
+// @Description 获取当前登录用户的基本信息（头像、昵称、积分、星光等），供移动端商城展示
+// @Tags 移动端
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Success 200 {object} response.Response{data=resp.LiveUserUserInfoResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/liveuser/info [post]
+func (h *Handler) GetUserInfo(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取用户ID
+	userInfo, ok := handler.GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.liveuserSvc.UserInfo(ctx, userInfo.UserID)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.UserInfo 调用失败",
+			errCode,
+			err,
+			zap.Any("userInfo", userInfo),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserUserInfoResp{
+		UID:    svcResp.UID,
+		Avatar: svcResp.Avatar,
+		Name:   svcResp.Name,
+		Points: svcResp.Points,
+		Stars:  svcResp.Stars,
+	})
+}
+
+// @Summary 获取直播间房间号
+// @Description 获取系统当前监听的直播间房间号，供移动端商城跳转至主播直播间使用
+// @Tags 移动端
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Success 200 {object} response.Response{data=resp.LiveUserGetRoomIDResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/liveuser/room-id [post]
+func (h *Handler) GetRoomID(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取用户ID
+	_, ok := handler.GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 执行请求
+	roomID := h.robotConfigSvc.GetRoomID()
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserGetRoomIDResp{
+		RoomID: roomID,
+	})
 }

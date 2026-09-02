@@ -87,3 +87,12 @@ type ListPageItem struct {
 	TotalDanmuCount int64  `json:"total_danmu_count"`
 	TotalGiftAmount int64  `json:"total_gift_amount"`
 }
+
+// UserInfo 请求返回
+type UserInfoResp struct {
+	UID    int64  `json:"uid"`
+	Avatar string `json:"avatar"`
+	Name   string `json:"name"`
+	Points int64  `json:"points"`
+	Stars  int64  `json:"stars"`
+}

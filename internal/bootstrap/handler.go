@@ -37,7 +37,7 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		RobotConfig: robotconfigHdlr.New(svc.RobotConfig, svc.Live),
 		LiveDanmu:   livedanmu.New(&svc.LiveDanmu),
 		LiveGift:    livegift.New(&svc.LiveGift),
-		LiveUser:    liveuser.New(svc.LiveUser),
+		LiveUser:    liveuser.New(svc.LiveUser, svc.RobotConfig),
 		AppConfig:   appconfig.New(&svc.AppConfig, rdb),
 	}
 }
