@@ -61,9 +61,9 @@
               {{ p.name }}
             </p>
             <div class="mt-2 flex items-end justify-between">
-              <span class="flex items-center gap-1" :class="p.type === 0 ? 'text-starlight' : 'text-primary'">
-                <AppIcon :name="p.type === 0 ? 'star' : 'points'" :size="15" />
-                <span class="text-base font-bold leading-none tabular-nums">{{ p.amount }}</span>
+              <span class="flex items-center gap-1" :class="p.credit_type === 0 ? 'text-starlight' : 'text-primary'">
+                <AppIcon :name="p.credit_type === 0 ? 'star' : 'points'" :size="15" />
+                <span class="text-base font-bold leading-none tabular-nums">{{ p.price }}</span>
               </span>
               <span class="text-xs text-fg-3 tabular-nums" />
             </div>
