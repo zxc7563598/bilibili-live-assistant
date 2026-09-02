@@ -2861,6 +2861,362 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/shop/liveuser/account": {
+            "post": {
+                "description": "判断指定 UID 的账号是否存在，用于登录页预校验",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "判断用户账号是否存在",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserExistsAccountReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserExistsAccountResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/liveuser/login": {
+            "post": {
+                "description": "用户通过uid与密码进行登录，登录成功后返回 access_token 和 refresh_token，用于后续接口鉴权",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserLoginReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserLoginResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/liveuser/logout": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "清除用户登录态，使当前 access_token 与 refresh_token 立即失效",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "退出登录",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/liveuser/refresh": {
+            "post": {
+                "description": "使用 refresh_token 刷新登录状态，获取新的 access_token 和 refresh_token，用于延长会话有效期",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "刷新登录凭证",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserRefreshReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserLoginResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/login": {
+            "get": {
+                "description": "获取登录页配置（注册开关、Logo、背景图、标题、Slogan）",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "获取登录页面配置信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.AppShopLoginConfigResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/manifest": {
+            "get": {
+                "description": "获取 App 的 Manifest 信息，用于前端构建 PWA 应用",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "获取 App 的 Manifest 信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.AppShopManifestResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/public-key": {
+            "get": {
+                "description": "获取用于前端 RSA-OAEP 加密的 RSA 公钥（SPKI DER 的 base64），并附带 HMAC 签名供前端验签",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "获取 RSA 公钥（带 HMAC 验签）",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.AppPublicKeyResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/shop/theme-color": {
+            "get": {
+                "description": "获取 App 主题色，用于前端构建样式",
+                "tags": [
+                    "移动端"
+                ],
+                "summary": "获取 App 主题色",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.AppShopThemeColorResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -3435,6 +3791,19 @@ const docTemplate = `{
                 }
             }
         },
+        "input.LiveUserExistsAccountReq": {
+            "type": "object",
+            "required": [
+                "account"
+            ],
+            "properties": {
+                "account": {
+                    "description": "用户账号(UID)",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "input.LiveUserListPageReq": {
             "type": "object",
             "required": [
@@ -3461,6 +3830,38 @@ const docTemplate = `{
                     "description": "用户昵称，支持模糊搜索",
                     "type": "string",
                     "example": "哎呀又胖啦"
+                }
+            }
+        },
+        "input.LiveUserLoginReq": {
+            "type": "object",
+            "required": [
+                "account",
+                "password"
+            ],
+            "properties": {
+                "account": {
+                    "description": "用户账号(UID)",
+                    "type": "integer",
+                    "example": 1
+                },
+                "password": {
+                    "description": "用户密码",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
+        "input.LiveUserRefreshReq": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "description": "refresh token",
+                    "type": "string",
+                    "example": "Bearer xxxxxxxxxx"
                 }
             }
         },
@@ -4363,6 +4764,152 @@ const docTemplate = `{
                 }
             }
         },
+        "resp.AppPublicKeyResp": {
+            "type": "object",
+            "properties": {
+                "key_id": {
+                    "description": "公钥标识（公钥内容 sha256 前 16 位 hex，用于前端验签与密钥轮换识别）",
+                    "type": "string",
+                    "example": "3f2ab8d0e1c4a9b7"
+                },
+                "public_key": {
+                    "description": "RSA 公钥（SPKI DER 的 base64 编码，前端 atob 后 importKey(\"spki\") 使用）",
+                    "type": "string",
+                    "example": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A..."
+                },
+                "sign": {
+                    "description": "HMAC-SHA256 签名（对 \"pubkey:\"+key_id+public_key+timestamp 计算，hex 编码）",
+                    "type": "string",
+                    "example": "a1b2c3d4e5f60718293a4b5c6d7e8f90..."
+                },
+                "timestamp": {
+                    "description": "签名生成时间戳（Unix 秒，前端校验时间窗口）",
+                    "type": "integer",
+                    "example": 1724716800
+                }
+            }
+        },
+        "resp.AppShopLoginConfigResp": {
+            "type": "object",
+            "properties": {
+                "login_bg": {
+                    "type": "string",
+                    "example": ""
+                },
+                "logo": {
+                    "type": "string",
+                    "example": "https://cdn.hejunjie.life/avatars/shop.png"
+                },
+                "register": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "slogan": {
+                    "type": "string",
+                    "example": "登录后可兑换积分好礼"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "积分商城"
+                }
+            }
+        },
+        "resp.AppShopManifestIcon": {
+            "type": "object",
+            "properties": {
+                "purpose": {
+                    "description": "用途（any / maskable）",
+                    "type": "string",
+                    "example": "any"
+                },
+                "sizes": {
+                    "description": "尺寸",
+                    "type": "string",
+                    "example": "192x192"
+                },
+                "src": {
+                    "description": "图标地址",
+                    "type": "string",
+                    "example": "https://cdn.example.com/icon-192.png"
+                },
+                "type": {
+                    "description": "图片类型",
+                    "type": "string",
+                    "example": "image/png"
+                }
+            }
+        },
+        "resp.AppShopManifestResp": {
+            "type": "object",
+            "properties": {
+                "apple_touch_icon": {
+                    "description": "iOS 添加到主屏的图标（180x180 PNG）",
+                    "type": "string",
+                    "example": "https://cdn.example.com/icon-180.png"
+                },
+                "background_color": {
+                    "description": "启动屏背景色",
+                    "type": "string",
+                    "example": "#ffffff"
+                },
+                "description": {
+                    "description": "应用描述",
+                    "type": "string",
+                    "example": "积分商城的描述"
+                },
+                "display": {
+                    "description": "显示模式",
+                    "type": "string",
+                    "example": "standalone"
+                },
+                "favicon": {
+                    "description": "浏览器标签页小图标",
+                    "type": "string",
+                    "example": "https://cdn.example.com/favicon.svg"
+                },
+                "icons": {
+                    "description": "安装图标列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.AppShopManifestIcon"
+                    }
+                },
+                "name": {
+                    "description": "应用名称（全称，用于页面标题与安装名称）",
+                    "type": "string",
+                    "example": "积分商城"
+                },
+                "scope": {
+                    "description": "作用域",
+                    "type": "string",
+                    "example": "/shop/"
+                },
+                "short_name": {
+                    "description": "应用短名称（空间不足时展示）",
+                    "type": "string",
+                    "example": "商城"
+                },
+                "start_url": {
+                    "description": "启动地址",
+                    "type": "string",
+                    "example": "/shop/"
+                },
+                "theme_color": {
+                    "description": "主题色（浏览器地址栏 / 窗口标题栏颜色）",
+                    "type": "string",
+                    "example": "#ffffff"
+                }
+            }
+        },
+        "resp.AppShopThemeColorResp": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string",
+                    "example": "#ffffff"
+                }
+            }
+        },
         "resp.FollowConfigResp": {
             "type": "object",
             "properties": {
@@ -4906,6 +5453,16 @@ const docTemplate = `{
                 }
             }
         },
+        "resp.LiveUserExistsAccountResp": {
+            "type": "object",
+            "properties": {
+                "exist": {
+                    "description": "是否存在",
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
         "resp.LiveUserListPageItem": {
             "type": "object",
             "properties": {
@@ -4960,6 +5517,21 @@ const docTemplate = `{
                     "description": "总计条数",
                     "type": "integer",
                     "example": 100
+                }
+            }
+        },
+        "resp.LiveUserLoginResp": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "description": "access token",
+                    "type": "string",
+                    "example": "Bearer xxxxxxxxxx"
+                },
+                "refresh_token": {
+                    "description": "refresh token",
+                    "type": "string",
+                    "example": "Bearer xxxxxxxxxx"
                 }
             }
         },

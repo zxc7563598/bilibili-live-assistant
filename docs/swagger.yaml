@@ -434,6 +434,15 @@ definitions:
     required:
     - roomId
     type: object
+  input.LiveUserExistsAccountReq:
+    properties:
+      account:
+        description: 用户账号(UID)
+        example: 1
+        type: integer
+    required:
+    - account
+    type: object
   input.LiveUserListPageReq:
     properties:
       pageNo:
@@ -455,6 +464,29 @@ definitions:
     required:
     - pageNo
     - pageSize
+    type: object
+  input.LiveUserLoginReq:
+    properties:
+      account:
+        description: 用户账号(UID)
+        example: 1
+        type: integer
+      password:
+        description: 用户密码
+        example: "1"
+        type: string
+    required:
+    - account
+    - password
+    type: object
+  input.LiveUserRefreshReq:
+    properties:
+      token:
+        description: refresh token
+        example: Bearer xxxxxxxxxx
+        type: string
+    required:
+    - token
     type: object
   input.LiveUserUserDanmuAnalysisReq:
     properties:
@@ -1131,6 +1163,117 @@ definitions:
         example: Bearer xxxxxxxxxx
         type: string
     type: object
+  resp.AppPublicKeyResp:
+    properties:
+      key_id:
+        description: 公钥标识（公钥内容 sha256 前 16 位 hex，用于前端验签与密钥轮换识别）
+        example: 3f2ab8d0e1c4a9b7
+        type: string
+      public_key:
+        description: RSA 公钥（SPKI DER 的 base64 编码，前端 atob 后 importKey("spki") 使用）
+        example: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...
+        type: string
+      sign:
+        description: HMAC-SHA256 签名（对 "pubkey:"+key_id+public_key+timestamp 计算，hex
+          编码）
+        example: a1b2c3d4e5f60718293a4b5c6d7e8f90...
+        type: string
+      timestamp:
+        description: 签名生成时间戳（Unix 秒，前端校验时间窗口）
+        example: 1724716800
+        type: integer
+    type: object
+  resp.AppShopLoginConfigResp:
+    properties:
+      login_bg:
+        example: ""
+        type: string
+      logo:
+        example: https://cdn.hejunjie.life/avatars/shop.png
+        type: string
+      register:
+        example: false
+        type: boolean
+      slogan:
+        example: 登录后可兑换积分好礼
+        type: string
+      title:
+        example: 积分商城
+        type: string
+    type: object
+  resp.AppShopManifestIcon:
+    properties:
+      purpose:
+        description: 用途（any / maskable）
+        example: any
+        type: string
+      sizes:
+        description: 尺寸
+        example: 192x192
+        type: string
+      src:
+        description: 图标地址
+        example: https://cdn.example.com/icon-192.png
+        type: string
+      type:
+        description: 图片类型
+        example: image/png
+        type: string
+    type: object
+  resp.AppShopManifestResp:
+    properties:
+      apple_touch_icon:
+        description: iOS 添加到主屏的图标（180x180 PNG）
+        example: https://cdn.example.com/icon-180.png
+        type: string
+      background_color:
+        description: 启动屏背景色
+        example: '#ffffff'
+        type: string
+      description:
+        description: 应用描述
+        example: 积分商城的描述
+        type: string
+      display:
+        description: 显示模式
+        example: standalone
+        type: string
+      favicon:
+        description: 浏览器标签页小图标
+        example: https://cdn.example.com/favicon.svg
+        type: string
+      icons:
+        description: 安装图标列表
+        items:
+          $ref: '#/definitions/resp.AppShopManifestIcon'
+        type: array
+      name:
+        description: 应用名称（全称，用于页面标题与安装名称）
+        example: 积分商城
+        type: string
+      scope:
+        description: 作用域
+        example: /shop/
+        type: string
+      short_name:
+        description: 应用短名称（空间不足时展示）
+        example: 商城
+        type: string
+      start_url:
+        description: 启动地址
+        example: /shop/
+        type: string
+      theme_color:
+        description: 主题色（浏览器地址栏 / 窗口标题栏颜色）
+        example: '#ffffff'
+        type: string
+    type: object
+  resp.AppShopThemeColorResp:
+    properties:
+      color:
+        example: '#ffffff'
+        type: string
+    type: object
   resp.FollowConfigResp:
     properties:
       content:
@@ -1529,6 +1672,13 @@ definitions:
         example: https://api.bilibili.com/x/...
         type: string
     type: object
+  resp.LiveUserExistsAccountResp:
+    properties:
+      exist:
+        description: 是否存在
+        example: false
+        type: boolean
+    type: object
   resp.LiveUserListPageItem:
     properties:
       id:
@@ -1571,6 +1721,17 @@ definitions:
         description: 总计条数
         example: 100
         type: integer
+    type: object
+  resp.LiveUserLoginResp:
+    properties:
+      access_token:
+        description: access token
+        example: Bearer xxxxxxxxxx
+        type: string
+      refresh_token:
+        description: refresh token
+        example: Bearer xxxxxxxxxx
+        type: string
     type: object
   resp.LiveUserUserDanmuAnalysisResp:
     properties:
@@ -3810,6 +3971,221 @@ paths:
       summary: 创建或更新角色
       tags:
       - 角色
+  /api/shop/liveuser/account:
+    post:
+      description: 判断指定 UID 的账号是否存在，用于登录页预校验
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserExistsAccountReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserExistsAccountResp'
+              type: object
+      summary: 判断用户账号是否存在
+      tags:
+      - 移动端
+  /api/shop/liveuser/login:
+    post:
+      description: 用户通过uid与密码进行登录，登录成功后返回 access_token 和 refresh_token，用于后续接口鉴权
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserLoginReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserLoginResp'
+              type: object
+      summary: 用户登录
+      tags:
+      - 移动端
+  /api/shop/liveuser/logout:
+    post:
+      description: 清除用户登录态，使当前 access_token 与 refresh_token 立即失效
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 退出登录
+      tags:
+      - 移动端
+  /api/shop/liveuser/refresh:
+    post:
+      description: 使用 refresh_token 刷新登录状态，获取新的 access_token 和 refresh_token，用于延长会话有效期
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserRefreshReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserLoginResp'
+              type: object
+      summary: 刷新登录凭证
+      tags:
+      - 移动端
+  /api/shop/login:
+    get:
+      description: 获取登录页配置（注册开关、Logo、背景图、标题、Slogan）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AppShopLoginConfigResp'
+              type: object
+      summary: 获取登录页面配置信息
+      tags:
+      - 移动端
+  /api/shop/manifest:
+    get:
+      description: 获取 App 的 Manifest 信息，用于前端构建 PWA 应用
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AppShopManifestResp'
+              type: object
+      summary: 获取 App 的 Manifest 信息
+      tags:
+      - 移动端
+  /api/shop/public-key:
+    get:
+      description: 获取用于前端 RSA-OAEP 加密的 RSA 公钥（SPKI DER 的 base64），并附带 HMAC 签名供前端验签
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AppPublicKeyResp'
+              type: object
+      summary: 获取 RSA 公钥（带 HMAC 验签）
+      tags:
+      - 移动端
+  /api/shop/theme-color:
+    get:
+      description: 获取 App 主题色，用于前端构建样式
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AppShopThemeColorResp'
+              type: object
+      summary: 获取 App 主题色
+      tags:
+      - 移动端
 securityDefinitions:
   BearerAuth:
     in: header
