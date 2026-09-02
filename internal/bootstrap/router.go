@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/http/pprof"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,7 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// 日志注册
 	if gin.Mode() != gin.ReleaseMode {
 		registerApiDoc(r)
+		registerPprof(r)
 	}
 	// 中间件注册
 	r.Use(gin.Logger(), gin.Recovery(), middleware.CORSMiddleware(middleware.CORSConfig{
@@ -191,6 +193,19 @@ func registerShop(route *gin.RouterGroup) {
 		c.Status(http.StatusOK)
 		io.Copy(c.Writer, index)
 	})
+}
+
+// registerPprof 在开发模式下注册 net/http/pprof 性能分析接口
+func registerPprof(r *gin.Engine) {
+	r.GET("/debug/pprof/", gin.WrapF(pprof.Index))
+	r.GET("/debug/pprof/cmdline", gin.WrapF(pprof.Cmdline))
+	r.GET("/debug/pprof/profile", gin.WrapF(pprof.Profile))
+	r.POST("/debug/pprof/symbol", gin.WrapF(pprof.Symbol))
+	r.GET("/debug/pprof/symbol", gin.WrapF(pprof.Symbol))
+	r.GET("/debug/pprof/trace", gin.WrapF(pprof.Trace))
+	for _, name := range []string{"allocs", "block", "goroutine", "heap", "mutex", "threadcreate"} {
+		r.GET("/debug/pprof/"+name, gin.WrapF(pprof.Handler(name).ServeHTTP))
+	}
 }
 
 func registerApiDoc(r *gin.Engine) {
