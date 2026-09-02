@@ -181,7 +181,7 @@ onMounted(() => {
   })
   api.getRoomID().then((res) => {
     if (res.code === 0) {
-      roomID.value = res.data.roomID
+      roomID.value = res.data.room_id
     }
     else {
       toast.error(res.msg)

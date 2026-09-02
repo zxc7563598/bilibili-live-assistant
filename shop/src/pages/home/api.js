@@ -1,21 +1,7 @@
+import request from '@/static/request'
+
 export default {
-  getUserInfo: () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          code: 0,
-          data: {
-            avatar: 'https://danmusuite.hejunjie.life/dist/avatar.jpg',
-            uid: '4325051',
-            name: '哎呀又胖啦',
-            points: 3280,
-            stars: 1260,
-          },
-          msg: 'success',
-        })
-      }, 1500)
-    })
-  },
+  getUserInfo: () => request.post('/api/shop/liveuser/info'),
   getShopList: (page, search) => {
     console.warn('getShopList', page, search)
     return new Promise((resolve) => {
