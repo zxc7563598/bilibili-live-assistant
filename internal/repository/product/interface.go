@@ -12,7 +12,7 @@ import (
 
 type Repository interface {
 	base.Repository[model.Product]
-	// ListPage 分页查询启用中的商品，Name 模糊匹配，按排序值倒序
+	// ListPage 分页查询商品列表，支持按名称模糊、积分类型、启用状态筛选，按排序值倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.ProductListPageQuery) ([]model.Product, int64, error)
 	// ListEnabled 获取全部启用中的商品，按排序值倒序
 	ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Product, error)
@@ -22,19 +22,36 @@ type Repository interface {
 	IncrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) error
 }
 
-// ListPage 分页查询启用中的商品
+// ListPage 分页查询商品列表，支持按名称模糊、积分类型、启用状态筛选
+// 未指定 Enable 时不限制状态（管理端可查看含下架在内的全部商品）；商城端只看启用商品应使用 ListEnabled
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.ProductListPageQuery) ([]model.Product, int64, error) {
 	var list []model.Product
 	var total int64
-	db := r.getDB(ctx, tx).Model(&model.Product{}).Where("enable = ?", enum.EnableEnable)
+	db := r.getDB(ctx, tx)
+	db = db.Model(&model.Product{})
 	if v := query.Name; v != nil && *v != "" {
 		db = db.Where("name LIKE ?", "%"+escapeLike(*v)+"%")
+	}
+	if v := query.CreditType; v != nil {
+		ct := enum.CreditType(*v)
+		if ct.IsValid() {
+			db = db.Where("credit_type = ?", ct)
+		}
+	}
+	if v := query.Enable; v != nil {
+		e := enum.Enable(*v)
+		if e.IsValid() {
+			db = db.Where("enable = ?", e)
+		}
 	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 	err := db.Order("sort_order desc, id desc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
-	return list, total, err
+	if err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
 }
 
 // ListEnabled 获取全部启用中的商品

@@ -13,6 +13,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/menu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/product"
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
 	"gorm.io/gorm"
@@ -29,6 +30,7 @@ type Services struct {
 	LiveGift    livegift.Service
 	LiveUser    *liveuser.Service
 	AppConfig   appconfigsvc.Service
+	Product     product.Service
 }
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache, appConfigCache *appconfig.Cache) *Services {
@@ -45,5 +47,6 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		LiveGift:    *livegift.New(repo.LiveGift),
 		LiveUser:    liveUserSvc,
 		AppConfig:   *appconfigsvc.New(appConfigCache, repo.AppConfig),
+		Product:     *product.New(db, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),
 	}
 }

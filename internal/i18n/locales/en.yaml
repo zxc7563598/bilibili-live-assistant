@@ -51,6 +51,7 @@
 # 07 Live Gift Module
 # 08 Live User Module
 # 09 App Config Module
+# 10 Product Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -144,6 +145,7 @@ error:
   50201: The role does not exist or has been deleted # Failed to query role information
   50801: Tokenizer initialization failed # Tokenizer initialization failed
   50802: Unknown User # Failed to query user information
+  51001: Product does not exist # Product information does not exist
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed
@@ -185,6 +187,7 @@ error:
   60805: System busy, please try again later # Redis store accessToken failed
   60806: System busy, please try again later # Redis store refreshToken failed
   60807: System busy, please try again later # Redis clear token failed
+  61001: System busy, please try again later # Database query exception
 
 gender:
   female: female

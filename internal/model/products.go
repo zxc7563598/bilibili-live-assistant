@@ -24,7 +24,9 @@ func (Product) TableName() string {
 
 // ProductListPageQuery 商品分页查询入参，不对应数据库表
 type ProductListPageQuery struct {
-	Name   *string
-	Offset int
-	Limit  int
+	Name       *string
+	CreditType *int
+	Enable     *int
+	Offset     int
+	Limit      int
 }
