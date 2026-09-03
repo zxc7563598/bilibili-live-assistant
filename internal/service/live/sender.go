@@ -20,18 +20,35 @@ type danmuSender struct {
 	testUIDs    map[int64]struct{}      // 测试机器人 UID 白名单，命中则仅记录日志不真正发送
 }
 
-// Send 发送一条弹幕到指定直播间
-func (s *danmuSender) Send(ctx context.Context, roomID int64, message string) error {
-	if sess := s.client.Session(); sess != nil {
-		if _, isTest := s.testUIDs[sess.UID]; isTest {
-			s.danmuLogger.Log(roomID, message)
-		} else {
-			csrfToken, err := s.client.CSRF()
-			if err != nil {
-				return fmt.Errorf("获取 CSRF Token 失败: %w", err)
-			}
-			return s.roomSvc.SendDanmu(ctx, roomID, message, csrfToken)
-		}
+// Send 发送弹幕到指定直播间。
+//
+// 当 message 超过当前账号允许的单条弹幕长度（rune 数）时，只发送其前缀，
+// 并把未发完的部分通过返回值交还 Queue，由 Queue 在后续 tick 中继续调用
+// Send 发送剩余部分，直到整条消息发完。
+func (s *danmuSender) Send(ctx context.Context, roomID int64, message string) (string, error) {
+	sess := s.client.Session()
+	if sess == nil {
+		return "", nil
 	}
-	return nil
+	if _, isTest := s.testUIDs[sess.UID]; isTest {
+		// 测试模式仅记录日志不真正发送，无需按长度拆分
+		s.danmuLogger.Log(roomID, message)
+		return "", nil
+	}
+	csrfToken, err := s.client.CSRF()
+	if err != nil {
+		return "", fmt.Errorf("获取 CSRF Token 失败: %w", err)
+	}
+	perm, err := s.roomSvc.GetBarragePermissionCached(ctx, roomID)
+	if err != nil {
+		return "", fmt.Errorf("获取弹幕发送权限失败: %w", err)
+	}
+	// 按 rune 拆分而非字节，避免把中文等 UTF-8 多字节字符拦腰截断
+	runes := []rune(message)
+	if perm.Length <= 0 || len(runes) <= perm.Length {
+		return "", s.roomSvc.SendDanmuWithPermission(ctx, roomID, message, csrfToken, perm)
+	}
+	head := string(runes[:perm.Length])
+	rest := string(runes[perm.Length:])
+	return rest, s.roomSvc.SendDanmuWithPermission(ctx, roomID, head, csrfToken, perm)
 }
