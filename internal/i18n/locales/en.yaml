@@ -149,7 +149,8 @@ error:
   50801: Tokenizer initialization failed # Tokenizer initialization failed
   50802: Unknown User # Failed to query user information
   51001: Product does not exist # Product information does not exist
-  51101: Product SKU does not exist # Product SKU information does not exist
+  51101: Unable to find the product # Product or SKU does not exist
+  51201: No pending order # No active order draft
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed

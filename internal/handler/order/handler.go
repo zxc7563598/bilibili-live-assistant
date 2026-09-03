@@ -3,6 +3,7 @@ package order
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
@@ -65,4 +66,49 @@ func (h *Handler) PlaceOrder(c *gin.Context) {
 	}
 	// 返回结果
 	response.Success(c, lang, nil)
+}
+
+// @Summary 获取用户下单数据
+// @Description 获取用户已经下单尚未支付的数据
+// @Tags 移动端
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Success 200 {object} response.Response{data=resp.OrderGetConfirmResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/order/confirm [post]
+func (h *Handler) GetConfirm(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取用户ID
+	userInfo, ok := handler.GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.orderSvc.UserOrderDraft(ctx, userInfo.UserID)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.OrderLogger,
+			"orderSvc.UserOrderDraft 调用失败",
+			errCode,
+			err,
+			zap.Any("userInfo", userInfo),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.OrderGetConfirmResp{
+		ID:       svcResp.ID,
+		ExpireAt: svcResp.ExpireAt * 1000,
+		Product: resp.ProductItem{
+			ID:         svcResp.Product.ID,
+			Name:       svcResp.Product.Name,
+			Cover:      svcResp.Product.Cover,
+			Price:      svcResp.Product.Price,
+			CreditType: svcResp.Product.CreditType,
+			Sku:        svcResp.Product.Sku,
+			Count:      svcResp.Product.Count,
+		},
+	})
 }
