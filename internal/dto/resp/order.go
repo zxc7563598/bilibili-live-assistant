@@ -22,6 +22,8 @@ type ProductItem struct {
 	Price int64 `json:"price" example:"30"`
 	// 产品价格类型
 	CreditType int `json:"credit_type" example:"1" enums:"0,1"`
+	// 产品类型
+	ProductType int `json:"product_type" example:"1" enums:"0,1"`
 	// 产品SKU
 	Sku string `json:"sku" example:"[{'aa':'bb'},{'aa':'bb'}]"`
 	// 购买数量

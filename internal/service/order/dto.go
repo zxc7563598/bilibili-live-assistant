@@ -34,11 +34,12 @@ type UserOrderDraftResp struct {
 }
 
 type ProductItem struct {
-	ID         int64  `json:"id"`
-	Name       string `json:"name"`
-	Cover      string `json:"cover"`
-	Price      int64  `json:"price"`
-	CreditType int    `json:"credit_type"`
-	Sku        string `json:"sku"`
-	Count      int64  `json:"count"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Cover       string `json:"cover"`
+	Price       int64  `json:"price"`
+	CreditType  int    `json:"credit_type"`
+	ProductType int    `json:"product_type"`
+	Sku         string `json:"sku"`
+	Count       int64  `json:"count"`
 }

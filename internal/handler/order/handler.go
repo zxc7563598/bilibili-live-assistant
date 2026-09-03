@@ -102,13 +102,14 @@ func (h *Handler) GetConfirm(c *gin.Context) {
 		ID:       svcResp.ID,
 		ExpireAt: svcResp.ExpireAt * 1000,
 		Product: resp.ProductItem{
-			ID:         svcResp.Product.ID,
-			Name:       svcResp.Product.Name,
-			Cover:      svcResp.Product.Cover,
-			Price:      svcResp.Product.Price,
-			CreditType: svcResp.Product.CreditType,
-			Sku:        svcResp.Product.Sku,
-			Count:      svcResp.Product.Count,
+			ID:          svcResp.Product.ID,
+			Name:        svcResp.Product.Name,
+			Cover:       svcResp.Product.Cover,
+			Price:       svcResp.Product.Price,
+			CreditType:  svcResp.Product.CreditType,
+			ProductType: svcResp.Product.ProductType,
+			Sku:         svcResp.Product.Sku,
+			Count:       svcResp.Product.Count,
 		},
 	})
 }

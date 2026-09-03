@@ -125,13 +125,14 @@ func (s *Service) UserOrderDraft(ctx context.Context, userID int64) (UserOrderDr
 		ID:       active.ID,
 		ExpireAt: active.ExpireAt,
 		Product: ProductItem{
-			ID:         product.ID,
-			Name:       product.Name,
-			Cover:      product.Cover,
-			Price:      sku.Price,
-			CreditType: int(product.CreditType),
-			Sku:        sku.SpecProperties,
-			Count:      active.Quantity,
+			ID:          product.ID,
+			Name:        product.Name,
+			Cover:       product.Cover,
+			Price:       sku.Price,
+			CreditType:  int(product.CreditType),
+			ProductType: int(product.ProductType),
+			Sku:         sku.SpecProperties,
+			Count:       active.Quantity,
 		},
 	}, 0, nil
 }
