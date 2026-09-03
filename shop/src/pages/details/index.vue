@@ -29,7 +29,7 @@
     </template>
     <template v-else-if="product.id">
       <div class="relative">
-        <AppCarousel :items="carouselImages" ratio="1 / 1" interval="5000" />
+        <AppCarousel :items="carouselImages" ratio="4 / 3" interval="5000" />
         <div class="safe-top absolute inset-x-0 top-0 z-10 flex items-center justify-between px-3 pt-2">
           <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="返回" @click="onBack">
             <AppIcon name="chevron-left" :size="22" />
