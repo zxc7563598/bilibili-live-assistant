@@ -290,6 +290,10 @@ product_image_type:
   banner: 轮播图
   detail: 详情图
 
+product_type:
+  virtual: 虚拟
+  actual: 实体
+
 stock_change_type:
   order_deduct: 下单扣减
   return_refund: 退货归还

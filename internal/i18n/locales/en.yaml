@@ -290,6 +290,10 @@ product_image_type:
   banner: banner
   detail: detail
 
+product_type:
+  virtual: virtual
+  actual: actual
+
 stock_change_type:
   order_deduct: order_deduct
   return_refund: return_refund
