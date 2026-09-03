@@ -79,11 +79,10 @@ func NewApp(cfg *config.Config) *App {
 	// service
 	services := InitServices(repos, db, rdb, cfg, configCache, appConfigCache)
 	// 定时任务调度器（项目启动后常驻，退出时在 main.go 中统一停止）
-	scheduler := cron.New(cron.Job{
-		Name:     "live-unmute",
-		Interval: time.Minute,
-		Run:      services.Live.UnmuteDueUsers,
-	})
+	scheduler := cron.New(
+		cron.Job{Name: "live-unmute", Interval: time.Minute, Run: services.Live.UnmuteDueUsers},
+		cron.Job{Name: "order-draft-expire", Interval: time.Minute, Run: services.Order.ExpireDrafts},
+	)
 	scheduler.Start()
 	// handler
 	handlers := InitHandlers(services, rdb)

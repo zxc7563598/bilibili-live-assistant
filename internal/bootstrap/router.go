@@ -61,6 +61,7 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	shopApi.POST("/liveuser/room-id", middleware.UserAuth(rdb), handlers.LiveUser.GetRoomID)
 	shopApi.POST("/product/list", middleware.UserAuth(rdb), handlers.Product.ShopListPage)
 	shopApi.POST("/product/detail", middleware.UserAuth(rdb), handlers.Product.ShopDetail)
+	shopApi.POST("/order/place", middleware.UserAuth(rdb), handlers.Order.PlaceOrder)
 	// api路由
 	adminApi := r.Group("/api/admin")
 	// 登录接口：如需限流可参考 shop 端的按账号限流（middleware.NewAccountRateLimiter(10, time.Minute)）
