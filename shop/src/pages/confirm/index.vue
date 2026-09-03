@@ -206,6 +206,7 @@ const confirm = ref({
     cover: '',
     price: 0,
     credit_type: 0,
+    product_type: 0,
     sku: '',
     count: 0,
   },
