@@ -20,6 +20,8 @@ type Repository interface {
 	IncrementSold(ctx context.Context, tx *gorm.DB, id, delta int64) error
 	// IncrementStock 原子增加商品库存
 	IncrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) error
+	// DecrementStock 原子扣减商品库存；库存不足（stock < delta）时不修改数据并返回 false
+	DecrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) (bool, error)
 }
 
 // ListPage 分页查询商品列表，支持按名称模糊、积分类型、启用状态筛选
@@ -70,6 +72,17 @@ func (r *gormRepo) IncrementSold(ctx context.Context, tx *gorm.DB, id, delta int
 // IncrementStock 原子增加商品库存
 func (r *gormRepo) IncrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) error {
 	return r.IncrementField(ctx, tx, id, "stock", delta)
+}
+
+// DecrementStock 原子扣减商品库存；库存不足（stock < delta）时不修改数据并返回 false
+func (r *gormRepo) DecrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) (bool, error) {
+	res := r.getDB(ctx, tx).Model(&model.Product{}).
+		Where("id = ? AND stock >= ?", id, delta).
+		Update("stock", gorm.Expr("stock - ?", delta))
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected > 0, nil
 }
 
 // escapeLike 转义 LIKE 查询中的特殊字符 _ %
