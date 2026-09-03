@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
+import AppImagePreview from './AppImagePreview.vue'
 
 // 依赖 free 的轮播：scroll-snap 横向滑动 + 指示点
 const props = defineProps({
@@ -85,6 +86,28 @@ function start() {
     timer = setInterval(go, intervalMs.value, 1)
 }
 
+// —— 点击放大预览 ——
+const previewOpen = ref(false)
+const previewIndex = ref(0)
+
+// 克隆槽位 → 真实图片下标（与 onScroll 中 active 的映射一致）
+function realIndexOf(i) {
+  return props.items.length > 1 ? ((i - 1) + props.items.length) % props.items.length : 0
+}
+
+function openPreview(i) {
+  previewIndex.value = realIndexOf(i)
+  previewOpen.value = true
+}
+
+// 大图预览打开时暂停自动轮播，关闭后按原条件恢复
+watch(previewOpen, (v) => {
+  if (v)
+    stop()
+  else
+    start()
+})
+
 // items 到达后（含首次渲染即有内容的情况）定位到第一张真实图并启动自动轮播
 watch(clones, async () => {
   await nextTick()
@@ -105,12 +128,14 @@ onUnmounted(stop)
 <template>
   <div class="relative" @mouseenter="stop" @mouseleave="start">
     <div ref="track" class="no-scrollbar flex snap-x snap-mandatory overflow-x-auto" @scroll="onScroll" @scrollend="onScrollEnd">
-      <div v-for="(it, i) in clones" :key="i" class="w-full shrink-0 snap-center">
+      <button v-for="(it, i) in clones" :key="i" type="button" aria-label="查看大图" class="block w-full shrink-0 snap-center p-0 cursor-pointer focus:outline-none" @click="openPreview(i)">
         <AppImage :src="it.src" :label="it.label" :ratio="ratio" rounded="rounded-none" />
-      </div>
+      </button>
     </div>
     <div v-if="props.items.length > 1" class="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
       <span v-for="(it, i) in props.items" :key="i" class="h-1.5 rounded-full bg-white transition-all" :class="i === active ? 'w-5' : 'w-1.5 opacity-60'" />
     </div>
   </div>
+  <!-- 大图预览：常驻挂载（不随打开态 v-if），由组件内部 Transition 处理开合动画 -->
+  <AppImagePreview :open="previewOpen" :items="props.items" :initial="previewIndex" @update:open="previewOpen = $event" />
 </template>
