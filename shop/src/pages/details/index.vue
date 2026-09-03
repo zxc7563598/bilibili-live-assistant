@@ -116,7 +116,7 @@
               <span class="text-xl font-bold tabular-nums">{{ displayPrice * count }}</span>
             </p>
           </div>
-          <AppButton size="md" class="flex-1" :disabled="!canBuy" @click="router.push('/confirm')">
+          <AppButton size="md" class="flex-1" :disabled="!canBuy" :loading="placeOrderLoading" @click="placeOrder">
             立即兑换
           </AppButton>
         </div>
@@ -227,6 +227,7 @@ const canBuy = computed(() => {
     return false
   return displayStock.value > 0
 })
+const placeOrderLoading = ref(false)
 
 // 值是否可点：
 // - 当前已选中的值 → 恒可点（用于再次点击取消）
@@ -301,6 +302,25 @@ function fetchDetail(id) {
   }).finally(() => {
     if (Number(route.params.id) === num)
       loading.value = false
+  })
+}
+
+function placeOrder() {
+  placeOrderLoading.value = true
+  api.orderPlace(activeSku.value.id, count.value).then((res) => {
+    // 详情页间切换时，旧请求的结果可能后到，按当前路由 id 丢弃过期响应
+    if (res.code === 0) {
+      toast.success('下单成功')
+      router.push('/confirm')
+    }
+    else {
+      toast.error(res.msg)
+    }
+  }).catch(() => {
+    toast.error('加载失败，请重试')
+    router.replace('/')
+  }).finally(() => {
+    placeOrderLoading.value = false
   })
 }
 
