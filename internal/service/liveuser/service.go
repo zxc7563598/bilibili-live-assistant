@@ -403,6 +403,9 @@ func (s *Service) addCreditLog(ctx context.Context, params AddCreditLogParams, c
 	if params.ChangeAmount < 0 {
 		return fmt.Errorf("变动数值不能为负数: %d", params.ChangeAmount)
 	}
+	if params.ChangeAmount == 0 {
+		return nil
+	}
 	// 变动类型换算成增量，扣减为负数
 	var delta int64
 	switch params.ChangeType {
