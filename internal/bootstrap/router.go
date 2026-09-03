@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"net/http"
 	"net/http/pprof"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -139,6 +141,25 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	return r
 }
 
+// staticCacheControl 为嵌入的静态资源设置合理的缓存策略。
+//
+// 必须在 http.StripPrefix 之前、基于完整请求路径调用（strip 后的路径不带
+// 前导斜杠，无法可靠识别 /assets/ 前缀）：
+//
+//   - sw.js / workbox-*.js / index.html 等入口与更新类文件返回 no-cache，
+//     要求每次回源校验。若它们被 HTTP 层缓存，PWA 的 Service Worker 将无法
+//     检测到新版本，老浏览器会一直展示旧内容（禁用浏览器缓存也绕不过 SW）；
+//   - /assets/ 下的资源文件名带内容 hash、内容不可变，可交给浏览器/CDN 永久缓存。
+func staticCacheControl(c *gin.Context) {
+	p := c.Request.URL.Path
+	switch name := path.Base(p); {
+	case strings.HasSuffix(p, "/"), name == "sw.js", strings.HasPrefix(name, "workbox-"), name == "index.html":
+		c.Header("Cache-Control", "no-cache")
+	case strings.Contains(p, "/assets/"):
+		c.Header("Cache-Control", "public, max-age=31536000, immutable")
+	}
+}
+
 func registerWeb(route *gin.RouterGroup) {
 	sub, err := fs.Sub(webui.Dist, "dist")
 	if err != nil {
@@ -149,13 +170,21 @@ func registerWeb(route *gin.RouterGroup) {
 		c.Redirect(http.StatusFound, "/admin/")
 	})
 	route.GET("/*filepath", func(c *gin.Context) {
+		staticCacheControl(c)
 		path := c.Param("filepath")
 		if len(path) > 0 && path[0] == '/' {
 			path = path[1:]
 		}
-		if _, err := sub.Open(path); err == nil {
-			http.StripPrefix("/admin/", fileServer).ServeHTTP(c.Writer, c.Request)
-			return
+		// index.html 不走 FileServer：它会对任何以 /index.html 结尾的路径 301 到
+		// "./"，该重定向被 PWA Service Worker 预缓存阶段跟随后，缓存里会存下
+		// redirected response，导航请求(redirect mode=manual)用到时浏览器报
+		// "a redirected response was used for a request whose redirect mode is not follow"。
+		// 显式请求 index.html 时直接内联 200 返回（与下方 SPA fallback 一致）。
+		if path != "index.html" {
+			if _, err := sub.Open(path); err == nil {
+				http.StripPrefix("/admin/", fileServer).ServeHTTP(c.Writer, c.Request)
+				return
+			}
 		}
 		index, err := sub.Open("index.html")
 		if err != nil {
@@ -163,6 +192,7 @@ func registerWeb(route *gin.RouterGroup) {
 			return
 		}
 		defer index.Close()
+		c.Header("Cache-Control", "no-cache")
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.Status(http.StatusOK)
 		io.Copy(c.Writer, index)
@@ -179,13 +209,18 @@ func registerShop(route *gin.RouterGroup) {
 		c.Redirect(http.StatusFound, "/shop/")
 	})
 	route.GET("/*filepath", func(c *gin.Context) {
+		staticCacheControl(c)
 		path := c.Param("filepath")
 		if len(path) > 0 && path[0] == '/' {
 			path = path[1:]
 		}
-		if _, err := sub.Open(path); err == nil {
-			http.StripPrefix("/shop/", fileServer).ServeHTTP(c.Writer, c.Request)
-			return
+		// 见 registerWeb：显式请求 index.html 时绕过 FileServer 的 301 规范化，
+		// 避免 PWA 预缓存得到 redirected response。
+		if path != "index.html" {
+			if _, err := sub.Open(path); err == nil {
+				http.StripPrefix("/shop/", fileServer).ServeHTTP(c.Writer, c.Request)
+				return
+			}
 		}
 		index, err := sub.Open("index.html")
 		if err != nil {
@@ -193,6 +228,7 @@ func registerShop(route *gin.RouterGroup) {
 			return
 		}
 		defer index.Close()
+		c.Header("Cache-Control", "no-cache")
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.Status(http.StatusOK)
 		io.Copy(c.Writer, index)
