@@ -7,21 +7,39 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/api"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/internal/wbi"
 )
 
+// barragePermissionTTL 弹幕发送权限缓存的存活时间。
+// 权限（单条长度/颜色等）随账号等级变化很慢，TTL 内无需重复请求接口。
+const barragePermissionTTL = 60 * time.Second
+
 // Service 提供 B站 直播间相关的 API 调用，包括直播间信息、弹幕、排行榜、大航海、禁言管理等
 type Service struct {
 	client HttpClient
+
+	// 弹幕权限缓存：roomID -> 最近一次权限及获取时间（TTL 内复用）
+	permMu    sync.Mutex
+	permCache map[int64]barragePermissionCacheEntry
+}
+
+// barragePermissionCacheEntry 是弹幕权限缓存的单条记录
+type barragePermissionCacheEntry struct {
+	perm      *BarragePermission
+	fetchedAt time.Time
 }
 
 // NewService 创建直播间服务实例
 // client 需实现 HttpClient 接口（Get/Post/PostForm），由父包 *bilibili.Client 自动满足
 func NewService(client HttpClient) *Service {
-	return &Service{client: client}
+	return &Service{
+		client:    client,
+		permCache: make(map[int64]barragePermissionCacheEntry),
+	}
 }
 
 // =========================================================================
@@ -174,12 +192,13 @@ type barragePermissionResponse struct {
 	} `json:"data"`
 }
 
-// GetBarragePermission 获取用户在目标直播间的弹幕发送权限
+// GetBarragePermission 实时获取用户在目标直播间的弹幕发送权限
 //
 // 调用 B站 /xlive/web-room/v1/index/getInfoByUser 接口
 // 需要 Cookie 登录态
 //
-// 返回的权限信息用于 SendDanmu 时设置弹幕颜色、模式等参数
+// 返回的权限信息用于 SendDanmu 时设置弹幕颜色、模式等参数。
+// 短时间内的重复请求可改用 GetBarragePermissionCached 复用缓存结果。
 func (s *Service) GetBarragePermission(ctx context.Context, roomID int64) (*BarragePermission, error) {
 	path := fmt.Sprintf(api.EndpointBarragePermission, roomID)
 	var resp barragePermissionResponse
@@ -192,6 +211,27 @@ func (s *Service) GetBarragePermission(ctx context.Context, roomID int64) (*Barr
 	return &resp.Data.Property.Danmu, nil
 }
 
+// GetBarragePermissionCached 获取弹幕发送权限，barragePermissionTTL 内复用缓存
+//
+// 拆分成多条弹幕连续发送时，用此方法可避免每段都请求一次权限接口。
+func (s *Service) GetBarragePermissionCached(ctx context.Context, roomID int64) (*BarragePermission, error) {
+	s.permMu.Lock()
+	if entry, ok := s.permCache[roomID]; ok && time.Since(entry.fetchedAt) < barragePermissionTTL {
+		s.permMu.Unlock()
+		return entry.perm, nil
+	}
+	s.permMu.Unlock()
+
+	perm, err := s.GetBarragePermission(ctx, roomID)
+	if err != nil {
+		return nil, err
+	}
+	s.permMu.Lock()
+	s.permCache[roomID] = barragePermissionCacheEntry{perm: perm, fetchedAt: time.Now()}
+	s.permMu.Unlock()
+	return perm, nil
+}
+
 // SendDanmu 发送弹幕到指定直播间
 //
 // 调用 B站 /msg/send 接口（form-urlencoded POST）
@@ -199,15 +239,23 @@ func (s *Service) GetBarragePermission(ctx context.Context, roomID int64) (*Barr
 //
 // 参数：
 //   - roomID: 直播间真实房间号
-//   - message: 弹幕内容（UTF-8 字符串，最长 30 个字符）
+//   - message: 弹幕内容（UTF-8 字符串，最长见 GetBarragePermission 返回的 Length）
 //   - csrfToken: CSRF Token，通过 client.CSRF() 从 CookieJar 中获取
 //
-// 内部会先调用 GetBarragePermission 获取弹幕权限，再发送弹幕
+// 内部会先取弹幕权限（TTL 内走缓存），再发送弹幕
 func (s *Service) SendDanmu(ctx context.Context, roomID int64, message string, csrfToken string) error {
-	perm, err := s.GetBarragePermission(ctx, roomID)
+	perm, err := s.GetBarragePermissionCached(ctx, roomID)
 	if err != nil {
 		return fmt.Errorf("room: get barrage permission: %w", err)
 	}
+	return s.SendDanmuWithPermission(ctx, roomID, message, csrfToken, perm)
+}
+
+// SendDanmuWithPermission 使用已获取的弹幕权限发送单条弹幕
+//
+// 调用方需要先 GetBarragePermission/GetBarragePermissionCached 拿到权限，
+// 适用于同一权限需要连续发送多条弹幕（如长消息拆分）的场景，避免重复请求权限接口。
+func (s *Service) SendDanmuWithPermission(ctx context.Context, roomID int64, message, csrfToken string, perm *BarragePermission) error {
 	form := url.Values{
 		"color":      {strconv.Itoa(perm.Color)},
 		"fontsize":   {"25"},

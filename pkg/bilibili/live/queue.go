@@ -18,17 +18,25 @@ import (
 //	    client *bilibili.Client
 //	}
 //
-//	func (s *danmuSender) Send(ctx context.Context, roomID int64, message string) error {
+//	func (s *danmuSender) Send(ctx context.Context, roomID int64, message string) (string, error) {
 //	    csrfToken, err := s.client.CSRF()
 //	    if err != nil {
-//	        return err
+//	        return "", err
 //	    }
-//	    return s.svc.SendDanmu(ctx, roomID, message, csrfToken)
+//	    return "", s.svc.SendDanmu(ctx, roomID, message, csrfToken)
 //	}
 type Sender interface {
-	// Send 发送一条弹幕到指定直播间
+	// Send 发送弹幕到指定直播间
+	//
+	// 若 message 超过单条弹幕允许的长度，实现方可只发送其前缀，并通过
+	// 返回值 remaining 返回未发完的剩余部分。Queue 会等到 remaining
+	// 为空后才从队列取出下一条消息，因此长消息的各段会连续发出、不会被
+	// 更高优先级的其他消息打断，同时每段仍按发送间隔逐个发出，天然遵守
+	// 频率限制。若无需拆分，remaining 返回空字符串即可。
+	//
+	// 返回 err 时整条（含未发的 remaining）视为发送失败被丢弃，不会重试。
 	// ctx 在 Queue.Stop() 调用后会被取消
-	Send(ctx context.Context, roomID int64, message string) error
+	Send(ctx context.Context, roomID int64, message string) (remaining string, err error)
 }
 
 // Queue 是弹幕发送优先级队列
@@ -37,6 +45,9 @@ type Sender interface {
 // 优先级数字越小越优先，同优先级按入队顺序（FIFO）发送。
 //
 // 设计目标：避免频繁发送触发 B站 限流，同时保证高优先级消息优先发出。
+//
+// 发送节奏为每个间隔发出一条弹幕。若一条消息超过单条弹幕允许的长度，
+// 会按发送间隔拆成多段连续发出（见 Sender.Send 返回值 remaining 的说明）。
 //
 // 典型用法：
 //
@@ -61,6 +72,10 @@ type Queue struct {
 	done     chan struct{}
 	// onError 在发送失败时回调，nil 表示仅 log 输出
 	onError func(msg string, err error)
+	// pending 当前消息未发完的剩余部分，仅在 worker goroutine 中读写。
+	// 非空时下个 tick 继续发送它，而不是从堆中取出下一条消息，
+	// 从而保证长消息的各段连续发出。
+	pending string
 }
 
 // QueueOption 是 Queue 的函数式配置项
@@ -184,12 +199,19 @@ func (q *Queue) IsRunning() bool {
 }
 
 // Clear 清空队列中所有未发送的消息
+//
+// 建议在 Stop 之后调用（worker 已退出），此时连带清掉未发完的
+// pending 剩余部分。若队列正在运行中调用，则只清堆中的消息，
+// 正在跨 tick 续传的消息不受影响。
 func (q *Queue) Clear() {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.heap = q.heap[:0]
 	// 重置 seq 避免无限增长（可选）
 	q.nextSeq = 0
+	if !q.running {
+		q.pending = ""
+	}
 }
 
 // =========================================================================
@@ -265,19 +287,31 @@ func (q *Queue) worker(ctx context.Context) {
 	}
 }
 
-// sendNext 从队列取出一条优先级最高的消息并发送
+// sendNext 发送一条弹幕。
+//
+// 若上一条消息还有未发完的剩余（pending 非空），优先继续发送它；
+// 否则从队列取出下一条优先级最高的消息。发送后把剩余部分写回 pending，
+// 由下个 tick 继续处理，直到整条消息发完才取下一条。
 func (q *Queue) sendNext(ctx context.Context) {
-	msg := q.pop()
-	if msg == "" {
-		return
+	if q.pending == "" {
+		msg := q.pop()
+		if msg == "" {
+			return
+		}
+		q.pending = msg
 	}
-	if err := q.sender.Send(ctx, q.roomID, msg); err != nil {
+	rest, err := q.sender.Send(ctx, q.roomID, q.pending)
+	if err != nil {
+		msg := q.pending
+		q.pending = "" // 发送失败整条（含未发剩余）放弃，避免每个 tick 无限重试同一条消息
 		if q.onError != nil {
 			q.onError(msg, err)
 		} else {
 			log.Printf("[live.Queue] 推送弹幕到房间 %d 失败: %v (弹幕内容: %s)", q.roomID, err, msg)
 		}
+		return
 	}
+	q.pending = rest
 }
 
 // pop 从优先队列中取出优先级最高的消息
