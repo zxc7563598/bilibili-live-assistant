@@ -97,15 +97,15 @@
             {{ confirm.product.name }}
           </p>
           <p class="mt-1 text-xs text-fg-3">
-            规格：{{ confirm.product.sku.join('·') }}
+            规格：{{ productSku }}
           </p>
           <p class="mt-1 text-xs text-fg-3">
-            数量：{{ confirm.product.num }}
+            数量：{{ confirm.product.count }}
           </p>
         </div>
-        <div class="flex shrink-0 items-center gap-1" :class="confirm.product.type === 0 ? 'text-starlight' : 'text-primary'">
-          <AppIcon :name="confirm.product.type === 0 ? 'star' : 'points'" :size="16" />
-          <span class="font-bold tabular-nums">{{ confirm.product.amount }}</span>
+        <div class="flex shrink-0 items-center gap-1" :class="confirm.product.credit_type === 0 ? 'text-starlight' : 'text-primary'">
+          <AppIcon :name="confirm.product.credit_type === 0 ? 'star' : 'points'" :size="16" />
+          <span class="font-bold tabular-nums">{{ confirm.product.price }}</span>
         </div>
       </div>
     </section>
@@ -119,12 +119,12 @@
     <section v-else-if="confirm.product.id > 0" class="mx-auto mt-3 w-full max-w-5xl px-4">
       <div class="card divide-y divide-line p-4 text-sm">
         <div class="flex items-center justify-between py-2.5">
-          <span class="text-fg-2">商品{{ confirm.product.type === 0 ? '星光' : '积分' }}</span>
-          <span class="tabular-nums">{{ confirm.product.amount }}</span>
+          <span class="text-fg-2">商品{{ confirm.product.credit_type === 0 ? '星光' : '积分' }}</span>
+          <span class="tabular-nums">{{ confirm.product.price }}</span>
         </div>
         <div class="flex items-center justify-between py-2.5">
           <span class="text-fg-2">数量</span>
-          <span class="tabular-nums">{{ confirm.product.num }}</span>
+          <span class="tabular-nums">{{ confirm.product.count }}</span>
         </div>
         <div class="flex items-center justify-between py-2.5">
           <span class="text-fg-2">运费</span>
@@ -136,14 +136,14 @@
         </div>
         <div class="flex items-center justify-between pt-3">
           <span class="font-semibold">合计</span>
-          <span class="flex items-center gap-1" :class="confirm.product.type === 0 ? 'text-starlight' : 'text-primary'">
-            <AppIcon :name="confirm.product.type === 0 ? 'star' : 'points'" :size="18" />
-            <span class="text-lg font-bold tabular-nums">{{ confirm.product.amount * confirm.product.num }}</span>
+          <span class="flex items-center gap-1" :class="confirm.product.credit_type === 0 ? 'text-starlight' : 'text-primary'">
+            <AppIcon :name="confirm.product.credit_type === 0 ? 'star' : 'points'" :size="18" />
+            <span class="text-lg font-bold tabular-nums">{{ confirm.product.price * confirm.product.count }}</span>
           </span>
         </div>
       </div>
       <p class="mt-3 flex items-center gap-1.5 text-xs text-fg-3">
-        <AppIcon name="info" :size="14" />兑换成功后{{ confirm.product.type === 0 ? '星光' : '积分' }}立即扣除，商品的发货时间需与主播进行确认
+        <AppIcon name="info" :size="14" />兑换成功后{{ confirm.product.credit_type === 0 ? '星光' : '积分' }}立即扣除，商品的发货时间需与主播进行确认
       </p>
     </section>
     <div v-if="confirm.id > 0" class="glass-strong safe-bottom fixed inset-x-0 bottom-0 z-40">
@@ -152,9 +152,9 @@
           <p class="text-xs text-fg-3">
             需支付
           </p>
-          <p class="mt-0.5 flex items-center gap-1" :class="confirm.product.type === 0 ? 'text-starlight' : 'text-primary'">
-            <AppIcon :name="confirm.product.type === 0 ? 'star' : 'points'" :size="18" />
-            <span class="text-xl font-bold tabular-nums">{{ confirm.product.amount * confirm.product.num }}</span>
+          <p class="mt-0.5 flex items-center gap-1" :class="confirm.product.credit_type === 0 ? 'text-starlight' : 'text-primary'">
+            <AppIcon :name="confirm.product.credit_type === 0 ? 'star' : 'points'" :size="18" />
+            <span class="text-xl font-bold tabular-nums">{{ confirm.product.price * confirm.product.count }}</span>
           </p>
         </div>
         <AppButton size="md" class="flex-1" :loading="confirmPaymentLoading" :disabled="expired || !confirm.product.id" @click="confirmPayment">
@@ -199,26 +199,36 @@ const router = useRouter()
 
 const confirm = ref({
   id: 0,
-  expireAt: 0, // 库存锁定截止时间（后端返回，毫秒时间戳），0 表示尚未返回
+  expire_at: 0, // 库存锁定截止时间（后端返回，毫秒时间戳），0 表示尚未返回
   product: {
     id: 0,
     name: '',
     cover: '',
-    amount: 0,
-    type: 0,
-    sku: [],
-    num: 0,
+    price: 0,
+    credit_type: 0,
+    sku: '',
+    count: 0,
   },
+})
+// 规格快照是 JSON 字符串（如 [{key:value}]），无规格/解析失败时回退为空串，避免整页报错
+const productSku = computed(() => {
+  try {
+    const list = JSON.parse(confirm.value.product.sku)
+    return Array.isArray(list) ? list.map(item => Object.values(item)[0]).join('、') : ''
+  }
+  catch {
+    return ''
+  }
 })
 
 const confirmPaymentLoading = ref(false)
 const confirmLoading = ref(true)
 
-// 倒计时：每秒刷新 now，剩余时间由 expireAt 推算（墙钟制，切后台不漂移）
+// 倒计时：每秒刷新 now，剩余时间由 expire_at 推算（墙钟制，切后台不漂移）
 const now = ref(Date.now())
 let timer = null
-const remaining = computed(() => Math.max(0, confirm.value.expireAt - now.value))
-const expired = computed(() => confirm.value.expireAt > 0 && remaining.value <= 0)
+const remaining = computed(() => Math.max(0, confirm.value.expire_at - now.value))
+const expired = computed(() => confirm.value.expire_at > 0 && remaining.value <= 0)
 const countdownText = computed(() => {
   const total = Math.floor(remaining.value / 1000)
   const pad = n => String(n).padStart(2, '0')

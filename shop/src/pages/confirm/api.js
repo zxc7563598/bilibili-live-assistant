@@ -1,3 +1,5 @@
+import request from '@/static/request'
+
 export default {
   getAddressList: () => {
     return new Promise((resolve) => {
@@ -43,29 +45,7 @@ export default {
       }, 1500)
     })
   },
-  getConfirm: () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          code: 0,
-          data: {
-            id: 1,
-            expireAt: Date.now() + 1 * 10 * 1000,
-            product: {
-              id: 1,
-              name: '无线蓝牙耳机 主动降噪',
-              cover: 'https://shub.points.xin/attachment/goods/cover_image/image_681ad8392a90b5.30457608.png',
-              amount: 12800,
-              type: 0,
-              sku: ['白色', '玩偶'],
-              num: 2,
-            },
-          },
-          msg: 'success',
-        })
-      }, 1500)
-    })
-  },
+  getConfirm: () => request.post('/api/shop/order/confirm'),
   reOrder: (ConfirmID) => {
     return new Promise((resolve) => {
       setTimeout(() => {
