@@ -376,17 +376,37 @@ func (p *giftProcessor) resolveGiftVars(infos []*giftThankInfo, needed map[strin
 		vars["price"] = fmt.Sprintf("%.2f", float64(totalPrice)/100)
 	}
 	if needed["gift"] {
-		parts := make([]string, 0, len(infos))
-		for _, info := range infos {
-			if showCount {
-				parts = append(parts, fmt.Sprintf("%d个%s", info.Num, info.GiftName))
-			} else {
-				parts = append(parts, info.GiftName)
-			}
-		}
-		vars["gift"] = strings.Join(parts, "、")
+		vars["gift"] = buildGiftText(infos, showCount)
 	}
 	return vars
+}
+
+// buildGiftText 将缓冲区内若干条礼物答谢信息聚合成「礼物列表」文案：
+// 同名礼物只出现一次、数量累加，不同礼物按首次出现顺序以「、」分隔。
+func buildGiftText(infos []*giftThankInfo, showCount bool) string {
+	type namedGift struct {
+		name  string
+		count int64
+	}
+	index := make(map[string]int, len(infos))
+	merged := make([]namedGift, 0, len(infos))
+	for _, info := range infos {
+		if idx, ok := index[info.GiftName]; ok {
+			merged[idx].count += info.Num
+			continue
+		}
+		index[info.GiftName] = len(merged)
+		merged = append(merged, namedGift{name: info.GiftName, count: info.Num})
+	}
+	parts := make([]string, 0, len(merged))
+	for _, g := range merged {
+		if showCount {
+			parts = append(parts, fmt.Sprintf("%d个%s", g.count, g.name))
+		} else {
+			parts = append(parts, g.name)
+		}
+	}
+	return strings.Join(parts, "、")
 }
 
 // sendGiftReply 渲染礼物答谢模板并发送弹幕，支持单条与合并后的多条礼物。
