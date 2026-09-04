@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"github.com/redis/go-redis/v9"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/address"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/altcha"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/appconfig"
@@ -29,6 +30,7 @@ type Handlers struct {
 	AppConfig   *appconfig.Handler
 	Product     *product.Handler
 	Order       *order.Handler
+	Address     *address.Handler
 }
 
 func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
@@ -45,5 +47,6 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		AppConfig:   appconfig.New(&svc.AppConfig, rdb),
 		Product:     product.New(&svc.Product),
 		Order:       order.New(svc.Order),
+		Address:     address.New(svc.Address),
 	}
 }

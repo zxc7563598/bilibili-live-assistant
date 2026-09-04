@@ -1,7 +1,13 @@
 package handler
 
 import (
+	"context"
+	"errors"
+	"io"
+
 	"github.com/gin-gonic/gin"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/validation"
 	"go.uber.org/zap"
 )
@@ -66,13 +72,61 @@ func GetUserInfo(c *gin.Context) (UserInfo, bool) {
 	}, true
 }
 
-// BindAndValidate 绑定请求参数并进行验证，失败将得到错误码
-func BindAndValidate(c *gin.Context, req any) (int, bool, error) {
+// bindAndValidate 绑定请求参数并进行验证；allowEmpty 时空请求体视为未传参直接放行
+func bindAndValidate(c *gin.Context, req any, allowEmpty bool) (int, bool, error) {
 	if err := c.ShouldBindJSON(req); err != nil {
+		if allowEmpty && errors.Is(err, io.EOF) {
+			return 0, true, nil
+		}
 		code := validation.Parse(err, req)
 		return code, false, err
 	}
 	return 0, true, nil
+}
+
+// BindAndValidate 绑定请求参数并进行验证，失败将得到错误码
+func BindAndValidate(c *gin.Context, req any) (int, bool, error) {
+	return bindAndValidate(c, req, false)
+}
+
+// BindAndValidateAllowEmpty 绑定请求参数并进行验证；请求体为空（不含任何 JSON）时视为未传参直接放行。
+// 适用于所有字段均可选的接口（如 Type *int 可选）。非空请求体仍走完整解码与校验。
+func BindAndValidateAllowEmpty(c *gin.Context, req any) (int, bool, error) {
+	return bindAndValidate(c, req, true)
+}
+
+// UserRequest 移动端认证接口统一前置的结果：上下文、语言与当前用户
+type UserRequest struct {
+	Ctx  context.Context
+	Lang string
+	User UserInfo
+}
+
+// BindUserRequest 移动端接口统一前置：取用户上下文 + 绑定校验请求参数。
+// 任一步失败时内部已记录日志并写入错误响应，返回 ok=false。
+func BindUserRequest(c *gin.Context, log *zap.Logger, action string, req any) (UserRequest, bool) {
+	return bindUserRequest(c, log, action, req, false)
+}
+
+// BindUserRequestAllowEmpty 同 BindUserRequest，但允许空请求体（用于全可选字段的接口）。
+func BindUserRequestAllowEmpty(c *gin.Context, log *zap.Logger, action string, req any) (UserRequest, bool) {
+	return bindUserRequest(c, log, action, req, true)
+}
+
+func bindUserRequest(c *gin.Context, log *zap.Logger, action string, req any, allowEmpty bool) (UserRequest, bool) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	user, ok := GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return UserRequest{}, false
+	}
+	if code, ok, err := bindAndValidate(c, req, allowEmpty); !ok {
+		ErrorLog(log, action+" 参数异常", code, err)
+		response.Error(c, lang, code)
+		return UserRequest{}, false
+	}
+	return UserRequest{Ctx: ctx, Lang: lang, User: user}, true
 }
 
 // ErrorLog 根据异常 Code 区分级别，封装异常日志信息

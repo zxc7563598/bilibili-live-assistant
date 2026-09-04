@@ -63,6 +63,11 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	shopApi.POST("/product/detail", middleware.UserAuth(rdb), handlers.Product.ShopDetail)
 	shopApi.POST("/order/place", middleware.UserAuth(rdb), handlers.Order.PlaceOrder)
 	shopApi.POST("/order/confirm", middleware.UserAuth(rdb), handlers.Order.GetConfirm)
+	shopApi.POST("/address/default", middleware.UserAuth(rdb), handlers.Address.GetDefaultAddress)
+	shopApi.POST("/address/list", middleware.UserAuth(rdb), handlers.Address.GetAddressList)
+	shopApi.POST("/address/detail", middleware.UserAuth(rdb), handlers.Address.GetAddressByID)
+	shopApi.POST("/address/save", middleware.UserAuth(rdb), handlers.Address.SaveAddress)
+	shopApi.POST("/address/delete", middleware.UserAuth(rdb), handlers.Address.DeleteAddress)
 	// api路由
 	adminApi := r.Group("/api/admin")
 	// 登录接口：如需限流可参考 shop 端的按账号限流（middleware.NewAccountRateLimiter(10, time.Minute)）

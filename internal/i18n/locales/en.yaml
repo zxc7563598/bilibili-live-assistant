@@ -53,6 +53,7 @@
 # 09 App Config Module
 # 10 Product Module
 # 11 Order Module
+# 13 Address Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -120,6 +121,14 @@ error:
   10801: Invalid request parameters # Parameter validation failed
   10901: Illegal image information # Image MIME type retrieval failed
   11101: Request parameter is invalid # Order parameter is invalid
+  11301: Invalid address parameter # Address parameter validation failed
+  11302: Invalid region code # region_code is not a valid province-city-district chain
+  11303: Invalid address type # Invalid address type
+  11304: Please enter recipient name # Recipient name is empty
+  11305: Please enter phone number # Phone number is empty for physical address
+  11306: Please select a region # Region is empty or invalid for physical address
+  11307: Please enter detailed address # Detailed address is empty for physical address
+  11308: Please enter email address # Email is empty for virtual address
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   30001: Unauthorized operation # The current account does not have access permission
@@ -150,7 +159,8 @@ error:
   50802: Unknown User # Failed to query user information
   51001: Product does not exist # Product information does not exist
   51101: Unable to find the product # Product or SKU does not exist
-  51201: No pending order # No active order draft
+  51102: No pending order # No active order draft
+  51301: Address not found # Address does not exist or does not belong to the user
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed
@@ -194,6 +204,7 @@ error:
   60807: System busy, please try again later # Redis clear token failed
   61001: System busy, please try again later # Database query exception
   61101: System busy, please try again later # Database error (Order module)
+  61301: System busy, please try again later # Database error (Address module)
 
 gender:
   female: female

@@ -5,6 +5,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/address"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
 	appconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/appconfig"
@@ -21,6 +22,7 @@ import (
 )
 
 type Services struct {
+	Address     *address.Service
 	Admin       admin.Service
 	Role        role.Service
 	Menu        menu.Service
@@ -39,6 +41,7 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 	robotConfigSvc := robotconfigsvc.New(repo.RobotConfig, configCache, db)
 	liveUserSvc := liveuser.New(db, rdb, appConfigCache, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveDanmu, repo.LiveGift, repo.LiveSession)
 	return &Services{
+		Address:     address.New(db, repo.LiveUserAddress),
 		Admin:       *admin.New(repo.Admin, repo.AdminRole, repo.Role, db, rdb),
 		Role:        *role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),
 		Menu:        *menu.New(repo.Menu),

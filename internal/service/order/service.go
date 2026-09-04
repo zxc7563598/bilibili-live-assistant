@@ -103,7 +103,7 @@ func (s *Service) UserOrderDraft(ctx context.Context, userID int64) (UserOrderDr
 		return UserOrderDraftResp{}, 61101, err
 	}
 	if active == nil {
-		return UserOrderDraftResp{}, 51201, errors.New("无待支付订单")
+		return UserOrderDraftResp{}, 51102, errors.New("无待支付订单")
 	}
 	// 获取商品信息
 	product, err := s.productRepo.GetByID(ctx, nil, active.ProductID)
