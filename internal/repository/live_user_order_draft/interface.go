@@ -15,6 +15,8 @@ type Repository interface {
 	ListByUserID(ctx context.Context, tx *gorm.DB, userID int64) ([]model.LiveUserOrderDraft, error)
 	// GetActiveByUserID 获取用户当前 Active 状态的草稿（至多一条；无则返回 nil）
 	GetActiveByUserID(ctx context.Context, tx *gorm.DB, userID int64) (*model.LiveUserOrderDraft, error)
+	// GetLatestCancelledByUserID 获取用户最近一条 Cancelled 状态的草稿（按创建时间倒序；无则返回 nil）
+	GetLatestCancelledByUserID(ctx context.Context, tx *gorm.DB, userID int64) (*model.LiveUserOrderDraft, error)
 	// CancelActiveByID 将 Active 草稿置为 Cancelled，返回是否发生变更（幂等）
 	CancelActiveByID(ctx context.Context, tx *gorm.DB, id int64) (bool, error)
 	// ListActiveExpired 查询已过期但仍为 Active 的草稿，按到期时间升序
@@ -34,6 +36,22 @@ func (r *gormRepo) GetActiveByUserID(ctx context.Context, tx *gorm.DB, userID in
 	db := r.getDB(ctx, tx)
 	var draft model.LiveUserOrderDraft
 	err := db.Where("user_id = ? AND status = ?", userID, enum.DraftStatusActive).First(&draft).Error
+	if err == gorm.ErrRecordNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &draft, nil
+}
+
+// GetLatestCancelledByUserID 获取用户最近一条 Cancelled 状态的草稿（无则返回 nil）
+func (r *gormRepo) GetLatestCancelledByUserID(ctx context.Context, tx *gorm.DB, userID int64) (*model.LiveUserOrderDraft, error) {
+	db := r.getDB(ctx, tx)
+	var draft model.LiveUserOrderDraft
+	err := db.Where("user_id = ? AND status = ?", userID, enum.DraftStatusCancelled).
+		Order("created_at desc, id desc").
+		First(&draft).Error
 	if err == gorm.ErrRecordNotFound {
 		return nil, nil
 	}

@@ -60,15 +60,22 @@ func (s *Service) ReOrder(ctx context.Context, userID, draftID int64) (int64, in
 // UserOrderDraft 获取用户下单数据
 func (s *Service) UserOrderDraft(ctx context.Context, userID int64) (UserOrderDraftResp, int, error) {
 	// 获取用户当前 Active 状态的草稿
-	active, err := s.liveUserOrderDraftRepo.GetActiveByUserID(ctx, nil, userID)
+	draft, err := s.liveUserOrderDraftRepo.GetActiveByUserID(ctx, nil, userID)
 	if err != nil {
 		return UserOrderDraftResp{}, 61101, err
 	}
-	if active == nil {
+	// 让确认页能展示上次超时/取消的订单并引导重新购买
+	if draft == nil {
+		draft, err = s.liveUserOrderDraftRepo.GetLatestCancelledByUserID(ctx, nil, userID)
+		if err != nil {
+			return UserOrderDraftResp{}, 61101, err
+		}
+	}
+	if draft == nil {
 		return UserOrderDraftResp{}, 51102, errors.New("无待支付订单")
 	}
 	// 获取商品信息
-	product, err := s.productRepo.GetByID(ctx, nil, active.ProductID)
+	product, err := s.productRepo.GetByID(ctx, nil, draft.ProductID)
 	if err != nil {
 		return UserOrderDraftResp{}, 61101, err
 	}
@@ -76,7 +83,7 @@ func (s *Service) UserOrderDraft(ctx context.Context, userID int64) (UserOrderDr
 		return UserOrderDraftResp{}, 51101, errors.New("商品不存在")
 	}
 	// 获取SKU信息
-	sku, err := s.productSkuRepo.GetByID(ctx, nil, active.ProductSkuID)
+	sku, err := s.productSkuRepo.GetByID(ctx, nil, draft.ProductSkuID)
 	if err != nil {
 		return UserOrderDraftResp{}, 61101, err
 	}
@@ -84,8 +91,8 @@ func (s *Service) UserOrderDraft(ctx context.Context, userID int64) (UserOrderDr
 		return UserOrderDraftResp{}, 51101, errors.New("商品SKU不存在")
 	}
 	return UserOrderDraftResp{
-		ID:       active.ID,
-		ExpireAt: active.ExpireAt,
+		ID:       draft.ID,
+		ExpireAt: draft.ExpireAt,
 		Product: ProductItem{
 			ID:          product.ID,
 			Name:        product.Name,
@@ -94,7 +101,7 @@ func (s *Service) UserOrderDraft(ctx context.Context, userID int64) (UserOrderDr
 			CreditType:  int(product.CreditType),
 			ProductType: int(product.ProductType),
 			Sku:         sku.SpecProperties,
-			Count:       active.Quantity,
+			Count:       draft.Quantity,
 		},
 	}, 0, nil
 }
