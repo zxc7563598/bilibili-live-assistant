@@ -30,7 +30,7 @@
                 <Tag :color="a.type === 0 ? 'info' : 'primary'">
                   {{ a.type === 0 ? '虚拟' : '实体' }}
                 </Tag>
-                <Tag v-if="a.isDefault" color="success">
+                <Tag v-if="a.is_default" color="success">
                   默认
                 </Tag>
               </div>
@@ -60,7 +60,7 @@
     </main>
     <div class="safe-bottom fixed inset-x-0 bottom-0 z-40 px-4 py-3">
       <div class="mx-auto w-full max-w-5xl">
-        <AppButton block size="lg" @click="router.push('/user/address/edit')">
+        <AppButton block size="lg" @click="router.push('/user/address/edit/0')">
           <AppIcon name="plus" :size="18" />新增地址
         </AppButton>
       </div>
@@ -86,8 +86,17 @@ function remove(a) {
     confirmText: '删除',
     confirmVariant: 'danger',
     onConfirm: () => {
-      address.value = address.value.filter(x => x.id !== a.id)
-      toast.success('地址已删除')
+      api.deleteAddress(a.id).then((res) => {
+        if (res.code === 0) {
+          address.value = address.value.filter(x => x.id !== a.id)
+          toast.success('地址已删除')
+        }
+        else {
+          toast.error(res.msg)
+        }
+      }).catch(() => {
+        toast.error('加载失败，请重试')
+      })
     },
   })
 }

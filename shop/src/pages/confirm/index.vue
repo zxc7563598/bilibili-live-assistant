@@ -70,7 +70,7 @@
         <AppIcon name="chevron-right" :size="18" class="text-fg-3" />
       </div>
     </button>
-    <button v-else class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="router.push('/user/address/edit')">
+    <button v-else class="mx-auto block w-full max-w-5xl px-4 mt-3" @click="router.push(`/user/address/edit/0/${confirm.product.product_type}`)">
       <div class="card flex items-center justify-center gap-2 border-dashed p-4 text-primary">
         <AppIcon name="plus" :size="20" />
         <span class="text-sm font-medium">添加收货地址</span>
@@ -157,7 +157,7 @@
             <span class="text-xl font-bold tabular-nums">{{ confirm.product.price * confirm.product.count }}</span>
           </p>
         </div>
-        <AppButton size="md" class="flex-1" :loading="confirmPaymentLoading" :disabled="expired || !confirm.product.id" @click="confirmPayment">
+        <AppButton size="md" class="flex-1" :loading="confirmPaymentLoading" :disabled="expired || !confirm.product.id || !selectedAddress.id" @click="confirmPayment">
           {{ expired ? '订单已超时' : '确认兑换' }}
         </AppButton>
       </div>
@@ -173,6 +173,9 @@
               {{ a.name }}
               <Tag :color="a.type === 0 ? 'info' : 'primary'" class="ml-1">
                 {{ a.type === 0 ? '虚拟' : '实体' }}
+              </Tag>
+              <Tag v-if="a.is_default" color="success" class="ml-1">
+                默认
               </Tag>
             </p>
             <p class="mt-0.5 truncate text-xs text-fg-3">
@@ -254,7 +257,7 @@ const selectedAddress = ref({
   region: '',
   detail: '',
   email: '',
-  isDefault: true,
+  is_default: false,
 })
 const showAddressSheet = ref(false)
 const addressLoading = ref(true)
@@ -266,25 +269,54 @@ const addressLine = computed(() => {
   return `${a.name} ${a.phone} · ${a.region} ${a.detail}`
 })
 
-function loadConfirm(reorder = false) {
+async function loadConfirm(reorder = false) {
   // 仅首次进入显示骨架屏，重新购买刷新倒计时时不重放骨架
   if (!reorder)
     confirmLoading.value = true
-  api.getConfirm().then((res) => {
+  try {
+    const res = await api.getConfirm()
     if (res.code === 0) {
       Object.assign(confirm.value, res.data)
       now.value = Date.now()
       if (reorder)
         toast.success('已重新锁定库存，请尽快完成支付')
+      return true
+    }
+    toast.error(res.msg)
+    return false
+  }
+  catch {
+    toast.error('加载失败，请重试')
+    return false
+  }
+  finally {
+    if (!reorder)
+      confirmLoading.value = false
+  }
+}
+
+// 地址列表依赖 confirm.product.product_type，必须在 loadConfirm 完成后调用
+function loadAddressList() {
+  api.getAddressList(confirm.value.product.product_type).then((res) => {
+    if (res.code === 0) {
+      Object.assign(address.value, res.data.list)
+      address.value.forEach((item) => {
+        if (item.is_default) {
+          Object.assign(selectedAddress.value, item)
+        }
+      })
+      if (address.value.length && !address.value.some(item => item.is_default)) {
+        Object.assign(selectedAddress.value, address.value[0])
+      }
     }
     else {
+      // 留在确认页提示，避免把已锁定库存的订单页跳走；下方按钮会因未选中地址而禁用
       toast.error(res.msg)
     }
   }).catch(() => {
     toast.error('加载失败，请重试')
   }).finally(() => {
-    if (!reorder)
-      confirmLoading.value = false
+    addressLoading.value = false
   })
 }
 
@@ -305,6 +337,10 @@ function reOrder() {
 }
 
 function confirmPayment() {
+  if (!selectedAddress.value.id) {
+    toast.error('请先选择收货地址')
+    return
+  }
   confirmPaymentLoading.value = true
   api.confirmPayment(confirm.value.id, selectedAddress.value.id).then((res) => {
     if (res.code === 0) {
@@ -325,27 +361,13 @@ onMounted(() => {
   timer = setInterval(() => {
     now.value = Date.now()
   }, 1000)
-  api.getAddressList().then((res) => {
-    if (res.code === 0) {
-      Object.assign(address.value, res.data.list)
-      address.value.forEach((item) => {
-        if (item.isDefault) {
-          Object.assign(selectedAddress.value, item)
-        }
-      })
-      if (address.value.length && !address.value.some(item => item.isDefault)) {
-        Object.assign(selectedAddress.value, address.value[0])
-      }
-    }
-    else {
-      toast.error(res.msg)
-    }
-  }).catch(() => {
-    toast.error('加载失败，请重试')
-  }).finally(() => {
-    addressLoading.value = false
+  // 先等 loadConfirm 拿到订单数据（product_type 由后端返回），成功后再加载对应类型的地址
+  loadConfirm().then((ok) => {
+    if (ok)
+      loadAddressList()
+    else
+      addressLoading.value = false // 订单加载失败时无有效 product_type，直接结束地址骨架屏
   })
-  loadConfirm()
 })
 
 onUnmounted(() => {

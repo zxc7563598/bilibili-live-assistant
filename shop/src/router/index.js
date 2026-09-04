@@ -61,7 +61,7 @@ const routes = [
     },
   },
   {
-    path: '/user/address/edit/:id?',
+    path: '/user/address/edit/:id/:type?',
     name: 'addressEdit',
     component: () => import('../pages/user/address/edit.vue'),
     meta: {
