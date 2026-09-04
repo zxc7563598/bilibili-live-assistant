@@ -469,16 +469,16 @@ func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuM
 				log.Printf("[live.Reply] 查询用户盲盒盈利失败: %v", err)
 			} else {
 				if needed["daily_net"] {
-					vars["daily_net"] = strconv.FormatInt(profit.Daily, 10)
+					vars["daily_net"] = centsToYuan(profit.Daily)
 				}
 				if needed["weekly_net"] {
-					vars["weekly_net"] = strconv.FormatInt(profit.Weekly, 10)
+					vars["weekly_net"] = centsToYuan(profit.Weekly)
 				}
 				if needed["monthly_net"] {
-					vars["monthly_net"] = strconv.FormatInt(profit.Monthly, 10)
+					vars["monthly_net"] = centsToYuan(profit.Monthly)
 				}
 				if needed["total_net"] {
-					vars["total_net"] = strconv.FormatInt(profit.Total, 10)
+					vars["total_net"] = centsToYuan(profit.Total)
 				}
 			}
 		}
@@ -489,16 +489,16 @@ func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuM
 				log.Printf("[live.Reply] 查询直播间盲盒盈利失败: %v", err)
 			} else {
 				if needed["room_daily_net"] {
-					vars["room_daily_net"] = strconv.FormatInt(profit.Daily, 10)
+					vars["room_daily_net"] = centsToYuan(profit.Daily)
 				}
 				if needed["room_weekly_net"] {
-					vars["room_weekly_net"] = strconv.FormatInt(profit.Weekly, 10)
+					vars["room_weekly_net"] = centsToYuan(profit.Weekly)
 				}
 				if needed["room_monthly_net"] {
-					vars["room_monthly_net"] = strconv.FormatInt(profit.Monthly, 10)
+					vars["room_monthly_net"] = centsToYuan(profit.Monthly)
 				}
 				if needed["room_total_net"] {
-					vars["room_total_net"] = strconv.FormatInt(profit.Total, 10)
+					vars["room_total_net"] = centsToYuan(profit.Total)
 				}
 			}
 		}
@@ -542,4 +542,24 @@ func getExpireTimestamp(muteDurationValue int64) int64 {
 		return time.Now().Add(99 * 365 * 24 * time.Hour).Unix()
 	}
 	return time.Now().Add(time.Duration(muteDurationValue) * time.Minute).Unix()
+}
+
+// centsToYuan 将分转为元
+func centsToYuan(cents int64) string {
+	sign := ""
+	if cents < 0 {
+		sign = "-"
+		cents = -cents
+	}
+	yuan := cents / 100
+	rem := cents % 100
+	if rem == 0 {
+		return sign + strconv.FormatInt(yuan, 10)
+	}
+	dec := strconv.FormatInt(rem, 10)
+	if len(dec) < 2 {
+		dec = "0" + dec // 补齐两位小数，避免 105 分被拼成 "1.5"
+	}
+	dec = strings.TrimRight(dec, "0")
+	return sign + strconv.FormatInt(yuan, 10) + "." + dec
 }
