@@ -63,6 +63,7 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	shopApi.POST("/product/detail", middleware.UserAuth(rdb), handlers.Product.ShopDetail)
 	shopApi.POST("/order/place", middleware.UserAuth(rdb), handlers.Order.PlaceOrder)
 	shopApi.POST("/order/confirm", middleware.UserAuth(rdb), handlers.Order.GetConfirm)
+	shopApi.POST("/order/again", middleware.UserAuth(rdb), handlers.Order.ReOrder)
 	shopApi.POST("/address/default", middleware.UserAuth(rdb), handlers.Address.GetDefaultAddress)
 	shopApi.POST("/address/list", middleware.UserAuth(rdb), handlers.Address.GetAddressList)
 	shopApi.POST("/address/detail", middleware.UserAuth(rdb), handlers.Address.GetAddressByID)

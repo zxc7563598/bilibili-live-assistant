@@ -160,6 +160,7 @@ error:
   51001: Product does not exist # Product information does not exist
   51101: Unable to find the product # Product or SKU does not exist
   51102: No pending order # No active order draft
+  51103: The order to re-order does not exist # Historical draft does not exist or does not belong to the user
   51301: Address not found # Address does not exist or does not belong to the user
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception

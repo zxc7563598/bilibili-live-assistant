@@ -7,3 +7,9 @@ type OrderPlaceOrderReq struct {
 	// 购买数量
 	Count int64 `json:"count" binding:"required,min=1" err:"required=11101,min=11101" example:"0"`
 }
+
+// OrderReOrderReq 用户重新下单请求
+type OrderReOrderReq struct {
+	// 历史草稿ID（确认页展示的已超时/已取消订单）
+	ID int64 `json:"id" binding:"required" err:"required=11101" example:"0"`
+}

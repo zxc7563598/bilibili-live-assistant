@@ -20,6 +20,64 @@ var (
 	errInsufficientStock = errors.New("库存不足")
 )
 
+// placeOrder 下单公共流程：取消用户已有 Active 草稿并归还库存 → 校验 SKU → 新建待支付草稿并锁定库存。
+// skuID / count 由调用方给出（首次下单来自入参，重新下单从历史草稿解析）。返回新草稿 ID。
+func (s *Service) placeOrder(ctx context.Context, userID, skuID, count int64) (int64, int, error) {
+	var draftID int64
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		// 取消已有 Active 草稿并归还库存（重复下单 = 放弃旧单）
+		active, err := s.liveUserOrderDraftRepo.GetActiveByUserID(ctx, tx, userID)
+		if err != nil {
+			return err
+		}
+		if active != nil {
+			if err := s.cancelDraft(ctx, tx, active); err != nil {
+				return err
+			}
+		}
+		// 获取 SKU
+		sku, err := s.productSkuRepo.GetByID(ctx, tx, skuID)
+		if err != nil {
+			return err
+		}
+		if sku == nil {
+			return errSkuNotFound
+		}
+		// 创建草稿锁定库存
+		draft := &model.LiveUserOrderDraft{
+			UserID:       userID,
+			ProductID:    sku.ProductID,
+			ProductSkuID: sku.ID,
+			Quantity:     count,
+			Status:       enum.DraftStatusActive,
+			ExpireAt:     time.Now().Unix() + draftExpireSeconds,
+		}
+		created, err := s.liveUserOrderDraftRepo.Create(ctx, tx, draft)
+		if err != nil {
+			return err
+		}
+		draftID = created.ID
+		// 扣减库存，防超卖（流水关联草稿与用户）
+		if err := s.deductStock(ctx, tx, sku, count, draftID, userID); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, errInsufficientStock):
+			return 0, 41101, err
+		case errors.Is(err, errSkuNotFound):
+			return 0, 51101, err
+		default:
+			return 0, 61101, err
+		}
+	}
+	// 事务提交成功后注册定时器
+	s.scheduleDraftExpiry(draftID)
+	return draftID, 0, nil
+}
+
 // deductStock 扣减 SKU 与商品库存并写入扣减流水（下单场景）
 func (s *Service) deductStock(ctx context.Context, tx *gorm.DB, sku *model.ProductSku, count, draftID, userID int64) error {
 	if sku.Stock < count {
