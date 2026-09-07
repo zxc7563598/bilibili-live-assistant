@@ -155,3 +155,46 @@ func (h *Handler) ReOrder(c *gin.Context) {
 	// 返回结果
 	response.Success(c, lang, nil)
 }
+
+// @Summary 用户确认兑换并完成支付
+// @Description 用户实际进行下单/支付
+// @Tags 移动端
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.OrderConfirmPaymentReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/order/payment [post]
+func (h *Handler) ConfirmPayment(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取用户ID
+	userInfo, ok := handler.GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取参数
+	var req input.OrderConfirmPaymentReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.OrderLogger, "ConfirmPayment 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	_, errCode, err := h.orderSvc.ConfirmPayment(ctx, userInfo.UserID, req.DraftID, req.AddressID)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.OrderLogger,
+			"orderSvc.ConfirmPayment 调用失败",
+			errCode,
+			err,
+			zap.Any("userInfo", userInfo),
+			zap.Any("req.draft_id", req.DraftID),
+			zap.Any("req.address_id", req.AddressID),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}
