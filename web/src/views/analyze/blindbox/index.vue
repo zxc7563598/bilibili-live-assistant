@@ -43,7 +43,7 @@ const levelColor = {
   3: '#4A90E2',
 }
 const columns = [
-  { title: '用户UID', key: 'uid', minWidth: 170 },
+  { title: '用户UID', key: 'uid', minWidth: 170, sorter: true },
   { title: '牌子', key: 'badge_name', width: 140, render(row) {
     return row.badge_name
       ? h(
@@ -62,27 +62,27 @@ const columns = [
         )
       : ''
   } },
-  { title: '用户昵称', key: 'uname', minWidth: 120 },
-  { title: '礼物名称', key: 'gift_name', minWidth: 120 },
-  { title: '单价', key: 'price', width: 100, render(row) {
+  { title: '用户昵称', key: 'uname', minWidth: 140, sorter: true },
+  { title: '礼物名称', key: 'gift_name', minWidth: 140, sorter: true },
+  { title: '单价', key: 'price', width: 120, sorter: true, render(row) {
     const price = row.price / 100
     return `¥${price.toFixed(2)}`
   } },
-  { title: '数量', key: 'num', width: 70 },
-  { title: '总价', key: 'total', width: 100, render(row) {
+  { title: '数量', key: 'num', width: 90, sorter: true },
+  { title: '总价', key: 'total', width: 120, render(row) {
     const total = (row.price / 100) * row.num
     return `¥${total.toFixed(2)}`
   } },
-  { title: '对应盲盒', key: 'original_gift_name', minWidth: 120 },
-  { title: '盲盒价格', key: 'original_gift_price', width: 100, render(row) {
+  { title: '对应盲盒', key: 'original_gift_name', sorter: true, minWidth: 140 },
+  { title: '盲盒价格', key: 'original_gift_price', sorter: true, width: 120, render(row) {
     const original_gift_price = row.original_gift_price / 100
     return `¥${original_gift_price.toFixed(2)}`
   } },
-  { title: '盈利金额', key: 'profit', width: 100, render(row) {
+  { title: '盈利金额', key: 'profit', width: 120, render(row) {
     const profit = (((row.price - row.original_gift_price) * row.num) / 100)
     return `¥${profit.toFixed(2)}`
   } },
-  { title: '赠送时间', key: 'send_at', width: 200 },
+  { title: '赠送时间', key: 'send_at', width: 220, sorter: true },
 ]
 
 const query = ref({

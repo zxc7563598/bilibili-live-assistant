@@ -89,12 +89,12 @@ import Vue3WordCloud from './vue3-word-cloud'
 
 const $table = ref(null)
 const columns = [
-  { title: '用户UID', key: 'uid', minWidth: 170 },
-  { title: '用户昵称', key: 'uname', minWidth: 120 },
-  { title: '积分', key: 'points', width: 100 },
-  { title: '星光', key: 'stars', width: 100 },
-  { title: '发送弹幕', key: 'total_danmu_count', width: 100 },
-  { title: '礼物金额', key: 'total_gift_amount', width: 100, render(row) {
+  { title: '用户UID', key: 'uid', minWidth: 190, sorter: true },
+  { title: '用户昵称', key: 'uname', minWidth: 140, sorter: true },
+  { title: '积分', key: 'points', width: 120, sorter: true },
+  { title: '星光', key: 'stars', width: 120, sorter: true },
+  { title: '发送弹幕', key: 'total_danmu_count', width: 120, sorter: true },
+  { title: '礼物金额', key: 'total_gift_amount', width: 120, sorter: true, render(row) {
     const total_gift_amount = (row.total_gift_amount / 100)
     return `¥${total_gift_amount.toFixed(2)}`
   } },
