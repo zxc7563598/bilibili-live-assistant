@@ -1,5 +1,7 @@
 package resp
 
+import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+
 // OrderGetConfirmResp 获取用户下单数据请求返回
 type OrderGetConfirmResp struct {
 	// id
@@ -28,4 +30,53 @@ type ProductItem struct {
 	Sku string `json:"sku" example:"[{'aa':'bb'},{'aa':'bb'}]"`
 	// 购买数量
 	Count int64 `json:"count" example:"0"`
+}
+
+// OrderListPageByUserResp 请求返回
+type OrderListPageByUserResp struct {
+	// 总计条数
+	Total int64 `json:"total" example:"100"`
+	// 当前页码数据
+	PageData []OrderListPageByUserItem `json:"pageData"`
+}
+
+type OrderListPageByUserItem struct {
+	// id
+	ID int64 `json:"id" example:"1"`
+	// 订单号
+	OrderSn string `json:"order_sn" example:"P00029182821723123"`
+	// 商品ID
+	ProductID int64 `json:"product_id" example:"1"`
+	// 商品名称
+	ProductName string `json:"product_name" example:"商品名称"`
+	// 商品封面图
+	ProductCover string `json:"product_cover" example:"https://cdn.hejunjie.life/avatars/oneadmin.jpeg"`
+	// 规格快照
+	ProductSpecProperties string `json:"product_spec_properties" example:"[{'aa':'bb'},{'aa':'bb'}]"`
+	// 购买数量
+	Quantity int64 `json:"quantity" example:"1"`
+	// 支付类型
+	CreditType enum.CreditType `json:"credit_type" example:"1" enums:"0,1"`
+	// 支付价格
+	Price int64 `json:"price" example:"100"`
+	// 订单状态
+	OrderStatus enum.OrderStatus `json:"order_status" example:"1" enums:"0,1,2,3,4,5"`
+	// 支付状态
+	PayStatus enum.PayStatus `json:"pay_status" example:"1" enums:"0,1,2"`
+	// 发货状态
+	ShipStatus enum.ShipStatus `json:"ship_status" example:"1" enums:"0,1,2"`
+	// 快递公司
+	ExpressCompany string `json:"express_company" example:"xxxxxxx"`
+	// 快递单号
+	ExpressNo string `json:"express_no" example:"P000002919238123"`
+	// 支付时间
+	PayAt string `json:"pay_at" example:"xxxx-xx-xx xx:xx:xx"`
+	// 发货时间
+	ProcessedAt string `json:"processed_at" example:"xxxx-xx-xx xx:xx:xx"`
+	// 取消时间
+	CancelAt string `json:"cancel_at" example:"xxxx-xx-xx xx:xx:xx"`
+	// 创建时间
+	CreatedAt string `json:"created_at" example:"xxxx-xx-xx xx:xx:xx"`
+	// 用户备注
+	Remark string `json:"remark" example:"xxxxxxxxxxxxx"`
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
 
@@ -252,4 +253,33 @@ func randomSuffix() string {
 	}
 	n := uint64(b[0])<<16 | uint64(b[1])<<8 | uint64(b[2])
 	return strconv.FormatUint(n, 36)
+}
+
+func toListPageItems(list []model.LiveUserOrder) []ListPageItem {
+	respList := make([]ListPageItem, 0, len(list))
+	for _, v := range list {
+		item := ListPageItem{
+			ID:                    v.ID,
+			OrderSn:               v.OrderSn,
+			ProductID:             v.ProductID,
+			ProductName:           v.ProductName,
+			ProductCover:          v.ProductCover,
+			ProductSpecProperties: v.ProductSpecProperties,
+			Quantity:              v.Quantity,
+			CreditType:            v.CreditType,
+			Price:                 v.Price,
+			OrderStatus:           v.OrderStatus,
+			PayStatus:             v.PayStatus,
+			ShipStatus:            v.ShipStatus,
+			ExpressCompany:        v.ExpressCompany,
+			ExpressNo:             v.ExpressNo,
+			PayAt:                 timeutil.Format(v.PayAt),
+			ProcessedAt:           timeutil.Format(v.ProcessedAt),
+			CancelAt:              timeutil.Format(v.CancelAt),
+			CreatedAt:             timeutil.Format(v.CreatedAt),
+			Remark:                v.Remark,
+		}
+		respList = append(respList, item)
+	}
+	return respList
 }

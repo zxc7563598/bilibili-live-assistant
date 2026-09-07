@@ -38,9 +38,9 @@ func (LiveUserOrder) TableName() string {
 	return "live_user_orders"
 }
 
-// LiveUserOrderListPageQuery 用户订单分页查询入参，不对应数据库表
+// LiveUserOrderListPageQuery 订单分页查询入参，不对应数据库表
 type LiveUserOrderListPageQuery struct {
-	UserID      int64
+	UserID      *int64
 	OrderStatus *int
 	Offset      int
 	Limit       int

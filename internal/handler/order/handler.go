@@ -198,3 +198,58 @@ func (h *Handler) ConfirmPayment(c *gin.Context) {
 	// 返回结果
 	response.Success(c, lang, nil)
 }
+
+// @Summary 分页查询我的订单
+// @Description 按状态分页查询当前用户的历史订单列表
+// @Tags 移动端
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.OrderListPageByUserReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.OrderListPageByUserResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/order/list [post]
+func (h *Handler) ListPageByUser(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取用户ID
+	userInfo, ok := handler.GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取参数
+	var req input.OrderListPageByUserReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.OrderLogger, "ListPageByUser 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.orderSvc.ListPageByUser(ctx, userInfo.UserID, order.ListPageByUserReq{
+		PageResp: order.PageResp{
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
+		},
+		OrderStatus: req.OrderStatus,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.OrderLogger,
+			"orderSvc.ListPageByUser 调用失败",
+			errCode,
+			err,
+			zap.Any("userInfo", userInfo),
+			zap.Int("req.pageNo", req.PageNo),
+			zap.Int("req.pageSize", req.PageSize),
+			zap.Any("req.order_status", req.OrderStatus),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.OrderListPageByUserResp{
+		Total:    svcResp.Total,
+		PageData: toOrderListPageByUserItem(svcResp.PageData),
+	})
+}

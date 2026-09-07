@@ -45,17 +45,20 @@ var sortOrder = map[string]string{
 
 type Repository interface {
 	base.Repository[model.LiveUserOrder]
-	// ListPage 分页查询用户订单，按 OrderStatus 筛选，按创建时间倒序
+	// ListPage 分页查询订单，支持 UserID/OrderStatus 筛选与白名单字段排序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery) ([]model.LiveUserOrder, int64, error)
 	// GetByOrderSn 根据订单号获取单条订单
 	GetByOrderSn(ctx context.Context, tx *gorm.DB, orderSn string) (*model.LiveUserOrder, error)
 }
 
-// ListPage 分页查询用户订单
+// ListPage 分页查询订单
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery) ([]model.LiveUserOrder, int64, error) {
 	var list []model.LiveUserOrder
 	var total int64
-	db := r.getDB(ctx, tx).Model(&model.LiveUserOrder{}).Where("user_id = ?", query.UserID)
+	db := r.getDB(ctx, tx).Model(&model.LiveUserOrder{})
+	if v := query.UserID; v != nil {
+		db = db.Where("user_id = ?", *v)
+	}
 	if v := query.OrderStatus; v != nil {
 		s := enum.OrderStatus(*v)
 		if s.IsValid() {

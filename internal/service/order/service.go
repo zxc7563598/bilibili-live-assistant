@@ -215,3 +215,25 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 	}
 	return orderID, 0, nil
 }
+
+// ListPageByUser 根据用户ID获取订单列表信息
+func (s *Service) ListPageByUser(ctx context.Context, userID int64, req ListPageByUserReq) (ListPageByUserResp, int, error) {
+	// 获取列表数据
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
+	list, total, err := s.liveUserOrderRepo.ListPage(ctx, nil, model.LiveUserOrderListPageQuery{
+		UserID:      &userID,
+		OrderStatus: req.OrderStatus,
+		Offset:      offset,
+		Limit:       limit,
+		SortField:   sortField,
+		SortOrder:   sortOrder,
+	})
+	if err != nil {
+		return ListPageByUserResp{}, 61101, err
+	}
+	// 返回数据
+	return ListPageByUserResp{
+		Total:    total,
+		PageData: toListPageItems(list),
+	}, 0, nil
+}
