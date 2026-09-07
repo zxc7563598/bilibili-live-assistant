@@ -25,6 +25,24 @@ function derToPem(base64Der) {
   return `-----BEGIN PUBLIC KEY-----\n${lines.join('\n')}\n-----END PUBLIC KEY-----\n`
 }
 
+// 递归删除对象中值为 null 的字段（数组内的 null 元素保留，不改变数组长度/顺序）
+function removeNullKeys(data) {
+  if (Array.isArray(data)) {
+    data.forEach(removeNullKeys)
+  }
+  else if (data != null && typeof data === 'object') {
+    for (const key of Object.keys(data)) {
+      if (data[key] === null) {
+        delete data[key]
+      }
+      else {
+        removeNullKeys(data[key])
+      }
+    }
+  }
+  return data
+}
+
 // 校验公钥响应签名
 async function verifyPubkeySign({ key_id: keyId, public_key: publicKey, timestamp, sign }) {
   const enc = new TextEncoder()
@@ -115,17 +133,25 @@ service.interceptors.request.use(
     const isDev = import.meta.env.DEV
     // 重试时 config.data 已是第一遍加密后的密文，跳过二次加密，仅重新附加新的 access_token
     if (!config._retried && method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS' && hasBody) {
+      // 避免携带无意义的空参数
+      if (typeof config.data === 'string') {
+        try {
+          config.data = JSON.parse(config.data) // axios 对字符串会原样透传，先还原为对象
+        }
+        catch {
+          // 非 JSON 字符串（如原始文本）原样透传，不参与过滤
+        }
+      }
+      if (config.data != null && typeof config.data === 'object')
+        removeNullKeys(config.data)
       // dev 或纯 HTTP（无 Web Crypto）→ 明文发送
       if (isDev || !canEncrypt) {
         if (!isDev && !canEncrypt)
           console.warn('[request] 当前为纯 HTTP 环境，无法使用 Web Crypto 加密，请求以明文发送')
       }
       else {
-        let data = config.data
-        if (typeof data === 'string')
-          data = JSON.parse(data) // axios 对字符串会原样透传，先还原为对象
         const rsaPublicKey = await fetchPublicKey()
-        config.data = await encryptRequest({ data, rsaPublicKey, signSecret: import.meta.env.VITE_SIGN_SECRET }, ENCRYPT_VERSION)
+        config.data = await encryptRequest({ data: config.data, rsaPublicKey, signSecret: import.meta.env.VITE_SIGN_SECRET }, ENCRYPT_VERSION)
       }
     }
 
