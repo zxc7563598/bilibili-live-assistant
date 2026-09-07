@@ -44,4 +44,6 @@ type LiveUserOrderListPageQuery struct {
 	OrderStatus *int
 	Offset      int
 	Limit       int
+	SortField   *string
+	SortOrder   *string
 }

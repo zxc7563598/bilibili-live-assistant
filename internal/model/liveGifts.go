@@ -42,6 +42,8 @@ type LiveGiftListPageQuery struct {
 	SendAtEnd   *int64
 	Offset      int
 	Limit       int
+	SortField   *string
+	SortOrder   *string
 }
 
 // LiveGiftBlindBoxListPageQuery 盲盒礼物分页查询入参，不对应数据库表
@@ -55,6 +57,8 @@ type LiveGiftBlindBoxListPageQuery struct {
 	SendAtEnd        *int64
 	Offset           int
 	Limit            int
+	SortField        *string
+	SortOrder        *string
 }
 
 // LiveGiftDailyGiftStatistics 用户每日查询统计聚合参数

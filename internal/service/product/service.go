@@ -40,13 +40,15 @@ func New(db *gorm.DB, productRepo product.Repository, productSkuRepo product_sku
 // ListPage 用于获取商品列表信息
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	products, total, err := s.productRepo.ListPage(ctx, nil, model.ProductListPageQuery{
 		Name:       req.Name,
 		CreditType: req.CreditType,
 		Enable:     req.Enable,
 		Offset:     offset,
 		Limit:      limit,
+		SortField:  sortField,
+		SortOrder:  sortOrder,
 	})
 	if err != nil {
 		return ListPageResp{}, 61001, err

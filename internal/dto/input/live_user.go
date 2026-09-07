@@ -6,6 +6,10 @@ type LiveUserListPageReq struct {
 	PageNo int `json:"pageNo" binding:"required" err:"required=10801" example:"1"`
 	// 每页展示条数
 	PageSize int `json:"pageSize" binding:"required" err:"required=10801" example:"20"`
+	// 排序字段
+	SortField *string `json:"sortField" example:"points"`
+	// 排序方向 ascend/descend
+	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
 	// 用户UID
 	UID *int64 `json:"uid" example:"54272611"`
 	// 用户昵称，支持模糊搜索

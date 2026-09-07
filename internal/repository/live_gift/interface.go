@@ -25,6 +25,30 @@ type BlindBoxProfit struct {
 	Total   int64 // 总计盈利
 }
 
+// sortColumns 允许参与 ListPage 排序的 DB 列
+var sortColumns = map[string]string{
+	"id":                  "id",
+	"room_id":             "room_id",
+	"uid":                 "uid",
+	"uname":               "uname",
+	"gift_type":           "gift_type",
+	"gift_name":           "gift_name",
+	"price":               "price",
+	"num":                 "num",
+	"send_at":             "send_at",
+	"original":            "original",
+	"original_gift_name":  "original_gift_name",
+	"original_gift_price": "original_gift_price",
+	"created_at":          "created_at",
+	"updated_at":          "updated_at",
+}
+
+// sortOrder 允许的排序方向 → SQL 方向。
+var sortOrder = map[string]string{
+	"ascend":  "asc",
+	"descend": "desc",
+}
+
 type Repository interface {
 	base.Repository[model.LiveGift]
 	// DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -78,7 +102,18 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGi
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := db.Order("send_at desc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
+	// 默认与现状一致；排序参数非法/缺失时静默回退该默认
+	orderClause := "send_at desc"
+	if query.SortField != nil && query.SortOrder != nil {
+		// 方向先小写归一化再查白名单，非法值直接回退默认
+		if field, ok := sortColumns[*query.SortField]; ok {
+			if dir, ok := sortOrder[strings.ToLower(*query.SortOrder)]; ok {
+				// field/dir 均来自字面量白名单，杜绝注入；id asc 保证同键值时翻页稳定
+				orderClause = field + " " + dir + ", id asc"
+			}
+		}
+	}
+	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
 }
 
@@ -109,7 +144,18 @@ func (r *gormRepo) BlindBoxListPage(ctx context.Context, tx *gorm.DB, query mode
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := db.Order("send_at desc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
+	// 默认与现状一致；排序参数非法/缺失时静默回退该默认
+	orderClause := "send_at desc"
+	if query.SortField != nil && query.SortOrder != nil {
+		// 方向先小写归一化再查白名单，非法值直接回退默认
+		if field, ok := sortColumns[*query.SortField]; ok {
+			if dir, ok := sortOrder[strings.ToLower(*query.SortOrder)]; ok {
+				// field/dir 均来自字面量白名单，杜绝注入；id asc 保证同键值时翻页稳定
+				orderClause = field + " " + dir + ", id asc"
+			}
+		}
+	}
+	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
 }
 

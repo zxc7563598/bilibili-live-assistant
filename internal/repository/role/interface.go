@@ -10,6 +10,22 @@ import (
 	"gorm.io/gorm"
 )
 
+// sortColumns 允许参与 ListPage 排序的 DB 列
+var sortColumns = map[string]string{
+	"id":         "id",
+	"code":       "code",
+	"name":       "name",
+	"enable":     "enable",
+	"created_at": "created_at",
+	"updated_at": "updated_at",
+}
+
+// sortOrder 允许的排序方向 → SQL 方向。
+var sortOrder = map[string]string{
+	"ascend":  "asc",
+	"descend": "desc",
+}
+
 type Repository interface {
 	base.Repository[model.Role]
 	// GetByCode 根据 code 获取单条数据
@@ -51,7 +67,18 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleLi
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := db.Order("id asc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
+	// 默认与现状一致；排序参数非法/缺失时静默回退该默认
+	orderClause := "id asc"
+	if query.SortField != nil && query.SortOrder != nil {
+		// 方向先小写归一化再查白名单，非法值直接回退默认
+		if field, ok := sortColumns[*query.SortField]; ok {
+			if dir, ok := sortOrder[strings.ToLower(*query.SortOrder)]; ok {
+				// field/dir 均来自字面量白名单，杜绝注入；id asc 保证同键值时翻页稳定
+				orderClause = field + " " + dir + ", id asc"
+			}
+		}
+	}
+	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	if err != nil {
 		return nil, 0, err
 	}

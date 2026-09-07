@@ -4,11 +4,13 @@ import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 
 // 通用分页请求参数
 type PageResp struct {
-	PageNo   int `json:"pageNo"`
-	PageSize int `json:"pageSize"`
+	PageNo    int     `json:"pageNo"`
+	PageSize  int     `json:"pageSize"`
+	SortField *string `json:"sortField"`
+	SortOrder *string `json:"sortOrder"`
 }
 
-func (r *PageResp) OffsetLimit() (int, int) {
+func (r *PageResp) OffsetLimit() (int, int, *string, *string) {
 	if r.PageNo < 1 {
 		r.PageNo = 1
 	}
@@ -19,7 +21,7 @@ func (r *PageResp) OffsetLimit() (int, int) {
 		r.PageSize = 100
 	}
 	offset := (r.PageNo - 1) * r.PageSize
-	return offset, r.PageSize
+	return offset, r.PageSize, r.SortField, r.SortOrder
 }
 
 type TokenResp struct {

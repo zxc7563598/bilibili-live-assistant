@@ -23,8 +23,10 @@ func (LiveUser) TableName() string {
 
 // LiveUserListPageQuery 用户分页查询入参，不对应数据库表
 type LiveUserListPageQuery struct {
-	UID    *int64
-	Uname  *string
-	Offset int
-	Limit  int
+	UID       *int64
+	Uname     *string
+	SortField *string
+	SortOrder *string
+	Offset    int
+	Limit     int
 }

@@ -33,4 +33,6 @@ type LiveDanmuListPageQuery struct {
 	SendAtEnd   *int64
 	Offset      int
 	Limit       int
+	SortField   *string
+	SortOrder   *string
 }

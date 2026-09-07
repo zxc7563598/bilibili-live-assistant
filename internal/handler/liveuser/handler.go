@@ -60,8 +60,10 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 执行请求
 	svcResp, errCode, err := h.liveuserSvc.ListPage(ctx, liveuser.ListPageReq{
 		PageResp: liveuser.PageResp{
-			PageNo:   req.PageNo,
-			PageSize: req.PageSize,
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
 		},
 		UID:   req.UID,
 		Uname: req.Uname,

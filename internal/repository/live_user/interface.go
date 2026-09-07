@@ -18,6 +18,25 @@ const (
 	CreditFieldStars  = "stars"
 )
 
+// sortColumns 允许参与 ListPage 排序的 DB 列
+var sortColumns = map[string]string{
+	"id":                "id",
+	"uid":               "uid",
+	"uname":             "uname",
+	"points":            "points",
+	"stars":             "stars",
+	"total_danmu_count": "total_danmu_count",
+	"total_gift_amount": "total_gift_amount",
+	"created_at":        "created_at",
+	"updated_at":        "updated_at",
+}
+
+// sortOrder 允许的排序方向 → SQL 方向。
+var sortOrder = map[string]string{
+	"ascend":  "asc",
+	"descend": "desc",
+}
+
 var (
 	// ErrInsufficientBalance 扣减时余额不足
 	ErrInsufficientBalance = errors.New("用户资产余额不足")
@@ -41,7 +60,8 @@ type Repository interface {
 	UpdatePassword(ctx context.Context, tx *gorm.DB, id int64, password string) error
 	// CreateIfNotExist 若 uid 已存在则忽略创建并返回已有记录，否则创建新记录
 	CreateIfNotExist(ctx context.Context, tx *gorm.DB, entity *model.LiveUser) (*model.LiveUser, error)
-	// ListPage 分页查询用户，UID 精确匹配，Uname 模糊匹配，按 CreatedAt 倒序
+	// ListPage 分页查询用户，UID 精确匹配，Uname 模糊匹配；
+	// 支持按白名单字段排序，非法/空排序参数回退按 created_at desc
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery) ([]model.LiveUser, int64, error)
 	// AddCredit 原子增减用户资产（积分/星光），返回变更前、变更后的数值
 	AddCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (int64, int64, error)
@@ -74,7 +94,18 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := db.Order("created_at desc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
+	// 默认与现状一致；排序参数非法/缺失时静默回退该默认
+	orderClause := "created_at desc"
+	if query.SortField != nil && query.SortOrder != nil {
+		// 方向先小写归一化再查白名单，非法值直接回退默认
+		if field, ok := sortColumns[*query.SortField]; ok {
+			if dir, ok := sortOrder[strings.ToLower(*query.SortOrder)]; ok {
+				// field/dir 均来自字面量白名单，杜绝注入；id asc 保证同键值时翻页稳定
+				orderClause = field + " " + dir + ", id asc"
+			}
+		}
+	}
+	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
 }
 

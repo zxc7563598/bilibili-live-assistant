@@ -30,4 +30,6 @@ type ProductListPageQuery struct {
 	Enable     *int
 	Offset     int
 	Limit      int
+	SortField  *string
+	SortOrder  *string
 }

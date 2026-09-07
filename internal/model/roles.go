@@ -16,10 +16,12 @@ func (Role) TableName() string {
 
 // RoleListPageQuery 用于后台列表查询入参，不对应数据库表
 type RoleListPageQuery struct {
-	Offset int
-	Limit  int
-	Name   *string
-	Enable *int
+	Offset    int
+	Limit     int
+	SortField *string
+	SortOrder *string
+	Name      *string
+	Enable    *int
 }
 
 // RoleListItem 用于后台列表展示，不对应数据库表

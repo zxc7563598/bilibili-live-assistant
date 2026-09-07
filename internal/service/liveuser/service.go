@@ -58,12 +58,14 @@ func New(db *gorm.DB, rdb *redis.Client, appConfigCache *appconfig.Cache, liveUs
 // ListPage 用于获取用户列表信息
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	listDanmu, total, err := s.liveUserRepo.ListPage(ctx, nil, model.LiveUserListPageQuery{
-		UID:    req.UID,
-		Uname:  req.Uname,
-		Offset: offset,
-		Limit:  limit,
+		UID:       req.UID,
+		Uname:     req.Uname,
+		Offset:    offset,
+		Limit:     limit,
+		SortField: sortField,
+		SortOrder: sortOrder,
 	})
 	if err != nil {
 		return ListPageResp{}, 60801, err

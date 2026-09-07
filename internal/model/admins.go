@@ -23,11 +23,13 @@ func (Admin) TableName() string {
 
 // AdminListPageQuery 用于后台列表查询入参，不对应数据库表
 type AdminListPageQuery struct {
-	Username *string
-	Gender   *int
-	Enable   *int
-	Offset   int
-	Limit    int
+	Username  *string
+	Gender    *int
+	Enable    *int
+	Offset    int
+	Limit     int
+	SortField *string
+	SortOrder *string
 }
 
 // AdminListItem 用于后台列表展示，不对应数据库表

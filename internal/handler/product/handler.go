@@ -49,8 +49,10 @@ func (h *Handler) ShopListPage(c *gin.Context) {
 	enable := int(enum.EnableEnable)
 	svcResp, errCode, err := h.productSvc.ListPage(ctx, product.ListPageReq{
 		PageResp: product.PageResp{
-			PageNo:   req.PageNo,
-			PageSize: req.PageSize,
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
 		},
 		Name:       req.Name,
 		CreditType: req.CreditType,
