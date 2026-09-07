@@ -17,6 +17,7 @@ var sortColumns = map[string]string{
 	"uid":        "uid",
 	"uname":      "uname",
 	"msg":        "msg",
+	"send_at":    "send_at",
 	"created_at": "created_at",
 	"updated_at": "updated_at",
 }
