@@ -37,6 +37,7 @@
     </AppCard>
 
     <NDataTable
+      ref="nTableRef"
       :remote="remote"
       :loading="loading"
       :scroll-x="scrollX"
@@ -48,6 +49,7 @@
       class="flex-1"
       @update:checked-row-keys="onChecked"
       @update:page="onPageChange"
+      @update:sorter="onSorterChange"
     />
   </div>
 </template>
@@ -95,6 +97,9 @@ const props = defineProps({
    * 分页模式需约定分页接口入参
    *    @pageSize 分页参数：一页展示多少条，默认10
    *    @pageNo   分页参数：页码，默认1
+   * 远程排序，列配置中给数据列加 sorter:true 即启用：
+   *    @sortField DB 排序列名（默认取列 key，可用列 sortField 覆盖）
+   *    @sortOrder ascend|descend（Naive UI 表头原值，直接透传），无排序时不携带这两项；后端需按白名单校验并映射 SQL 方向
    * 需约定接口出参
    *    @pageData 分页模式必须,非分页模式如果没有pageData则取上一层data
    *    @total    分页模式必须，非分页模式如果没有total则取上一层data.length
@@ -119,6 +124,9 @@ const pagination = reactive({
   },
 })
 
+const nTableRef = ref(null) // NDataTable 实例，重置时清除排序箭头
+const sort = reactive({ field: null, order: null })
+
 // 是否展开
 const isExpanded = ref(false)
 
@@ -134,9 +142,14 @@ async function handleQuery() {
     if (props.isPagination && props.remote) {
       paginationParams = { pageNo: pagination.page, pageSize: pagination.pageSize }
     }
+    // 无活动排序时不带排序参数，后端回退默认排序
+    const sortParams = props.remote && sort.order
+      ? { sortField: sort.field, sortOrder: sort.order }
+      : {}
     const { data } = await props.getData({
       ...props.queryItems,
       ...paginationParams,
+      ...sortParams,
     })
     tableData.value = data?.pageData || data
     pagination.itemCount = data.total ?? data.length
@@ -165,12 +178,16 @@ function handleSearch(keepCurrentPage = false) {
   }
 }
 async function handleReset() {
+  sort.field = null
+  sort.order = null
   const queryItems = { ...props.queryItems }
   for (const key in queryItems) {
     queryItems[key] = null
   }
   emit('update:queryItems', { ...queryItems, ...initQuery })
   await nextTick()
+  // 清除表头排序箭头；其发出的 update:sorter(null) 在回调里被忽略，避免二次请求
+  nTableRef.value?.clearSorter()
   pagination.page = 1
   handleQuery()
 }
@@ -183,6 +200,43 @@ function onPageChange(currentPage) {
 function onChecked(rowKeys) {
   if (props.columns.some(item => item.type === 'selection')) {
     emit('onChecked', rowKeys)
+  }
+}
+// 递归查找列配置
+function findColumn(cols, key) {
+  for (const col of cols) {
+    if (col.children) {
+      const hit = findColumn(col.children, key)
+      if (hit)
+        return hit
+    }
+    if (col.key === key)
+      return col
+  }
+  return null
+}
+
+function onSorterChange(sorterState) {
+  // sorterState: SortState | SortState[] | null（本项目为单列排序，未启用 multiple）
+  if (Array.isArray(sorterState))
+    sorterState = sorterState[0]
+  // 程序化 clearSorter() 会发 null，由 handleReset 统一处理，避免重复请求
+  if (!sorterState)
+    return
+  const col = findColumn(props.columns, sorterState.columnKey)
+  if (!col)
+    return
+  // 排序原值（ascend/descend/false）直接透传给后端校验映射，前端不做翻译
+  const order = sorterState.order || null
+  // 默认 DB 排序列名取列 key；key 与 DB 列不一致时可用列上 sortField 覆盖
+  const field = order ? (col.sortField ?? sorterState.columnKey) : null
+  if (sort.field === field && sort.order === order)
+    return // 状态未变化则忽略
+  sort.field = field
+  sort.order = order
+  if (props.remote) {
+    pagination.page = 1
+    handleQuery()
   }
 }
 function handleExport(columns = props.columns, data = tableData.value) {
