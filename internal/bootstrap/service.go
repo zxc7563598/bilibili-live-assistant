@@ -53,6 +53,6 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		LiveUser:    liveUserSvc,
 		AppConfig:   *appconfigsvc.New(appConfigCache, repo.AppConfig),
 		Product:     *product.New(db, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),
-		Order:       order.New(db, repo.LiveUserOrder, repo.LiveUserOrderDraft, repo.Product, repo.ProductSku, repo.ProductSkuStockLog),
+		Order:       order.New(db, repo.LiveUserOrder, repo.LiveUserOrderDraft, repo.LiveUserAddress, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.LiveUser, repo.LiveUserCreditLog),
 	}
 }

@@ -151,6 +151,7 @@ error:
   40408: Listener connection error # Listener connection error
   40801: Incorrect account or password # Password error (avoid being too specific)
   40802: Account unavailable # User account disabled
+  40803: Insufficient balance # Insufficient balance for this redemption
   41101: Insufficient stock # Insufficient stock, unable to place order
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
@@ -161,6 +162,7 @@ error:
   51101: Unable to find the product # Product or SKU does not exist
   51102: No pending order # No active order draft
   51103: The order to re-order does not exist # Historical draft does not exist or does not belong to the user
+  51104: The current order has expired # The current order has expired
   51301: Address not found # Address does not exist or does not belong to the user
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception

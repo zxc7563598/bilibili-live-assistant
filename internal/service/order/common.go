@@ -2,22 +2,33 @@ package order
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"gorm.io/gorm"
 )
 
 // draftExpireSeconds 草稿默认有效期（秒）：下单后在此时间内未完成兑换则自动取消并归还库存
 const draftExpireSeconds = 600
 
+// orderSnCounter 进程内自增序号，与纳秒时间戳组合保证单进程并发下单号不重复
+var orderSnCounter atomic.Uint64
+
 var (
 	errSkuNotFound       = errors.New("商品 SKU 不存在")
 	errInsufficientStock = errors.New("库存不足")
+	errProductNotFound   = errors.New("商品不存在")
+	errDraftNotFound     = errors.New("待兑换的订单不存在或不属于当前用户")
+	errDraftStateChanged = errors.New("订单已取消或已完成兑换")
+	errAddressNotFound   = errors.New("收货地址不存在或不属于当前用户")
 )
 
 // placeOrder 下单公共流程：取消用户已有 Active 草稿并归还库存 → 校验 SKU → 新建待支付草稿并锁定库存。
@@ -142,6 +153,35 @@ func (s *Service) returnStock(ctx context.Context, tx *gorm.DB, productID, skuID
 	return s.productRepo.IncrementStock(ctx, tx, productID, quantity)
 }
 
+// deductBalance 扣减用户余额并写资产流水，需在调用方事务内执行
+// 余额扣减交给 live_user.AddCredit 原子条件更新，余额不足由数据库拦截并返回 ErrInsufficientBalance。
+func (s *Service) deductBalance(ctx context.Context, tx *gorm.DB, userID int64, creditType enum.CreditType, amount int64, productName string, quantity int64) error {
+	if amount <= 0 {
+		return nil // 免费商品不扣减
+	}
+	field := live_user.CreditFieldStars
+	if creditType == enum.CreditTypePoints {
+		field = live_user.CreditFieldPoints
+	}
+	beforeValue, afterValue, err := s.liveUserRepo.AddCredit(ctx, tx, userID, field, -amount)
+	if err != nil {
+		return err
+	}
+	_, err = s.liveUserCreditLogRepo.Create(ctx, tx, &model.LiveUserCreditLog{
+		UserID:       userID,
+		CreditType:   creditType,
+		ChangeType:   enum.ChangeTypeReduce,
+		ChangeAmount: amount,
+		BeforeValue:  beforeValue,
+		AfterValue:   afterValue,
+		BizType:      "order",
+		Remark:       fmt.Sprintf("兑换商品 %s x %d", productName, quantity),
+		OperatorType: enum.OperatorTypeUser,
+		OperatorID:   userID,
+	})
+	return err
+}
+
 // cancelDraft 取消草稿并归还库存（status=Active → Cancelled，幂等）
 func (s *Service) cancelDraft(ctx context.Context, tx *gorm.DB, draft *model.LiveUserOrderDraft) error {
 	ok, err := s.liveUserOrderDraftRepo.CancelActiveByID(ctx, tx, draft.ID)
@@ -193,4 +233,23 @@ func (s *Service) ExpireDrafts(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+// generateOrderSn 生成订单号：SO + 纳秒时间戳(base36) + 自增序号(base36) + 随机后缀(base36)
+func generateOrderSn() string {
+	seq := orderSnCounter.Add(1)
+	return "SO" +
+		strconv.FormatInt(time.Now().UnixNano(), 36) +
+		strconv.FormatUint(seq, 36) +
+		randomSuffix()
+}
+
+// randomSuffix 返回 base36 编码的 24bit 随机串；crypto/rand 异常时回退时间戳低位
+func randomSuffix() string {
+	var b [3]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return strconv.FormatInt(time.Now().UnixNano()&0xFFFFFF, 36)
+	}
+	n := uint64(b[0])<<16 | uint64(b[1])<<8 | uint64(b[2])
+	return strconv.FormatUint(n, 36)
 }

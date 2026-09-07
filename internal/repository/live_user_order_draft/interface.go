@@ -19,6 +19,8 @@ type Repository interface {
 	GetLatestCancelledByUserID(ctx context.Context, tx *gorm.DB, userID int64) (*model.LiveUserOrderDraft, error)
 	// CancelActiveByID 将 Active 草稿置为 Cancelled，返回是否发生变更（幂等）
 	CancelActiveByID(ctx context.Context, tx *gorm.DB, id int64) (bool, error)
+	// RedeemActiveByID 将 Active 草稿置为 Redeemed（支付占用），返回是否发生变更（幂等）
+	RedeemActiveByID(ctx context.Context, tx *gorm.DB, id int64) (bool, error)
 	// ListActiveExpired 查询已过期但仍为 Active 的草稿，按到期时间升序
 	ListActiveExpired(ctx context.Context, tx *gorm.DB, now int64) ([]model.LiveUserOrderDraft, error)
 }
@@ -66,6 +68,17 @@ func (r *gormRepo) CancelActiveByID(ctx context.Context, tx *gorm.DB, id int64) 
 	res := r.getDB(ctx, tx).Model(&model.LiveUserOrderDraft{}).
 		Where("id = ? AND status = ?", id, enum.DraftStatusActive).
 		Update("status", enum.DraftStatusCancelled)
+	if res.Error != nil {
+		return false, res.Error
+	}
+	return res.RowsAffected > 0, nil
+}
+
+// RedeemActiveByID 将 Active 草稿置为 Redeemed，返回是否发生变更
+func (r *gormRepo) RedeemActiveByID(ctx context.Context, tx *gorm.DB, id int64) (bool, error) {
+	res := r.getDB(ctx, tx).Model(&model.LiveUserOrderDraft{}).
+		Where("id = ? AND status = ?", id, enum.DraftStatusActive).
+		Update("status", enum.DraftStatusRedeemed)
 	if res.Error != nil {
 		return false, res.Error
 	}
