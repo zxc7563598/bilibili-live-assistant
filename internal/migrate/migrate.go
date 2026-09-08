@@ -38,6 +38,7 @@ func Run(db *gorm.DB) error {
 		&model.LiveUserOrder{},
 		&model.LiveUserOrderDraft{},
 		&model.LiveUserAddress{},
+		&model.Feedback{},
 	); err != nil {
 		return err
 	}

@@ -53,6 +53,7 @@
 # 09 App Config Module
 # 10 Product Module
 # 11 Order Module
+# 12 Feedback Module
 # 13 Address Module
 #
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
@@ -122,6 +123,12 @@ error:
   10802: Password cannot be less than six digits # Password cannot be less than six digits
   10901: Illegal image information # Image MIME type retrieval failed
   11101: Request parameter is invalid # Order parameter is invalid
+  11201: Please select the feedback type # Feedback type is empty
+  11202: Feedback type is too long # Feedback type exceeds the maximum length limit
+  11203: Please enter feedback content # Feedback content is empty
+  11204: Feedback content is too long # Feedback content exceeds the maximum length limit
+  11205: Please enter contact information # Contact information is empty
+  11206: Contact information is too long # Contact information exceeds the maximum length limit
   11301: Invalid address parameter # Address parameter validation failed
   11302: Invalid region code # region_code is not a valid province-city-district chain
   11303: Invalid address type # Invalid address type
@@ -208,6 +215,7 @@ error:
   60807: System busy, please try again later # Redis clear token failed
   61001: System busy, please try again later # Database query exception
   61101: System busy, please try again later # Database error (Order module)
+  61201: System busy, please try again later # Database error (Feedback module)
   61301: System busy, please try again later # Database error (Address module)
 
 gender:

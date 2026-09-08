@@ -9,6 +9,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
 	appconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/appconfig"
+	feedbacksvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/feedback"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livedanmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
@@ -35,6 +36,7 @@ type Services struct {
 	AppConfig   appconfigsvc.Service
 	Product     product.Service
 	Order       *order.Service
+	Feedback    *feedbacksvc.Service
 }
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache, appConfigCache *appconfig.Cache) *Services {
@@ -54,5 +56,6 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		AppConfig:   *appconfigsvc.New(appConfigCache, repo.AppConfig),
 		Product:     *product.New(db, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),
 		Order:       order.New(db, repo.LiveUserOrder, repo.LiveUserOrderDraft, repo.LiveUserAddress, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.LiveUser, repo.LiveUserCreditLog),
+		Feedback:    feedbacksvc.New(repo.Feedback),
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/admin_role"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/app_config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/feedback"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_interact_word"
@@ -53,6 +54,7 @@ type Repositories struct {
 	LiveUserOrder      live_user_order.Repository
 	LiveUserOrderDraft live_user_order_draft.Repository
 	LiveUserAddress    live_user_address.Repository
+	Feedback           feedback.Repository
 }
 
 func InitRepositories(db *gorm.DB) *Repositories {
@@ -81,5 +83,6 @@ func InitRepositories(db *gorm.DB) *Repositories {
 		LiveUserOrder:      live_user_order.New(db),
 		LiveUserOrderDraft: live_user_order_draft.New(db),
 		LiveUserAddress:    live_user_address.New(db),
+		Feedback:           feedback.New(db),
 	}
 }

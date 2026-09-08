@@ -6,6 +6,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/altcha"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/appconfig"
+	feedbackHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/feedback"
 	liveHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/livedanmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/livegift"
@@ -31,6 +32,7 @@ type Handlers struct {
 	Product     *product.Handler
 	Order       *order.Handler
 	Address     *address.Handler
+	Feedback    *feedbackHdlr.Handler
 }
 
 func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
@@ -48,5 +50,6 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		Product:     product.New(&svc.Product),
 		Order:       order.New(svc.Order),
 		Address:     address.New(svc.Address),
+		Feedback:    feedbackHdlr.New(svc.Feedback),
 	}
 }
