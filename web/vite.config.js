@@ -63,6 +63,12 @@ export default defineConfig(({ mode }) => {
             })
           },
         },
+        // 上传文件（pkg/fileutil.SaveUploadedFile 落盘到后端 uploads/ 目录），开发环境代理到后端以便本地预览
+        '/uploads': {
+          target: VITE_PROXY_TARGET,
+          changeOrigin: true,
+          secure: false,
+        },
       },
     },
     optimizeDeps: {
