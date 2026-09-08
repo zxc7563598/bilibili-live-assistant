@@ -9,7 +9,7 @@
             <slot />
           </n-space>
         </n-scrollbar>
-        <div class="flex-shrink-0 p-10">
+        <div class="shrink-0 p-10">
           <n-button ghost type="primary" @click="handleReset">
             <i class="i-fe:rotate-ccw mr-4" />
             重置

@@ -5,7 +5,7 @@
     <TheLogo />
     <h2
       v-show="!appStore.collapsed"
-      class="ml-10 max-w-140 flex-shrink-0 text-16 color-primary font-bold"
+      class="ml-10 max-w-140 shrink-0 text-16 color-primary font-bold"
     >
       {{ title }}
     </h2>

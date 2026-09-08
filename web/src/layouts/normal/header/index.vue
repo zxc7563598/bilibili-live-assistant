@@ -8,7 +8,7 @@
 
     <span class="mx-6 opacity-20">|</span>
 
-    <div class="flex flex-shrink-0 items-center px-12 text-18">
+    <div class="flex shrink-0 items-center px-12 text-18">
       <ToggleTheme />
 
       <Fullscreen />

@@ -6,7 +6,7 @@
 
     <BreadCrumb />
 
-    <div class="ml-auto flex flex-shrink-0 items-center px-12 text-18">
+    <div class="ml-auto flex shrink-0 items-center px-12 text-18">
       <ToggleTheme />
 
       <Fullscreen />

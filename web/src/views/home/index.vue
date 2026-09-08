@@ -1,8 +1,8 @@
 <template>
   <AppPage show-footer full>
     <div class="flex flex-col" style="height: calc(100vh - 9rem)">
-      <div v-if="isLoggedIn" class="mb-4 flex flex-shrink-0 gap-4">
-        <n-card size="small" :bordered="false" class="min-w-200 w-auto flex-shrink-0">
+      <div v-if="isLoggedIn" class="mb-4 flex shrink-0 gap-4">
+        <n-card size="small" :bordered="false" class="min-w-200 w-auto shrink-0">
           <div class="flex flex-col items-center">
             <div class="relative">
               <n-avatar round :size="64" :src="loginStatus.face" :bordered="true" />
