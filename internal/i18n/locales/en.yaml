@@ -122,6 +122,9 @@ error:
   10801: Invalid request parameters # Parameter validation failed
   10802: Password cannot be less than six digits # Password cannot be less than six digits
   10901: Illegal image information # Image MIME type retrieval failed
+  10902: Please upload an image file # Uploaded image file is empty
+  10903: Image size exceeds the limit # Uploaded image exceeds the maximum size limit
+  10904: Invalid upload scene # Upload scene is not in the whitelist
   11101: Request parameter is invalid # Order parameter is invalid
   11201: Please select the feedback type # Feedback type is empty
   11202: Feedback type is too long # Feedback type exceeds the maximum length limit
@@ -213,6 +216,9 @@ error:
   60805: System busy, please try again later # Redis store accessToken failed
   60806: System busy, please try again later # Redis store refreshToken failed
   60807: System busy, please try again later # Redis clear token failed
+  60902: Failed to save config, please try again later # Database update error (App Config)
+  60903: Failed to refresh config cache, please try again later # Cache reload error (App Config)
+  60904: Failed to save the image, please try again later # Image file save error (App Config)
   61001: System busy, please try again later # Database query exception
   61101: System busy, please try again later # Database error (Order module)
   61201: System busy, please try again later # Database error (Feedback module)

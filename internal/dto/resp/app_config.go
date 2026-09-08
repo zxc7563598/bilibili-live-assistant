@@ -55,6 +55,12 @@ type AppShopThemeColorResp struct {
 	Color string `json:"color" example:"#ffffff"`
 }
 
+// AppUploadPathResp 上传图片返回
+type AppUploadPathResp struct {
+	// 上传后可直接访问的图片路径
+	Path string `json:"path" example:"/uploads/login_bg/1724716800123456789_a1b2c3d4.png"`
+}
+
 // AppShopLoginConfigResp 获取登录页面配置信息返回
 type AppShopLoginConfigResp struct {
 	Register bool   `json:"register" example:"false"`
@@ -62,4 +68,28 @@ type AppShopLoginConfigResp struct {
 	LoginBg  string `json:"login_bg" example:""`
 	Title    string `json:"title" example:"积分商城"`
 	Slogan   string `json:"slogan" example:"登录后可兑换积分好礼"`
+}
+
+// AppConfigDataResp 后台查询 App 全部配置返回
+type AppConfigDataResp struct {
+	// 站点名称（浏览器标签栏 / PWA 安装后名称）
+	SiteName string `json:"site_name" example:"积分商城"`
+	// 站点说明（PWA 应用描述）
+	SiteDescription string `json:"site_description" example:"这是xxxxx的积分商城"`
+	// PWA 启动页背景色
+	SiteBackgroundColor string `json:"site_background_color" example:"#f5f6f8"`
+	// 网站主题色
+	SiteThemeColor string `json:"site_theme_color" example:"#965bff"`
+	// 网站图标路径（标签页 / 桌面应用图标）
+	SiteIcon string `json:"site_icon" example:"https://cdn.hejunjie.life/avatars/shop.png"`
+	// 是否允许用户自助注册, 0-禁止, 1-允许
+	Register string `json:"register" example:"1"`
+	// 网站 Logo 路径（登录页等场景展示）
+	Logo string `json:"logo" example:"https://cdn.hejunjie.life/avatars/shop.png"`
+	// 登录页背景图路径（留空则根据主题色生成背景）
+	LoginBg string `json:"login_bg" example:""`
+	// 登录页主标题
+	LoginTitle string `json:"login_title" example:"积分商城"`
+	// 登录页副标题 / Slogan
+	LoginSlogan string `json:"login_slogan" example:""`
 }

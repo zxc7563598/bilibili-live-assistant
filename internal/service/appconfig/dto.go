@@ -17,3 +17,17 @@ type LoginConfig struct {
 	Title    string `json:"title"`
 	Slogan   string `json:"slogan"`
 }
+
+// ConfigData 请求返回
+type ConfigData struct {
+	SiteName            string `json:"site_name"`
+	SiteDescription     string `json:"site_description"`
+	SiteBackgroundColor string `json:"site_background_color"`
+	SiteThemeColor      string `json:"site_theme_color"`
+	SiteIcon            string `json:"site_icon"`
+	Register            string `json:"register"`
+	Logo                string `json:"logo"`
+	LoginBg             string `json:"login_bg"`
+	LoginTitle          string `json:"login_title"`
+	LoginSlogan         string `json:"login_slogan"`
+}

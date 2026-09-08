@@ -1,6 +1,9 @@
 package appconfig
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/app_config"
@@ -78,4 +81,46 @@ func (s *Service) LoginConfig() (LoginConfig, int, error) {
 		resp.Register = true
 	}
 	return resp, 0, nil
+}
+
+// ConfigData 获取全部配置信息
+func (s *Service) ConfigData() (ConfigData, int, error) {
+	data := s.appConfigCache.GetAll()
+	return ConfigData{
+		SiteName:            data[keySiteName],
+		SiteDescription:     data[keySiteDescription],
+		SiteBackgroundColor: data[keySiteBackgroundColor],
+		SiteThemeColor:      data[keySiteThemeColor],
+		SiteIcon:            data[keySiteIcon],
+		Register:            data[keyRegister],
+		Logo:                data[keyLogo],
+		LoginBg:             data[keyLoginBg],
+		LoginTitle:          data[keyTitle],
+		LoginSlogan:         data[keySlogan],
+	}, 0, nil
+}
+
+// SaveConfig 整体保存全部配置：按 config_key 批量 upsert 落库后刷新内存缓存，立即生效
+func (s *Service) SaveConfig(ctx context.Context, data ConfigData) (int, error) {
+	values := map[string]string{
+		keySiteName:            data.SiteName,
+		keySiteDescription:     data.SiteDescription,
+		keySiteBackgroundColor: data.SiteBackgroundColor,
+		keySiteThemeColor:      data.SiteThemeColor,
+		keySiteIcon:            data.SiteIcon,
+		keyRegister:            data.Register,
+		keyLogo:                data.Logo,
+		keyLoginBg:             data.LoginBg,
+		keyTitle:               data.LoginTitle,
+		keySlogan:              data.LoginSlogan,
+	}
+	if err := s.appConfigRepo.SaveValues(ctx, nil, values); err != nil {
+		return 60902, fmt.Errorf("保存 App 配置失败: %w", err)
+	}
+	// 落库成功后刷新缓存
+	reloadCtx := context.WithoutCancel(ctx)
+	if err := s.appConfigCache.Reload(reloadCtx); err != nil {
+		return 60903, fmt.Errorf("刷新 App 配置缓存失败: %w", err)
+	}
+	return 0, nil
 }

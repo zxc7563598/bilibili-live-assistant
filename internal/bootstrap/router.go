@@ -16,6 +16,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/middleware"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/webui"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/fileutil"
 )
 
 func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg config.CORSConfig, cryptoCfg config.CryptoConfig) *gin.Engine {
@@ -33,6 +34,13 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+	// 上传文件静态访问：文件由 pkg/fileutil.SaveUploadedFile 落盘到工作目录
+	r.GET("/uploads/*filepath", func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=604800")
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Content-Security-Policy", "sandbox")
+		http.StripPrefix("/uploads/", http.FileServer(http.Dir(fileutil.UploadRoot))).ServeHTTP(c.Writer, c.Request)
 	})
 	// altcha 验证码（独立路由，不受分组中间件影响）
 	r.GET("/auth/altcha/challenge", handlers.Altcha.Challenge)
@@ -140,6 +148,11 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/robot/share/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyShare)
 	adminApi.POST("/robot/reply/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetReply)
 	adminApi.POST("/robot/reply/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyReply)
+	// App 配置管理路由（所有登录用户可访问）
+	adminApi.POST("/appconfig/data", middleware.AdminAuth(rdb), handlers.AppConfig.GetConfig)
+	adminApi.POST("/appconfig/save", middleware.AdminAuth(rdb), handlers.AppConfig.SaveConfig)
+	// 图片上传：scene 白名单见 appconfig.UploadImage
+	adminApi.POST("/appconfig/upload", middleware.AdminAuth(rdb), handlers.AppConfig.UploadImage)
 	// 弹幕列表路由
 	adminApi.POST("/livedanmu/room", middleware.AdminAuth(rdb), handlers.LiveDanmu.FetchRoomGroups)
 	adminApi.POST("/livedanmu/list", middleware.AdminAuth(rdb), handlers.LiveDanmu.ListPage)

@@ -45,6 +45,7 @@ tmp/
 config.yaml
 /bin
 /logs
+/uploads
 
 .claude
 bilibili_state.json
