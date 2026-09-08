@@ -1,3 +1,18 @@
+<template>
+  <div class="min-h-dvh bg-bg pb-10">
+    <AppNavBar title="修改密码" />
+
+    <main class="mx-auto w-full max-w-5xl space-y-4 px-4 pt-3">
+      <AppInput v-model="oldPwd" type="password" label="当前密码" placeholder="请输入当前密码" />
+      <AppInput v-model="newPwd" type="password" label="新密码" placeholder="请输入新密码" />
+      <AppInput v-model="confirmPwd" type="password" label="确认新密码" placeholder="请再次输入新密码" />
+      <AppButton block size="lg" :loading="saveLoading" @click="submit">
+        确认修改
+      </AppButton>
+    </main>
+  </div>
+</template>
+
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -51,18 +66,3 @@ function submit() {
   })
 }
 </script>
-
-<template>
-  <div class="min-h-dvh bg-bg pb-10">
-    <AppNavBar title="修改密码" />
-
-    <main class="mx-auto w-full max-w-5xl space-y-4 px-4 pt-3">
-      <AppInput v-model="oldPwd" type="password" label="当前密码" placeholder="请输入当前密码" />
-      <AppInput v-model="newPwd" type="password" label="新密码" placeholder="请输入新密码" />
-      <AppInput v-model="confirmPwd" type="password" label="确认新密码" placeholder="请再次输入新密码" />
-      <AppButton block size="lg" :loading="saveLoading" @click="submit">
-        确认修改
-      </AppButton>
-    </main>
-  </div>
-</template>
