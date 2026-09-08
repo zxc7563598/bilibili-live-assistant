@@ -5,6 +5,7 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
 
 // updateToken 用于更新用户token
@@ -55,6 +56,31 @@ func toListPageItems(liveUser []model.LiveUser) []ListPageItem {
 			Stars:           v.Stars,
 			TotalDanmuCount: v.TotalDanmuCount,
 			TotalGiftAmount: v.TotalGiftAmount,
+		}
+		respList = append(respList, item)
+	}
+	return respList
+}
+
+func toUserAssetsPageItems(list []model.LiveUserCreditLogListItem) []UserAssetsPageItem {
+	respList := make([]UserAssetsPageItem, 0, len(list))
+	for _, v := range list {
+		item := UserAssetsPageItem{
+			ID:           v.ID,
+			UserID:       v.UserID,
+			UID:          v.UID,
+			Uname:        v.Uname,
+			Face:         v.Face,
+			CreditType:   v.CreditType,
+			ChangeAmount: v.ChangeAmount,
+			ChangeType:   v.ChangeType,
+			BeforeValue:  v.BeforeValue,
+			AfterValue:   v.AfterValue,
+			BizType:      v.BizType,
+			Remark:       v.Remark,
+			OperatorType: v.OperatorType,
+			OperatorID:   v.OperatorID,
+			CreatedAt:    timeutil.Format(v.CreatedAt),
 		}
 		respList = append(respList, item)
 	}

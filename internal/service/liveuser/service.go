@@ -397,6 +397,31 @@ func (s *Service) UserInfo(ctx context.Context, userID int64) (UserInfoResp, int
 	}, 0, nil
 }
 
+// UserAssetsPage 分页获取用户账户变更记录
+func (s *Service) UserAssetsPage(ctx context.Context, userID int64, req UserAssetsPageReq) (UserAssetsPageResp, int, error) {
+	// 根据主键ID获取用户信息
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
+	list, total, err := s.liveUserCreditLogRepo.ListPage(ctx, nil, model.LiveUserCreditLogListPageQuery{
+		UID:        req.UID,
+		UserID:     &userID,
+		Uname:      req.Uname,
+		CreditType: req.CreditType,
+		ChangeType: req.ChangeType,
+		Offset:     offset,
+		Limit:      limit,
+		SortField:  sortField,
+		SortOrder:  sortOrder,
+	})
+	if err != nil {
+		return UserAssetsPageResp{}, 60801, err
+	}
+	// 返回数据
+	return UserAssetsPageResp{
+		Total:    total,
+		PageData: toUserAssetsPageItems(list),
+	}, 0, nil
+}
+
 // addCreditLog 增加用户资产记录（增加或减少）
 //
 // 资产变更交给数据库原子完成，再按其返回的变更前后数值写流水，

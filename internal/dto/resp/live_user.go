@@ -1,5 +1,7 @@
 package resp
 
+import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+
 // LiveUserListPageResp 分页查询用户列表返回
 type LiveUserListPageResp struct {
 	// 总计条数
@@ -82,4 +84,29 @@ type LiveUserUserInfoResp struct {
 // LiveUserGetRoomIDResp 获取直播间房间号返回
 type LiveUserGetRoomIDResp struct {
 	RoomID int64 `json:"room_id" example:"22384516"`
+}
+
+// LiveUserAssetsPageResp 用户分页查询账户记录返回
+type LiveUserAssetsPageResp struct {
+	// 总计条数
+	Total int64 `json:"total" example:"100"`
+	// 当前页码数据
+	PageData []LiveUserAssetsPageItem `json:"pageData"`
+}
+
+type LiveUserAssetsPageItem struct {
+	// ID
+	ID int64 `json:"id" example:"1"`
+	// 备注/原因说明
+	Remark string `json:"remark" example:"xxxxxxxxx"`
+	// 变动类型
+	ChangeType enum.ChangeType `json:"change_type" example:"1" enums:"0,1"`
+	// 变动数值
+	ChangeAmount int64 `json:"change_amount" example:"100"`
+	// 积分类型
+	CreditType enum.CreditType `json:"credit_type" example:"1" enums:"0,1"`
+	// 发生时间
+	CreatedAt string `json:"created_at" example:"xxxx-xx-xx xx:xx:xx"`
+	// 变动后数值
+	AfterValue int64 `json:"after_value" example:"100"`
 }

@@ -98,3 +98,36 @@ type UserInfoResp struct {
 	Points int64  `json:"points"`
 	Stars  int64  `json:"stars"`
 }
+
+// UserAssetsPage 请求入参
+type UserAssetsPageReq struct {
+	PageResp
+	UID        *int64  `json:"uid"`
+	Uname      *string `json:"uname"`
+	CreditType *int    `json:"credit_type"`
+	ChangeType *int    `json:"change_type"`
+}
+
+// UserAssetsPage 请求返回
+type UserAssetsPageResp struct {
+	Total    int64 `json:"total"`
+	PageData []UserAssetsPageItem
+}
+
+type UserAssetsPageItem struct {
+	ID           int64             `json:"id"`
+	UserID       int64             `json:"user_id"`
+	UID          int64             `json:"uid"`
+	Uname        string            `json:"uname"`
+	Face         string            `json:"face"`
+	CreditType   enum.CreditType   `json:"credit_type"`
+	ChangeType   enum.ChangeType   `json:"change_type"`
+	ChangeAmount int64             `json:"change_amount"`
+	BeforeValue  int64             `json:"before_value"`
+	AfterValue   int64             `json:"after_value"`
+	BizType      string            `json:"biz_type"`
+	Remark       string            `json:"remark"`
+	OperatorType enum.OperatorType `json:"operator_type"`
+	OperatorID   int64             `json:"operator_id"`
+	CreatedAt    string            `json:"created_at"`
+}

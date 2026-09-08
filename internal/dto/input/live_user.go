@@ -51,3 +51,17 @@ type LiveUserRefreshReq struct {
 	// refresh token
 	Token string `json:"token" binding:"required" err:"required=10801" example:"Bearer xxxxxxxxxx"`
 }
+
+// LiveUserAssetsPageReq 用户分页查询账户记录请求
+type LiveUserAssetsPageReq struct {
+	// 页码
+	PageNo int `json:"pageNo" binding:"required" err:"required=10801" example:"1"`
+	// 每页展示条数
+	PageSize int `json:"pageSize" binding:"required" err:"required=10801" example:"20"`
+	// 排序字段
+	SortField *string `json:"sortField" example:"created_at"`
+	// 排序方向 ascend/descend
+	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
+	// 变动类型
+	CreditType *int `json:"credit_type" example:"1" enums:"0,1"`
+}

@@ -26,6 +26,30 @@ func (LiveUserCreditLog) TableName() string {
 	return "live_user_credit_logs"
 }
 
+// LiveUserCreditLogListPageQuery 分页查询入参，不对应数据库表
+//
+// UID/Uname 用于过滤联查的 live_users，CreditType/ChangeType 用于过滤本表日志
+type LiveUserCreditLogListPageQuery struct {
+	UID        *int64
+	UserID     *int64
+	Uname      *string
+	CreditType *int
+	ChangeType *int
+	SortField  *string
+	SortOrder  *string
+	Offset     int
+	Limit      int
+}
+
+// LiveUserCreditLogListItem 分页查询结果：live_user_credit_logs 联查 live_users，
+// 除日志全字段外补充 uid/uname/face，不对应数据库表
+type LiveUserCreditLogListItem struct {
+	UID   int64
+	Uname string
+	Face  string
+	LiveUserCreditLog
+}
+
 // BeforeUpdate 禁止修改日志记录
 func (l *LiveUserCreditLog) BeforeUpdate(tx *gorm.DB) error {
 	return errors.New("live_user_credit_logs 不允许修改")

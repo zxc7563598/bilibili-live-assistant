@@ -425,3 +425,64 @@ func (h *Handler) GetRoomID(c *gin.Context) {
 		RoomID: roomID,
 	})
 }
+
+// @Summary 分页查询我的积分/星光变动记录
+// @Description 分页查询当前登录用户的账户资产（积分/星光）变动流水，服务端仅返回该用户本人的记录
+// @Tags 移动端
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserAssetsPageReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.LiveUserAssetsPageResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/shop/liveuser/assets [post]
+func (h *Handler) UserAssetsPage(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取用户ID
+	userInfo, ok := handler.GetUserInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取请求参数
+	var req input.LiveUserAssetsPageReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"UserAssetsPage 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.liveuserSvc.UserAssetsPage(ctx, userInfo.UserID, liveuser.UserAssetsPageReq{
+		PageResp: liveuser.PageResp{
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
+		},
+		CreditType: req.CreditType,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.UserAssetsPage 调用失败",
+			errCode,
+			err,
+			zap.Any("userinfo", userInfo),
+			zap.Int("req.pageNo", req.PageNo),
+			zap.Int("req.pageSize", req.PageSize),
+			zap.Any("req.credit_type", req.CreditType),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserAssetsPageResp{
+		Total:    svcResp.Total,
+		PageData: toLiveUserAssetsPageItems(svcResp.PageData),
+	})
+}
