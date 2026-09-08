@@ -119,6 +119,7 @@ error:
   10501: Invalid request parameters # Parameter validation failed
   10601: Invalid request parameters # Parameter validation failed
   10801: Invalid request parameters # Parameter validation failed
+  10802: Password cannot be less than six digits # Password cannot be less than six digits
   10901: Illegal image information # Image MIME type retrieval failed
   11101: Request parameter is invalid # Order parameter is invalid
   11301: Invalid address parameter # Address parameter validation failed

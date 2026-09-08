@@ -43,13 +43,21 @@ type LiveUserLoginReq struct {
 	// 用户账号(UID)
 	Account int64 `json:"account" binding:"required" err:"required=10801" example:"1"`
 	// 用户密码
-	Password string `json:"password" binding:"required" err:"required=10801" example:"1"`
+	Password string `json:"password" binding:"required,min=6" err:"required=10801,min=10802" example:"1"`
 }
 
 // LiveUserRefreshReq 刷新登录凭证请求
 type LiveUserRefreshReq struct {
 	// refresh token
 	Token string `json:"token" binding:"required" err:"required=10801" example:"Bearer xxxxxxxxxx"`
+}
+
+// LiveUserChangePasswordReq 修改用户密码请求
+type LiveUserChangePasswordReq struct {
+	// 旧密码
+	OldPassword string `json:"old_password" binding:"required,min=6" err:"required=10801,min=10802" example:"123456"`
+	// 新密码
+	NewPassword string `json:"new_password" binding:"required,min=6" err:"required=10801,min=10802" example:"654321"`
 }
 
 // LiveUserAssetsPageReq 用户分页查询账户记录请求

@@ -378,6 +378,32 @@ func (s *Service) Logout(ctx context.Context, userID int64) (int, error) {
 	return 0, nil
 }
 
+// ChangePassword 用于根据用户旧密码修改密码
+func (s *Service) ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (int, error) {
+	// 根据主键ID获取用户信息
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return 60801, err
+	}
+	if user == nil {
+		return 50802, nil
+	}
+	// 验证旧密码是否正确
+	if !crypto.CheckPassword(user.Password, oldPassword) {
+		return 40801, nil
+	}
+	// 新密码加密并更新
+	password, err := crypto.HashPassword(newPassword)
+	if err != nil {
+		return 60801, err
+	}
+	if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, password); err != nil {
+		return 60801, err
+	}
+	// 返回结果
+	return 0, nil
+}
+
 // UserInfo 获取用户基本信息
 func (s *Service) UserInfo(ctx context.Context, userID int64) (UserInfoResp, int, error) {
 	// 根据主键ID获取用户信息
