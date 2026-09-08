@@ -12,6 +12,58 @@ definitions:
     - BadgeTypeL3
     - BadgeTypeL2
     - BadgeTypeL1
+  enum.ChangeType:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-varnames:
+    - ChangeTypeReduce
+    - ChangeTypeIncrease
+  enum.CreditType:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-varnames:
+    - CreditTypeStars
+    - CreditTypePoints
+  enum.OrderStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    type: integer
+    x-enum-varnames:
+    - OrderStatusPendingPayment
+    - OrderStatusPendingShipment
+    - OrderStatusPendingReceipt
+    - OrderStatusCompleted
+    - OrderStatusCancelled
+    - OrderStatusAfterSales
+  enum.PayStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - PayStatusUnpaid
+    - PayStatusPaid
+    - PayStatusRefunded
+  enum.ShipStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - ShipStatusPending
+    - ShipStatusShipped
+    - ShipStatusDelivered
   input.AdConfigReq:
     properties:
       content:
@@ -41,6 +93,76 @@ definitions:
     - interval
     - scene
     - send_mode
+    type: object
+  input.AddressDeleteAddressReq:
+    properties:
+      id:
+        example: 1
+        type: integer
+    required:
+    - id
+    type: object
+  input.AddressGetAddressByIDReq:
+    properties:
+      id:
+        example: 1
+        type: integer
+    required:
+    - id
+    type: object
+  input.AddressGetAddressListReq:
+    properties:
+      type:
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+    type: object
+  input.AddressGetDefaultAddressReq:
+    properties:
+      type:
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+    type: object
+  input.AddressSaveAddressReq:
+    properties:
+      detail:
+        example: xxxxxxxxxx
+        type: string
+      email:
+        example: xxxxx@xxx.xx
+        type: string
+      id:
+        example: 2
+        type: integer
+      is_default:
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        example: 哎呀又胖啦
+        type: string
+      phone:
+        example: "18888888888"
+        type: string
+      region:
+        example: xxx xxx xxx
+        type: string
+      region_code:
+        example: '[''370000'', ''370100'', ''370116'']'
+        type: string
+      type:
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
     type: object
   input.AdminChangePasswordReq:
     properties:
@@ -94,6 +216,17 @@ definitions:
         description: 每页展示条数
         example: 20
         type: integer
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
       username:
         description: 用户名，支持模糊搜索
         example: admin
@@ -219,6 +352,28 @@ definitions:
     required:
     - id
     type: object
+  input.FeedbackSubmitReq:
+    properties:
+      contact:
+        description: 联系方式（手机号 / 邮箱 / QQ 等，便于平台回访）
+        example: "18888888888"
+        maxLength: 100
+        type: string
+      content:
+        description: 投诉内容
+        example: 主播发布违规内容，请核查
+        maxLength: 5000
+        type: string
+      type:
+        description: 问题类型
+        example: 直播问题
+        maxLength: 100
+        type: string
+    required:
+    - contact
+    - content
+    - type
+    type: object
   input.FollowConfigReq:
     properties:
       content:
@@ -315,6 +470,17 @@ definitions:
         items:
           type: integer
         type: array
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
       uid:
         description: 用户ID
         example: 54272611
@@ -357,6 +523,17 @@ definitions:
         items:
           type: integer
         type: array
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
       uid:
         description: 用户ID
         example: 54272611
@@ -403,6 +580,17 @@ definitions:
         items:
           type: integer
         type: array
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
       uid:
         description: 用户ID
         example: 54272611
@@ -434,6 +622,54 @@ definitions:
     required:
     - roomId
     type: object
+  input.LiveUserAssetsPageReq:
+    properties:
+      credit_type:
+        description: 变动类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      sortField:
+        description: 排序字段
+        example: created_at
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
+  input.LiveUserChangePasswordReq:
+    properties:
+      new_password:
+        description: 新密码
+        example: "654321"
+        minLength: 6
+        type: string
+      old_password:
+        description: 旧密码
+        example: "123456"
+        minLength: 6
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
   input.LiveUserExistsAccountReq:
     properties:
       account:
@@ -453,6 +689,17 @@ definitions:
         description: 每页展示条数
         example: 20
         type: integer
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
       uid:
         description: 用户UID
         example: 54272611
@@ -474,6 +721,7 @@ definitions:
       password:
         description: 用户密码
         example: "1"
+        minLength: 6
         type: string
     required:
     - account
@@ -618,6 +866,84 @@ definitions:
     required:
     - path
     type: object
+  input.OrderConfirmPaymentReq:
+    properties:
+      address_id:
+        description: 收货地址ID
+        example: 0
+        minimum: 1
+        type: integer
+      draft_id:
+        description: 历史草稿ID
+        example: 0
+        minimum: 1
+        type: integer
+    required:
+    - address_id
+    - draft_id
+    type: object
+  input.OrderListPageByUserReq:
+    properties:
+      order_status:
+        description: 订单状态
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 0
+        type: integer
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
+  input.OrderPlaceOrderReq:
+    properties:
+      count:
+        description: 购买数量
+        example: 0
+        minimum: 1
+        type: integer
+      sku_id:
+        description: SKU ID
+        example: 0
+        minimum: 1
+        type: integer
+    required:
+    - count
+    - sku_id
+    type: object
+  input.OrderReOrderReq:
+    properties:
+      id:
+        description: 历史草稿ID
+        example: 0
+        minimum: 1
+        type: integer
+    required:
+    - id
+    type: object
   input.PkConfigReq:
     properties:
       content:
@@ -632,6 +958,51 @@ definitions:
     required:
     - content
     - enabled
+    type: object
+  input.ProductDetailReq:
+    properties:
+      id:
+        description: 商品ID
+        example: 1
+        type: integer
+    required:
+    - id
+    type: object
+  input.ProductListPageReq:
+    properties:
+      credit_type:
+        description: 货币类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        description: 商品名称，支持模糊搜索
+        example: 测试
+        type: string
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+    required:
+    - pageNo
+    - pageSize
     type: object
   input.ReplyConfigReq:
     properties:
@@ -754,6 +1125,17 @@ definitions:
         description: 每页展示条数
         example: 20
         type: integer
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
     required:
     - pageNo
     - pageSize
@@ -1000,6 +1382,149 @@ definitions:
         description: 发送方式, 0-随机发送, 1-顺序发送
         example: "0"
         type: string
+    type: object
+  resp.AddressGetAddressByIDResp:
+    properties:
+      detail:
+        description: 详细地址
+        example: xxxxxxxxxxxxxxx
+        type: string
+      email:
+        description: 邮箱地址
+        example: xxxxxxxx@xxx.xx
+        type: string
+      id:
+        description: id
+        example: 1
+        type: integer
+      is_default:
+        description: 默认地址
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        description: 收货人姓名
+        example: 哎呀又胖啦
+        type: string
+      phone:
+        description: 收货人手机号
+        example: "18888888888"
+        type: string
+      region:
+        description: 地区文字描述
+        example: xxxxx xxxxx xxxxx
+        type: string
+      region_code:
+        description: 地区code
+        example: '[''370000'', ''370100'', ''370116'']'
+        type: string
+      type:
+        description: 类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+    type: object
+  resp.AddressGetAddressListResp:
+    properties:
+      list:
+        description: 收货地址列表
+        items:
+          $ref: '#/definitions/resp.AddressItem'
+        type: array
+    type: object
+  resp.AddressGetDefaultAddressResp:
+    properties:
+      detail:
+        description: 详细地址
+        example: xxxxxxxxxxxxxxx
+        type: string
+      email:
+        description: 邮箱地址
+        example: xxxxxxxx@xxx.xx
+        type: string
+      id:
+        description: id
+        example: 1
+        type: integer
+      is_default:
+        description: 默认地址
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        description: 收货人姓名
+        example: 哎呀又胖啦
+        type: string
+      phone:
+        description: 收货人手机号
+        example: "18888888888"
+        type: string
+      region:
+        description: 地区文字描述
+        example: xxxxx xxxxx xxxxx
+        type: string
+      region_code:
+        description: 地区code
+        example: '[''370000'', ''370100'', ''370116'']'
+        type: string
+      type:
+        description: 类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+    type: object
+  resp.AddressItem:
+    properties:
+      detail:
+        description: 详细地址
+        example: xxxxxxxxxxxxxxx
+        type: string
+      email:
+        description: 邮箱地址
+        example: xxxxxxxx@xxx.xx
+        type: string
+      id:
+        description: id
+        example: 1
+        type: integer
+      is_default:
+        description: 默认地址
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        description: 收货人姓名
+        example: 哎呀又胖啦
+        type: string
+      phone:
+        description: 收货人手机号
+        example: "18888888888"
+        type: string
+      region:
+        description: 地区文字描述
+        example: xxxxx xxxxx xxxxx
+        type: string
+      region_code:
+        description: 地区code
+        example: '[''370000'', ''370100'', ''370116'']'
+        type: string
+      type:
+        description: 类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
     type: object
   resp.AdminCaptchaResp:
     properties:
@@ -1329,6 +1854,24 @@ definitions:
         description: 展示数量, 0-禁用, 1-启用
         example: "1"
         type: string
+    type: object
+  resp.ImageItem:
+    properties:
+      id:
+        description: 图片ID
+        example: 1
+        type: integer
+      image_path:
+        description: 图片URL
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      type:
+        description: 图片位置
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
     type: object
   resp.LiveDanmuFetchRoomGroupsItem:
     properties:
@@ -1672,12 +2215,69 @@ definitions:
         example: https://api.bilibili.com/x/...
         type: string
     type: object
+  resp.LiveUserAssetsPageItem:
+    properties:
+      after_value:
+        description: 变动后数值
+        example: 100
+        type: integer
+      change_amount:
+        description: 变动数值
+        example: 100
+        type: integer
+      change_type:
+        allOf:
+        - $ref: '#/definitions/enum.ChangeType'
+        description: 变动类型
+        enum:
+        - 0
+        - 1
+        example: 1
+      created_at:
+        description: 发生时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      credit_type:
+        allOf:
+        - $ref: '#/definitions/enum.CreditType'
+        description: 积分类型
+        enum:
+        - 0
+        - 1
+        example: 1
+      id:
+        description: ID
+        example: 1
+        type: integer
+      remark:
+        description: 备注/原因说明
+        example: xxxxxxxxx
+        type: string
+    type: object
+  resp.LiveUserAssetsPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.LiveUserAssetsPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
   resp.LiveUserExistsAccountResp:
     properties:
       exist:
         description: 是否存在
         example: false
         type: boolean
+    type: object
+  resp.LiveUserGetRoomIDResp:
+    properties:
+      room_id:
+        example: 22384516
+        type: integer
     type: object
   resp.LiveUserListPageItem:
     properties:
@@ -1755,6 +2355,24 @@ definitions:
         items:
           $ref: '#/definitions/resp.LiveUserWordFrequency'
         type: array
+    type: object
+  resp.LiveUserUserInfoResp:
+    properties:
+      avatar:
+        example: https://xxxxxx.xxx.com
+        type: string
+      name:
+        example: 哎呀又胖啦
+        type: string
+      points:
+        example: 30
+        type: integer
+      stars:
+        example: 50
+        type: integer
+      uid:
+        example: 4325051
+        type: integer
     type: object
   resp.LiveUserUserMonthlyAnalysisResp:
     properties:
@@ -1892,6 +2510,134 @@ definitions:
         example: true
         type: boolean
     type: object
+  resp.OrderGetConfirmResp:
+    properties:
+      expire_at:
+        description: 到期时间(毫秒级时间戳)
+        example: 1788417485000
+        type: integer
+      id:
+        description: id
+        example: 1
+        type: integer
+      product:
+        allOf:
+        - $ref: '#/definitions/resp.ProductItem'
+        description: 产品信息
+    type: object
+  resp.OrderListPageByUserItem:
+    properties:
+      cancel_at:
+        description: 取消时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      created_at:
+        description: 创建时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      credit_type:
+        allOf:
+        - $ref: '#/definitions/enum.CreditType'
+        description: 支付类型
+        enum:
+        - 0
+        - 1
+        example: 1
+      express_company:
+        description: 快递公司
+        example: xxxxxxx
+        type: string
+      express_no:
+        description: 快递单号
+        example: P000002919238123
+        type: string
+      id:
+        description: id
+        example: 1
+        type: integer
+      order_sn:
+        description: 订单号
+        example: P00029182821723123
+        type: string
+      order_status:
+        allOf:
+        - $ref: '#/definitions/enum.OrderStatus'
+        description: 订单状态
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 1
+      pay_at:
+        description: 支付时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      pay_status:
+        allOf:
+        - $ref: '#/definitions/enum.PayStatus'
+        description: 支付状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+      price:
+        description: 支付价格
+        example: 100
+        type: integer
+      processed_at:
+        description: 发货时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      product_cover:
+        description: 商品封面图
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      product_id:
+        description: 商品ID
+        example: 1
+        type: integer
+      product_name:
+        description: 商品名称
+        example: 商品名称
+        type: string
+      product_spec_properties:
+        description: 规格快照
+        example: '[{''aa'':''bb''},{''aa'':''bb''}]'
+        type: string
+      quantity:
+        description: 购买数量
+        example: 1
+        type: integer
+      remark:
+        description: 用户备注
+        example: xxxxxxxxxxxxx
+        type: string
+      ship_status:
+        allOf:
+        - $ref: '#/definitions/enum.ShipStatus'
+        description: 发货状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+    type: object
+  resp.OrderListPageByUserResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.OrderListPageByUserItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
   resp.PkConfigResp:
     properties:
       content:
@@ -1903,6 +2649,158 @@ definitions:
         description: 是否启用, 0-禁用, 1-启用
         example: "1"
         type: string
+    type: object
+  resp.ProductDetailResp:
+    properties:
+      cover:
+        description: 商品封面URL
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      credit_type:
+        description: 价格类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      describe:
+        description: 商品说明
+        example: xxxxxxxxxxxxxxxxx
+        type: string
+      id:
+        description: 商品ID
+        example: 1
+        type: integer
+      images:
+        description: 商品详情图
+        items:
+          $ref: '#/definitions/resp.ImageItem'
+        type: array
+      name:
+        description: 商品名称
+        example: 小立牌
+        type: string
+      price:
+        description: 价格
+        example: 100
+        type: integer
+      skus:
+        description: 商品SKU信息
+        items:
+          $ref: '#/definitions/resp.SkuItem'
+        type: array
+      sold:
+        description: 已售
+        example: 100
+        type: integer
+      specs:
+        description: 商品规格
+        items:
+          $ref: '#/definitions/resp.SpecItem'
+        type: array
+      stock:
+        description: 库存
+        example: 100
+        type: integer
+      tags:
+        description: 商品标签，英文逗号隔开
+        example: aa,bb,cc,dd
+        type: string
+    type: object
+  resp.ProductItem:
+    properties:
+      count:
+        description: 购买数量
+        example: 0
+        type: integer
+      cover:
+        description: 产品封面
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      credit_type:
+        description: 产品价格类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      id:
+        description: 产品ID
+        example: 2
+        type: integer
+      name:
+        description: 产品名称
+        example: 蓝牙耳机
+        type: string
+      price:
+        description: 产品价格
+        example: 30
+        type: integer
+      product_type:
+        description: 产品类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      sku:
+        description: 产品SKU
+        example: '[{''aa'':''bb''},{''aa'':''bb''}]'
+        type: string
+    type: object
+  resp.ProductListPageItem:
+    properties:
+      cover:
+        description: 商品封面URL
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      credit_type:
+        description: 价格类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      describe:
+        description: 商品说明
+        example: xxxxxxxxxxxxxxxxx
+        type: string
+      id:
+        description: 管理员ID
+        example: 1
+        type: integer
+      name:
+        description: 商品名称
+        example: 小立牌
+        type: string
+      price:
+        description: 价格
+        example: 100
+        type: integer
+      sold:
+        description: 已售
+        example: 100
+        type: integer
+      stock:
+        description: 库存
+        example: 100
+        type: integer
+      tags:
+        description: 商品标签，英文逗号隔开
+        example: aa,bb,cc,dd
+        type: string
+    type: object
+  resp.ProductListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.ProductListPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
     type: object
   resp.ReplyConfigResp:
     properties:
@@ -2208,6 +3106,52 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  resp.SkuItem:
+    properties:
+      id:
+        description: SKU ID
+        example: 1
+        type: integer
+      price:
+        description: SKU 价格
+        example: 100
+        type: integer
+      spec_properties:
+        description: SKU 规格快照
+        example: '[{''aa'':''bb''},{''aa'':''bb''}]'
+        type: string
+      stock:
+        description: SKU 库存
+        example: 100
+        type: integer
+    type: object
+  resp.SpecItem:
+    properties:
+      id:
+        description: 规格ID
+        example: 1
+        type: integer
+      key_name:
+        description: 规格名称
+        example: aa
+        type: string
+      values:
+        description: 规格值
+        items:
+          $ref: '#/definitions/resp.SpecValue'
+        type: array
+    type: object
+  resp.SpecValue:
+    properties:
+      id:
+        description: 规格值ID
+        example: 1
+        type: integer
+      value_name:
+        description: 规格值内容
+        example: bb
+        type: string
     type: object
   resp.WelcomeConfigResp:
     properties:
@@ -3971,9 +4915,198 @@ paths:
       summary: 创建或更新角色
       tags:
       - 角色
+  /api/shop/address/default:
+    post:
+      description: 返回当前用户在指定收货地址类型（0 虚拟，1 实体）下的默认收货地址，供下单确认等页面默认回填使用；该类型下暂无默认地址时返回空对象。
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AddressGetDefaultAddressReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AddressGetDefaultAddressResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取指定收货地址类型的默认地址
+      tags:
+      - 移动端
+  /api/shop/address/delete:
+    post:
+      description: 删除当前用户的某条收货地址（软删除）；仅可删除归属当前用户本人且存在的地址，否则返回错误。
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AddressDeleteAddressReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除收货地址
+      tags:
+      - 移动端
+  /api/shop/address/detail:
+    post:
+      description: 返回当前用户某条收货地址的完整信息，常用于编辑前的信息回显；仅可查询归属当前用户本人的地址，否则返回错误。
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AddressGetAddressByIDReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AddressGetAddressByIDResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取收货地址详情
+      tags:
+      - 移动端
+  /api/shop/address/list:
+    post:
+      description: 按收货地址类型获取当前用户的全部收货地址，不分页返回，常用于地址管理页面的列表展示；type 缺省时返回全部类型。
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数（可省略；省略或未传 type 时返回全部类型）
+        in: body
+        name: data
+        schema:
+          $ref: '#/definitions/input.AddressGetAddressListReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AddressGetAddressListResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取收货地址列表
+      tags:
+      - 移动端
+  /api/shop/address/save:
+    post:
+      description: 新增或修改当前用户的收货地址：携带 id 视为修改该条地址，不携带 id 视为新增；修改时省略的字段保留原值，is_default
+        为 1 时该地址被设为对应类型下的默认地址。
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AddressSaveAddressReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，data 为地址 ID）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  format: int64
+                  type: integer
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 新增/修改收货地址
+      tags:
+      - 移动端
+  /api/shop/feedback/submit:
+    post:
+      description: 当前登录用户提交一条投诉/反馈（问题类型、内容、联系方式），提交后由平台侧处理；联系方式仅用于平台回访
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.FeedbackSubmitReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 提交用户投诉/反馈
+      tags:
+      - 移动端
   /api/shop/liveuser/account:
     post:
-      description: 判断指定 UID 的账号是否存在，用于登录页预校验
+      description: 校验指定账号（UID）是否已存在，供登录页在提交前进行预检
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -4002,9 +5135,97 @@ paths:
       summary: 判断用户账号是否存在
       tags:
       - 移动端
+  /api/shop/liveuser/assets:
+    post:
+      description: 分页查询当前登录用户的账户资产（积分/星光）变动流水，服务端仅返回该用户本人的记录
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserAssetsPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserAssetsPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询我的积分/星光变动记录
+      tags:
+      - 移动端
+  /api/shop/liveuser/change-password:
+    post:
+      description: 用户在已登录状态下通过旧密码验证后修改登录密码，修改成功后前端将引导用户重新登录
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserChangePasswordReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 修改用户密码
+      tags:
+      - 移动端
+  /api/shop/liveuser/info:
+    post:
+      description: 获取当前登录用户的基本信息（头像、昵称、积分、星光等），供移动端商城展示
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserUserInfoResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取用户基本信息
+      tags:
+      - 移动端
   /api/shop/liveuser/login:
     post:
-      description: 用户通过uid与密码进行登录，登录成功后返回 access_token 和 refresh_token，用于后续接口鉴权
+      description: 用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -4057,7 +5278,7 @@ paths:
       - 移动端
   /api/shop/liveuser/refresh:
     post:
-      description: 使用 refresh_token 刷新登录状态，获取新的 access_token 和 refresh_token，用于延长会话有效期
+      description: 使用 refresh_token 换取新的 access_token 与 refresh_token，以延长会话有效期
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -4084,6 +5305,33 @@ paths:
                   $ref: '#/definitions/resp.LiveUserLoginResp'
               type: object
       summary: 刷新登录凭证
+      tags:
+      - 移动端
+  /api/shop/liveuser/room-id:
+    post:
+      description: 获取系统当前监听的直播间房间号，供移动端商城跳转至主播直播间使用
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserGetRoomIDResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取直播间房间号
       tags:
       - 移动端
   /api/shop/login:
@@ -4134,6 +5382,216 @@ paths:
                   $ref: '#/definitions/resp.AppShopManifestResp'
               type: object
       summary: 获取 App 的 Manifest 信息
+      tags:
+      - 移动端
+  /api/shop/order/again:
+    post:
+      description: 根据历史草稿ID找回商品与数量，重新锁定库存创建新的待支付草稿（用于已超时/已取消订单重新购买）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderReOrderReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 用户重新下单
+      tags:
+      - 移动端
+  /api/shop/order/confirm:
+    post:
+      description: 获取用户已经下单尚未支付的数据
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.OrderGetConfirmResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取用户下单数据
+      tags:
+      - 移动端
+  /api/shop/order/list:
+    post:
+      description: 按状态分页查询当前用户的历史订单列表
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderListPageByUserReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.OrderListPageByUserResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询我的订单
+      tags:
+      - 移动端
+  /api/shop/order/payment:
+    post:
+      description: 用户实际进行下单/支付
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderConfirmPaymentReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 用户确认兑换并完成支付
+      tags:
+      - 移动端
+  /api/shop/order/place:
+    post:
+      description: 用户在商城选择下单，锁定库存并允许用户在指定时间支付/下单
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderPlaceOrderReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 用户下单
+      tags:
+      - 移动端
+  /api/shop/product/detail:
+    post:
+      description: 用于商城端商品详情页的数据展示
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ProductDetailReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ProductDetailResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 商城端获取商品详细信息
+      tags:
+      - 移动端
+  /api/shop/product/list:
+    post:
+      description: 用于商城端主页商品列表的展示
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 分页参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ProductListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ProductListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 商城端获取主页商品分页列表
       tags:
       - 移动端
   /api/shop/public-key:
