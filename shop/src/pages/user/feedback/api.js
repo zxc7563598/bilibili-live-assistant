@@ -1,17 +1,5 @@
+import request from '@/static/request'
+
 export default {
-  savedFeedback: (type, content, contact) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          code: 0,
-          data: {
-            type,
-            content,
-            contact,
-          },
-          msg: 'success',
-        })
-      }, 1500)
-    })
-  },
+  savedFeedback: (type, content, contact) => request.post('/api/shop/feedback/submit', { type, content, contact }),
 }
