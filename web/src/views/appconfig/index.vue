@@ -9,7 +9,7 @@
                 积分商城配置
               </div>
               <div class="mt-2 text-13 text-gray-400">
-                配置积分商城的基本信息
+                积分商城是一个可「安装」到手机桌面的网页站点，本页用于配置它的名称、外观与登录页等基础信息
               </div>
             </div>
           </template>
@@ -18,30 +18,41 @@
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 关于「安装」
               </div>
-              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                积分商城通常为一个网站；
-                在支持 PWA 的浏览器引擎中访问时（火狐/谷歌等非国产浏览器），允许用户将该网站作为一个 App 安装在手机中
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  积分商城本身是一个网页站点。用户用支持 PWA 的手机浏览器（如 Safari、Chrome、Edge）打开商城时，可以把网站「安装」到手机桌面，之后像普通 App 一样，点击桌面图标即可直接进入；微信等不支持 PWA 的浏览器里打开时仍是普通网页。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">站点名称</span>：显示在浏览器标签栏、收藏夹，以及安装后的手机桌面图标下方。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">站点说明</span>：用一句话介绍这个商城。用户在手机浏览器里执行「添加到主屏幕」时会看到这段说明，用来确认要安装的内容。
+                </div>
               </div>
             </div>
             <div class="flex items-center gap-5">
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 站点名称
               </div>
-              <n-input v-model:value="appConfigForm.site_name" type="text" placeholder="站点以及安装后展示的名称" />
+              <n-input v-model:value="appConfigForm.site_name" type="text" placeholder="例如：积分商城" />
             </div>
             <div class="flex items-center gap-5">
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 站点说明
               </div>
-              <n-input v-model:value="appConfigForm.site_description" type="text" placeholder="用户在浏览器安装本应用的说明" />
+              <n-input v-model:value="appConfigForm.site_description" type="text" placeholder="介绍商城的一句话，例如：欢迎来到 XX 的积分商城" />
             </div>
             <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 关于「颜色」
               </div>
-              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                应用启动背景色：当用户在支持 PWA 的浏览器作为应用安装到手机后，启动的瞬间在内容加载完成前展示的背景色，通常无需做任何变更
-                网站主题色：站点中各种UI（边框/按钮等）通用的颜色，可以自行调整后访问积分商城查看效果
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">应用启动背景色</span>：只会在用户从桌面图标打开商城、首页内容渲染完成前的一瞬间显示，停留时间极短，通常无需修改。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">网站主题色</span>：商城的主色调，用于按钮、边框、链接、选中状态等界面元素；调整后打开积分商城即可看到整体效果。
+                </div>
               </div>
             </div>
             <div class="flex items-center gap-5">
@@ -60,10 +71,16 @@
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 关于网站图标与logo
               </div>
-              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                网站图标：用户在浏览器中打开网站时，在网站标签页旁展示的图片
-                网站logo：在网站中，例如登录页展示的logo
-                图片均为1:1的方形图片，尺寸建议不超过 512 x 512，过大的图片会影响用户加载速度
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">网站图标（Favicon）</span>：显示在浏览器标签栏、收藏夹里的小图标；网站被安装为 App 后，同样用作手机桌面的应用图标。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">网站 Logo</span>：展示在商城页面内（例如登录页顶部）的品牌图，通常比图标更大、更醒目。
+                </div>
+                <div>
+                  两者都要求 1:1 的正方形图片，建议不超过 512×512 像素；文件过大或分辨率过高都会拖慢用户打开网页的速度。
+                </div>
               </div>
             </div>
             <div class="flex items-center gap-5">
@@ -82,10 +99,16 @@
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 关于「用户自动注册」
               </div>
-              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                积分商城需要登录才允许访问。
-                通常情况下，用户通过签到/送礼等行为产生积分后才会被注册
-                开启后，任意用户均可注册，不论他们是否产生了积分
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  积分商城需要登录才能访问。通过签到、送礼等行为产生过积分的用户会被系统自动注册，直接登录即可；还没有注册的用户在登录时如何处理，由下面的开关决定：
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">关闭</span>：未注册的用户登录时会被提示「尚未注册」，无法进入商城；需要先产生积分、被系统登记为商城用户后才能登录。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">开启（默认）</span>：未注册的用户直接登录即可，系统会自动为其注册。即使没有任何积分（进去后暂时换不了东西），也可以先浏览商城。
+                </div>
               </div>
             </div>
             <div class="flex items-center gap-5">
@@ -102,9 +125,13 @@
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 关于登录页背景图
               </div>
-              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
-                非必须配置项，上传后登录页背景图将会被替换为上传的图片，通常建议配置 20:9 的图片作为背景
-                不上传时登录页会通过配置的「网站主题色」生成背景
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">上传背景图</span>：商城登录页的背景会替换为这张图片，建议使用宽高比约 20:9 的横向大图，在手机上展示效果最好。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">留空时</span>：登录页会以上面配置的「网站主题色」自动生成纯色背景，此配置项非必填。
+                </div>
               </div>
             </div>
             <div class="flex items-center gap-5">
@@ -117,13 +144,13 @@
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 登录页标题
               </div>
-              <n-input v-model:value="appConfigForm.login_title" type="text" placeholder="登录页顶部显示的主标题" />
+              <n-input v-model:value="appConfigForm.login_title" type="text" placeholder="显示在登录页顶部的大标题，例如：积分商城" />
             </div>
             <div class="flex items-center gap-5">
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 登录页Slogan
               </div>
-              <n-input v-model:value="appConfigForm.login_slogan" type="text" placeholder="登录页副标题或宣传语" />
+              <n-input v-model:value="appConfigForm.login_slogan" type="text" placeholder="显示在主标题下方的一句话宣传语，例如：签到送礼，好礼不断" />
             </div>
           </div>
           <template #footer>
