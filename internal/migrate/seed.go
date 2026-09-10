@@ -30,7 +30,8 @@ func Seed(db *gorm.DB) error {
 	if err := seedAppConfigs(db); err != nil {
 		return err
 	}
-	return nil
+	// 种子数据带固定 ID，PostgreSQL 需要把自增序列推进到其后（其余数据库为空操作）
+	return syncPostgresSequences(db)
 }
 
 // seedRoles 初始化填充角色表

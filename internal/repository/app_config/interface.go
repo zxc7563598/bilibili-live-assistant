@@ -49,7 +49,7 @@ func (r *gormRepo) SaveValues(ctx context.Context, tx *gorm.DB, values map[strin
 	return db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "config_key"}},
 		DoUpdates: clause.Assignments(map[string]any{
-			"config_value": gorm.Expr("excluded.config_value"),
+			"config_value": clause.Column{Table: "excluded", Name: "config_value"},
 			"updated_at":   time.Now().Unix(),
 		}),
 	}).Create(&rows).Error
