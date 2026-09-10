@@ -16,6 +16,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/product"
 	robotconfigHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/role"
+	uploadHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/upload"
 )
 
 type Handlers struct {
@@ -33,6 +34,7 @@ type Handlers struct {
 	Order       *order.Handler
 	Address     *address.Handler
 	Feedback    *feedbackHdlr.Handler
+	Upload      *uploadHdlr.Handler
 }
 
 func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
@@ -46,10 +48,11 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		LiveDanmu:   livedanmu.New(&svc.LiveDanmu),
 		LiveGift:    livegift.New(&svc.LiveGift),
 		LiveUser:    liveuser.New(svc.LiveUser, svc.RobotConfig),
-		AppConfig:   appconfig.New(&svc.AppConfig, rdb),
+		AppConfig:   appconfig.New(&svc.AppConfig),
 		Product:     product.New(&svc.Product),
 		Order:       order.New(svc.Order),
 		Address:     address.New(svc.Address),
 		Feedback:    feedbackHdlr.New(svc.Feedback),
+		Upload:      uploadHdlr.New(svc.Upload),
 	}
 }

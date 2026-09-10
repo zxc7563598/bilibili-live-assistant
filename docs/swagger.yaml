@@ -352,6 +352,73 @@ definitions:
     required:
     - id
     type: object
+  input.AppConfigSaveConfigReq:
+    properties:
+      login_bg:
+        description: 登录页背景图路径（留空则根据主题色生成背景）
+        example: ""
+        type: string
+      login_slogan:
+        description: 登录页副标题 / Slogan
+        example: ""
+        type: string
+      login_title:
+        description: 登录页主标题
+        example: 积分商城
+        type: string
+      logo:
+        description: 网站 Logo 路径（登录页等场景展示）
+        example: ""
+        type: string
+      register:
+        description: 是否允许用户自助注册, 0-禁止, 1-允许
+        enum:
+        - "0"
+        - "1"
+        example: "1"
+        type: string
+      site_background_color:
+        description: PWA 启动页背景色
+        example: '#f5f6f8'
+        type: string
+      site_description:
+        description: 站点说明（PWA 应用描述）
+        example: 这是xxxxx的积分商城
+        type: string
+      site_icon:
+        description: 网站图标路径（标签页 / 桌面应用图标）
+        example: ""
+        type: string
+      site_name:
+        description: 站点名称（浏览器标签栏 / PWA 安装后名称）
+        example: 积分商城
+        type: string
+      site_theme_color:
+        description: 网站主题色
+        example: '#965bff'
+        type: string
+    required:
+    - register
+    type: object
+  input.AppConfigSaveOssConfigReq:
+    properties:
+      oss_access_key_id:
+        description: 阿里云 AccessKey ID
+        example: xxxxxxxxxxxxx
+        type: string
+      oss_access_key_secret:
+        description: 阿里云 AccessKey Secret
+        example: xxxxxxxxxxxxx
+        type: string
+      oss_bucket:
+        description: 目标 bucket 名
+        example: xxxxx
+        type: string
+      oss_endpoint:
+        description: 完整 OSS 地址
+        example: https://oss-cn-hangzhou.aliyuncs.com
+        type: string
+    type: object
   input.FeedbackSubmitReq:
     properties:
       contact:
@@ -1334,6 +1401,15 @@ definitions:
     - scene
     - success_reply
     type: object
+  input.UploadSyncOSSReq:
+    properties:
+      path:
+        description: 待同步图片的本地访问路径（由 /api/admin/upload/image 上传后返回的 /uploads/ 相对路径）
+        example: /uploads/site_icon/1724716800123456789_a1b2c3d4.png
+        type: string
+    required:
+    - path
+    type: object
   input.WelcomeConfigReq:
     properties:
       content:
@@ -1686,6 +1762,65 @@ definitions:
       refreshToken:
         description: refresh token
         example: Bearer xxxxxxxxxx
+        type: string
+    type: object
+  resp.AppConfigDataResp:
+    properties:
+      login_bg:
+        description: 登录页背景图路径（留空则根据主题色生成背景）
+        example: ""
+        type: string
+      login_slogan:
+        description: 登录页副标题 / Slogan
+        example: ""
+        type: string
+      login_title:
+        description: 登录页主标题
+        example: 积分商城
+        type: string
+      logo:
+        description: 网站 Logo 路径（登录页等场景展示）
+        example: https://cdn.hejunjie.life/avatars/shop.png
+        type: string
+      oss_access_key_id:
+        description: 阿里云 AccessKey ID
+        example: xxxxxxxxxxxxx
+        type: string
+      oss_access_key_secret:
+        description: 阿里云 AccessKey Secret
+        example: xxxxxxxxxxxxx
+        type: string
+      oss_bucket:
+        description: 目标 bucket 名
+        example: xxxxx
+        type: string
+      oss_endpoint:
+        description: 完整 OSS 地址
+        example: https://oss-cn-hangzhou.aliyuncs.com
+        type: string
+      register:
+        description: 是否允许用户自助注册, 0-禁止, 1-允许
+        example: "1"
+        type: string
+      site_background_color:
+        description: PWA 启动页背景色
+        example: '#f5f6f8'
+        type: string
+      site_description:
+        description: 站点说明（PWA 应用描述）
+        example: 这是xxxxx的积分商城
+        type: string
+      site_icon:
+        description: 网站图标路径（标签页 / 桌面应用图标）
+        example: https://cdn.hejunjie.life/avatars/shop.png
+        type: string
+      site_name:
+        description: 站点名称（浏览器标签栏 / PWA 安装后名称）
+        example: 积分商城
+        type: string
+      site_theme_color:
+        description: 网站主题色
+        example: '#965bff'
         type: string
     type: object
   resp.AppPublicKeyResp:
@@ -3153,6 +3288,13 @@ definitions:
         example: bb
         type: string
     type: object
+  resp.UploadPathResp:
+    properties:
+      path:
+        description: 上传后可直接访问的图片路径（本地为 /uploads/ 相对路径，同步 OSS 后为 http(s) 地址）
+        example: /uploads/login_bg/1724716800123456789_a1b2c3d4.png
+        type: string
+    type: object
   resp.WelcomeConfigResp:
     properties:
       content:
@@ -3342,6 +3484,89 @@ paths:
       summary: 更新管理员个人资料
       tags:
       - 管理员
+  /api/admin/appconfig/data:
+    post:
+      description: 获取后台可编辑的全部 App 配置（站点信息、颜色、图标、注册开关、登录页配置），用于回填管理页表单
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AppConfigDataResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取 App 配置
+      tags:
+      - App配置
+  /api/admin/appconfig/oss_save:
+    post:
+      description: 整体覆盖保存 OSS 相关配置并刷新缓存立即生效，可为空表示清除对应配置
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: App 配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AppConfigSaveOssConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 保存 OSS 配置
+      tags:
+      - App配置
+  /api/admin/appconfig/save:
+    post:
+      description: 整体覆盖保存基本 App 配置并刷新缓存立即生效，可为空表示清除对应配置
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: App 配置参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AppConfigSaveConfigReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 保存 App 基础配置
+      tags:
+      - App配置
   /api/admin/auth/captcha:
     post:
       description: 获取当前系统是否已配置并启用了 altcha 验证码，前端可根据此状态决定是否展示验证码组件
@@ -4915,6 +5140,82 @@ paths:
       summary: 创建或更新角色
       tags:
       - 角色
+  /api/admin/upload/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 接收图片文件，按 scene 白名单落盘到 uploads/ 目录，返回可直接访问的图片路径
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 图片用途（决定落盘子目录）
+        enum:
+        - login_bg
+        - site_icon
+        - logo
+        in: formData
+        name: scene
+        required: true
+        type: string
+      - description: 图片文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.UploadPathResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 上传图片
+      tags:
+      - 上传
+  /api/admin/upload/oss-sync:
+    post:
+      description: 接收图片路径，同步到阿里云OSS，返回可直接访问的图片路径
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 图片路径参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.UploadSyncOSSReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.UploadPathResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 同步图片到阿里云OSS
+      tags:
+      - 上传
   /api/shop/address/default:
     post:
       description: 返回当前用户在指定收货地址类型（0 虚拟，1 实体）下的默认收货地址，供下单确认等页面默认回填使用；该类型下暂无默认地址时返回空对象。

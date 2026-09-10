@@ -55,12 +55,6 @@ type AppShopThemeColorResp struct {
 	Color string `json:"color" example:"#ffffff"`
 }
 
-// AppUploadPathResp 上传图片返回
-type AppUploadPathResp struct {
-	// 上传后可直接访问的图片路径
-	Path string `json:"path" example:"/uploads/login_bg/1724716800123456789_a1b2c3d4.png"`
-}
-
 // AppShopLoginConfigResp 获取登录页面配置信息返回
 type AppShopLoginConfigResp struct {
 	Register bool   `json:"register" example:"false"`

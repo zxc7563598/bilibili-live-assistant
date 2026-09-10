@@ -10,7 +10,7 @@ export default {
     const fd = new FormData()
     fd.append('scene', scene)
     fd.append('file', file)
-    return request.post('/appconfig/upload', fd, { timeout: 60000 })
+    return request.post('/upload/image', fd, { timeout: 60000 })
   },
-  syncOss: param => request.post('/appconfig/sync', param, { timeout: 60000 }),
+  syncOss: param => request.post('/upload/oss-sync', param, { timeout: 60000 }),
 }

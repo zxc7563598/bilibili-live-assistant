@@ -152,9 +152,9 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/appconfig/data", middleware.AdminAuth(rdb), handlers.AppConfig.GetConfig)
 	adminApi.POST("/appconfig/save", middleware.AdminAuth(rdb), handlers.AppConfig.SaveConfig)
 	adminApi.POST("/appconfig/oss_save", middleware.AdminAuth(rdb), handlers.AppConfig.SaveOssConfig)
-	// 图片上传：scene 白名单见 appconfig.UploadImage
-	adminApi.POST("/appconfig/upload", middleware.AdminAuth(rdb), handlers.AppConfig.UploadImage)
-	adminApi.POST("/appconfig/sync", middleware.AdminAuth(rdb), handlers.AppConfig.SyncOSS)
+	// 图片上传 / OSS 同步（通用上传模块，scene 白名单见 internal/service/upload/common.go）
+	adminApi.POST("/upload/image", middleware.AdminAuth(rdb), handlers.Upload.UploadImage)
+	adminApi.POST("/upload/oss-sync", middleware.AdminAuth(rdb), handlers.Upload.SyncOSS)
 	// 弹幕列表路由
 	adminApi.POST("/livedanmu/room", middleware.AdminAuth(rdb), handlers.LiveDanmu.FetchRoomGroups)
 	adminApi.POST("/livedanmu/list", middleware.AdminAuth(rdb), handlers.LiveDanmu.ListPage)

@@ -19,6 +19,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/product"
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
+	uploadsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/upload"
 	"gorm.io/gorm"
 )
 
@@ -37,6 +38,7 @@ type Services struct {
 	Product     product.Service
 	Order       *order.Service
 	Feedback    *feedbacksvc.Service
+	Upload      *uploadsvc.Service
 }
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache, appConfigCache *appconfig.Cache) *Services {
@@ -57,5 +59,6 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		Product:     *product.New(db, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),
 		Order:       order.New(db, repo.LiveUserOrder, repo.LiveUserOrderDraft, repo.LiveUserAddress, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.LiveUser, repo.LiveUserCreditLog),
 		Feedback:    feedbacksvc.New(repo.Feedback),
+		Upload:      uploadsvc.New(appConfigCache),
 	}
 }

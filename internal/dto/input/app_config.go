@@ -35,9 +35,3 @@ type AppConfigSaveOssConfigReq struct {
 	// 目标 bucket 名
 	OssBucket string `json:"oss_bucket" example:"xxxxx"`
 }
-
-// SyncOSS 入参请求
-type AppConfigSyncOSSReq struct {
-	// 待同步图片的本地访问路径（由 /appconfig/upload 上传后返回的 /uploads/ 相对路径）
-	Path string `json:"path" binding:"required" err:"required=10905" example:"/uploads/site_icon/1724716800123456789_a1b2c3d4.png"`
-}

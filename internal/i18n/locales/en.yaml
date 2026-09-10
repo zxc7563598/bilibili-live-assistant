@@ -122,11 +122,6 @@ error:
   10801: Invalid request parameters # Parameter validation failed
   10802: Password cannot be less than six digits # Password cannot be less than six digits
   10901: Illegal image information # Image MIME type retrieval failed
-  10902: Please upload an image file # Uploaded image file is empty
-  10903: Image size exceeds the limit # Uploaded image exceeds the maximum size limit
-  10904: Invalid upload scene # Upload scene is not in the whitelist
-  10905: Image path cannot be empty # Image path is empty for OSS sync
-  10906: Invalid image path # Image path is not a valid /uploads access path for OSS sync
   11101: Request parameter is invalid # Order parameter is invalid
   11201: Please select the feedback type # Feedback type is empty
   11202: Feedback type is too long # Feedback type exceeds the maximum length limit
@@ -142,6 +137,13 @@ error:
   11306: Please select a region # Region is empty or invalid for physical address
   11307: Please enter detailed address # Detailed address is empty for physical address
   11308: Please enter email address # Email is empty for virtual address
+  11401: Request parameter is invalid # Upload form parsing failed (Upload)
+  11402: Illegal image information # Uploaded content is not a valid image (Upload)
+  11403: Please upload an image file # No file received or the file is empty (Upload)
+  11404: Image size exceeds the limit # Upload body or file exceeds the size limit (Upload)
+  11405: Invalid upload scene # Scene is not in the upload whitelist (Upload)
+  11406: Image path cannot be empty # Image path is empty for OSS sync (Upload)
+  11407: Invalid image path # Path is not a valid /uploads access path for OSS sync (Upload)
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   30001: Unauthorized operation # The current account does not have access permission
@@ -165,14 +167,14 @@ error:
   40801: Incorrect account or password # Password error (avoid being too specific)
   40802: Account unavailable # User account disabled
   40803: Insufficient balance # Insufficient balance for this redemption
-  40901: OSS is not configured, please save the Alibaba Cloud OSS config first # OSS config is incomplete before sync (App Config)
+  41401: OSS is not configured, please save the Alibaba Cloud OSS config first # OSS config is incomplete before sync (Upload)
   41101: Insufficient stock # Insufficient stock, unable to place order
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
   50801: Tokenizer initialization failed # Tokenizer initialization failed
   50802: Unknown User # Failed to query user information
-  50901: Local image not found or has been cleaned, please re-upload # Local file to sync does not exist (App Config)
+  51401: Local image not found or has been cleaned, please re-upload # Local file to sync does not exist (Upload)
   51001: Product does not exist # Product information does not exist
   51101: Unable to find the product # Product or SKU does not exist
   51102: No pending order # No active order draft
@@ -222,14 +224,16 @@ error:
   60807: System busy, please try again later # Redis clear token failed
   60902: Failed to save config, please try again later # Database update error (App Config)
   60903: Failed to refresh config cache, please try again later # Cache reload error (App Config)
-  60904: Failed to save the image, please try again later # Image file save error (App Config)
   60905: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure
   60906: Alibaba Cloud OSS Configuration or Connection Exception # Alibaba Cloud OSS Configuration or Connection Exception
-  60907: Failed to sync image to OSS, please try again later # Image upload to OSS error (App Config)
   61001: System busy, please try again later # Database query exception
   61101: System busy, please try again later # Database error (Order module)
   61201: System busy, please try again later # Database error (Feedback module)
   61301: System busy, please try again later # Database error (Address module)
+  61401: Failed to save the image, please try again later # Image file save error (Upload)
+  61402: Failed to read the image, please try again later # Failed to read local image state (Upload)
+  61403: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure (Upload)
+  61404: Failed to sync image to OSS, please try again later # Image upload to OSS error (Upload)
 
 gender:
   female: female

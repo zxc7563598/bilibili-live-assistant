@@ -254,6 +254,141 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/appconfig/data": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取后台可编辑的全部 App 配置（站点信息、颜色、图标、注册开关、登录页配置），用于回填管理页表单",
+                "tags": [
+                    "App配置"
+                ],
+                "summary": "获取 App 配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.AppConfigDataResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/appconfig/oss_save": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "整体覆盖保存 OSS 相关配置并刷新缓存立即生效，可为空表示清除对应配置",
+                "tags": [
+                    "App配置"
+                ],
+                "summary": "保存 OSS 配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "App 配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.AppConfigSaveOssConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/appconfig/save": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "整体覆盖保存基本 App 配置并刷新缓存立即生效，可为空表示清除对应配置",
+                "tags": [
+                    "App配置"
+                ],
+                "summary": "保存 App 基础配置",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "App 配置参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.AppConfigSaveConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/auth/captcha": {
             "post": {
                 "description": "获取当前系统是否已配置并启用了 altcha 验证码，前端可根据此状态决定是否展示验证码组件",
@@ -2862,6 +2997,131 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/upload/image": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "接收图片文件，按 scene 白名单落盘到 uploads/ 目录，返回可直接访问的图片路径",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "上传"
+                ],
+                "summary": "上传图片",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "enum": [
+                            "login_bg",
+                            "site_icon",
+                            "logo"
+                        ],
+                        "type": "string",
+                        "description": "图片用途（决定落盘子目录）",
+                        "name": "scene",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "图片文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.UploadPathResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/upload/oss-sync": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "接收图片路径，同步到阿里云OSS，返回可直接访问的图片路径",
+                "tags": [
+                    "上传"
+                ],
+                "summary": "同步图片到阿里云OSS",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "图片路径参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.UploadSyncOSSReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.UploadPathResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/shop/address/default": {
             "post": {
                 "security": [
@@ -4542,6 +4802,93 @@ const docTemplate = `{
                 }
             }
         },
+        "input.AppConfigSaveConfigReq": {
+            "type": "object",
+            "required": [
+                "register"
+            ],
+            "properties": {
+                "login_bg": {
+                    "description": "登录页背景图路径（留空则根据主题色生成背景）",
+                    "type": "string",
+                    "example": ""
+                },
+                "login_slogan": {
+                    "description": "登录页副标题 / Slogan",
+                    "type": "string",
+                    "example": ""
+                },
+                "login_title": {
+                    "description": "登录页主标题",
+                    "type": "string",
+                    "example": "积分商城"
+                },
+                "logo": {
+                    "description": "网站 Logo 路径（登录页等场景展示）",
+                    "type": "string",
+                    "example": ""
+                },
+                "register": {
+                    "description": "是否允许用户自助注册, 0-禁止, 1-允许",
+                    "type": "string",
+                    "enum": [
+                        "0",
+                        "1"
+                    ],
+                    "example": "1"
+                },
+                "site_background_color": {
+                    "description": "PWA 启动页背景色",
+                    "type": "string",
+                    "example": "#f5f6f8"
+                },
+                "site_description": {
+                    "description": "站点说明（PWA 应用描述）",
+                    "type": "string",
+                    "example": "这是xxxxx的积分商城"
+                },
+                "site_icon": {
+                    "description": "网站图标路径（标签页 / 桌面应用图标）",
+                    "type": "string",
+                    "example": ""
+                },
+                "site_name": {
+                    "description": "站点名称（浏览器标签栏 / PWA 安装后名称）",
+                    "type": "string",
+                    "example": "积分商城"
+                },
+                "site_theme_color": {
+                    "description": "网站主题色",
+                    "type": "string",
+                    "example": "#965bff"
+                }
+            }
+        },
+        "input.AppConfigSaveOssConfigReq": {
+            "type": "object",
+            "properties": {
+                "oss_access_key_id": {
+                    "description": "阿里云 AccessKey ID",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxx"
+                },
+                "oss_access_key_secret": {
+                    "description": "阿里云 AccessKey Secret",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxx"
+                },
+                "oss_bucket": {
+                    "description": "目标 bucket 名",
+                    "type": "string",
+                    "example": "xxxxx"
+                },
+                "oss_endpoint": {
+                    "description": "完整 OSS 地址",
+                    "type": "string",
+                    "example": "https://oss-cn-hangzhou.aliyuncs.com"
+                }
+            }
+        },
         "input.FeedbackSubmitReq": {
             "type": "object",
             "required": [
@@ -5836,6 +6183,19 @@ const docTemplate = `{
                 }
             }
         },
+        "input.UploadSyncOSSReq": {
+            "type": "object",
+            "required": [
+                "path"
+            ],
+            "properties": {
+                "path": {
+                    "description": "待同步图片的本地访问路径（由 /api/admin/upload/image 上传后返回的 /uploads/ 相对路径）",
+                    "type": "string",
+                    "example": "/uploads/site_icon/1724716800123456789_a1b2c3d4.png"
+                }
+            }
+        },
         "input.WelcomeConfigReq": {
             "type": "object",
             "required": [
@@ -6304,6 +6664,81 @@ const docTemplate = `{
                     "description": "refresh token",
                     "type": "string",
                     "example": "Bearer xxxxxxxxxx"
+                }
+            }
+        },
+        "resp.AppConfigDataResp": {
+            "type": "object",
+            "properties": {
+                "login_bg": {
+                    "description": "登录页背景图路径（留空则根据主题色生成背景）",
+                    "type": "string",
+                    "example": ""
+                },
+                "login_slogan": {
+                    "description": "登录页副标题 / Slogan",
+                    "type": "string",
+                    "example": ""
+                },
+                "login_title": {
+                    "description": "登录页主标题",
+                    "type": "string",
+                    "example": "积分商城"
+                },
+                "logo": {
+                    "description": "网站 Logo 路径（登录页等场景展示）",
+                    "type": "string",
+                    "example": "https://cdn.hejunjie.life/avatars/shop.png"
+                },
+                "oss_access_key_id": {
+                    "description": "阿里云 AccessKey ID",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxx"
+                },
+                "oss_access_key_secret": {
+                    "description": "阿里云 AccessKey Secret",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxx"
+                },
+                "oss_bucket": {
+                    "description": "目标 bucket 名",
+                    "type": "string",
+                    "example": "xxxxx"
+                },
+                "oss_endpoint": {
+                    "description": "完整 OSS 地址",
+                    "type": "string",
+                    "example": "https://oss-cn-hangzhou.aliyuncs.com"
+                },
+                "register": {
+                    "description": "是否允许用户自助注册, 0-禁止, 1-允许",
+                    "type": "string",
+                    "example": "1"
+                },
+                "site_background_color": {
+                    "description": "PWA 启动页背景色",
+                    "type": "string",
+                    "example": "#f5f6f8"
+                },
+                "site_description": {
+                    "description": "站点说明（PWA 应用描述）",
+                    "type": "string",
+                    "example": "这是xxxxx的积分商城"
+                },
+                "site_icon": {
+                    "description": "网站图标路径（标签页 / 桌面应用图标）",
+                    "type": "string",
+                    "example": "https://cdn.hejunjie.life/avatars/shop.png"
+                },
+                "site_name": {
+                    "description": "站点名称（浏览器标签栏 / PWA 安装后名称）",
+                    "type": "string",
+                    "example": "积分商城"
+                },
+                "site_theme_color": {
+                    "description": "网站主题色",
+                    "type": "string",
+                    "example": "#965bff"
                 }
             }
         },
@@ -8286,6 +8721,16 @@ const docTemplate = `{
                     "description": "规格值内容",
                     "type": "string",
                     "example": "bb"
+                }
+            }
+        },
+        "resp.UploadPathResp": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "description": "上传后可直接访问的图片路径（本地为 /uploads/ 相对路径，同步 OSS 后为 http(s) 地址）",
+                    "type": "string",
+                    "example": "/uploads/login_bg/1724716800123456789_a1b2c3d4.png"
                 }
             }
         },

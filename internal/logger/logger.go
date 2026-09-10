@@ -28,6 +28,7 @@ var (
 	OrderLogger       *zap.Logger
 	AddressLogger     *zap.Logger
 	FeedbackLogger    *zap.Logger
+	UploadLogger      *zap.Logger
 )
 
 // InitAll 初始化所有模块 logger
@@ -46,6 +47,7 @@ func InitAll() {
 	OrderLogger = InitLogger("order", zapcore.InfoLevel)
 	AddressLogger = InitLogger("address", zapcore.InfoLevel)
 	FeedbackLogger = InitLogger("feedback", zapcore.InfoLevel)
+	UploadLogger = InitLogger("upload", zapcore.InfoLevel)
 }
 
 // InitLogger 初始化指定模块的 logger
