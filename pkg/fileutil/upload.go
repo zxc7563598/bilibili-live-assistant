@@ -31,6 +31,8 @@ var (
 	ErrEmpty = errors.New("fileutil: 空文件")
 	// ErrTooLarge 文件超过大小上限。
 	ErrTooLarge = errors.New("fileutil: 文件超过大小上限")
+	// ErrInvalidUploadPath 不是合法的本地上传访问路径。
+	ErrInvalidUploadPath = errors.New("fileutil: 非法上传路径")
 )
 
 // SaveUploadedFile 把 multipart 上传文件保存到 <UploadRoot>/<subDir>/ 下，返回可直接访问的相对 URL（/uploads/<subDir>/<文件名>），目录不存在时自动创建
@@ -79,6 +81,27 @@ func SaveUploadedFile(file *multipart.FileHeader, subDir string) (string, error)
 		return "", ErrTooLarge
 	}
 	return "/" + path.Join(UploadRoot, sub, name), nil
+}
+
+// ResolveLocalPath 将上传文件的可访问 URL 路径（如 /uploads/login_bg/<文件名>）
+// 换算为 UploadRoot 下的本地相对路径（uploads/login_bg/<文件名>），供回读 / 同步等场景复用。
+// 仅做结构与目录穿越校验，不检查文件是否存在；非 /uploads/ 前缀或无法限定在
+// UploadRoot 内时返回 ErrInvalidUploadPath。
+func ResolveLocalPath(accessPath string) (string, error) {
+	p := strings.ReplaceAll(strings.TrimSpace(accessPath), "\\", "/")
+	// 归一化 ../ 等片段；TrimLeft 兼容调用方省略前导斜杠的写法
+	p = path.Clean("/" + strings.TrimLeft(p, "/"))
+	rel, ok := strings.CutPrefix(p, "/"+UploadRoot+"/")
+	if !ok || rel == "" {
+		return "", ErrInvalidUploadPath
+	}
+	local := filepath.Join(UploadRoot, filepath.FromSlash(rel))
+	// path.Clean 已把 ../ 折叠回根目录，正常到不了这里；保留兜底防御
+	root := filepath.Clean(UploadRoot)
+	if local == root || !strings.HasPrefix(local, root+string(filepath.Separator)) {
+		return "", ErrInvalidUploadPath
+	}
+	return local, nil
 }
 
 // safeSubDir 将调用方传入的子目录净化为相对路径，用于拼装 UploadRoot 下的落盘目录
