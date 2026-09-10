@@ -82,6 +82,18 @@ type LiveConfig struct {
 	TestUIDs  []int64 `yaml:"test_uids"` // 测试机器人 UID 白名单，命中则仅记录日志不真正发送弹幕（可为空）
 }
 
+// FileConfig 文件存储配置
+type FileConfig struct {
+	// UploadDir 上传文件落盘根目录（对应 /uploads 静态访问路由）
+	UploadDir string `yaml:"upload_dir"`
+}
+
+// LogConfig 日志配置
+type LogConfig struct {
+	// Dir 日志根目录，各模块在其下按模块名建立子目录
+	Dir string `yaml:"dir"`
+}
+
 type Config struct {
 	Server   ServerConfig       `yaml:"server"`
 	Database DatabaseConfig     `yaml:"database"`
@@ -92,6 +104,8 @@ type Config struct {
 	Altcha   AltchaConfig       `yaml:"altcha"`
 	Crypto   CryptoConfig       `yaml:"crypto"`
 	Live     LiveConfig         `yaml:"live"`
+	File     FileConfig         `yaml:"file"`
+	Log      LogConfig          `yaml:"log"`
 }
 
 // LoadConfig 解析 YAML
@@ -108,6 +122,9 @@ func LoadConfig(path string) (*Config, error) {
 	if err := ValidateConfig(c); err != nil {
 		return nil, err
 	}
+	// 运行目录（上传目录/日志目录/登录态文件）统一解析为绝对路径，
+	// 相对路径以配置文件所在目录为基准，不随进程工作目录漂移
+	resolveRuntimeDirs(c, path)
 	return c, nil
 }
 
@@ -184,6 +201,13 @@ func ValidateConfig(cfg *Config) error {
 	}
 	if cfg.Live.StateFile == "" {
 		cfg.Live.StateFile = "bilibili_state.json"
+	}
+	// 运行目录默认值（相对路径由 resolveRuntimeDirs 按配置文件所在目录展开）
+	if cfg.File.UploadDir == "" {
+		cfg.File.UploadDir = "uploads"
+	}
+	if cfg.Log.Dir == "" {
+		cfg.Log.Dir = "logs"
 	}
 	if len(cfg.JWT.Secret) < 32 {
 		return fmt.Errorf("JWT 密钥长度不能低于 32 位")

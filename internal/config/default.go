@@ -68,6 +68,14 @@ crypto: # 商城请求加密配置
 live: # B站 直播监听配置
   state_file: "bilibili_state.json" # B站 Cookie 持久化文件路径
   test_uids: [] # 测试机器人 UID 白名单，命中的机器人只记录日志不真正发送弹幕（可为空）
+
+file: # 文件存储配置
+  upload_dir: uploads # 上传图片落盘目录（对外访问前缀固定为 /uploads）
+
+log: # 日志配置
+  dir: logs # 日志根目录，各模块在其下按模块名建子目录
+
+# 说明：以上相对路径均以本配置文件所在目录为基准解析，不受启动时工作目录影响
 `
 
 // defaultConfigContent 返回填充了随机密钥的默认配置内容

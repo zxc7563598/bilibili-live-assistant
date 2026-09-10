@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/fileutil"
@@ -63,6 +62,12 @@ func (s *Service) SyncOSS(_ context.Context, path string) (UploadPathResp, int, 
 	if err != nil {
 		return UploadPathResp{}, 11407, fmt.Errorf("OSS 同步的图片路径不合法 %q: %w", path, err)
 	}
+	// objectKey 由访问路径推导，不用本地路径：落盘目录可配置为绝对路径，
+	// 直接拿本地路径当 key 会把服务器目录结构写进 OSS 对象名
+	objectKey, err := fileutil.ObjectKey(path)
+	if err != nil {
+		return UploadPathResp{}, 11407, fmt.Errorf("OSS 同步的图片路径不合法 %q: %w", path, err)
+	}
 	cfg, ok := s.ossConfigFromCache()
 	if !ok {
 		return UploadPathResp{}, 41401, errors.New("OSS 未配置：Endpoint/AccessKey ID/AccessKey Secret/bucket 需完整填写")
@@ -78,9 +83,9 @@ func (s *Service) SyncOSS(_ context.Context, path string) (UploadPathResp, int, 
 		}
 		return UploadPathResp{}, 61402, fmt.Errorf("OSS 同步读取本地文件状态失败: %w", err)
 	}
-	url, err := client.UploadFile(localPath, filepath.ToSlash(localPath))
+	url, err := client.UploadFile(localPath, objectKey)
 	if err != nil {
-		return UploadPathResp{}, 61404, fmt.Errorf("OSS 上传 %s 失败: %w", localPath, err)
+		return UploadPathResp{}, 61404, fmt.Errorf("OSS 上传 %s 失败: %w", objectKey, err)
 	}
 	return UploadPathResp{Path: url}, 0, nil
 }

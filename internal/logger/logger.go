@@ -31,8 +31,14 @@ var (
 	UploadLogger      *zap.Logger
 )
 
-// InitAll 初始化所有模块 logger
-func InitAll() {
+// logDir 日志根目录，由 InitAll 按配置注入；未注入时使用工作目录下的 logs
+var logDir = "logs"
+
+// InitAll 初始化所有模块 logger，dir 为日志根目录（由 bootstrap 传入配置中已解析的路径）
+func InitAll(dir string) {
+	if dir != "" {
+		logDir = dir
+	}
 	AdminLogger = InitLogger("admin", zapcore.InfoLevel)
 	AppConfigLogger = InitLogger("appconfig", zapcore.InfoLevel)
 	RoleLogger = InitLogger("role", zapcore.InfoLevel)
@@ -53,12 +59,12 @@ func InitAll() {
 // InitLogger 初始化指定模块的 logger
 func InitLogger(module string, level zapcore.Level) *zap.Logger {
 	// 确保日志目录存在
-	logDir := filepath.Join("logs", module)
-	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
+	moduleDir := filepath.Join(logDir, module)
+	if err := os.MkdirAll(moduleDir, os.ModePerm); err != nil {
 		log.Fatalf("无法创建日志目录: %v", err)
 	}
 	// 按天分割日志文件
-	filename := filepath.Join(logDir, fmt.Sprintf("%s_%s.log", time.Now().Format(time.DateOnly), module))
+	filename := filepath.Join(moduleDir, fmt.Sprintf("%s_%s.log", time.Now().Format(time.DateOnly), module))
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   filename,
 		MaxSize:    100, // MB

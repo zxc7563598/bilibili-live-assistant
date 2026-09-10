@@ -1,7 +1,9 @@
 // Package fileutil 提供上传文件的本地落盘工具，供各业务模块复用。
 //
-// 文件统一落到工作目录 <UploadRoot>/（默认 uploads/）下，文件名带纳秒时间戳 + 随机后缀，
-// 通过 internal/bootstrap 注册的 /uploads 静态路由对外提供访问。本包无任何业务依赖。
+// 文件统一落到 <UploadRoot>/（由 bootstrap 按配置注入，默认工作目录下的 uploads/）下，
+// 文件名带纳秒时间戳 + 随机后缀，通过 internal/bootstrap 注册的 /uploads 静态路由对外
+// 提供访问。落盘目录与对外 URL 前缀相互独立：目录可配置到任意位置（含绝对路径），
+// 对外 URL 始终是 /uploads/...。本包无任何业务依赖。
 package fileutil
 
 import (
@@ -18,8 +20,26 @@ import (
 	"time"
 )
 
-// UploadRoot 上传文件落盘根目录
-const UploadRoot = "uploads"
+// URLPrefix 上传文件的对外访问前缀，与 internal/bootstrap 注册的静态路由保持一致
+const URLPrefix = "/uploads"
+
+// defaultUploadRoot 上传文件落盘根目录的默认值
+const defaultUploadRoot = "uploads"
+
+// uploadRoot 上传文件落盘根目录，由 SetUploadRoot 在启动时按配置注入
+var uploadRoot = defaultUploadRoot
+
+// SetUploadRoot 设置上传文件落盘根目录，传空值时沿用默认值，便于未初始化场景（如单元测试）直接使用
+func SetUploadRoot(dir string) {
+	if dir != "" {
+		uploadRoot = dir
+	}
+}
+
+// UploadRoot 返回当前上传文件落盘根目录
+func UploadRoot() string {
+	return uploadRoot
+}
 
 // MaxUploadSize 单文件正文大小上限（20MB），超出直接拒绝
 const MaxUploadSize int64 = 20 << 20
@@ -49,7 +69,7 @@ func SaveUploadedFile(file *multipart.FileHeader, subDir string) (string, error)
 		return "", fmt.Errorf("fileutil: 打开上传文件失败: %w", err)
 	}
 	defer src.Close()
-	targetDir := filepath.Join(UploadRoot, filepath.FromSlash(sub))
+	targetDir := filepath.Join(uploadRoot, filepath.FromSlash(sub))
 	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		return "", fmt.Errorf("fileutil: 创建上传目录失败: %w", err)
 	}
@@ -80,28 +100,51 @@ func SaveUploadedFile(file *multipart.FileHeader, subDir string) (string, error)
 		_ = os.Remove(absPath)
 		return "", ErrTooLarge
 	}
-	return "/" + path.Join(UploadRoot, sub, name), nil
+	// URL 固定用正斜杠拼接，与落盘目录的平台相关分隔符无关
+	return URLPrefix + "/" + path.Join(sub, name), nil
 }
 
 // ResolveLocalPath 将上传文件的可访问 URL 路径（如 /uploads/login_bg/<文件名>）
-// 换算为 UploadRoot 下的本地相对路径（uploads/login_bg/<文件名>），供回读 / 同步等场景复用。
+// 换算为落盘根目录下的本地路径（如 uploads/login_bg/<文件名>），供回读 / 同步等场景复用。
 // 仅做结构与目录穿越校验，不检查文件是否存在；非 /uploads/ 前缀或无法限定在
-// UploadRoot 内时返回 ErrInvalidUploadPath。
+// 落盘根目录内时返回 ErrInvalidUploadPath。
 func ResolveLocalPath(accessPath string) (string, error) {
-	p := strings.ReplaceAll(strings.TrimSpace(accessPath), "\\", "/")
-	// 归一化 ../ 等片段；TrimLeft 兼容调用方省略前导斜杠的写法
-	p = path.Clean("/" + strings.TrimLeft(p, "/"))
-	rel, ok := strings.CutPrefix(p, "/"+UploadRoot+"/")
-	if !ok || rel == "" {
-		return "", ErrInvalidUploadPath
+	rel, err := accessRel(accessPath)
+	if err != nil {
+		return "", err
 	}
-	local := filepath.Join(UploadRoot, filepath.FromSlash(rel))
+	local := filepath.Join(uploadRoot, filepath.FromSlash(rel))
 	// path.Clean 已把 ../ 折叠回根目录，正常到不了这里；保留兜底防御
-	root := filepath.Clean(UploadRoot)
+	root := filepath.Clean(uploadRoot)
 	if local == root || !strings.HasPrefix(local, root+string(filepath.Separator)) {
 		return "", ErrInvalidUploadPath
 	}
 	return local, nil
+}
+
+// ObjectKey 将上传文件的可访问 URL 路径换算为 OSS objectKey（如 uploads/login_bg/<文件名>）
+//
+// 只由对外 URL 前缀推导，与落盘根目录的实际位置无关。落盘目录可以配置成任意绝对路径，
+// 但入库的 objectKey 必须稳定：否则换个部署目录后同一张图会被当成新对象重复上传，
+// 而已入库的老 key 也拼不回公开链接（绝对路径还会把服务器目录结构泄露到 URL 里）。
+func ObjectKey(accessPath string) (string, error) {
+	rel, err := accessRel(accessPath)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimPrefix(URLPrefix, "/") + "/" + rel, nil
+}
+
+// accessRel 校验可访问 URL 路径并归一化为 <子目录>/<文件名>
+func accessRel(accessPath string) (string, error) {
+	p := strings.ReplaceAll(strings.TrimSpace(accessPath), "\\", "/")
+	// 归一化 ../ 等片段；TrimLeft 兼容调用方省略前导斜杠的写法
+	p = path.Clean("/" + strings.TrimLeft(p, "/"))
+	rel, ok := strings.CutPrefix(p, URLPrefix+"/")
+	if !ok || rel == "" {
+		return "", ErrInvalidUploadPath
+	}
+	return rel, nil
 }
 
 // safeSubDir 将调用方传入的子目录净化为相对路径，用于拼装 UploadRoot 下的落盘目录

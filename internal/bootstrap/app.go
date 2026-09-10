@@ -16,6 +16,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/cron"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/fileutil"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"gorm.io/gorm"
 )
@@ -32,8 +33,12 @@ type App struct {
 }
 
 func NewApp(cfg *config.Config) *App {
-	// 初始化日志
-	logger.InitAll()
+	// 初始化日志（日志根目录来自配置，相对路径已按配置文件所在目录解析为绝对路径）
+	logger.InitAll(cfg.Log.Dir)
+	// 上传文件落盘根目录（同样来自配置，对外访问前缀固定为 /uploads）
+	fileutil.SetUploadRoot(cfg.File.UploadDir)
+	log.Printf("日志目录: %s", cfg.Log.Dir)
+	log.Printf("上传目录: %s", cfg.File.UploadDir)
 	// 初始化redis
 	rdb, err := config.InitRedis(cfg)
 	if err != nil {

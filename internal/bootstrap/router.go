@@ -35,12 +35,12 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
-	// 上传文件静态访问：文件由 pkg/fileutil.SaveUploadedFile 落盘到工作目录
-	r.GET("/uploads/*filepath", func(c *gin.Context) {
+	// 上传文件静态访问：文件由 pkg/fileutil.SaveUploadedFile 落盘到配置的上传目录
+	r.GET(fileutil.URLPrefix+"/*filepath", func(c *gin.Context) {
 		c.Header("Cache-Control", "public, max-age=604800")
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("Content-Security-Policy", "sandbox")
-		http.StripPrefix("/uploads/", http.FileServer(http.Dir(fileutil.UploadRoot))).ServeHTTP(c.Writer, c.Request)
+		http.StripPrefix(fileutil.URLPrefix+"/", http.FileServer(http.Dir(fileutil.UploadRoot()))).ServeHTTP(c.Writer, c.Request)
 	})
 	// altcha 验证码（独立路由，不受分组中间件影响）
 	r.GET("/auth/altcha/challenge", handlers.Altcha.Challenge)
