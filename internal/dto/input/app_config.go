@@ -1,7 +1,7 @@
 package input
 
-// AppConfigSaveReq 后台整体保存 App 配置请求
-type AppConfigSaveReq struct {
+// SaveConfig 入参请求
+type AppConfigSaveConfigReq struct {
 	// 站点名称（浏览器标签栏 / PWA 安装后名称）
 	SiteName string `json:"site_name" example:"积分商城"`
 	// 站点说明（PWA 应用描述）
@@ -22,4 +22,22 @@ type AppConfigSaveReq struct {
 	LoginTitle string `json:"login_title" example:"积分商城"`
 	// 登录页副标题 / Slogan
 	LoginSlogan string `json:"login_slogan" example:""`
+}
+
+// SaveOssConfig 入参请求
+type AppConfigSaveOssConfigReq struct {
+	// 完整 OSS 地址
+	OssEndpoint string `json:"oss_endpoint" example:"https://oss-cn-hangzhou.aliyuncs.com"`
+	// 阿里云 AccessKey ID
+	OssAccessKeyId string `json:"oss_access_key_id" example:"xxxxxxxxxxxxx"`
+	// 阿里云 AccessKey Secret
+	OssAccessKeySecret string `json:"oss_access_key_secret" example:"xxxxxxxxxxxxx"`
+	// 目标 bucket 名
+	OssBucket string `json:"oss_bucket" example:"xxxxx"`
+}
+
+// SyncOSS 入参请求
+type AppConfigSyncOSSReq struct {
+	// 待同步图片的本地访问路径（由 /appconfig/upload 上传后返回的 /uploads/ 相对路径）
+	Path string `json:"path" binding:"required" err:"required=10905" example:"/uploads/site_icon/1724716800123456789_a1b2c3d4.png"`
 }

@@ -709,6 +709,26 @@ func seedAppConfigs(db *gorm.DB) error {
 			ConfigValue: "纯美女神伊德利拉美貌盖世无双！",
 			Remark:      "登录页副标题或宣传语（Slogan），可填写品牌口号、活动标语等内容",
 		},
+		{
+			ConfigKey:   "oss_endpoint",
+			ConfigValue: "https://oss-cn-hangzhou.aliyuncs.com",
+			Remark:      "完整 OSS 地址",
+		},
+		{
+			ConfigKey:   "oss_access_key_id",
+			ConfigValue: "",
+			Remark:      "阿里云 AccessKey ID",
+		},
+		{
+			ConfigKey:   "oss_access_key_secret",
+			ConfigValue: "",
+			Remark:      "阿里云 AccessKey Secret",
+		},
+		{
+			ConfigKey:   "oss_bucket",
+			ConfigValue: "",
+			Remark:      "Bucket 名",
+		},
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "config_key"}},

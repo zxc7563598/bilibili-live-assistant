@@ -92,4 +92,12 @@ type AppConfigDataResp struct {
 	LoginTitle string `json:"login_title" example:"积分商城"`
 	// 登录页副标题 / Slogan
 	LoginSlogan string `json:"login_slogan" example:""`
+	// 完整 OSS 地址
+	OssEndpoint string `json:"oss_endpoint" example:"https://oss-cn-hangzhou.aliyuncs.com"`
+	// 阿里云 AccessKey ID
+	OssAccessKeyId string `json:"oss_access_key_id" example:"xxxxxxxxxxxxx"`
+	// 阿里云 AccessKey Secret
+	OssAccessKeySecret string `json:"oss_access_key_secret" example:"xxxxxxxxxxxxx"`
+	// 目标 bucket 名
+	OssBucket string `json:"oss_bucket" example:"xxxxx"`
 }

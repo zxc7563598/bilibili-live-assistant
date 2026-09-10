@@ -219,7 +219,33 @@ func (h *Handler) UploadImage(c *gin.Context) {
 	}
 }
 
-// @Summary 获取 App 全部配置
+// @Summary 同步图片到阿里云OSS
+// @Description 接收登录页背景图 / 网站图标 / logo 图片路径，同步到阿里云OSS，返回可直接访问的图片路径
+// @Tags App配置
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.AppConfigSyncOSSReq true "图片路径参数"
+// @Success 200 {object} response.Response{data=resp.AppUploadPathResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/appconfig/sync [post]
+func (h *Handler) SyncOSS(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	var req input.AppConfigSyncOSSReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.AppConfigLogger, "SyncOSS 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	url, errCode, err := h.appConfigSvc.SyncOSS(ctx, req.Path)
+	if errCode != 0 {
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.SyncOSS 调用失败", errCode, err)
+		response.Error(c, lang, errCode)
+		return
+	}
+	response.Success(c, lang, resp.AppUploadPathResp{Path: url})
+}
+
+// @Summary 获取 App 配置
 // @Description 获取后台可编辑的全部 App 配置（站点信息、颜色、图标、注册开关、登录页配置），用于回填管理页表单
 // @Tags App配置
 // @Security BearerAuth
@@ -245,28 +271,32 @@ func (h *Handler) GetConfig(c *gin.Context) {
 		LoginBg:             svcResp.LoginBg,
 		LoginTitle:          svcResp.LoginTitle,
 		LoginSlogan:         svcResp.LoginSlogan,
+		OssEndpoint:         svcResp.OssEndpoint,
+		OssAccessKeyId:      svcResp.OssAccessKeyId,
+		OssAccessKeySecret:  svcResp.OssAccessKeySecret,
+		OssBucket:           svcResp.OssBucket,
 	})
 }
 
-// @Summary 保存 App 全部配置
-// @Description 整体覆盖保存全部 App 配置并刷新缓存立即生效；入参与「获取配置」返回一一对应，可为空表示清除对应配置
+// @Summary 保存 App 基础配置
+// @Description 整体覆盖保存基本 App 配置并刷新缓存立即生效，可为空表示清除对应配置
 // @Tags App配置
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Param data body input.AppConfigSaveReq true "App 配置参数"
+// @Param data body input.AppConfigSaveConfigReq true "App 配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/appconfig/save [post]
 func (h *Handler) SaveConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 
-	var req input.AppConfigSaveReq
+	var req input.AppConfigSaveConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(logger.AppConfigLogger, "SaveConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
-	errCode, err := h.appConfigSvc.SaveConfig(ctx, appconfig.ConfigData{
+	errCode, err := h.appConfigSvc.SaveConfig(ctx, appconfig.SaveConfigReq{
 		SiteName:            req.SiteName,
 		SiteDescription:     req.SiteDescription,
 		SiteBackgroundColor: req.SiteBackgroundColor,
@@ -277,6 +307,38 @@ func (h *Handler) SaveConfig(c *gin.Context) {
 		LoginBg:             req.LoginBg,
 		LoginTitle:          req.LoginTitle,
 		LoginSlogan:         req.LoginSlogan,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.SaveConfig 调用失败", errCode, err)
+		response.Error(c, lang, errCode)
+		return
+	}
+	response.Success(c, lang, nil)
+}
+
+// @Summary 保存 OSS 配置
+// @Description 整体覆盖保存 OSS 相关配置并刷新缓存立即生效，可为空表示清除对应配置
+// @Tags App配置
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.AppConfigSaveOssConfigReq true "App 配置参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/appconfig/oss_save [post]
+func (h *Handler) SaveOssConfig(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+
+	var req input.AppConfigSaveOssConfigReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.AppConfigLogger, "SaveConfig 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	errCode, err := h.appConfigSvc.SaveOssConfig(ctx, appconfig.SaveOssConfigReq{
+		OssEndpoint:        req.OssEndpoint,
+		OssAccessKeyId:     req.OssAccessKeyId,
+		OssAccessKeySecret: req.OssAccessKeySecret,
+		OssBucket:          req.OssBucket,
 	})
 	if errCode != 0 {
 		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.SaveConfig 调用失败", errCode, err)
