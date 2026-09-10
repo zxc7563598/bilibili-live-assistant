@@ -6,6 +6,93 @@
           <template #header>
             <div>
               <div class="text-15 font-medium">
+                阿里云OSS配置
+              </div>
+              <div class="mt-2 text-13 text-gray-400">
+                配置阿里云OSS，以便将图片托管到阿里云，加快用户图片访问速度
+              </div>
+            </div>
+          </template>
+          <div class="space-y-10">
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                关于「OSS」
+              </div>
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  商城用到的图片默认存放在这台服务器上，加载会占用本机带宽。配置阿里云 OSS 后，图片会托管到阿里云，由阿里云分布在全国的节点就近分发，用户在手机、电脑上打开商城时图片加载更快、更稳定，也能减轻这台服务器的压力。
+                </div>
+                <div>
+                  开启需要在你的阿里云账号下准备两样东西：一个存储空间（Bucket）和一对访问密钥（AccessKey），都可以在下方指引的阿里云控制台页面免费创建、申请，再按对应位置填到本页即可。
+                </div>
+              </div>
+            </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                关于「bucket 名 与 OSS 地址」
+              </div>
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  这两项都来自你创建的存储空间：在阿里云 OSS 控制台的 <a class="text-primary hover:underline" href="https://oss.console.aliyun.com/bucket" target="_blank" rel="noreferrer">Bucket 列表页</a> 点击「创建 Bucket」，填入一个英文名称、选择一个离你的用户较近的地域，直接创建即可，无需其它额外配置。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">bucket 名</span>：就是创建 Bucket 时填写的那个英文名称，例如 mall-images。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">OSS 地址</span>：进入刚创建的 Bucket，在「概览」页里找到 Endpoint（地域节点），形如 oss-cn-hangzhou.aliyuncs.com，将其填入即可，前面带不带 https:// 都可以。
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                OSS 地址
+              </div>
+              <n-input v-model:value="appConfigForm.oss_endpoint" type="text" placeholder="例如：oss-cn-hangzhou.aliyuncs.com" />
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                bucket 名
+              </div>
+              <n-input v-model:value="appConfigForm.oss_bucket" type="text" placeholder="例如：mall-images" />
+            </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                关于「AccessKey」
+              </div>
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  AccessKey 是阿里云的访问密钥，系统凭它来读写你的 OSS。在阿里云 RAM 控制台的 <a class="text-primary hover:underline" href="https://ram.console.aliyun.com/profile/access-keys" target="_blank" rel="noreferrer">访问密钥管理页</a> 点击「创建 AccessKey」，会生成一对 <span class="text-gray-700 font-medium dark:text-gray-200">AccessKey ID</span> 与 <span class="text-gray-700 font-medium dark:text-gray-200">AccessKey Secret</span>，分别填入下面两项。
+                </div>
+                <div>
+                  两点提醒：Secret 只在创建时完整展示一次，请立即复制并妥善保存，忘记后只能重新创建；建议使用 RAM 子账号的密钥并只授予该 Bucket 的上传权限，不要直接填主账号的密钥，以免泄露后影响整个账号的安全。
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                AccessKey ID
+              </div>
+              <n-input v-model:value="appConfigForm.oss_access_key_id" type="text" placeholder="创建 AccessKey 时生成，例如 LTAI5t…" />
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                AccessKey Secret
+              </div>
+              <n-input v-model:value="appConfigForm.oss_access_key_secret" type="password" show-password-on="mousedown" placeholder="创建 AccessKey 时生成，仅展示一次" />
+            </div>
+          </div>
+          <template #footer>
+            <div class="flex justify-end">
+              <n-button size="small" type="primary" :loading="appOssLoading" @click="applyOss()">
+                保存配置
+              </n-button>
+            </div>
+          </template>
+        </n-card>
+        <n-card v-show="appConfigShow" id="module-basic" size="small" :bordered="false" class="border border-gray-200 rounded-3 dark:border-gray-700">
+          <template #header>
+            <div>
+              <div class="text-15 font-medium">
                 积分商城配置
               </div>
               <div class="mt-2 text-13 text-gray-400">
@@ -87,13 +174,13 @@
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 网站图标
               </div>
-              <UploadInput v-model:value="appConfigForm.site_icon" :upload="file => api.uploadImage(file, 'site_icon')" />
+              <UploadInput v-model:value="appConfigForm.site_icon" :upload="file => api.uploadImage(file, 'site_icon')" :sync-oss="api.syncOss" />
             </div>
             <div class="flex items-center gap-5">
               <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
                 网站logo
               </div>
-              <UploadInput v-model:value="appConfigForm.logo" :upload="file => api.uploadImage(file, 'logo')" />
+              <UploadInput v-model:value="appConfigForm.logo" :upload="file => api.uploadImage(file, 'logo')" :sync-oss="api.syncOss" />
             </div>
             <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
@@ -156,93 +243,6 @@
           <template #footer>
             <div class="flex justify-end">
               <n-button size="small" type="primary" :loading="appLoading" @click="apply()">
-                保存配置
-              </n-button>
-            </div>
-          </template>
-        </n-card>
-        <n-card v-show="appConfigShow" id="module-basic" size="small" :bordered="false" class="border border-gray-200 rounded-3 dark:border-gray-700">
-          <template #header>
-            <div>
-              <div class="text-15 font-medium">
-                阿里云OSS配置
-              </div>
-              <div class="mt-2 text-13 text-gray-400">
-                配置阿里云OSS，以便将图片托管到阿里云，加快用户图片访问速度
-              </div>
-            </div>
-          </template>
-          <div class="space-y-10">
-            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
-              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
-                关于「OSS」
-              </div>
-              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
-                <div>
-                  商城用到的图片默认存放在这台服务器上，加载会占用本机带宽。配置阿里云 OSS 后，图片会托管到阿里云，由阿里云分布在全国的节点就近分发，用户在手机、电脑上打开商城时图片加载更快、更稳定，也能减轻这台服务器的压力。
-                </div>
-                <div>
-                  开启需要在你的阿里云账号下准备两样东西：一个存储空间（Bucket）和一对访问密钥（AccessKey），都可以在下方指引的阿里云控制台页面免费创建、申请，再按对应位置填到本页即可。
-                </div>
-              </div>
-            </div>
-            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
-              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
-                关于「bucket 名 与 OSS 地址」
-              </div>
-              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
-                <div>
-                  这两项都来自你创建的存储空间：在阿里云 OSS 控制台的 <a class="text-primary hover:underline" href="https://oss.console.aliyun.com/bucket" target="_blank" rel="noreferrer">Bucket 列表页</a> 点击「创建 Bucket」，填入一个英文名称、选择一个离你的用户较近的地域，直接创建即可，无需其它额外配置。
-                </div>
-                <div>
-                  <span class="text-gray-700 font-medium dark:text-gray-200">bucket 名</span>：就是创建 Bucket 时填写的那个英文名称，例如 mall-images。
-                </div>
-                <div>
-                  <span class="text-gray-700 font-medium dark:text-gray-200">OSS 地址</span>：进入刚创建的 Bucket，在「概览」页里找到 Endpoint（地域节点），形如 oss-cn-hangzhou.aliyuncs.com，将其填入即可，前面带不带 https:// 都可以。
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-5">
-              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
-                OSS 地址
-              </div>
-              <n-input v-model:value="appConfigForm.oss_endpoint" type="text" placeholder="例如：oss-cn-hangzhou.aliyuncs.com" />
-            </div>
-            <div class="flex items-center gap-5">
-              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
-                bucket 名
-              </div>
-              <n-input v-model:value="appConfigForm.oss_bucket" type="text" placeholder="例如：mall-images" />
-            </div>
-            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
-              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
-                关于「AccessKey」
-              </div>
-              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
-                <div>
-                  AccessKey 是阿里云的访问密钥，系统凭它来读写你的 OSS。在阿里云 RAM 控制台的 <a class="text-primary hover:underline" href="https://ram.console.aliyun.com/profile/access-keys" target="_blank" rel="noreferrer">访问密钥管理页</a> 点击「创建 AccessKey」，会生成一对 <span class="text-gray-700 font-medium dark:text-gray-200">AccessKey ID</span> 与 <span class="text-gray-700 font-medium dark:text-gray-200">AccessKey Secret</span>，分别填入下面两项。
-                </div>
-                <div>
-                  两点提醒：Secret 只在创建时完整展示一次，请立即复制并妥善保存，忘记后只能重新创建；建议使用 RAM 子账号的密钥并只授予该 Bucket 的上传权限，不要直接填主账号的密钥，以免泄露后影响整个账号的安全。
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-5">
-              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
-                AccessKey ID
-              </div>
-              <n-input v-model:value="appConfigForm.oss_access_key_id" type="text" placeholder="创建 AccessKey 时生成，例如 LTAI5t…" />
-            </div>
-            <div class="flex items-center gap-5">
-              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
-                AccessKey Secret
-              </div>
-              <n-input v-model:value="appConfigForm.oss_access_key_secret" type="password" show-password-on="mousedown" placeholder="创建 AccessKey 时生成，仅展示一次" />
-            </div>
-          </div>
-          <template #footer>
-            <div class="flex justify-end">
-              <n-button size="small" type="primary" :loading="appOssLoading" @click="applyOss()">
                 保存配置
               </n-button>
             </div>
