@@ -1026,6 +1026,49 @@ definitions:
     - content
     - enabled
     type: object
+  input.ProductAdminListPageReq:
+    properties:
+      credit_type:
+        description: 货币类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      enable:
+        description: 是否启用
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        description: 商品名称，支持模糊搜索
+        example: 测试
+        type: string
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      sortField:
+        description: 排序字段
+        example: points
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
   input.ProductDetailReq:
     properties:
       id:
@@ -1035,7 +1078,155 @@ definitions:
     required:
     - id
     type: object
-  input.ProductListPageReq:
+  input.ProductSaveImageReq:
+    properties:
+      enable:
+        description: 是否启用
+        example: true
+        type: boolean
+      image_path:
+        description: 图片路径
+        example: https://cdn.example.com/1.png
+        type: string
+      sort_order:
+        description: 排序，越大越靠前
+        example: 100
+        type: integer
+      type:
+        description: 图片类型，0 轮播图 / 1 详情图
+        enum:
+        - 0
+        - 1
+        example: 0
+        type: integer
+    type: object
+  input.ProductSaveReq:
+    properties:
+      cover:
+        description: 商品封面图
+        example: https://cdn.example.com/cover.png
+        maxLength: 255
+        type: string
+      credit_type:
+        description: 积分类型，0 星光 / 1 积分
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      describe:
+        description: 商品说明
+        example: 下单后 1-3 天发出
+        maxLength: 1000
+        type: string
+      enable:
+        description: 是否启用；必传，避免调用方漏传后被当成下架
+        example: true
+        type: boolean
+      id:
+        description: 商品ID，0 表示新增
+        example: 0
+        type: integer
+      images:
+        description: 商品图片，含轮播图与详情图
+        items:
+          $ref: '#/definitions/input.ProductSaveImageReq'
+        maxItems: 200
+        type: array
+      name:
+        description: 商品名称
+        example: 小立牌
+        maxLength: 255
+        type: string
+      price:
+        description: 商品展示价格，单位分
+        example: 100
+        minimum: 0
+        type: integer
+      product_type:
+        description: 商品类型，0 虚拟 / 1 实体
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      skus:
+        description: 上架 SKU，至少一个；未上架的规格组合不提交
+        items:
+          $ref: '#/definitions/input.ProductSaveSkuReq'
+        maxItems: 200
+        minItems: 1
+        type: array
+      sold:
+        description: 已售数量
+        example: 0
+        minimum: 0
+        type: integer
+      sort_order:
+        description: 排序，越大越靠前
+        example: 100
+        type: integer
+      specs:
+        description: 规格设置
+        items:
+          $ref: '#/definitions/input.ProductSaveSpecReq'
+        maxItems: 10
+        type: array
+      tags:
+        description: 商品标签，英文逗号隔开
+        example: aa,bb
+        maxLength: 255
+        type: string
+    required:
+    - cover
+    - enable
+    - name
+    - skus
+    type: object
+  input.ProductSaveSkuReq:
+    properties:
+      cost_price:
+        description: SKU 成本价，单位分，仅后台核算使用
+        example: 50
+        type: integer
+      price:
+        description: SKU 价格，单位分
+        example: 100
+        type: integer
+      spec_properties:
+        description: 规格快照，形如 [{"类型":"镭射款"},{"形象":"wink小蓝"}]
+        items:
+          additionalProperties:
+            type: string
+          type: object
+        type: array
+      stock:
+        description: |-
+          SKU 库存；不传表示本次不改动库存，后端保留库里的最新值，
+          避免把保存期间被订单扣减的库存覆盖回去
+        example: 500
+        type: integer
+    type: object
+  input.ProductSaveSpecReq:
+    properties:
+      key_name:
+        description: 规格名称
+        example: 类型
+        type: string
+      values:
+        description: 规格值
+        items:
+          $ref: '#/definitions/input.ProductSaveSpecValueReq'
+        type: array
+    type: object
+  input.ProductSaveSpecValueReq:
+    properties:
+      value_name:
+        description: 规格值内容
+        example: 镭射款
+        type: string
+    type: object
+  input.ProductShopListPageReq:
     properties:
       credit_type:
         description: 货币类型
@@ -1070,6 +1261,20 @@ definitions:
     required:
     - pageNo
     - pageSize
+    type: object
+  input.ProductUpdateEnableReq:
+    properties:
+      enable:
+        description: 是否启用；必传，避免调用方漏传后被当成下架
+        example: true
+        type: boolean
+      id:
+        description: 商品ID
+        example: 1
+        type: integer
+    required:
+    - enable
+    - id
     type: object
   input.ReplyConfigReq:
     properties:
@@ -1992,6 +2197,10 @@ definitions:
     type: object
   resp.ImageItem:
     properties:
+      enable:
+        description: 是否启用
+        example: true
+        type: boolean
       id:
         description: 图片ID
         example: 1
@@ -2000,6 +2209,10 @@ definitions:
         description: 图片URL
         example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
         type: string
+      sort_order:
+        description: 排序，越大越靠前
+        example: 100
+        type: integer
       type:
         description: 图片位置
         enum:
@@ -2802,6 +3015,10 @@ definitions:
         description: 商品说明
         example: xxxxxxxxxxxxxxxxx
         type: string
+      enable:
+        description: 是否启用
+        example: true
+        type: boolean
       id:
         description: 商品ID
         example: 1
@@ -2819,6 +3036,13 @@ definitions:
         description: 价格
         example: 100
         type: integer
+      product_type:
+        description: 商品类型
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
       skus:
         description: 商品SKU信息
         items:
@@ -2826,6 +3050,10 @@ definitions:
         type: array
       sold:
         description: 已售
+        example: 100
+        type: integer
+      sort_order:
+        description: 商品排序
         example: 100
         type: integer
       specs:
@@ -2900,6 +3128,10 @@ definitions:
         description: 商品说明
         example: xxxxxxxxxxxxxxxxx
         type: string
+      enable:
+        description: 是否启用
+        example: true
+        type: boolean
       id:
         description: 管理员ID
         example: 1
@@ -2914,6 +3146,10 @@ definitions:
         type: integer
       sold:
         description: 已售
+        example: 100
+        type: integer
+      sort_order:
+        description: 商品排序
         example: 100
         type: integer
       stock:
@@ -2935,6 +3171,13 @@ definitions:
       total:
         description: 总计条数
         example: 100
+        type: integer
+    type: object
+  resp.ProductSaveResp:
+    properties:
+      id:
+        description: 商品ID，新增时为数据库生成的 ID
+        example: 1
         type: integer
     type: object
   resp.ReplyConfigResp:
@@ -3244,6 +3487,10 @@ definitions:
     type: object
   resp.SkuItem:
     properties:
+      cost_price:
+        description: SKU 成本价，仅后台可见，用于核算成本；商城端不下发该字段
+        example: 50
+        type: integer
       id:
         description: SKU ID
         example: 1
@@ -4446,6 +4693,133 @@ paths:
       summary: 校验菜单路径是否存在
       tags:
       - 菜单
+  /api/admin/product/details:
+    post:
+      description: 用于后台获取商品信息
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ProductDetailReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ProductDetailResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台获取商品详情
+      tags:
+      - 商品管理
+  /api/admin/product/enable:
+    post:
+      description: 用于后台快速变更商品上架/下架
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ProductUpdateEnableReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 后台变更商品是否启用
+      tags:
+      - 商品管理
+  /api/admin/product/list:
+    post:
+      description: 用于后台商品列表的展示
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 分页参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ProductAdminListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ProductListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台获取主页商品分页列表
+      tags:
+      - 商品管理
+  /api/admin/product/save:
+    post:
+      description: 不传 ID 或 ID 为 0 时新增商品；否则变更对应商品。规格、规格值、SKU、图片为全量覆盖，请求中未出现的即被软删除
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 商品保存参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ProductSaveReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ProductSaveResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台创建或变更商品
+      tags:
+      - 商品管理
   /api/admin/robot/ad/apply:
     post:
       description: 更新定时广告模块的发送间隔、内容等配置信息
@@ -5159,6 +5533,9 @@ paths:
         - login_bg
         - site_icon
         - logo
+        - cover
+        - carousel
+        - details
         in: formData
         name: scene
         required: true
@@ -5879,7 +6256,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/input.ProductListPageReq'
+          $ref: '#/definitions/input.ProductShopListPageReq'
       responses:
         "200":
           description: 统一响应（code=0成功，其它失败）
