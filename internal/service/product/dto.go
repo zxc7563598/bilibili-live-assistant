@@ -52,26 +52,28 @@ type ListPageItem struct {
 
 // DetailsResp 商品详情返回，含商品基础信息、SKU、规格、图片
 type DetailsResp struct {
-	ID         int64       `json:"id"`
-	Name       string      `json:"name"`
-	Cover      string      `json:"cover"`
-	Price      int64       `json:"price"`
-	CreditType int         `json:"credit_type"`
-	Sold       int64       `json:"sold"`
-	Stock      int64       `json:"stock"`
-	Tags       string      `json:"tags"`
-	Describe   string      `json:"describe"`
-	SortOrder  int         `json:"sort_order"`
-	Enable     bool        `json:"enable"`
-	Skus       []SkuItem   `json:"skus"`
-	Specs      []SpecItem  `json:"specs"`
-	Images     []ImageItem `json:"images"`
+	ID          int64       `json:"id"`
+	Name        string      `json:"name"`
+	Cover       string      `json:"cover"`
+	Price       int64       `json:"price"`
+	CreditType  int         `json:"credit_type"`
+	Sold        int64       `json:"sold"`
+	Stock       int64       `json:"stock"`
+	Tags        string      `json:"tags"`
+	Describe    string      `json:"describe"`
+	SortOrder   int         `json:"sort_order"`
+	Enable      bool        `json:"enable"`
+	ProductType int         `json:"product_type"`
+	Skus        []SkuItem   `json:"skus"`
+	Specs       []SpecItem  `json:"specs"`
+	Images      []ImageItem `json:"images"`
 }
 
 // SkuItem 商品 SKU
 type SkuItem struct {
 	ID             int64  `json:"id"`
 	Price          int64  `json:"price"`
+	CostPrice      int64  `json:"cost_price"`
 	Stock          int64  `json:"stock"`
 	SpecProperties string `json:"spec_properties"`
 }
@@ -95,4 +97,58 @@ type ImageItem struct {
 	ImagePath string `json:"image_path"`
 	SortOrder int    `json:"sort_order"`
 	Type      int    `json:"type"`
+	Enable    bool   `json:"enable"`
+}
+
+// SaveReq 创建或变更商品入参
+type SaveReq struct {
+	ID          int64
+	Name        string
+	Cover       string
+	Price       int64
+	CreditType  int
+	ProductType int
+	Sold        int64
+	Tags        string
+	Describe    string
+	SortOrder   int
+	Enable      bool
+	Specs       []SaveSpec
+	Skus        []SaveSku
+	Images      []SaveImage
+}
+
+// SaveSpec 商品规格及规格值
+type SaveSpec struct {
+	KeyName string
+	Values  []SaveSpecValue
+}
+
+// SaveSpecValue 商品规格值
+type SaveSpecValue struct {
+	ValueName string
+}
+
+// SaveSku 商品 SKU
+type SaveSku struct {
+	Price int64
+	// CostPrice 成本价，仅后台核算使用，不对外展示
+	CostPrice int64
+	// Stock 为 nil 表示本次不改动库存，保留库里的最新值
+	Stock *int64
+	// SpecProperties 规格快照，保留请求里的原始形状，由 Service 拍平校验后序列化落库
+	SpecProperties []map[string]string
+}
+
+// SaveImage 商品图片
+type SaveImage struct {
+	ImagePath string
+	SortOrder int
+	Type      int
+	Enable    bool
+}
+
+// SaveResp 创建或变更商品出参
+type SaveResp struct {
+	ID int64
 }

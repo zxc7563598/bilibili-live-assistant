@@ -27,6 +27,10 @@ type ProductListPageItem struct {
 	Tags string `json:"tags" example:"aa,bb,cc,dd"`
 	// 商品说明
 	Describe string `json:"describe" example:"xxxxxxxxxxxxxxxxx"`
+	// 商品排序
+	SortOrder int `json:"sort_order" example:"100"`
+	// 是否启用
+	Enable bool `json:"enable" example:"true"`
 }
 
 // ProductDetailResp 商城端获取商品详细信息返回
@@ -49,6 +53,12 @@ type ProductDetailResp struct {
 	Tags string `json:"tags" example:"aa,bb,cc,dd"`
 	// 商品说明
 	Describe string `json:"describe" example:"xxxxxxxxxxxxxxxxx"`
+	// 商品排序
+	SortOrder int `json:"sort_order" example:"100"`
+	// 是否启用
+	Enable bool `json:"enable" example:"true"`
+	// 商品类型
+	ProductType int `json:"product_type" example:"1" enums:"0,1"`
 	// 商品SKU信息
 	Skus []SkuItem `json:"skus"`
 	// 商品规格
@@ -63,6 +73,8 @@ type SkuItem struct {
 	ID int64 `json:"id" example:"1"`
 	// SKU 价格
 	Price int64 `json:"price" example:"100"`
+	// SKU 成本价，仅后台可见，用于核算成本；商城端不下发该字段
+	CostPrice *int64 `json:"cost_price,omitempty" example:"50"`
 	// SKU 库存
 	Stock int64 `json:"stock" example:"100"`
 	// SKU 规格快照
@@ -93,6 +105,16 @@ type ImageItem struct {
 	ID int64 `json:"id" example:"1"`
 	// 图片URL
 	ImagePath string `json:"image_path" example:"https://cdn.hejunjie.life/avatars/oneadmin.jpeg"`
+	// 排序，越大越靠前
+	SortOrder int `json:"sort_order" example:"100"`
 	// 图片位置
 	Type int `json:"type" example:"1" enums:"0,1"`
+	// 是否启用
+	Enable bool `json:"enable" example:"true"`
+}
+
+// ProductSaveResp 后台创建或变更商品返回
+type ProductSaveResp struct {
+	// 商品ID，新增时为数据库生成的 ID
+	ID int64 `json:"id" example:"1"`
 }
