@@ -32,7 +32,7 @@ func New(uploadSvc *uploadSvc.Service) *Handler {
 // @Security BearerAuth
 // @Accept multipart/form-data
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Param scene formData string true "图片用途（决定落盘子目录）" enums(login_bg,site_icon,logo)
+// @Param scene formData string true "图片用途（决定落盘子目录）" enums(login_bg,site_icon,logo,cover,carousel,details)
 // @Param file formData file true "图片文件"
 // @Success 200 {object} response.Response{data=resp.UploadPathResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/upload/image [post]

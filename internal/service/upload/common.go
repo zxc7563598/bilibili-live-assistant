@@ -11,9 +11,12 @@ import (
 
 // uploadSceneAllow 图片上传场景白名单
 var uploadSceneAllow = map[string]string{
-	"login_bg":  "login_bg",  // 登录页背景图（建议 20:9）
-	"site_icon": "site_icon", // 网站图标（建议 1:1，≤512x512）
-	"logo":      "logo",      // 网站 logo（建议 1:1，≤512x512）
+	"login_bg":  "login_bg",         // 登录页背景图（建议 20:9）
+	"site_icon": "site_icon",        // 网站图标（建议 1:1，≤512x512）
+	"logo":      "logo",             // 网站 logo（建议 1:1，≤512x512）
+	"cover":     "product/cover",    // 商品封面（建议 1:1）
+	"carousel":  "product/carousel", // 商品轮播图（建议 1:1）
+	"details":   "product/details",  // 商品详情图（建议等宽长图）
 }
 
 // resolveScene 校验上传场景，返回落盘子目录
