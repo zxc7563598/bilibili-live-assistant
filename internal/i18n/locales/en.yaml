@@ -122,6 +122,36 @@ error:
   10801: Invalid request parameters # Parameter validation failed
   10802: Password cannot be less than six digits # Password cannot be less than six digits
   10901: Illegal image information # Image MIME type retrieval failed
+  11001: Request parameter is invalid # Parameter validation failed (Product module)
+  11002: Please enter the product name # Product name is empty
+  11003: Product name cannot exceed 255 characters # Product name too long
+  11004: Please upload the product cover # Product cover is empty
+  11005: Product cover URL cannot exceed 255 characters # Product cover URL too long
+  11006: Product price must be an integer not less than 0 # Invalid product price
+  11007: Please select a credit type # Credit type is not 0/1
+  11008: Please select a product type # Product type is not 0/1
+  11009: Sold quantity must be an integer not less than 0 # Invalid sold quantity
+  11010: Product tags cannot exceed 255 characters # Tags too long
+  11011: Product description cannot exceed 1000 characters # Description too long
+  11012: Please put at least one spec combination on sale # SKU count is 0
+  11013: Spec combinations cannot exceed 200 # SKU count exceeded
+  11014: Product images cannot exceed 200 # Image count exceeded
+  11015: Spec name cannot be empty # Spec name is empty
+  11016: Spec name cannot exceed 100 characters # Spec name too long
+  11017: Spec names must be unique # Duplicate spec name
+  11018: Spec value cannot be empty # Spec has no value / value is empty
+  11019: Spec value cannot exceed 100 characters # Spec value too long
+  11020: Spec values under the same spec must be unique # Duplicate spec value
+  11021: Spec combination does not match the spec settings # SKU spec snapshot mismatches spec definitions
+  11022: Spec combination price must be an integer not less than 0 # Invalid SKU price
+  11023: Spec combination stock must be an integer not less than 0 # Invalid SKU stock
+  11024: Product image URL cannot be empty # Image path is empty
+  11025: Product image URL cannot exceed 1000 characters # Image path too long
+  11026: Invalid product image type # Image type is not 0/1
+  11027: Spec types cannot exceed 10 # Spec type count exceeded
+  11028: Spec combination cost price must be an integer not less than 0 # Invalid SKU cost price
+  11029: Spec combination details are too long # Serialized SKU spec snapshot exceeds the column width
+  11030: Duplicate spec combination # Duplicate spec combination under the same product
   11101: Request parameter is invalid # Order parameter is invalid
   11201: Please select the feedback type # Feedback type is empty
   11202: Feedback type is too long # Feedback type exceeds the maximum length limit
@@ -227,6 +257,7 @@ error:
   60905: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure
   60906: Alibaba Cloud OSS Configuration or Connection Exception # Alibaba Cloud OSS Configuration or Connection Exception
   61001: System busy, please try again later # Database query exception
+  61002: Operation failed, please try again later # Product save failed (Product module)
   61101: System busy, please try again later # Database error (Order module)
   61201: System busy, please try again later # Database error (Feedback module)
   61301: System busy, please try again later # Database error (Address module)

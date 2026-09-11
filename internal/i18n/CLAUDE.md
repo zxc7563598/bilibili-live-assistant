@@ -137,6 +137,7 @@ T MM XX
 | 02 | 角色模块（Role） |
 | 03 | 菜单模块（Menu） |
 | 09 | App 配置模块（AppConfig） |
+| 10 | 商品模块（Product） |
 | 12 | 反馈模块（Feedback） |
 | 14 | 上传模块（Upload） |
 
