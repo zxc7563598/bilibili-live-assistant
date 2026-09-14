@@ -198,10 +198,237 @@ func (h *Handler) UserDanmuAnalysis(c *gin.Context) {
 	})
 }
 
+// @Summary 获取用户详细信息
+// @Description 按用户表主键（user_id，非 B站 UID）查询用户基础信息（UID、昵称、头像）及当前剩余积分、星光，用于后台用户详情页展示
+// @Tags 用户管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserDetailsReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.LiveUserUserInfoResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/liveuser/details [post]
+func (h *Handler) Details(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取请求参数
+	var req input.LiveUserDetailsReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"Details 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.liveuserSvc.UserInfo(ctx, req.UserID)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.UserInfo 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Any("req.user_id", req.UserID),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserUserInfoResp{
+		UID:    svcResp.UID,
+		Avatar: svcResp.Avatar,
+		Name:   svcResp.Name,
+		Points: svcResp.Points,
+		Stars:  svcResp.Stars,
+	})
+}
+
+// @Summary 分页查询用户积分/星光变动记录
+// @Description 按用户表主键（user_id，非 B站 UID）分页查询该用户的积分/星光变动流水，支持按资产类型筛选（credit_type：0-星光，1-积分），用于后台用户详情页的资产明细
+// @Tags 用户管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserAssetsPageByIdReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.LiveUserAssetsPageResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/liveuser/assets [post]
+func (h *Handler) AssetsPageByID(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取请求参数
+	var req input.LiveUserAssetsPageByIdReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"AssetsPageByID 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.liveuserSvc.UserAssetsPage(ctx, req.UserID, liveuser.UserAssetsPageReq{
+		PageResp: liveuser.PageResp{
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
+		},
+		CreditType: req.CreditType,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.UserAssetsPage 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Int("req.pageNo", req.PageNo),
+			zap.Int("req.pageSize", req.PageSize),
+			zap.Any("req.user_id", req.UserID),
+			zap.Any("req.credit_type", req.CreditType),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserAssetsPageResp{
+		Total:    svcResp.Total,
+		PageData: toLiveUserAssetsPageItems(svcResp.PageData),
+	})
+}
+
+// @Summary 手动调整用户余额
+// @Description 按用户表主键（user_id，非 B站 UID）手动变更指定用户的积分/星光余额：credit_type 指定资产类型（0-星光，1-积分），change_type 指定变动方向（0-减少，1-增加），后两者必传且不可省略，change_amount 传正数；服务端原子更新余额并写入变动流水，扣减时余额不足则本次操作失败
+// @Tags 用户管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserSaveBalanceReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/liveuser/save-assets [post]
+func (h *Handler) SaveBalance(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取请求参数
+	var req input.LiveUserSaveBalanceReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"SaveBalance 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	// credit_type / change_type 已由 binding:"required" 保证非空，此处可安全解引用
+	errCode, err := h.liveuserSvc.SaveBalance(ctx, adminInfo.AdminID, req.UserID, *req.CreditType, *req.ChangeType, req.ChangeAmount, req.Remark)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.SaveBalance 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Any("req.user_id", req.UserID),
+			zap.Any("req.credit_type", *req.CreditType),
+			zap.Any("req.change_type", *req.ChangeType),
+			zap.Any("req.change_amount", req.ChangeAmount),
+			zap.Any("req.remark", req.Remark),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}
+
+// @Summary 重置用户密码
+// @Description 按用户表主键（user_id，非 B站 UID）直接重置指定用户的登录密码，无需校验旧密码；重置成功后服务端会同时清除该用户的登录态（未启用 Redis 时 access_token 在有效期届满前仍可用），用户需重新登录
+// @Tags 用户管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserResetPasswordReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/liveuser/reset-password [post]
+func (h *Handler) ResetPassword(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取请求参数
+	var req input.LiveUserResetPasswordReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"ResetPassword 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	errCode, err := h.liveuserSvc.ResetPassword(ctx, req.UserID, req.Password)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.ResetPassword 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Any("req.user_id", req.UserID),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 密码已落库，本次操作即成功；踢登录态只是附带动作，失败仅记日志不影响返回
+	if logoutCode, logoutErr := h.liveuserSvc.Logout(ctx, req.UserID); logoutCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.Logout 调用失败（密码已重置，登录态可能未失效）",
+			logoutCode,
+			logoutErr,
+			zap.Any("req.user_id", req.UserID),
+		)
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}
+
 // 移动端 ------------------
 
 // @Summary 判断用户账号是否存在
-// @Description 校验指定账号（UID）是否已存在，供登录页在提交前进行预检
+// @Description 校验指定账号（UID）在用户表中是否已存在，供移动端登录页在提交前预检，不会请求 B 站接口
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Param data body input.LiveUserExistsAccountReq true "请求参数"

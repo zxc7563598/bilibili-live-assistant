@@ -2,7 +2,9 @@ package liveuser
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -404,6 +406,28 @@ func (s *Service) ChangePassword(ctx context.Context, userID int64, oldPassword,
 	return 0, nil
 }
 
+// ResetPassword 用于直接重置用户密码
+func (s *Service) ResetPassword(ctx context.Context, userID int64, newPassword string) (int, error) {
+	// 根据主键ID获取用户信息
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return 60801, err
+	}
+	if user == nil {
+		return 50802, nil
+	}
+	// 新密码加密并更新
+	password, err := crypto.HashPassword(newPassword)
+	if err != nil {
+		return 60801, err
+	}
+	if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, password); err != nil {
+		return 60801, err
+	}
+	// 返回结果
+	return 0, nil
+}
+
 // UserInfo 获取用户基本信息
 func (s *Service) UserInfo(ctx context.Context, userID int64) (UserInfoResp, int, error) {
 	// 根据主键ID获取用户信息
@@ -446,6 +470,60 @@ func (s *Service) UserAssetsPage(ctx context.Context, userID int64, req UserAsse
 		Total:    total,
 		PageData: toUserAssetsPageItems(list),
 	}, 0, nil
+}
+
+// SaveBalance 管理员手动变更用户余额
+//
+// 与其他余额变更入口一致，走 addCreditLog 原子更新资产并写流水，
+// 操作方固定记为管理员，便于后续追溯是谁调整的
+func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, creditType, changeType int, changeAmount int64, remark *string) (int, error) {
+	ct := enum.CreditType(creditType)
+	if !ct.IsValid() {
+		return 10801, fmt.Errorf("非法的资产类型: %d", creditType)
+	}
+	t := enum.ChangeType(changeType)
+	if !t.IsValid() {
+		return 10801, fmt.Errorf("非法的变动类型: %d", changeType)
+	}
+	if changeAmount <= 0 {
+		return 10801, fmt.Errorf("变动数值必须大于 0: %d", changeAmount)
+	}
+	desc := strings.TrimSpace(ptr.Deref(remark))
+	if desc == "" {
+		desc = fmt.Sprintf("管理员后台手动%s%s %d", t.Text("zh"), ct.Text("zh"), changeAmount)
+	}
+	// 组装流水参数
+	params := AddCreditLogParams{
+		UserID:       userID,
+		ChangeType:   t,
+		ChangeAmount: changeAmount,
+		BizType:      "admin",
+		Remark:       desc,
+		OperatorType: enum.OperatorTypeAdmin,
+		OperatorID:   adminID,
+	}
+	// 执行变更
+	var err error
+	switch ct {
+	case enum.CreditTypePoints:
+		err = s.AddPointsLog(ctx, params)
+	case enum.CreditTypeStars:
+		err = s.AddStarsLog(ctx, params)
+	default:
+		return 10801, fmt.Errorf("暂不支持的资产类型: %d", int(ct))
+	}
+	if err != nil {
+		switch {
+		case errors.Is(err, live_user.ErrUserNotFound):
+			return 50802, err
+		case errors.Is(err, live_user.ErrInsufficientBalance):
+			return 40803, err
+		default:
+			return 60801, err
+		}
+	}
+	// 返回结果
+	return 0, nil
 }
 
 // addCreditLog 增加用户资产记录（增加或减少）
