@@ -335,7 +335,7 @@ func seedMenus(db *gorm.DB) error {
 			Name:      "用户管理",
 			Icon:      "i-fe:users",
 			Path:      "/shop/user",
-			Component: "",
+			Component: "/src/views/shop/user/index.vue",
 			Order:     0,
 		},
 		{
@@ -365,7 +365,7 @@ func seedMenus(db *gorm.DB) error {
 			Name:      "订单列表",
 			Icon:      "i-fe:list",
 			Path:      "/order/list",
-			Component: "",
+			Component: "/src/views/order/list/index.vue",
 			Order:     0,
 		},
 		{
@@ -380,7 +380,7 @@ func seedMenus(db *gorm.DB) error {
 			Name:      "发货管理",
 			Icon:      "i-fe:package",
 			Path:      "/order/delivery",
-			Component: "",
+			Component: "/src/views/order/delivery/index.vue",
 			Order:     1,
 		},
 		{
