@@ -244,7 +244,7 @@ function handleExport(columns = props.columns, data = tableData.value) {
     return $message.warning('没有数据')
   const columnsData = columns.filter(item => !!item.title && !item.hideInExcel)
   const thKeys = columnsData.map(item => item.key)
-  const thData = columnsData.map(item => item.title)
+  const thData = columnsData.map(item => typeof item.title === 'function' ? item.key : item.title)
   const trData = data.map(item => thKeys.map(key => item[key]))
   const sheet = utils.aoa_to_sheet([thData, ...trData])
   const workBook = utils.book_new()
