@@ -28,7 +28,7 @@ func New(liveuserSvc *liveuser.Service, robotConfigSvc *robotconfig.Service) *Ha
 }
 
 // @Summary 分页查询用户列表
-// @Description 分页获取用户列表，支持按用户信息进行筛选
+// @Description 分页查询后台用户列表，支持按 UID 精确匹配、昵称模糊匹配筛选，并可按指定字段排序
 // @Tags 用户管理
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
@@ -90,8 +90,8 @@ func (h *Handler) ListPage(c *gin.Context) {
 	})
 }
 
-// @Summary 获取用户每日分析数据
-// @Description 获取用户指定月份在直播间的发言/打赏汇总
+// @Summary 获取用户月度数据统计
+// @Description 统计指定用户在某一自然月内的每日弹幕数、礼物数、礼物金额，以及当月每天是否开播，用于后台用户分析页的图表展示
 // @Tags 用户管理
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
@@ -145,8 +145,8 @@ func (h *Handler) UserMonthlyAnalysis(c *gin.Context) {
 	})
 }
 
-// @Summary 获取用户弹幕分析
-// @Description 获取用户弹幕发言分析
+// @Summary 获取用户弹幕词频分析
+// @Description 统计指定用户历史弹幕中的高频内容，分别返回单词、双词、三词与完整短句四个维度的词频列表，用于后台用户画像分析
 // @Tags 用户管理
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
@@ -243,7 +243,7 @@ func (h *Handler) ExistsAccount(c *gin.Context) {
 }
 
 // @Summary 用户登录
-// @Description 用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权
+// @Description 用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权；首次登录且系统开启自动注册时会自动创建账号，尚无密码的账号则以本次输入的密码作为登录密码
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Param data body input.LiveUserLoginReq true "请求参数"
@@ -286,7 +286,7 @@ func (h *Handler) Login(c *gin.Context) {
 }
 
 // @Summary 刷新登录凭证
-// @Description 使用 refresh_token 换取新的 access_token 与 refresh_token，以延长会话有效期
+// @Description 使用 refresh_token 换取新的 access_token 与 refresh_token，以延长登录有效期；刷新后原 refresh_token 随即失效，请改用本次返回的新凭证
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Param data body input.LiveUserRefreshReq true "请求参数"
@@ -328,7 +328,7 @@ func (h *Handler) Refresh(c *gin.Context) {
 }
 
 // @Summary 退出登录
-// @Description 清除用户登录态，使当前 access_token 与 refresh_token 立即失效
+// @Description 退出当前登录，清除服务端保存的登录凭证，使当前 access_token 与 refresh_token 立即失效
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Security BearerAuth
@@ -362,7 +362,7 @@ func (h *Handler) Logout(c *gin.Context) {
 }
 
 // @Summary 修改用户密码
-// @Description 用户在已登录状态下通过旧密码验证后修改登录密码，修改成功后前端将引导用户重新登录
+// @Description 已登录用户校验旧密码后修改登录密码，旧密码错误会返回对应错误码；修改成功后当前登录态仍然有效，是否重新登录由前端自行决定
 // @Tags 移动端
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
@@ -409,7 +409,7 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 }
 
 // @Summary 获取用户基本信息
-// @Description 获取当前登录用户的基本信息（头像、昵称、积分、星光等），供移动端商城展示
+// @Description 获取当前登录用户自身的基本信息（UID、昵称、头像、剩余积分与星光），用户身份由登录态解析，供移动端商城展示
 // @Tags 移动端
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
@@ -474,7 +474,7 @@ func (h *Handler) GetRoomID(c *gin.Context) {
 }
 
 // @Summary 分页查询我的积分/星光变动记录
-// @Description 分页查询当前登录用户的账户资产（积分/星光）变动流水，服务端仅返回该用户本人的记录
+// @Description 分页查询积分/星光变动流水，支持按资产类型筛选（credit_type：0-星光，1-积分）；查询对象固定为当前登录用户本人，无需也不能传入用户 ID
 // @Tags 移动端
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)

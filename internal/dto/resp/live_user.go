@@ -74,11 +74,16 @@ type LiveUserLoginResp struct {
 
 // LiveUserUserInfoResp 获取用户基本信息返回
 type LiveUserUserInfoResp struct {
-	UID    int64  `json:"uid" example:"4325051"`
+	// 用户uid
+	UID int64 `json:"uid" example:"4325051"`
+	// 用户头像
 	Avatar string `json:"avatar" example:"https://xxxxxx.xxx.com"`
-	Name   string `json:"name" example:"哎呀又胖啦"`
-	Points int64  `json:"points" example:"30"`
-	Stars  int64  `json:"stars" example:"50"`
+	// 用户昵称
+	Name string `json:"name" example:"哎呀又胖啦"`
+	// 用户剩余积分
+	Points int64 `json:"points" example:"30"`
+	// 用户剩余星光
+	Stars int64 `json:"stars" example:"50"`
 }
 
 // LiveUserGetRoomIDResp 获取直播间房间号返回
