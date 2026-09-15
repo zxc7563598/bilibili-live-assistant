@@ -413,6 +413,21 @@ func seedMenus(db *gorm.DB) error {
 			Component: "/src/views/shop/user/details.vue",
 			Order:     1,
 		},
+		{
+			ID:        25,
+			Code:      "OrderDetails",
+			Enable:    enum.EnableEnable,
+			Show:      enum.No,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  21,
+			Name:      "订单详情",
+			Icon:      "i-fe:edit",
+			Path:      "/order/list/details",
+			Component: "/src/views/order/list/details.vue",
+			Order:     2,
+		},
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "code"}},
