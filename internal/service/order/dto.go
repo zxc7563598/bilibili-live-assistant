@@ -145,3 +145,9 @@ type UpdateShipStatusReq struct {
 	ExpressCompany *string
 	ExpressNo      *string
 }
+
+// UpdateOrderStatusReq 变更订单状态请求入参
+type UpdateOrderStatusReq struct {
+	ID          int64
+	OrderStatus enum.OrderStatus
+}

@@ -307,6 +307,36 @@ func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq)
 	return 0, nil
 }
 
+// UpdateOrderStatus 后台变更订单状态（确认收货 / 取消订单等），仅变更状态字段，不涉及退款与库存回滚
+func (s *Service) UpdateOrderStatus(ctx context.Context, req UpdateOrderStatusReq) (int, error) {
+	// 读取订单
+	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, req.ID)
+	if err != nil {
+		return 61101, err
+	}
+	if order == nil {
+		return 51105, errors.New("订单不存在")
+	}
+	if !req.OrderStatus.IsValid() {
+		return 11101, errors.New("订单状态不合法")
+	}
+	// 已是目标状态直接返回：避免重复取消把真实的取消时间改晚
+	if order.OrderStatus == req.OrderStatus {
+		return 0, nil
+	}
+	order.OrderStatus = req.OrderStatus
+	if req.OrderStatus == enum.OrderStatusCancelled {
+		order.CancelAt = time.Now().Unix()
+	} else {
+		order.CancelAt = 0
+	}
+	// 落库
+	if err := s.liveUserOrderRepo.Update(ctx, nil, order); err != nil {
+		return 61101, err
+	}
+	return 0, nil
+}
+
 // ListPageByUser 根据用户ID获取订单列表信息
 func (s *Service) ListPageByUser(ctx context.Context, userID int64, req ListPageByUserReq) (ListPageByUserResp, int, error) {
 	// 获取列表数据

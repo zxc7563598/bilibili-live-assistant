@@ -357,6 +357,52 @@ func (h *Handler) UpdateShipStatus(c *gin.Context) {
 	response.Success(c, lang, nil)
 }
 
+// @Summary 后台变更订单状态
+// @Description 变更订单状态（确认收货、取消订单等），仅变更状态字段，不涉及退款与库存回滚；置为已取消时写取消时间
+// @Tags 订单管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.OrderUpdateOrderStatusReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/order/status [post]
+func (h *Handler) UpdateOrderStatus(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员信息
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取参数
+	var req input.OrderUpdateOrderStatusReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.OrderLogger, "UpdateOrderStatus 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	errCode, err := h.orderSvc.UpdateOrderStatus(ctx, order.UpdateOrderStatusReq{
+		ID:          req.ID,
+		OrderStatus: enum.OrderStatus(*req.OrderStatus),
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.OrderLogger,
+			"orderSvc.UpdateOrderStatus 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Int64("req.id", req.ID),
+			zap.Any("req.order_status", req.OrderStatus),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}
+
 // @Summary 分页查询我的订单
 // @Description 按状态分页查询当前用户的历史订单列表
 // @Tags 移动端

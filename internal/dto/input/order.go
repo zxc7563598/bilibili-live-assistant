@@ -78,3 +78,11 @@ type OrderUpdateShipStatusReq struct {
 	// 快递单号，仅实体订单可填
 	ExpressNo *string `json:"express_no" binding:"omitempty,max=100" err:"max=11101" example:"SF1234567890"`
 }
+
+// OrderUpdateOrderStatusReq 后台变更订单状态请求
+type OrderUpdateOrderStatusReq struct {
+	// 订单ID
+	ID int64 `json:"id" binding:"required,min=1" err:"required=11101,min=11101" example:"1"`
+	// 订单状态，0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中
+	OrderStatus *int `json:"order_status" binding:"required,oneof=0 1 2 3 4 5" err:"required=11101,oneof=11101" example:"3" enums:"0,1,2,3,4,5"`
+}
