@@ -101,6 +101,38 @@
             </div>
           </template>
           <div class="space-y-10">
+            <div class="border border-primary/40 rounded-4 bg-primary/4 px-10 py-10">
+              <div class="flex flex-wrap items-center gap-x-10 gap-y-6">
+                <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                  积分商城地址
+                </div>
+                <div class="break-all text-13 text-primary font-medium">
+                  {{ shopUrl }}
+                </div>
+                <n-button text type="primary" size="tiny" @click="copyShopUrl">
+                  <template #icon>
+                    <i class="i-fe:copy" />
+                  </template>
+                  复制
+                </n-button>
+              </div>
+              <div class="mt-8 text-12 text-gray-500 leading-18 dark:text-gray-400">
+                把这个地址发给用户，或通过 <a class="text-primary hover:underline" href="https://cli.im/url" target="_blank" rel="noreferrer">草料二维码</a> 生成二维码，让用户扫码访问。
+              </div>
+              <div v-if="isLocalAddress" class="mt-8 border border-orange-300 rounded-4 bg-orange-100 px-8 py-6 dark:border-orange-900/40 dark:bg-orange-900/20">
+                <div class="flex items-start gap-6">
+                  <i class="i-fe:alert-triangle mt-3 shrink-0 text-13 text-orange-600 dark:text-orange-300" />
+                  <div class="min-w-0 flex-1 text-12 text-orange-600 leading-18 dark:text-orange-300">
+                    <div>
+                      当前是本地模式（{{ baseUrl }}），这个地址只有本机能访问，手机扫同一个二维码是打不开的。要让外网用户访问，需要按服务模式部署。
+                    </div>
+                    <div v-if="deployGuideUrl" class="mt-2">
+                      <a class="hover:underline" :href="deployGuideUrl" target="_blank" rel="noreferrer">查看服务模式部署教程</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 关于「安装」
@@ -254,7 +286,30 @@
 </template>
 
 <script setup>
+import { useClipboard } from '@vueuse/core'
 import api from './api'
+
+// 服务模式部署教程地址，填上后本地模式的提示里会多出一行教程入口
+const deployGuideUrl = ''
+
+// 商城由后端挂在 /shop 下（见 internal/bootstrap/router.go 的 registerShop），
+// 后台这边只拼地址、不关心实际部署形态
+const baseUrl = (import.meta.env.VITE_AXIOS_BASE_URL || window.location.origin).replace(/\/+$/, '')
+const shopUrl = `${baseUrl}/shop`
+
+// 127.0.0.1、localhost 这类地址只有本机访问得到，用户拿手机扫码是打不开的
+const LOCAL_ADDRESS_RE = /^https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(?::|\/|$)/i
+const isLocalAddress = computed(() => LOCAL_ADDRESS_RE.test(baseUrl))
+
+const { copy, copied } = useClipboard()
+watch(copied, (val) => {
+  if (val)
+    $message.success('已复制到剪切板')
+})
+
+function copyShopUrl() {
+  copy(shopUrl)
+}
 
 // 基本配置模块
 const appLoading = ref(false)
