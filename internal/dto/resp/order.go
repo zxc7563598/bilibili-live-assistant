@@ -114,6 +114,18 @@ type OrderListPageItem struct {
 	CreditType enum.CreditType `json:"credit_type" example:"1" enums:"0,1"`
 	// 支付价格
 	Price int64 `json:"price" example:"100"`
+	// 收货人地址类型，0 虚拟 / 1 实体
+	ReceiverType enum.AddressType `json:"receiver_type" example:"1" enums:"0,1"`
+	// 收货人姓名（实体订单）
+	ReceiverName string `json:"receiver_name" example:"张三"`
+	// 收货人手机号（实体订单）
+	ReceiverPhone string `json:"receiver_phone" example:"18888888888"`
+	// 收货人地区文字描述（实体订单）
+	ReceiverRegion string `json:"receiver_region" example:"山东省 济南市 历下区"`
+	// 收货人详细地址（实体订单）
+	ReceiverDetail string `json:"receiver_detail" example:"xx路xx号"`
+	// 收货人邮箱地址（虚拟订单）
+	ReceiverEmail string `json:"receiver_email" example:"x@x.com"`
 	// 订单状态
 	OrderStatus enum.OrderStatus `json:"order_status" example:"1" enums:"0,1,2,3,4,5"`
 	// 支付状态

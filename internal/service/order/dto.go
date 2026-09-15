@@ -61,8 +61,8 @@ type ListPageByUserResp struct {
 }
 
 type ListPageItem struct {
-	ID                    int64            `json:"id"`
-	UserID                int64            `json:"user_id"`
+	ID     int64 `json:"id"`
+	UserID int64 `json:"user_id"`
 	// UID/Uname 联查 live_users 得到，仅后台列表使用；商城端 converter 不拷贝
 	UID                   int64            `json:"uid"`
 	Uname                 string           `json:"uname"`
@@ -74,6 +74,12 @@ type ListPageItem struct {
 	Quantity              int64            `json:"quantity"`
 	CreditType            enum.CreditType  `json:"credit_type"`
 	Price                 int64            `json:"price"`
+	ReceiverType          enum.AddressType `json:"receiver_type"`
+	ReceiverName          string           `json:"receiver_name"`
+	ReceiverPhone         string           `json:"receiver_phone"`
+	ReceiverRegion        string           `json:"receiver_region"`
+	ReceiverDetail        string           `json:"receiver_detail"`
+	ReceiverEmail         string           `json:"receiver_email"`
 	OrderStatus           enum.OrderStatus `json:"order_status"`
 	PayStatus             enum.PayStatus   `json:"pay_status"`
 	ShipStatus            enum.ShipStatus  `json:"ship_status"`
