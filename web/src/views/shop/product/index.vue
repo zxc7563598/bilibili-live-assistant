@@ -20,6 +20,7 @@
 <script setup>
 import { NButton, NSwitch } from 'naive-ui'
 import { MeCrud, MeQueryItem } from '@/components'
+import { getOptionsLabel } from '@/utils'
 import api from './api'
 
 const loadingMap = reactive({})
@@ -27,10 +28,20 @@ const router = useRouter()
 
 // 列表信息
 const $table = ref(null)
+const creditTypeOptions = ref([
+  {
+    label: '星光',
+    value: 0,
+  },
+  {
+    label: '积分',
+    value: 1,
+  },
+])
 const columns = [
   { title: '商品名称', key: 'name', minWidth: 180, sorter: true },
   { title: '商品标价', key: 'price', width: 160, sorter: true, render(row) {
-    return row.price + getCreditTypeLabel(row.credit_type)
+    return row.price + getOptionsLabel(creditTypeOptions, row.credit_type)
   } },
   { title: '已售', key: 'sold', width: 120, sorter: true },
   { title: '库存', key: 'stock', width: 120, sorter: true },
@@ -81,21 +92,6 @@ const query = ref({
   name: null,
   credit_type: null,
 })
-const creditTypeOptions = ref([
-  {
-    label: '星光',
-    value: 0,
-  },
-  {
-    label: '积分',
-    value: 1,
-  },
-])
-
-function getCreditTypeLabel(value) {
-  const item = creditTypeOptions.value.find(item => item.value === value)
-  return item ? item.label : ''
-}
 
 function handleAdd() {
   router.push({ path: '/shop/product/details' })
