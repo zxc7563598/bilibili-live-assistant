@@ -1386,6 +1386,62 @@
                 }
             }
         },
+        "/api/admin/liveuser/assets": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按用户表主键（user_id，非 B站 UID）分页查询该用户的积分/星光变动流水，支持按资产类型筛选（credit_type：0-星光，1-积分），用于后台用户详情页的资产明细",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "分页查询用户积分/星光变动记录",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserAssetsPageByIdReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserAssetsPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/liveuser/danmu": {
             "post": {
                 "security": [
@@ -1393,11 +1449,11 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取用户弹幕发言分析",
+                "description": "统计指定用户历史弹幕中的高频内容，分别返回单词、双词、三词与完整短句四个维度的词频列表，用于后台用户画像分析",
                 "tags": [
                     "用户管理"
                 ],
-                "summary": "获取用户弹幕分析",
+                "summary": "获取用户弹幕词频分析",
                 "parameters": [
                     {
                         "enum": [
@@ -1442,6 +1498,62 @@
                 }
             }
         },
+        "/api/admin/liveuser/details": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按用户表主键（user_id，非 B站 UID）查询用户基础信息（UID、昵称、头像）及当前剩余积分、星光，用于后台用户详情页展示",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户详细信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserDetailsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserUserInfoResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/liveuser/list": {
             "post": {
                 "security": [
@@ -1449,7 +1561,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "分页获取用户列表，支持按用户信息进行筛选",
+                "description": "分页查询后台用户列表，支持按 UID 精确匹配、昵称模糊匹配筛选，并可按指定字段排序",
                 "tags": [
                     "用户管理"
                 ],
@@ -1505,11 +1617,11 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取用户指定月份在直播间的发言/打赏汇总",
+                "description": "统计指定用户在某一自然月内的每日弹幕数、礼物数、礼物金额，以及当月每天是否开播，用于后台用户分析页的图表展示",
                 "tags": [
                     "用户管理"
                 ],
-                "summary": "获取用户每日分析数据",
+                "summary": "获取用户月度数据统计",
                 "parameters": [
                     {
                         "enum": [
@@ -1549,6 +1661,94 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/liveuser/reset-password": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按用户表主键（user_id，非 B站 UID）直接重置指定用户的登录密码，无需校验旧密码；重置成功后服务端会同时清除该用户的登录态（未启用 Redis 时 access_token 在有效期届满前仍可用），用户需重新登录",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "重置用户密码",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserResetPasswordReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/liveuser/save-assets": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按用户表主键（user_id，非 B站 UID）手动变更指定用户的积分/星光余额：credit_type 指定资产类型（0-星光，1-积分），change_type 指定变动方向（0-减少，1-增加），后两者必传且不可省略，change_amount 传正数；服务端原子更新余额并写入变动流水，扣减时余额不足则本次操作失败",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "手动调整用户余额",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserSaveBalanceReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -1840,6 +2040,250 @@
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/order/details": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据订单ID返回订单全部字段，以及下单用户的 uid/uname",
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "后台获取订单详情",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.OrderDetailsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.OrderDetailsResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/order/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页查询全部订单，联查用户表返回 uid/uname，支持按 UID（精确）、昵称（模糊）、订单号（模糊）与各状态筛选",
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "后台分页查询订单列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.OrderListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.OrderListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/order/receiver": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "变更订单收货信息，仅改订单表单条记录。虚拟订单只接受 receiver_email，实体订单只接受 receiver_name/receiver_phone/receiver_region_code/receiver_detail，传了不适用于该类型的字段返回参数错误",
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "后台变更订单收货信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.OrderUpdateReceiverInfoReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/order/ship-status": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "变更订单发货状态，并按目标状态联动订单状态：未发货→待发货；已发货→虚拟商品直接完成、实体商品进入待收货；已送达→完成。发货状态未变化时只更新快递信息，不动订单状态与发货时间。快递信息可选且仅实体订单可填",
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "后台变更发货状态",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.OrderUpdateShipStatusReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/order/status": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "变更订单状态（确认收货、取消订单等），仅变更状态字段，不涉及退款与库存回滚；置为已取消时写取消时间",
+                "tags": [
+                    "订单管理"
+                ],
+                "summary": "后台变更订单状态",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.OrderUpdateOrderStatusReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -3644,7 +4088,7 @@
         },
         "/api/shop/liveuser/account": {
             "post": {
-                "description": "校验指定账号（UID）是否已存在，供登录页在提交前进行预检",
+                "description": "校验指定账号（UID）在用户表中是否已存在，供移动端登录页在提交前预检，不会请求 B 站接口",
                 "tags": [
                     "移动端"
                 ],
@@ -3700,7 +4144,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "分页查询当前登录用户的账户资产（积分/星光）变动流水，服务端仅返回该用户本人的记录",
+                "description": "分页查询积分/星光变动流水，支持按资产类型筛选（credit_type：0-星光，1-积分）；查询对象固定为当前登录用户本人，无需也不能传入用户 ID",
                 "tags": [
                     "移动端"
                 ],
@@ -3756,7 +4200,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "用户在已登录状态下通过旧密码验证后修改登录密码，修改成功后前端将引导用户重新登录",
+                "description": "已登录用户校验旧密码后修改登录密码，旧密码错误会返回对应错误码；修改成功后当前登录态仍然有效，是否重新登录由前端自行决定",
                 "tags": [
                     "移动端"
                 ],
@@ -3800,7 +4244,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户的基本信息（头像、昵称、积分、星光等），供移动端商城展示",
+                "description": "获取当前登录用户自身的基本信息（UID、昵称、头像、剩余积分与星光），用户身份由登录态解析，供移动端商城展示",
                 "tags": [
                     "移动端"
                 ],
@@ -3842,7 +4286,7 @@
         },
         "/api/shop/liveuser/login": {
             "post": {
-                "description": "用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权",
+                "description": "用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权；首次登录且系统开启自动注册时会自动创建账号，尚无密码的账号则以本次输入的密码作为登录密码",
                 "tags": [
                     "移动端"
                 ],
@@ -3898,7 +4342,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "清除用户登录态，使当前 access_token 与 refresh_token 立即失效",
+                "description": "退出当前登录，清除服务端保存的登录凭证，使当前 access_token 与 refresh_token 立即失效",
                 "tags": [
                     "移动端"
                 ],
@@ -3928,7 +4372,7 @@
         },
         "/api/shop/liveuser/refresh": {
             "post": {
-                "description": "使用 refresh_token 换取新的 access_token 与 refresh_token，以延长会话有效期",
+                "description": "使用 refresh_token 换取新的 access_token 与 refresh_token，以延长登录有效期；刷新后原 refresh_token 随即失效，请改用本次返回的新凭证",
                 "tags": [
                     "移动端"
                 ],
@@ -4541,6 +4985,17 @@
         }
     },
     "definitions": {
+        "enum.AddressType": {
+            "type": "integer",
+            "enum": [
+                0,
+                1
+            ],
+            "x-enum-varnames": [
+                "AddressTypeVirtual",
+                "AddressTypeActual"
+            ]
+        },
         "enum.BadgeType": {
             "type": "integer",
             "enum": [
@@ -5449,6 +5904,54 @@
                 }
             }
         },
+        "input.LiveUserAssetsPageByIdReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize",
+                "user_id"
+            ],
+            "properties": {
+                "credit_type": {
+                    "description": "余额类型 0-星光，1-积分",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 1
+                },
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "sortField": {
+                    "description": "排序字段",
+                    "type": "string",
+                    "example": "created_at"
+                },
+                "sortOrder": {
+                    "description": "排序方向 ascend/descend",
+                    "type": "string",
+                    "enum": [
+                        "ascend",
+                        "descend"
+                    ],
+                    "example": "descend"
+                },
+                "user_id": {
+                    "description": "user_id（用户表主键，非 B站 UID）",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "input.LiveUserAssetsPageReq": {
             "type": "object",
             "required": [
@@ -5457,7 +5960,7 @@
             ],
             "properties": {
                 "credit_type": {
-                    "description": "变动类型",
+                    "description": "余额类型 0-星光，1-积分",
                     "type": "integer",
                     "enum": [
                         0,
@@ -5509,6 +6012,19 @@
                     "type": "string",
                     "minLength": 6,
                     "example": "123456"
+                }
+            }
+        },
+        "input.LiveUserDetailsReq": {
+            "type": "object",
+            "required": [
+                "user_id"
+            ],
+            "properties": {
+                "user_id": {
+                    "description": "user_id（用户表主键，非 B站 UID）",
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -5598,6 +6114,70 @@
                     "description": "refresh token",
                     "type": "string",
                     "example": "Bearer xxxxxxxxxx"
+                }
+            }
+        },
+        "input.LiveUserResetPasswordReq": {
+            "type": "object",
+            "required": [
+                "password",
+                "user_id"
+            ],
+            "properties": {
+                "password": {
+                    "description": "密码",
+                    "type": "string",
+                    "minLength": 6,
+                    "example": "654321"
+                },
+                "user_id": {
+                    "description": "user_id（用户表主键，非 B站 UID）",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "input.LiveUserSaveBalanceReq": {
+            "type": "object",
+            "required": [
+                "change_amount",
+                "change_type",
+                "credit_type",
+                "user_id"
+            ],
+            "properties": {
+                "change_amount": {
+                    "description": "变动数值，传正数，增加或减少由变动类型决定",
+                    "type": "integer",
+                    "example": 100
+                },
+                "change_type": {
+                    "description": "变动类型 0-减少，1-增加，必须显式传入",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 1
+                },
+                "credit_type": {
+                    "description": "余额类型 0-星光，1-积分，必须显式传入",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 1
+                },
+                "remark": {
+                    "description": "变动说明",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxx"
+                },
+                "user_id": {
+                    "description": "user_id（用户表主键，非 B站 UID）",
+                    "type": "integer",
+                    "example": 1
                 }
             }
         },
@@ -5795,6 +6375,20 @@
                 }
             }
         },
+        "input.OrderDetailsReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "订单ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                }
+            }
+        },
         "input.OrderListPageByUserReq": {
             "type": "object",
             "required": [
@@ -5841,6 +6435,87 @@
                 }
             }
         },
+        "input.OrderListPageReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "order_sn": {
+                    "description": "订单号，模糊匹配",
+                    "type": "string",
+                    "example": "SOdleu2legnzxs13hal3"
+                },
+                "order_status": {
+                    "description": "订单状态",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "example": 1
+                },
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "pay_status": {
+                    "description": "支付状态",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "example": 1
+                },
+                "ship_status": {
+                    "description": "发货状态",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "example": 0
+                },
+                "sortField": {
+                    "description": "排序字段，取订单表列名或 uid/uname",
+                    "type": "string",
+                    "example": "created_at"
+                },
+                "sortOrder": {
+                    "description": "排序方向 ascend/descend",
+                    "type": "string",
+                    "enum": [
+                        "ascend",
+                        "descend"
+                    ],
+                    "example": "descend"
+                },
+                "uid": {
+                    "description": "用户UID，精确匹配",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称，模糊搜索",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
         "input.OrderPlaceOrderReq": {
             "type": "object",
             "required": [
@@ -5873,6 +6548,115 @@
                     "type": "integer",
                     "minimum": 1,
                     "example": 0
+                }
+            }
+        },
+        "input.OrderUpdateOrderStatusReq": {
+            "type": "object",
+            "required": [
+                "id",
+                "order_status"
+            ],
+            "properties": {
+                "id": {
+                    "description": "订单ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "order_status": {
+                    "description": "订单状态，0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "example": 3
+                }
+            }
+        },
+        "input.OrderUpdateReceiverInfoReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "订单ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "receiver_detail": {
+                    "description": "收货人详细地址，仅实体订单可填",
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "xx路xx号"
+                },
+                "receiver_email": {
+                    "description": "收货人邮箱地址，仅虚拟订单可填",
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "x@x.com"
+                },
+                "receiver_name": {
+                    "description": "收货人姓名，仅实体订单可填",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "张三"
+                },
+                "receiver_phone": {
+                    "description": "收货人手机号，仅实体订单可填",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "18888888888"
+                },
+                "receiver_region_code": {
+                    "description": "收货人地区code，JSON 数组字符串，仅实体订单可填",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "['370000', '370100', '370116']"
+                }
+            }
+        },
+        "input.OrderUpdateShipStatusReq": {
+            "type": "object",
+            "required": [
+                "id",
+                "ship_status"
+            ],
+            "properties": {
+                "express_company": {
+                    "description": "快递公司，仅实体订单可填",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "顺丰速运"
+                },
+                "express_no": {
+                    "description": "快递单号，仅实体订单可填",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "SF1234567890"
+                },
+                "id": {
+                    "description": "订单ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "ship_status": {
+                    "description": "发货状态，0 未发货 / 1 已发货 / 2 已送达",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "example": 1
                 }
             }
         },
@@ -8140,22 +8924,27 @@
             "type": "object",
             "properties": {
                 "avatar": {
+                    "description": "用户头像",
                     "type": "string",
                     "example": "https://xxxxxx.xxx.com"
                 },
                 "name": {
+                    "description": "用户昵称",
                     "type": "string",
                     "example": "哎呀又胖啦"
                 },
                 "points": {
+                    "description": "用户剩余积分",
                     "type": "integer",
                     "example": 30
                 },
                 "stars": {
+                    "description": "用户剩余星光",
                     "type": "integer",
                     "example": 50
                 },
                 "uid": {
+                    "description": "用户uid",
                     "type": "integer",
                     "example": 4325051
                 }
@@ -8344,6 +9133,212 @@
                 }
             }
         },
+        "resp.OrderDetailsResp": {
+            "type": "object",
+            "properties": {
+                "cancel_at": {
+                    "description": "取消时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "credit_type": {
+                    "description": "支付类型",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.CreditType"
+                        }
+                    ],
+                    "example": 1
+                },
+                "express_company": {
+                    "description": "快递公司",
+                    "type": "string",
+                    "example": "xxxxxxx"
+                },
+                "express_no": {
+                    "description": "快递单号",
+                    "type": "string",
+                    "example": "P000002919238123"
+                },
+                "id": {
+                    "description": "id",
+                    "type": "integer",
+                    "example": 1
+                },
+                "order_sn": {
+                    "description": "订单号",
+                    "type": "string",
+                    "example": "P00029182821723123"
+                },
+                "order_status": {
+                    "description": "订单状态",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.OrderStatus"
+                        }
+                    ],
+                    "example": 1
+                },
+                "pay_at": {
+                    "description": "支付时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "pay_status": {
+                    "description": "支付状态",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.PayStatus"
+                        }
+                    ],
+                    "example": 1
+                },
+                "price": {
+                    "description": "支付价格",
+                    "type": "integer",
+                    "example": 100
+                },
+                "processed_at": {
+                    "description": "发货时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "product_cover": {
+                    "description": "商品封面图",
+                    "type": "string",
+                    "example": "https://cdn.hejunjie.life/avatars/oneadmin.jpeg"
+                },
+                "product_id": {
+                    "description": "商品ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "product_name": {
+                    "description": "商品名称",
+                    "type": "string",
+                    "example": "商品名称"
+                },
+                "product_sku_id": {
+                    "description": "商品SKU ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "product_spec_properties": {
+                    "description": "规格快照",
+                    "type": "string",
+                    "example": "[{'aa':'bb'},{'aa':'bb'}]"
+                },
+                "quantity": {
+                    "description": "购买数量",
+                    "type": "integer",
+                    "example": 1
+                },
+                "receiver_detail": {
+                    "description": "收货人详细地址（实体订单）",
+                    "type": "string",
+                    "example": "xx路xx号"
+                },
+                "receiver_email": {
+                    "description": "收货人邮箱地址（虚拟订单）",
+                    "type": "string",
+                    "example": "x@x.com"
+                },
+                "receiver_name": {
+                    "description": "收货人姓名",
+                    "type": "string",
+                    "example": "张三"
+                },
+                "receiver_phone": {
+                    "description": "收货人手机号（实体订单）",
+                    "type": "string",
+                    "example": "18888888888"
+                },
+                "receiver_region": {
+                    "description": "收货人地区文字描述（实体订单）",
+                    "type": "string",
+                    "example": "山东省 济南市 历下区"
+                },
+                "receiver_region_code": {
+                    "description": "收货人地区code（实体订单），JSON 数组字符串",
+                    "type": "string",
+                    "example": "['370000', '370100', '370116']"
+                },
+                "receiver_type": {
+                    "description": "收货人地址类型，0 虚拟 / 1 实体；决定发货与收货信息可变更的字段",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.AddressType"
+                        }
+                    ],
+                    "example": 1
+                },
+                "remark": {
+                    "description": "用户备注",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxx"
+                },
+                "ship_status": {
+                    "description": "发货状态",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.ShipStatus"
+                        }
+                    ],
+                    "example": 1
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "user_id": {
+                    "description": "用户内部ID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "resp.OrderGetConfirmResp": {
             "type": "object",
             "properties": {
@@ -8513,6 +9508,176 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/resp.OrderListPageByUserItem"
+                    }
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "resp.OrderListPageItem": {
+            "type": "object",
+            "properties": {
+                "cancel_at": {
+                    "description": "取消时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "credit_type": {
+                    "description": "支付类型",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.CreditType"
+                        }
+                    ],
+                    "example": 1
+                },
+                "express_company": {
+                    "description": "快递公司",
+                    "type": "string",
+                    "example": "xxxxxxx"
+                },
+                "express_no": {
+                    "description": "快递单号",
+                    "type": "string",
+                    "example": "P000002919238123"
+                },
+                "id": {
+                    "description": "id",
+                    "type": "integer",
+                    "example": 1
+                },
+                "order_sn": {
+                    "description": "订单号",
+                    "type": "string",
+                    "example": "P00029182821723123"
+                },
+                "order_status": {
+                    "description": "订单状态",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.OrderStatus"
+                        }
+                    ],
+                    "example": 1
+                },
+                "pay_at": {
+                    "description": "支付时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "pay_status": {
+                    "description": "支付状态",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.PayStatus"
+                        }
+                    ],
+                    "example": 1
+                },
+                "price": {
+                    "description": "支付价格",
+                    "type": "integer",
+                    "example": 100
+                },
+                "processed_at": {
+                    "description": "发货时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "product_cover": {
+                    "description": "商品封面图",
+                    "type": "string",
+                    "example": "https://cdn.hejunjie.life/avatars/oneadmin.jpeg"
+                },
+                "product_id": {
+                    "description": "商品ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "product_name": {
+                    "description": "商品名称",
+                    "type": "string",
+                    "example": "商品名称"
+                },
+                "product_spec_properties": {
+                    "description": "规格快照",
+                    "type": "string",
+                    "example": "[{'aa':'bb'},{'aa':'bb'}]"
+                },
+                "quantity": {
+                    "description": "购买数量",
+                    "type": "integer",
+                    "example": 1
+                },
+                "remark": {
+                    "description": "用户备注",
+                    "type": "string",
+                    "example": "xxxxxxxxxxxxx"
+                },
+                "ship_status": {
+                    "description": "发货状态",
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.ShipStatus"
+                        }
+                    ],
+                    "example": 1
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                },
+                "user_id": {
+                    "description": "用户内部ID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "resp.OrderListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.OrderListPageItem"
                     }
                 },
                 "total": {

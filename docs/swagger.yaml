@@ -1,5 +1,13 @@
 basePath: /
 definitions:
+  enum.AddressType:
+    enum:
+    - 0
+    - 1
+    type: integer
+    x-enum-varnames:
+    - AddressTypeVirtual
+    - AddressTypeActual
   enum.BadgeType:
     enum:
     - 0
@@ -689,10 +697,47 @@ definitions:
     required:
     - roomId
     type: object
+  input.LiveUserAssetsPageByIdReq:
+    properties:
+      credit_type:
+        description: 余额类型 0-星光，1-积分
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      sortField:
+        description: 排序字段
+        example: created_at
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+      user_id:
+        description: user_id（用户表主键，非 B站 UID）
+        example: 1
+        type: integer
+    required:
+    - pageNo
+    - pageSize
+    - user_id
+    type: object
   input.LiveUserAssetsPageReq:
     properties:
       credit_type:
-        description: 变动类型
+        description: 余额类型 0-星光，1-积分
         enum:
         - 0
         - 1
@@ -736,6 +781,15 @@ definitions:
     required:
     - new_password
     - old_password
+    type: object
+  input.LiveUserDetailsReq:
+    properties:
+      user_id:
+        description: user_id（用户表主键，非 B站 UID）
+        example: 1
+        type: integer
+    required:
+    - user_id
     type: object
   input.LiveUserExistsAccountReq:
     properties:
@@ -802,6 +856,55 @@ definitions:
         type: string
     required:
     - token
+    type: object
+  input.LiveUserResetPasswordReq:
+    properties:
+      password:
+        description: 密码
+        example: "654321"
+        minLength: 6
+        type: string
+      user_id:
+        description: user_id（用户表主键，非 B站 UID）
+        example: 1
+        type: integer
+    required:
+    - password
+    - user_id
+    type: object
+  input.LiveUserSaveBalanceReq:
+    properties:
+      change_amount:
+        description: 变动数值，传正数，增加或减少由变动类型决定
+        example: 100
+        type: integer
+      change_type:
+        description: 变动类型 0-减少，1-增加，必须显式传入
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      credit_type:
+        description: 余额类型 0-星光，1-积分，必须显式传入
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      remark:
+        description: 变动说明
+        example: xxxxxxxxxxxxx
+        type: string
+      user_id:
+        description: user_id（用户表主键，非 B站 UID）
+        example: 1
+        type: integer
+    required:
+    - change_amount
+    - change_type
+    - credit_type
+    - user_id
     type: object
   input.LiveUserUserDanmuAnalysisReq:
     properties:
@@ -949,6 +1052,16 @@ definitions:
     - address_id
     - draft_id
     type: object
+  input.OrderDetailsReq:
+    properties:
+      id:
+        description: 订单ID
+        example: 1
+        minimum: 1
+        type: integer
+    required:
+    - id
+    type: object
   input.OrderListPageByUserReq:
     properties:
       order_status:
@@ -985,6 +1098,70 @@ definitions:
     - pageNo
     - pageSize
     type: object
+  input.OrderListPageReq:
+    properties:
+      order_sn:
+        description: 订单号，模糊匹配
+        example: SOdleu2legnzxs13hal3
+        type: string
+      order_status:
+        description: 订单状态
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 1
+        type: integer
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      pay_status:
+        description: 支付状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        type: integer
+      ship_status:
+        description: 发货状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 0
+        type: integer
+      sortField:
+        description: 排序字段，取订单表列名或 uid/uname
+        example: created_at
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+      uid:
+        description: 用户UID，精确匹配
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称，模糊搜索
+        example: 哎呀又胖啦
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
   input.OrderPlaceOrderReq:
     properties:
       count:
@@ -1010,6 +1187,92 @@ definitions:
         type: integer
     required:
     - id
+    type: object
+  input.OrderUpdateOrderStatusReq:
+    properties:
+      id:
+        description: 订单ID
+        example: 1
+        minimum: 1
+        type: integer
+      order_status:
+        description: 订单状态，0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 3
+        type: integer
+    required:
+    - id
+    - order_status
+    type: object
+  input.OrderUpdateReceiverInfoReq:
+    properties:
+      id:
+        description: 订单ID
+        example: 1
+        minimum: 1
+        type: integer
+      receiver_detail:
+        description: 收货人详细地址，仅实体订单可填
+        example: xx路xx号
+        maxLength: 255
+        type: string
+      receiver_email:
+        description: 收货人邮箱地址，仅虚拟订单可填
+        example: x@x.com
+        maxLength: 255
+        type: string
+      receiver_name:
+        description: 收货人姓名，仅实体订单可填
+        example: 张三
+        maxLength: 100
+        type: string
+      receiver_phone:
+        description: 收货人手机号，仅实体订单可填
+        example: "18888888888"
+        maxLength: 100
+        type: string
+      receiver_region_code:
+        description: 收货人地区code，JSON 数组字符串，仅实体订单可填
+        example: '[''370000'', ''370100'', ''370116'']'
+        maxLength: 100
+        type: string
+    required:
+    - id
+    type: object
+  input.OrderUpdateShipStatusReq:
+    properties:
+      express_company:
+        description: 快递公司，仅实体订单可填
+        example: 顺丰速运
+        maxLength: 100
+        type: string
+      express_no:
+        description: 快递单号，仅实体订单可填
+        example: SF1234567890
+        maxLength: 100
+        type: string
+      id:
+        description: 订单ID
+        example: 1
+        minimum: 1
+        type: integer
+      ship_status:
+        description: 发货状态，0 未发货 / 1 已发货 / 2 已送达
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+        type: integer
+    required:
+    - id
+    - ship_status
     type: object
   input.PkConfigReq:
     properties:
@@ -2707,18 +2970,23 @@ definitions:
   resp.LiveUserUserInfoResp:
     properties:
       avatar:
+        description: 用户头像
         example: https://xxxxxx.xxx.com
         type: string
       name:
+        description: 用户昵称
         example: 哎呀又胖啦
         type: string
       points:
+        description: 用户剩余积分
         example: 30
         type: integer
       stars:
+        description: 用户剩余星光
         example: 50
         type: integer
       uid:
+        description: 用户uid
         example: 4325051
         type: integer
     type: object
@@ -2858,6 +3126,159 @@ definitions:
         example: true
         type: boolean
     type: object
+  resp.OrderDetailsResp:
+    properties:
+      cancel_at:
+        description: 取消时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      created_at:
+        description: 创建时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      credit_type:
+        allOf:
+        - $ref: '#/definitions/enum.CreditType'
+        description: 支付类型
+        enum:
+        - 0
+        - 1
+        example: 1
+      express_company:
+        description: 快递公司
+        example: xxxxxxx
+        type: string
+      express_no:
+        description: 快递单号
+        example: P000002919238123
+        type: string
+      id:
+        description: id
+        example: 1
+        type: integer
+      order_sn:
+        description: 订单号
+        example: P00029182821723123
+        type: string
+      order_status:
+        allOf:
+        - $ref: '#/definitions/enum.OrderStatus'
+        description: 订单状态
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 1
+      pay_at:
+        description: 支付时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      pay_status:
+        allOf:
+        - $ref: '#/definitions/enum.PayStatus'
+        description: 支付状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+      price:
+        description: 支付价格
+        example: 100
+        type: integer
+      processed_at:
+        description: 发货时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      product_cover:
+        description: 商品封面图
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      product_id:
+        description: 商品ID
+        example: 1
+        type: integer
+      product_name:
+        description: 商品名称
+        example: 商品名称
+        type: string
+      product_sku_id:
+        description: 商品SKU ID
+        example: 1
+        type: integer
+      product_spec_properties:
+        description: 规格快照
+        example: '[{''aa'':''bb''},{''aa'':''bb''}]'
+        type: string
+      quantity:
+        description: 购买数量
+        example: 1
+        type: integer
+      receiver_detail:
+        description: 收货人详细地址（实体订单）
+        example: xx路xx号
+        type: string
+      receiver_email:
+        description: 收货人邮箱地址（虚拟订单）
+        example: x@x.com
+        type: string
+      receiver_name:
+        description: 收货人姓名
+        example: 张三
+        type: string
+      receiver_phone:
+        description: 收货人手机号（实体订单）
+        example: "18888888888"
+        type: string
+      receiver_region:
+        description: 收货人地区文字描述（实体订单）
+        example: 山东省 济南市 历下区
+        type: string
+      receiver_region_code:
+        description: 收货人地区code（实体订单），JSON 数组字符串
+        example: '[''370000'', ''370100'', ''370116'']'
+        type: string
+      receiver_type:
+        allOf:
+        - $ref: '#/definitions/enum.AddressType'
+        description: 收货人地址类型，0 虚拟 / 1 实体；决定发货与收货信息可变更的字段
+        enum:
+        - 0
+        - 1
+        example: 1
+      remark:
+        description: 用户备注
+        example: xxxxxxxxxxxxx
+        type: string
+      ship_status:
+        allOf:
+        - $ref: '#/definitions/enum.ShipStatus'
+        description: 发货状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+      uid:
+        description: 用户UID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称
+        example: 哎呀又胖啦
+        type: string
+      updated_at:
+        description: 更新时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      user_id:
+        description: 用户内部ID
+        example: 1
+        type: integer
+    type: object
   resp.OrderGetConfirmResp:
     properties:
       expire_at:
@@ -2980,6 +3401,131 @@ definitions:
         description: 当前页码数据
         items:
           $ref: '#/definitions/resp.OrderListPageByUserItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
+    type: object
+  resp.OrderListPageItem:
+    properties:
+      cancel_at:
+        description: 取消时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      created_at:
+        description: 创建时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      credit_type:
+        allOf:
+        - $ref: '#/definitions/enum.CreditType'
+        description: 支付类型
+        enum:
+        - 0
+        - 1
+        example: 1
+      express_company:
+        description: 快递公司
+        example: xxxxxxx
+        type: string
+      express_no:
+        description: 快递单号
+        example: P000002919238123
+        type: string
+      id:
+        description: id
+        example: 1
+        type: integer
+      order_sn:
+        description: 订单号
+        example: P00029182821723123
+        type: string
+      order_status:
+        allOf:
+        - $ref: '#/definitions/enum.OrderStatus'
+        description: 订单状态
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 1
+      pay_at:
+        description: 支付时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      pay_status:
+        allOf:
+        - $ref: '#/definitions/enum.PayStatus'
+        description: 支付状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+      price:
+        description: 支付价格
+        example: 100
+        type: integer
+      processed_at:
+        description: 发货时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      product_cover:
+        description: 商品封面图
+        example: https://cdn.hejunjie.life/avatars/oneadmin.jpeg
+        type: string
+      product_id:
+        description: 商品ID
+        example: 1
+        type: integer
+      product_name:
+        description: 商品名称
+        example: 商品名称
+        type: string
+      product_spec_properties:
+        description: 规格快照
+        example: '[{''aa'':''bb''},{''aa'':''bb''}]'
+        type: string
+      quantity:
+        description: 购买数量
+        example: 1
+        type: integer
+      remark:
+        description: 用户备注
+        example: xxxxxxxxxxxxx
+        type: string
+      ship_status:
+        allOf:
+        - $ref: '#/definitions/enum.ShipStatus'
+        description: 发货状态
+        enum:
+        - 0
+        - 1
+        - 2
+        example: 1
+      uid:
+        description: 用户UID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称
+        example: 哎呀又胖啦
+        type: string
+      user_id:
+        description: 用户内部ID
+        example: 1
+        type: integer
+    type: object
+  resp.OrderListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.OrderListPageItem'
         type: array
       total:
         description: 总计条数
@@ -4417,9 +4963,42 @@ paths:
       summary: 获取全部房间ID
       tags:
       - 礼物管理
+  /api/admin/liveuser/assets:
+    post:
+      description: 按用户表主键（user_id，非 B站 UID）分页查询该用户的积分/星光变动流水，支持按资产类型筛选（credit_type：0-星光，1-积分），用于后台用户详情页的资产明细
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserAssetsPageByIdReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserAssetsPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询用户积分/星光变动记录
+      tags:
+      - 用户管理
   /api/admin/liveuser/danmu:
     post:
-      description: 获取用户弹幕发言分析
+      description: 统计指定用户历史弹幕中的高频内容，分别返回单词、双词、三词与完整短句四个维度的词频列表，用于后台用户画像分析
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -4447,12 +5026,45 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: 获取用户弹幕分析
+      summary: 获取用户弹幕词频分析
+      tags:
+      - 用户管理
+  /api/admin/liveuser/details:
+    post:
+      description: 按用户表主键（user_id，非 B站 UID）查询用户基础信息（UID、昵称、头像）及当前剩余积分、星光，用于后台用户详情页展示
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserDetailsReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserUserInfoResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取用户详细信息
       tags:
       - 用户管理
   /api/admin/liveuser/list:
     post:
-      description: 分页获取用户列表，支持按用户信息进行筛选
+      description: 分页查询后台用户列表，支持按 UID 精确匹配、昵称模糊匹配筛选，并可按指定字段排序
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -4485,7 +5097,7 @@ paths:
       - 用户管理
   /api/admin/liveuser/monthly:
     post:
-      description: 获取用户指定月份在直播间的发言/打赏汇总
+      description: 统计指定用户在某一自然月内的每日弹幕数、礼物数、礼物金额，以及当月每天是否开播，用于后台用户分析页的图表展示
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -4513,7 +5125,65 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: 获取用户每日分析数据
+      summary: 获取用户月度数据统计
+      tags:
+      - 用户管理
+  /api/admin/liveuser/reset-password:
+    post:
+      description: 按用户表主键（user_id，非 B站 UID）直接重置指定用户的登录密码，无需校验旧密码；重置成功后服务端会同时清除该用户的登录态（未启用
+        Redis 时 access_token 在有效期届满前仍可用），用户需重新登录
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserResetPasswordReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 重置用户密码
+      tags:
+      - 用户管理
+  /api/admin/liveuser/save-assets:
+    post:
+      description: 按用户表主键（user_id，非 B站 UID）手动变更指定用户的积分/星光余额：credit_type 指定资产类型（0-星光，1-积分），change_type
+        指定变动方向（0-减少，1-增加），后两者必传且不可省略，change_amount 传正数；服务端原子更新余额并写入变动流水，扣减时余额不足则本次操作失败
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserSaveBalanceReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 手动调整用户余额
       tags:
       - 用户管理
   /api/admin/menu/buttons:
@@ -4693,6 +5363,156 @@ paths:
       summary: 校验菜单路径是否存在
       tags:
       - 菜单
+  /api/admin/order/details:
+    post:
+      description: 根据订单ID返回订单全部字段，以及下单用户的 uid/uname
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderDetailsReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.OrderDetailsResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台获取订单详情
+      tags:
+      - 订单管理
+  /api/admin/order/list:
+    post:
+      description: 分页查询全部订单，联查用户表返回 uid/uname，支持按 UID（精确）、昵称（模糊）、订单号（模糊）与各状态筛选
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.OrderListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台分页查询订单列表
+      tags:
+      - 订单管理
+  /api/admin/order/receiver:
+    post:
+      description: 变更订单收货信息，仅改订单表单条记录。虚拟订单只接受 receiver_email，实体订单只接受 receiver_name/receiver_phone/receiver_region_code/receiver_detail，传了不适用于该类型的字段返回参数错误
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderUpdateReceiverInfoReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 后台变更订单收货信息
+      tags:
+      - 订单管理
+  /api/admin/order/ship-status:
+    post:
+      description: 变更订单发货状态，并按目标状态联动订单状态：未发货→待发货；已发货→虚拟商品直接完成、实体商品进入待收货；已送达→完成。发货状态未变化时只更新快递信息，不动订单状态与发货时间。快递信息可选且仅实体订单可填
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderUpdateShipStatusReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 后台变更发货状态
+      tags:
+      - 订单管理
+  /api/admin/order/status:
+    post:
+      description: 变更订单状态（确认收货、取消订单等），仅变更状态字段，不涉及退款与库存回滚；置为已取消时写取消时间
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderUpdateOrderStatusReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 后台变更订单状态
+      tags:
+      - 订单管理
   /api/admin/product/details:
     post:
       description: 用于后台获取商品信息
@@ -5784,7 +6604,7 @@ paths:
       - 移动端
   /api/shop/liveuser/account:
     post:
-      description: 校验指定账号（UID）是否已存在，供登录页在提交前进行预检
+      description: 校验指定账号（UID）在用户表中是否已存在，供移动端登录页在提交前预检，不会请求 B 站接口
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -5815,7 +6635,8 @@ paths:
       - 移动端
   /api/shop/liveuser/assets:
     post:
-      description: 分页查询当前登录用户的账户资产（积分/星光）变动流水，服务端仅返回该用户本人的记录
+      description: 分页查询积分/星光变动流水，支持按资产类型筛选（credit_type：0-星光，1-积分）；查询对象固定为当前登录用户本人，无需也不能传入用户
+        ID
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -5848,7 +6669,7 @@ paths:
       - 移动端
   /api/shop/liveuser/change-password:
     post:
-      description: 用户在已登录状态下通过旧密码验证后修改登录密码，修改成功后前端将引导用户重新登录
+      description: 已登录用户校验旧密码后修改登录密码，旧密码错误会返回对应错误码；修改成功后当前登录态仍然有效，是否重新登录由前端自行决定
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -5876,7 +6697,7 @@ paths:
       - 移动端
   /api/shop/liveuser/info:
     post:
-      description: 获取当前登录用户的基本信息（头像、昵称、积分、星光等），供移动端商城展示
+      description: 获取当前登录用户自身的基本信息（UID、昵称、头像、剩余积分与星光），用户身份由登录态解析，供移动端商城展示
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -5903,7 +6724,7 @@ paths:
       - 移动端
   /api/shop/liveuser/login:
     post:
-      description: 用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权
+      description: 用户使用账号（UID）与密码登录，成功后返回 access_token 与 refresh_token，用于后续接口鉴权；首次登录且系统开启自动注册时会自动创建账号，尚无密码的账号则以本次输入的密码作为登录密码
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -5934,7 +6755,7 @@ paths:
       - 移动端
   /api/shop/liveuser/logout:
     post:
-      description: 清除用户登录态，使当前 access_token 与 refresh_token 立即失效
+      description: 退出当前登录，清除服务端保存的登录凭证，使当前 access_token 与 refresh_token 立即失效
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
@@ -5956,7 +6777,8 @@ paths:
       - 移动端
   /api/shop/liveuser/refresh:
     post:
-      description: 使用 refresh_token 换取新的 access_token 与 refresh_token，以延长会话有效期
+      description: 使用 refresh_token 换取新的 access_token 与 refresh_token，以延长登录有效期；刷新后原
+        refresh_token 随即失效，请改用本次返回的新凭证
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'
