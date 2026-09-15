@@ -337,6 +337,80 @@ func (s *Service) UpdateOrderStatus(ctx context.Context, req UpdateOrderStatusRe
 	return 0, nil
 }
 
+// UpdateReceiverInfo 后台变更订单收货信息，仅改 live_user_orders 单条记录，不涉及 live_user_addresses
+func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfoReq) (int, error) {
+	// 读取订单；存在性校验放在空请求判断之前，
+	// 否则用一个不存在的 ID 调本接口会拿到成功，排查问题时容易被误导
+	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, req.ID)
+	if err != nil {
+		return 61101, err
+	}
+	if order == nil {
+		return 51105, errors.New("订单不存在")
+	}
+	// 未传任何可变更字段，无需落库
+	if req.ReceiverName == nil && req.ReceiverPhone == nil && req.ReceiverRegionCode == nil &&
+		req.ReceiverDetail == nil && req.ReceiverEmail == nil {
+		return 0, nil
+	}
+	switch order.ReceiverType {
+	case enum.AddressTypeVirtual:
+		// 虚拟订单只改邮箱，传了收货地址字段说明调用方串错了表单
+		if req.ReceiverName != nil || req.ReceiverPhone != nil || req.ReceiverRegionCode != nil || req.ReceiverDetail != nil {
+			return 11101, errors.New("虚拟订单只支持变更邮箱")
+		}
+		if req.ReceiverEmail != nil {
+			order.ReceiverEmail = strPtr(req.ReceiverEmail)
+		}
+		if order.ReceiverEmail == "" {
+			return 11308, nil
+		}
+	case enum.AddressTypeActual:
+		// 实体订单只改收货地址
+		if req.ReceiverEmail != nil {
+			return 11101, errors.New("实体订单只支持变更收货地址")
+		}
+		if req.ReceiverName != nil {
+			order.ReceiverName = strPtr(req.ReceiverName)
+		}
+		if req.ReceiverPhone != nil {
+			order.ReceiverPhone = strPtr(req.ReceiverPhone)
+		}
+		if req.ReceiverDetail != nil {
+			order.ReceiverDetail = strPtr(req.ReceiverDetail)
+		}
+		// 地区以后端从 region_code 派生的文案为准，不接受前端自由文本
+		if req.ReceiverRegionCode != nil {
+			regionCode, regionText, errCode := resolveRegionCode(*req.ReceiverRegionCode)
+			if errCode != 0 {
+				return errCode, errors.New("地区信息不正确")
+			}
+			order.ReceiverRegionCode = regionCode
+			order.ReceiverRegion = regionText
+		}
+		// 合并后按实体地址必填项校验，顺序与 address.validateEntityFields 保持一致
+		if order.ReceiverName == "" {
+			return 11304, nil
+		}
+		if order.ReceiverPhone == "" {
+			return 11305, nil
+		}
+		if order.ReceiverRegionCode == "" {
+			return 11306, nil
+		}
+		if order.ReceiverDetail == "" {
+			return 11307, nil
+		}
+	default:
+		return 11303, errors.New("收货人地址类型不合法")
+	}
+	// 落库
+	if err := s.liveUserOrderRepo.Update(ctx, nil, order); err != nil {
+		return 61101, err
+	}
+	return 0, nil
+}
+
 // ListPageByUser 根据用户ID获取订单列表信息
 func (s *Service) ListPageByUser(ctx context.Context, userID int64, req ListPageByUserReq) (ListPageByUserResp, int, error) {
 	// 获取列表数据

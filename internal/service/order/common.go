@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/region"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
@@ -323,6 +325,34 @@ func toDetailsItem(v model.LiveUserOrderListItem) DetailsItem {
 		UpdatedAt:             timeutil.Format(v.UpdatedAt),
 		Remark:                v.Remark,
 	}
+}
+
+// resolveRegionCode 归一化订单收货地区：入参为 JSON 数组字符串（如 ["370000","370100","370116"]），
+// 与 live_user_addresses.region_code 存储格式一致 —— 下单时原样拷贝、商城端也是 JSON.stringify 后提交。
+// 返回紧凑 JSON 与从 regions.json 派生的文案；"" 或 "[]" 视为清空（返回空串，由调用方按必填规则判断）。
+// 与 address 模块的 applyRegion 同源，但不复用其实现：那是 address Service 的方法、参数是 address 专用结构，
+// 复用会把 order → address 的 Service 依赖引进来。共享边界是 internal/region 包。
+func resolveRegionCode(src string) (regionCode, regionText string, errCode int) {
+	src = strings.TrimSpace(src)
+	if src == "" {
+		return "", "", 0
+	}
+	var codes []string
+	if err := json.Unmarshal([]byte(src), &codes); err != nil {
+		return "", "", 11302
+	}
+	if len(codes) == 0 {
+		return "", "", 0
+	}
+	text, ok := region.Resolve(codes)
+	if !ok {
+		return "", "", 11302
+	}
+	canonical, err := json.Marshal(codes)
+	if err != nil {
+		return "", "", 11302
+	}
+	return string(canonical), text, 0
 }
 
 // strPtr 安全解引用字符串指针并去除首尾空格

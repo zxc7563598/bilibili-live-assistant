@@ -403,6 +403,60 @@ func (h *Handler) UpdateOrderStatus(c *gin.Context) {
 	response.Success(c, lang, nil)
 }
 
+// @Summary 后台变更订单收货信息
+// @Description 变更订单收货信息，仅改订单表单条记录。虚拟订单只接受 receiver_email，实体订单只接受 receiver_name/receiver_phone/receiver_region_code/receiver_detail，传了不适用于该类型的字段返回参数错误
+// @Tags 订单管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.OrderUpdateReceiverInfoReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/order/receiver [post]
+func (h *Handler) UpdateReceiverInfo(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员信息
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取参数
+	var req input.OrderUpdateReceiverInfoReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.OrderLogger, "UpdateReceiverInfo 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	errCode, err := h.orderSvc.UpdateReceiverInfo(ctx, order.UpdateReceiverInfoReq{
+		ID:                 req.ID,
+		ReceiverName:       req.ReceiverName,
+		ReceiverPhone:      req.ReceiverPhone,
+		ReceiverRegionCode: req.ReceiverRegionCode,
+		ReceiverDetail:     req.ReceiverDetail,
+		ReceiverEmail:      req.ReceiverEmail,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.OrderLogger,
+			"orderSvc.UpdateReceiverInfo 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Int64("req.id", req.ID),
+			zap.Any("req.receiver_name", req.ReceiverName),
+			zap.Any("req.receiver_phone", req.ReceiverPhone),
+			zap.Any("req.receiver_region_code", req.ReceiverRegionCode),
+			zap.Any("req.receiver_detail", req.ReceiverDetail),
+			zap.Any("req.receiver_email", req.ReceiverEmail),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}
+
 // @Summary 分页查询我的订单
 // @Description 按状态分页查询当前用户的历史订单列表
 // @Tags 移动端

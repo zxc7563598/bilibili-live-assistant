@@ -151,3 +151,14 @@ type UpdateOrderStatusReq struct {
 	ID          int64
 	OrderStatus enum.OrderStatus
 }
+
+// UpdateReceiverInfoReq 变更订单收货信息请求入参。
+// 故意不含 ReceiverRegion：地区文案始终由后端从 region_code 派生，不接受前端自由文本。
+type UpdateReceiverInfoReq struct {
+	ID                 int64
+	ReceiverName       *string
+	ReceiverPhone      *string
+	ReceiverRegionCode *string
+	ReceiverDetail     *string
+	ReceiverEmail      *string
+}

@@ -86,3 +86,22 @@ type OrderUpdateOrderStatusReq struct {
 	// 订单状态，0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中
 	OrderStatus *int `json:"order_status" binding:"required,oneof=0 1 2 3 4 5" err:"required=11101,oneof=11101" example:"3" enums:"0,1,2,3,4,5"`
 }
+
+// OrderUpdateReceiverInfoReq 后台变更订单收货信息请求。
+// 按订单的收货类型分支：虚拟订单只接受 receiver_email，
+// 实体订单只接受 receiver_name / receiver_phone / receiver_region_code / receiver_detail；
+// 传了不适用于该类型的字段会返回参数错误。地区文案由后端按 region_code 派生，不接受前端传入。
+type OrderUpdateReceiverInfoReq struct {
+	// 订单ID
+	ID int64 `json:"id" binding:"required,min=1" err:"required=11101,min=11101" example:"1"`
+	// 收货人姓名，仅实体订单可填
+	ReceiverName *string `json:"receiver_name" binding:"omitempty,max=100" err:"max=11101" example:"张三"`
+	// 收货人手机号，仅实体订单可填
+	ReceiverPhone *string `json:"receiver_phone" binding:"omitempty,max=100" err:"max=11101" example:"18888888888"`
+	// 收货人地区code，JSON 数组字符串，仅实体订单可填
+	ReceiverRegionCode *string `json:"receiver_region_code" binding:"omitempty,max=100" err:"max=11101" example:"['370000', '370100', '370116']"`
+	// 收货人详细地址，仅实体订单可填
+	ReceiverDetail *string `json:"receiver_detail" binding:"omitempty,max=255" err:"max=11101" example:"xx路xx号"`
+	// 收货人邮箱地址，仅虚拟订单可填
+	ReceiverEmail *string `json:"receiver_email" binding:"omitempty,max=255" err:"max=11101" example:"x@x.com"`
+}
