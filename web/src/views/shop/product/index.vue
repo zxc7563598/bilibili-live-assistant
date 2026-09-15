@@ -1,7 +1,7 @@
 <template>
   <CommonPage>
     <template #action>
-      <NButton v-permission="'AddUser'" type="primary" @click="handleAdd()">
+      <NButton v-permission="'AddProduct'" type="primary" @click="handleAdd()">
         <i class="i-material-symbols:add mr-4 text-18" />
         添加商品
       </NButton>
