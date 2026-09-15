@@ -13,6 +13,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_interact_word"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_pk_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
@@ -72,13 +73,14 @@ type Service struct {
 	liveGiftRepo          live_gift.Repository
 	liveSessionRepo       live_session.Repository
 	LiveUserBlacklistRepo live_user_blacklist.Repository
+	livePkLogRepo         live_pk_log.Repository
 }
 
 // New 创建直播服务
 //
 // bilibili.Client 在此创建并持久化（整个服务生命周期内复用）
 // WithStateFile 会在启动时自动恢复之前保存的登录态
-func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUserSvc *liveuser.Service, configCache *robotconfig.Cache, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, liveInteractWord live_interact_word.Repository) *Service {
+func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUserSvc *liveuser.Service, configCache *robotconfig.Cache, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, liveInteractWord live_interact_word.Repository, livePkLogRepo live_pk_log.Repository) *Service {
 	client := bilibili.NewClient(
 		bilibili.WithStateFile(cfg.StateFile),
 	)
@@ -119,7 +121,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUser
 				enqueueFn(msg, kind)
 			}
 		}),
-		newPkProcessor(configCache, client, func() int64 {
+		newPkProcessor(roomState, livePkLogRepo, configCache, client, func() int64 {
 			if sess := client.Session(); sess != nil {
 				return sess.UID
 			}
@@ -146,6 +148,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUser
 		liveGiftRepo:          liveGiftRepo,
 		liveSessionRepo:       liveSessionRepo,
 		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
+		livePkLogRepo:         livePkLogRepo,
 		robotConfigSvc:        robotConfigSvc,
 	}
 	enqueueFn = s.EnqueueDanmu
