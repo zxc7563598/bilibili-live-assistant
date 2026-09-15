@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
@@ -304,6 +305,56 @@ func (h *Handler) Details(c *gin.Context) {
 	}
 	// 返回结果
 	response.Success(c, lang, toOrderDetailsResp(svcResp))
+}
+
+// @Summary 后台变更发货状态
+// @Description 变更订单发货状态，并按目标状态联动订单状态：未发货→待发货；已发货→虚拟商品直接完成、实体商品进入待收货；已送达→完成。发货状态未变化时只更新快递信息，不动订单状态与发货时间。快递信息可选且仅实体订单可填
+// @Tags 订单管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.OrderUpdateShipStatusReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/order/ship-status [post]
+func (h *Handler) UpdateShipStatus(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员信息
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, 20001)
+		return
+	}
+	// 获取参数
+	var req input.OrderUpdateShipStatusReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.OrderLogger, "UpdateShipStatus 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	errCode, err := h.orderSvc.UpdateShipStatus(ctx, order.UpdateShipStatusReq{
+		ID:             req.ID,
+		ShipStatus:     enum.ShipStatus(*req.ShipStatus),
+		ExpressCompany: req.ExpressCompany,
+		ExpressNo:      req.ExpressNo,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.OrderLogger,
+			"orderSvc.UpdateShipStatus 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Int64("req.id", req.ID),
+			zap.Any("req.ship_status", req.ShipStatus),
+			zap.Any("req.express_company", req.ExpressCompany),
+			zap.Any("req.express_no", req.ExpressNo),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
 }
 
 // @Summary 分页查询我的订单

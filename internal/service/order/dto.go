@@ -137,3 +137,11 @@ type DetailsItem struct {
 	UpdatedAt             string           `json:"updated_at"`
 	Remark                string           `json:"remark"`
 }
+
+// UpdateShipStatusReq 变更发货状态请求入参
+type UpdateShipStatusReq struct {
+	ID             int64
+	ShipStatus     enum.ShipStatus
+	ExpressCompany *string
+	ExpressNo      *string
+}

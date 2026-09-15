@@ -65,3 +65,16 @@ type OrderDetailsReq struct {
 	// 订单ID
 	ID int64 `json:"id" binding:"required,min=1" err:"required=11101,min=11101" example:"1"`
 }
+
+// OrderUpdateShipStatusReq 后台变更发货状态请求。
+// 快递信息可选，仅实体订单可填；虚拟订单传了快递字段会返回参数错误。
+type OrderUpdateShipStatusReq struct {
+	// 订单ID
+	ID int64 `json:"id" binding:"required,min=1" err:"required=11101,min=11101" example:"1"`
+	// 发货状态，0 未发货 / 1 已发货 / 2 已送达
+	ShipStatus *int `json:"ship_status" binding:"required,oneof=0 1 2" err:"required=11101,oneof=11101" example:"1" enums:"0,1,2"`
+	// 快递公司，仅实体订单可填
+	ExpressCompany *string `json:"express_company" binding:"omitempty,max=100" err:"max=11101" example:"顺丰速运"`
+	// 快递单号，仅实体订单可填
+	ExpressNo *string `json:"express_no" binding:"omitempty,max=100" err:"max=11101" example:"SF1234567890"`
+}

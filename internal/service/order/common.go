@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -322,4 +323,12 @@ func toDetailsItem(v model.LiveUserOrderListItem) DetailsItem {
 		UpdatedAt:             timeutil.Format(v.UpdatedAt),
 		Remark:                v.Remark,
 	}
+}
+
+// strPtr 安全解引用字符串指针并去除首尾空格
+func strPtr(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return strings.TrimSpace(*p)
 }

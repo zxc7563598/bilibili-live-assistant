@@ -254,6 +254,59 @@ func (s *Service) Details(ctx context.Context, id int64) (DetailsItem, int, erro
 	return toDetailsItem(*item), 0, nil
 }
 
+// UpdateShipStatus 后台变更发货状态，并按目标发货状态联动订单状态
+func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq) (int, error) {
+	// 读取订单
+	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, req.ID)
+	if err != nil {
+		return 61101, err
+	}
+	if order == nil {
+		return 51105, errors.New("订单不存在")
+	}
+	if !req.ShipStatus.IsValid() {
+		return 11101, errors.New("发货状态不合法")
+	}
+	// 虚拟商品没有物流环节，不接受快递信息
+	if order.ReceiverType != enum.AddressTypeActual && (req.ExpressCompany != nil || req.ExpressNo != nil) {
+		return 11101, errors.New("虚拟订单不支持快递信息")
+	}
+	// 快递信息仅在传了非空值时才覆盖，避免前端提交空串把已填单号冲掉
+	if v := strPtr(req.ExpressCompany); v != "" {
+		order.ExpressCompany = v
+	}
+	if v := strPtr(req.ExpressNo); v != "" {
+		order.ExpressNo = v
+	}
+	// 发货状态没变就只落快递信息：此时订单状态与发货时间都不该被动
+	if req.ShipStatus != order.ShipStatus {
+		if req.ShipStatus == enum.ShipStatusPending {
+			// 撤销发货：订单回到待发货，发货时间与快递信息一并清空
+			order.OrderStatus = enum.OrderStatusPendingShipment
+			order.ProcessedAt = 0
+			order.ExpressCompany = ""
+			order.ExpressNo = ""
+		} else {
+			// 已发货：虚拟商品直接完成，实体商品进入待收货；已送达一律完成
+			if req.ShipStatus == enum.ShipStatusShipped && order.ReceiverType == enum.AddressTypeActual {
+				order.OrderStatus = enum.OrderStatusPendingReceipt
+			} else {
+				order.OrderStatus = enum.OrderStatusCompleted
+			}
+			// 首次发货记发货时间，重复变更保留原时间
+			if order.ProcessedAt == 0 {
+				order.ProcessedAt = time.Now().Unix()
+			}
+		}
+	}
+	order.ShipStatus = req.ShipStatus
+	// 落库
+	if err := s.liveUserOrderRepo.Update(ctx, nil, order); err != nil {
+		return 61101, err
+	}
+	return 0, nil
+}
+
 // ListPageByUser 根据用户ID获取订单列表信息
 func (s *Service) ListPageByUser(ctx context.Context, userID int64, req ListPageByUserReq) (ListPageByUserResp, int, error) {
 	// 获取列表数据
