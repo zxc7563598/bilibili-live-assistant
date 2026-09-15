@@ -87,7 +87,7 @@
                 {{ detail.product_name }}
               </div>
               <div class="break-all text-12 text-gray-400 leading-17 dark:text-gray-500">
-                规格：{{ formatSpecs(detail.product_spec_properties) || '无' }}
+                规格：{{ formatProductSpecs(detail.product_spec_properties) || '无' }}
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@
 
 <script setup>
 import { NButton } from 'naive-ui'
-import { getOptionsLabel } from '@/utils'
+import { formatProductSpecs, getOptionsLabel } from '@/utils'
 import api from './api'
 import OrderStatusModal from './components/OrderStatusModal.vue'
 import ReceiverModal from './components/ReceiverModal.vue'
@@ -350,31 +350,6 @@ const totalAmount = computed(() => {
 // 后端 timeutil.Format 对 0 值返回空串，这里统一成占位符，避免出现只有标签没内容的空行
 function dash(value) {
   return value === '' || value === null || value === undefined ? '—' : value
-}
-
-// 解析规格快照
-function formatSpecs(raw) {
-  if (!raw || typeof raw !== 'string')
-    return ''
-  try {
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed) || !parsed.length)
-      return ''
-    return parsed
-      .map((item) => {
-        if (!item || typeof item !== 'object')
-          return String(item ?? '')
-        return Object.entries(item)
-          .filter(([, value]) => value !== null && value !== undefined && value !== '')
-          .map(([key, value]) => `${key}:${value}`)
-          .join(' ')
-      })
-      .filter(Boolean)
-      .join(' / ')
-  }
-  catch {
-    return ''
-  }
 }
 
 function goUserDetail() {

@@ -35,6 +35,55 @@ export function getOptionsLabel(options, value) {
 }
 
 /**
+ * 按 value 取 options 里对应的 type，取不到返回「未知」。
+ *
+ * @param {Array | import('vue').Ref<Array>} options 选项数组，直接传数组或 ref 都可以
+ * @param {number | string} value 目标值，字符串会转成数字再比
+ * @returns {string} 命中的 label，未命中为「未知」
+ */
+export function getOptionsType(options, value) {
+  const list = Array.isArray(options) ? options : options?.value
+  if (!Array.isArray(list))
+    return '未知'
+  // null / undefined / 空串统一按「没有值」处理：Number(null) === 0 会把缺失值错认成第一项
+  if (value === null || value === undefined || value === '')
+    return '未知'
+  const item = list.find(o => o.value === Number(value))
+  return item ? item.type : '未知'
+}
+
+/**
+ * 把订单/商品上的规格快照（`[{"颜色":"红"},{"尺码":"XL"}]` 这样的 JSON 字符串）
+ * 拍平成一行可读文案，例如 `颜色:红 / 尺码:XL`。
+ *
+ * @param {string} raw 规格快照 JSON 字符串
+ * @returns {string} 格式化后的文案，解析失败或没有规格时返回空串（由调用方决定占位符）
+ */
+export function formatProductSpecs(raw) {
+  if (!raw || typeof raw !== 'string')
+    return ''
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed) || !parsed.length)
+      return ''
+    return parsed
+      .map((item) => {
+        if (!item || typeof item !== 'object')
+          return String(item ?? '')
+        return Object.entries(item)
+          .filter(([, value]) => value !== null && value !== undefined && value !== '')
+          .map(([key, value]) => `${key}:${value}`)
+          .join(' ')
+      })
+      .filter(Boolean)
+      .join(' / ')
+  }
+  catch {
+    return ''
+  }
+}
+
+/**
  * @param {Function} fn
  * @param {number} wait
  * @returns {Function}  节流函数
