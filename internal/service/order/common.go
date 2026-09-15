@@ -255,11 +255,14 @@ func randomSuffix() string {
 	return strconv.FormatUint(n, 36)
 }
 
-func toListPageItems(list []model.LiveUserOrder) []ListPageItem {
+func toListPageItems(list []model.LiveUserOrderListItem) []ListPageItem {
 	respList := make([]ListPageItem, 0, len(list))
 	for _, v := range list {
 		item := ListPageItem{
 			ID:                    v.ID,
+			UserID:                v.UserID,
+			UID:                   v.UID,
+			Uname:                 v.Uname,
 			OrderSn:               v.OrderSn,
 			ProductID:             v.ProductID,
 			ProductName:           v.ProductName,
@@ -282,4 +285,41 @@ func toListPageItems(list []model.LiveUserOrder) []ListPageItem {
 		respList = append(respList, item)
 	}
 	return respList
+}
+
+// toDetailsItem 订单联查结果 → 详情出参
+func toDetailsItem(v model.LiveUserOrderListItem) DetailsItem {
+	return DetailsItem{
+		ID:                    v.ID,
+		UserID:                v.UserID,
+		UID:                   v.UID,
+		Uname:                 v.Uname,
+		OrderSn:               v.OrderSn,
+		ProductID:             v.ProductID,
+		ProductSkuID:          v.ProductSkuID,
+		ProductName:           v.ProductName,
+		ProductCover:          v.ProductCover,
+		ProductSpecProperties: v.ProductSpecProperties,
+		Quantity:              v.Quantity,
+		CreditType:            v.CreditType,
+		Price:                 v.Price,
+		ReceiverName:          v.ReceiverName,
+		ReceiverPhone:         v.ReceiverPhone,
+		ReceiverRegionCode:    v.ReceiverRegionCode,
+		ReceiverRegion:        v.ReceiverRegion,
+		ReceiverDetail:        v.ReceiverDetail,
+		ReceiverEmail:         v.ReceiverEmail,
+		ReceiverType:          v.ReceiverType,
+		OrderStatus:           v.OrderStatus,
+		PayStatus:             v.PayStatus,
+		ShipStatus:            v.ShipStatus,
+		ExpressCompany:        v.ExpressCompany,
+		ExpressNo:             v.ExpressNo,
+		PayAt:                 timeutil.Format(v.PayAt),
+		ProcessedAt:           timeutil.Format(v.ProcessedAt),
+		CancelAt:              timeutil.Format(v.CancelAt),
+		CreatedAt:             timeutil.Format(v.CreatedAt),
+		UpdatedAt:             timeutil.Format(v.UpdatedAt),
+		Remark:                v.Remark,
+	}
 }

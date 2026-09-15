@@ -170,12 +170,14 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/liveuser/assets", middleware.AdminAuth(rdb), handlers.LiveUser.AssetsPageByID)
 	adminApi.POST("/liveuser/save-assets", middleware.AdminAuth(rdb), handlers.LiveUser.SaveBalance)
 	adminApi.POST("/liveuser/reset-password", middleware.AdminAuth(rdb), handlers.LiveUser.ResetPassword)
-
 	// 商品管理路由
 	adminApi.POST("/product/list", middleware.AdminAuth(rdb), handlers.Product.AdminListPage)
 	adminApi.POST("/product/enable", middleware.AdminAuth(rdb), handlers.Product.UpdateEnable)
 	adminApi.POST("/product/details", middleware.AdminAuth(rdb), handlers.Product.AdminDetail)
 	adminApi.POST("/product/save", middleware.AdminAuth(rdb), handlers.Product.AdminSave)
+	// 订单管理路由
+	adminApi.POST("/order/list", middleware.AdminAuth(rdb), handlers.Order.ListPage)
+	adminApi.POST("/order/details", middleware.AdminAuth(rdb), handlers.Order.Details)
 	return r
 }
 

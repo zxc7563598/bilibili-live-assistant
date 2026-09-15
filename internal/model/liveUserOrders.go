@@ -38,10 +38,26 @@ func (LiveUserOrder) TableName() string {
 	return "live_user_orders"
 }
 
+// LiveUserOrderListItem 订单列表/详情查询结果：live_user_orders 联查 live_users 补充 uid/uname，不对应数据库表
+type LiveUserOrderListItem struct {
+	UID   int64
+	Uname string
+	LiveUserOrder
+}
+
 // LiveUserOrderListPageQuery 订单分页查询入参，不对应数据库表
 type LiveUserOrderListPageQuery struct {
-	UserID      *int64
+	// UserID 本表 user_id（用户内部主键），商城端「我的订单」使用
+	UserID *int64
+	// UID 联查 live_users.uid，后台按 B 站 UID 精确筛选
+	UID *int64
+	// Uname 联查 live_users.uname，后台按昵称模糊筛选
+	Uname *string
+	// OrderSn 本表订单号，精确匹配
+	OrderSn     *string
 	OrderStatus *int
+	PayStatus   *int
+	ShipStatus  *int
 	Offset      int
 	Limit       int
 	SortField   *string

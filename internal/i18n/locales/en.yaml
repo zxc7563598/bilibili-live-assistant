@@ -210,6 +210,7 @@ error:
   51102: No pending order # No active order draft
   51103: The order to re-order does not exist # Historical draft does not exist or does not belong to the user
   51104: The current order has expired # The current order has expired
+  51105: Order does not exist # Order not found (Order admin)
   51301: Address not found # Address does not exist or does not belong to the user
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception

@@ -216,6 +216,44 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 	return orderID, 0, nil
 }
 
+// ListPage 后台分页查询全部订单，联查 live_users 返回 uid/uname
+func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
+	// 获取列表数据
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
+	list, total, err := s.liveUserOrderRepo.ListPage(ctx, nil, model.LiveUserOrderListPageQuery{
+		UID:         req.UID,
+		Uname:       req.Uname,
+		OrderSn:     req.OrderSn,
+		OrderStatus: req.OrderStatus,
+		PayStatus:   req.PayStatus,
+		ShipStatus:  req.ShipStatus,
+		Offset:      offset,
+		Limit:       limit,
+		SortField:   sortField,
+		SortOrder:   sortOrder,
+	})
+	if err != nil {
+		return ListPageResp{}, 61101, err
+	}
+	// 返回数据
+	return ListPageResp{
+		Total:    total,
+		PageData: toListPageItems(list),
+	}, 0, nil
+}
+
+// Details 后台查询订单详情，返回订单全部字段与用户 uid/uname
+func (s *Service) Details(ctx context.Context, id int64) (DetailsItem, int, error) {
+	item, err := s.liveUserOrderRepo.GetDetailByID(ctx, nil, id)
+	if err != nil {
+		return DetailsItem{}, 61101, err
+	}
+	if item == nil {
+		return DetailsItem{}, 51105, errors.New("订单不存在")
+	}
+	return toDetailsItem(*item), 0, nil
+}
+
 // ListPageByUser 根据用户ID获取订单列表信息
 func (s *Service) ListPageByUser(ctx context.Context, userID int64, req ListPageByUserReq) (ListPageByUserResp, int, error) {
 	// 获取列表数据
