@@ -1,5 +1,11 @@
 <template>
   <CommonPage>
+    <template #action>
+      <NButton v-permission="'AddUser'" type="primary" @click="handleAdd()">
+        <i class="i-material-symbols:add mr-4 text-18" />
+        添加商品
+      </NButton>
+    </template>
     <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="800">
       <MeQueryItem label="商品名称">
         <n-input v-model:value="query.name" placeholder="支持模糊搜索" />
@@ -89,6 +95,10 @@ const creditTypeOptions = ref([
 function getCreditTypeLabel(value) {
   const item = creditTypeOptions.value.find(item => item.value === value)
   return item ? item.label : ''
+}
+
+function handleAdd() {
+  router.push({ path: '/shop/product/details' })
 }
 
 async function handleEnable(id, enable) {
