@@ -23,11 +23,11 @@
           </div>
         </div>
       </div>
-      <div class="flex items-start gap-5">
-        <div class="w-100 shrink-0 text-right text-13 text-gray-500 leading-8 dark:text-gray-400">
+      <div class="flex items-center gap-5">
+        <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
           订单状态
         </div>
-        <div class="inline-flex flex-wrap overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
+        <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
           <div v-for="item in orderStatusOptions" :key="item.value" class="cursor-pointer px-7 py-1.5 text-13 transition" :class="form.order_status === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="form.order_status = item.value">
             {{ item.label }}
           </div>
