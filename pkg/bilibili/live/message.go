@@ -20,17 +20,19 @@ type Cmd string
 
 // B站 直播 WebSocket 常见命令字
 const (
-	CmdLiveStart     Cmd = "LIVE"               // 直播开始
-	CmdLiveCutOff    Cmd = "CUT_OFF"            // 直播被超管切断
-	CmdLiveRoomLock  Cmd = "ROOM_LOCK"          // 直播间被封
-	CmdLiveEnd       Cmd = "PREPARING"          // 直播结束（下播）
-	CmdSendGift      Cmd = "SEND_GIFT"          // 送礼消息
-	CmdSendGiftV2    Cmd = "SEND_GIFT_V2"       // 送礼消息V2
-	CmdGuardBuy      Cmd = "GUARD_BUY"          // 大航海（舰长/提督/总督）购买
-	CmdInteractWord  Cmd = "INTERACT_WORD_V2"   // 用户互动（关注、分享等）
-	CmdDanmuMsg      Cmd = "DANMU_MSG"          // 弹幕消息
-	CmdPkStart       Cmd = "PK_BATTLE_PRE_NEW"  // PK即将开始
-	CmdSuperDanmuMsg Cmd = "SUPER_CHAT_MESSAGE" // 醒目留言
+	CmdLiveStart     Cmd = "LIVE"                 // 直播开始
+	CmdLiveCutOff    Cmd = "CUT_OFF"              // 直播被超管切断
+	CmdLiveRoomLock  Cmd = "ROOM_LOCK"            // 直播间被封
+	CmdLiveEnd       Cmd = "PREPARING"            // 直播结束（下播）
+	CmdSendGift      Cmd = "SEND_GIFT"            // 送礼消息
+	CmdSendGiftV2    Cmd = "SEND_GIFT_V2"         // 送礼消息V2
+	CmdGuardBuy      Cmd = "GUARD_BUY"            // 大航海（舰长/提督/总督）购买
+	CmdInteractWord  Cmd = "INTERACT_WORD_V2"     // 用户互动（关注、分享等）
+	CmdDanmuMsg      Cmd = "DANMU_MSG"            // 弹幕消息
+	CmdPkStart       Cmd = "PK_BATTLE_PRE_NEW"    // PK即将开始
+	CmdPkBattleEnd   Cmd = "PK_BATTLE_END"        // PK结束（battle_type=2 经典PK）
+	CmdPkSettleNew   Cmd = "PK_BATTLE_SETTLE_NEW" // PK结算（battle_type=6 大乱斗）
+	CmdSuperDanmuMsg Cmd = "SUPER_CHAT_MESSAGE"   // 醒目留言
 )
 
 // Message 表示一条从直播间 WebSocket 收到的消息
@@ -146,11 +148,51 @@ type PkBattlePreNewInfo struct {
 	PkID       int64  `json:"pk_id"`       // PK ID
 	PkStatus   int64  `json:"pk_status"`   // PK 状态
 	Timestamp  int64  `json:"timestamp"`   // 时间戳
-	Uname      string `json:"username"`    // 对方用户名
+	Uname      string `json:"uname"`       // 对方用户名
 	UID        int64  `json:"uid"`         // 对方用户UID
 	RoomID     int64  `json:"room_id"`     // 对方房间ID
 	BattleType int64  `json:"battle_type"` // 对战类型
 	MatchType  int64  `json:"match_type"`  // 匹配类型
+}
+
+// PkSideInfo 是 PK 对战其中一方的结算数据
+//
+// 对应 PK_BATTLE_END / PK_BATTLE_SETTLE_NEW 中的 init_info（发起方）与 match_info（被匹配方）。
+type PkSideInfo struct {
+	RoomID int64 `json:"room_id"` // 房间ID
+	Votes  int64 `json:"votes"`   // 最终PK值
+	// 胜负字段：两个事件对该字段的命名不同，这里按各自的原始名称原样接收，
+	// 未出现的一方恒为 0，具体怎么判定交给业务层
+	WinnerType int64 `json:"winner_type"`
+	ResultType int64 `json:"result_type"`
+}
+
+// PkBattleEndInfo 是 PK_BATTLE_END 消息中提取的关键字段（battle_type=2 经典PK）
+type PkBattleEndInfo struct {
+	PkID       int64       `json:"pk_id"`       // PK ID
+	PkStatus   int64       `json:"pk_status"`   // PK 状态
+	Timestamp  int64       `json:"timestamp"`   // 秒级时间戳
+	SendTime   int64       `json:"send_time"`   // 毫秒级时间戳
+	BattleType int64       `json:"battle_type"` // 对战类型
+	InitInfo   *PkSideInfo `json:"init_info"`   // 发起方
+	MatchInfo  *PkSideInfo `json:"match_info"`  // 被匹配方
+	Timer      int64       `json:"timer"`       // 冻结倒计时
+	ShowStreak bool        `json:"show_streak"` // 是否展示连胜
+}
+
+// PkBattleSettleNewInfo 是 PK_BATTLE_SETTLE_NEW 消息中提取的关键字段（battle_type=6 大乱斗）
+type PkBattleSettleNewInfo struct {
+	PkID          int64       `json:"pk_id"`           // PK ID
+	PkStatus      int64       `json:"pk_status"`       // PK 状态
+	Timestamp     int64       `json:"timestamp"`       // 秒级时间戳
+	SendTime      int64       `json:"send_time"`       // 毫秒级时间戳
+	BattleType    int64       `json:"battle_type"`     // 对战类型
+	InitInfo      *PkSideInfo `json:"init_info"`       // 发起方
+	MatchInfo     *PkSideInfo `json:"match_info"`      // 被匹配方
+	PunishName    string      `json:"punish_name"`     // 惩罚名称
+	PunishEndTime int64       `json:"punish_end_time"` // 惩罚结束时间（秒级）
+	SettleStatus  int64       `json:"settle_status"`   // 结算状态
+	DmScore       int64       `json:"dmscore"`         // 弹幕分数
 }
 
 // SuperChatMessage 是 SUPER_CHAT_MESSAGE 消息中提取的关键字段
@@ -253,6 +295,80 @@ func ExtractPkBattlePreNew(raw string) (*PkBattlePreNewInfo, error) {
 		RoomID:     data.RoomID,
 		BattleType: data.BattleType,
 		MatchType:  data.MatchType,
+	}, nil
+}
+
+// ExtractPkBattleEnd 从原始 JSON 中提取 PK 结束信息（PK_BATTLE_END，battle_type=2）
+func ExtractPkBattleEnd(raw string) (*PkBattleEndInfo, error) {
+	var outer struct {
+		PkID      int64           `json:"pk_id"`
+		PkStatus  int64           `json:"pk_status"`
+		Timestamp int64           `json:"timestamp"`
+		SendTime  int64           `json:"send_time"`
+		Data      json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_END 外层消息失败: %w", err)
+	}
+	var data struct {
+		BattleType int64       `json:"battle_type"`
+		InitInfo   *PkSideInfo `json:"init_info"`
+		MatchInfo  *PkSideInfo `json:"match_info"`
+		Timer      int64       `json:"timer"`
+		ShowStreak bool        `json:"show_streak"`
+	}
+	if err := json.Unmarshal(outer.Data, &data); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_END data 字段失败: %w", err)
+	}
+	return &PkBattleEndInfo{
+		PkID:       outer.PkID,
+		PkStatus:   outer.PkStatus,
+		Timestamp:  outer.Timestamp,
+		SendTime:   outer.SendTime,
+		BattleType: data.BattleType,
+		InitInfo:   data.InitInfo,
+		MatchInfo:  data.MatchInfo,
+		Timer:      data.Timer,
+		ShowStreak: data.ShowStreak,
+	}, nil
+}
+
+// ExtractPkBattleSettleNew 从原始 JSON 中提取 PK 结算信息（PK_BATTLE_SETTLE_NEW，battle_type=6）
+func ExtractPkBattleSettleNew(raw string) (*PkBattleSettleNewInfo, error) {
+	var outer struct {
+		PkID      int64           `json:"pk_id"`
+		PkStatus  int64           `json:"pk_status"`
+		Timestamp int64           `json:"timestamp"`
+		SendTime  int64           `json:"send_time"`
+		Data      json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_SETTLE_NEW 外层消息失败: %w", err)
+	}
+	var data struct {
+		BattleType    int64       `json:"battle_type"`
+		InitInfo      *PkSideInfo `json:"init_info"`
+		MatchInfo     *PkSideInfo `json:"match_info"`
+		PunishName    string      `json:"punish_name"`
+		PunishEndTime int64       `json:"punish_end_time"`
+		SettleStatus  int64       `json:"settle_status"`
+		DmScore       int64       `json:"dmscore"`
+	}
+	if err := json.Unmarshal(outer.Data, &data); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_SETTLE_NEW data 字段失败: %w", err)
+	}
+	return &PkBattleSettleNewInfo{
+		PkID:          outer.PkID,
+		PkStatus:      outer.PkStatus,
+		Timestamp:     outer.Timestamp,
+		SendTime:      outer.SendTime,
+		BattleType:    data.BattleType,
+		InitInfo:      data.InitInfo,
+		MatchInfo:     data.MatchInfo,
+		PunishName:    data.PunishName,
+		PunishEndTime: data.PunishEndTime,
+		SettleStatus:  data.SettleStatus,
+		DmScore:       data.DmScore,
 	}, nil
 }
 
