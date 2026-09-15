@@ -17,6 +17,24 @@ export function formatDate(date = undefined, format = 'YYYY-MM-DD') {
 }
 
 /**
+ * 按 value 取 options 里对应的 label，取不到返回「未知」。
+ *
+ * @param {Array | import('vue').Ref<Array>} options 选项数组，直接传数组或 ref 都可以
+ * @param {number | string} value 目标值，字符串会转成数字再比
+ * @returns {string} 命中的 label，未命中为「未知」
+ */
+export function getOptionsLabel(options, value) {
+  const list = Array.isArray(options) ? options : options?.value
+  if (!Array.isArray(list))
+    return '未知'
+  // null / undefined / 空串统一按「没有值」处理：Number(null) === 0 会把缺失值错认成第一项
+  if (value === null || value === undefined || value === '')
+    return '未知'
+  const item = list.find(o => o.value === Number(value))
+  return item ? item.label : '未知'
+}
+
+/**
  * @param {Function} fn
  * @param {number} wait
  * @returns {Function}  节流函数

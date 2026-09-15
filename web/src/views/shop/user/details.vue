@@ -26,6 +26,7 @@
 <script setup>
 import { NButton } from 'naive-ui'
 import { MeCrud, MeQueryItem } from '@/components'
+import { getOptionsLabel } from '@/utils'
 import api from './api'
 import BalanceModal from './components/BalanceModal.vue'
 import ResetPasswordModal from './components/ResetPasswordModal.vue'
@@ -57,13 +58,11 @@ const changeTypeOptions = ref([
 ])
 
 function getCreditTypeLabel(value) {
-  const item = creditTypeOptions.value.find(item => item.value === Number(value))
-  return item ? item.label : '未知'
+  return getOptionsLabel(creditTypeOptions, value)
 }
 
 function getChangeTypeLabel(value) {
-  const item = changeTypeOptions.value.find(item => item.value === Number(value))
-  return item ? item.label : '未知'
+  return getOptionsLabel(changeTypeOptions, value)
 }
 
 const columns = [
