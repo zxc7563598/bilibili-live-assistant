@@ -47,6 +47,8 @@ type Repository interface {
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) ([]model.LivePkLog, int64, error)
 	// ListStats 按与 ListPage 相同的筛选条件聚合出场次、我方胜利数与失败数
 	ListStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error)
+	// RivalStats 聚合与指定对手的历史战绩，excludePkID > 0 时排除该场
+	RivalStats(ctx context.Context, tx *gorm.DB, rivalUID, excludePkID int64) (totalNum, winNum, loseNum int64, err error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -89,17 +91,29 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LivePk
 }
 
 // ListStats 与 ListPage 共用同一套筛选条件，保证统计口径与列表完全一致
-//
-// 场数、胜利数、失败数各自独立统计：self_result = 0 表示没能定位到本直播间，
-// 既不算胜也不算负，所以场数不一定等于胜 + 负。
 func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error) {
+	db := r.applyLivePkLogListQuery(r.getDB(ctx, tx).Model(&model.LivePkLog{}), query)
+	return livePkLogStats(db)
+}
+
+// RivalStats 聚合与指定对手的历史战绩，供 PK 播报取「跟这位主播打过几场、赢几场、输几场」
+//
+// 正在进行的这一场在 PK 开始事件里已经落库，统计历史战绩时用 excludePkID 排除掉。
+func (r *gormRepo) RivalStats(ctx context.Context, tx *gorm.DB, rivalUID, excludePkID int64) (totalNum, winNum, loseNum int64, err error) {
+	db := r.getDB(ctx, tx).Model(&model.LivePkLog{}).Where("rival_uid = ?", rivalUID)
+	if excludePkID > 0 {
+		db = db.Where("pk_id <> ?", excludePkID)
+	}
+	return livePkLogStats(db)
+}
+
+// livePkLogStats 在给定查询上聚合出场次、我方胜利数与失败数
+func livePkLogStats(db *gorm.DB) (totalNum, winNum, loseNum int64, err error) {
 	var result struct {
 		TotalNum int64
 		WinNum   int64
 		LoseNum  int64
 	}
-	db := r.getDB(ctx, tx).Model(&model.LivePkLog{})
-	db = r.applyLivePkLogListQuery(db, query)
 	// 2 / -1 是 self_result 的取值口径（B站下发值）
 	err = db.Select(`
 		COUNT(*) AS total_num,

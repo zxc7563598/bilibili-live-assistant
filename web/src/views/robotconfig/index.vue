@@ -537,6 +537,9 @@
                 对方高能榜总计贡献度：<b>@online_score@</b><br>
                 对方高能榜前三名贡献度：<b>@top3_score@</b><br>
                 对方舰长总数：<b>@vip_num@</b><br>
+                与该主播历史PK场数：<b>@pk_num@</b><br>
+                与该主播历史胜场：<b>@pk_win_num@</b><br>
+                与该主播历史败场：<b>@pk_lose_num@</b><br>
               </div>
             </div>
             <div class="flex items-center gap-5">
