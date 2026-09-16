@@ -443,6 +443,21 @@ func seedMenus(db *gorm.DB) error {
 			Component: "",
 			Order:     0,
 		},
+		{
+			ID:        27,
+			Code:      "PkBattle",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  11,
+			Name:      "PK对战",
+			Icon:      "i-fe:shuffle",
+			Path:      "/pk/list",
+			Component: "/src/views/analyze/pk/index.vue",
+			Order:     4,
+		},
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "code"}},
