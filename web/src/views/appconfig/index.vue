@@ -290,7 +290,7 @@ import { useClipboard } from '@vueuse/core'
 import api from './api'
 
 // 服务模式部署教程地址，填上后本地模式的提示里会多出一行教程入口
-const deployGuideUrl = 'https://hejunjie.life/danmusuite/local/deploy'
+const deployGuideUrl = 'https://hejunjie.life/danmusuite/local/provide-service'
 
 const baseUrl = (import.meta.env.VITE_AXIOS_BASE_URL || window.location.origin).replace(/\/+$/, '')
 const shopUrl = `${baseUrl}/shop`
