@@ -162,6 +162,9 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/livegift/room", middleware.AdminAuth(rdb), handlers.LiveGift.FetchRoomGroups)
 	adminApi.POST("/livegift/list", middleware.AdminAuth(rdb), handlers.LiveGift.ListPage)
 	adminApi.POST("/livegift/blindbox", middleware.AdminAuth(rdb), handlers.LiveGift.BlindBoxListPage)
+	// PK 对战记录路由
+	adminApi.POST("/pk/room", middleware.AdminAuth(rdb), handlers.LivePk.FetchRoomGroups)
+	adminApi.POST("/pk/list", middleware.AdminAuth(rdb), handlers.LivePk.ListPage)
 	// 用户列表路由
 	adminApi.POST("/liveuser/list", middleware.AdminAuth(rdb), handlers.LiveUser.ListPage)
 	adminApi.POST("/liveuser/monthly", middleware.AdminAuth(rdb), handlers.LiveUser.UserMonthlyAnalysis)

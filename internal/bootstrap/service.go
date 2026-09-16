@@ -13,6 +13,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livedanmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livepk"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/menu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/order"
@@ -33,6 +34,7 @@ type Services struct {
 	RobotConfig *robotconfigsvc.Service
 	LiveDanmu   livedanmu.Service
 	LiveGift    livegift.Service
+	LivePk      livepk.Service
 	LiveUser    *liveuser.Service
 	AppConfig   appconfigsvc.Service
 	Product     product.Service
@@ -54,6 +56,7 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		RobotConfig: robotConfigSvc,
 		LiveDanmu:   *livedanmu.New(repo.LiveDanmu),
 		LiveGift:    *livegift.New(repo.LiveGift),
+		LivePk:      *livepk.New(repo.LivePkLog),
 		LiveUser:    liveUserSvc,
 		AppConfig:   *appconfigsvc.New(appConfigCache, repo.AppConfig),
 		Product:     *product.New(db, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),

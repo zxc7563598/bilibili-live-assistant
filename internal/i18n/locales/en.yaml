@@ -55,7 +55,9 @@
 # 11 Order Module
 # 12 Feedback Module
 # 13 Address Module
-#
+# 14 Upload Module
+# 15 LivePK Module
+
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
 # --------------------------------------------------
@@ -174,6 +176,7 @@ error:
   11405: Invalid upload scene # Scene is not in the upload whitelist (Upload)
   11406: Image path cannot be empty # Image path is empty for OSS sync (Upload)
   11407: Invalid image path # Path is not a valid /uploads access path for OSS sync (Upload)
+  11501: Invalid request parameters # Parameter validation failed (PK battle records)
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   30001: Unauthorized operation # The current account does not have access permission
@@ -266,6 +269,7 @@ error:
   61402: Failed to read the image, please try again later # Failed to read local image state (Upload)
   61403: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure (Upload)
   61404: Failed to sync image to OSS, please try again later # Image upload to OSS error (Upload)
+  61501: System busy, please try again later # Database query exception (PK battle records)
 
 gender:
   female: female

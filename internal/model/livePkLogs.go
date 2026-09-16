@@ -23,3 +23,21 @@ type LivePkLog struct {
 func (LivePkLog) TableName() string {
 	return "live_pk_logs"
 }
+
+// LivePkLogListPageQuery PK 记录分页查询入参，不对应数据库表
+type LivePkLogListPageQuery struct {
+	// RoomID 本直播间真实房间号，精确匹配
+	RoomID *int64
+	// RivalUID 对方 UID，精确匹配
+	RivalUID *int64
+	// RivalUname 对方用户名，模糊匹配
+	RivalUname *string
+	// SelfResult 我方胜负，与库中 self_result 同口径：-1=落败 2=获胜
+	SelfResult   *int
+	StartAtStart *int64
+	StartAtEnd   *int64
+	Offset       int
+	Limit        int
+	SortField    *string
+	SortOrder    *string
+}

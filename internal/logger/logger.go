@@ -23,6 +23,7 @@ var (
 	RobotConfigLogger *zap.Logger
 	LiveDanmuLogger   *zap.Logger
 	LiveGiftLogger    *zap.Logger
+	LivePkLogger      *zap.Logger
 	LiveUserLogger    *zap.Logger
 	ProductLogger     *zap.Logger
 	OrderLogger       *zap.Logger
@@ -48,6 +49,7 @@ func InitAll(dir string) {
 	RobotConfigLogger = InitLogger("robotconfig", zapcore.InfoLevel)
 	LiveDanmuLogger = InitLogger("livedanmu", zapcore.InfoLevel)
 	LiveGiftLogger = InitLogger("livegift", zapcore.InfoLevel)
+	LivePkLogger = InitLogger("livepk", zapcore.InfoLevel)
 	LiveUserLogger = InitLogger("liveuser", zapcore.InfoLevel)
 	ProductLogger = InitLogger("product", zapcore.InfoLevel)
 	OrderLogger = InitLogger("order", zapcore.InfoLevel)
