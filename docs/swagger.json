@@ -2289,6 +2289,109 @@
                 }
             }
         },
+        "/api/admin/pk/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页获取 PK 对战记录列表，支持按房间ID、对方UID、对方昵称、我方胜负、PK开始时间进行筛选",
+                "tags": [
+                    "PK管理"
+                ],
+                "summary": "分页查询 PK 对战记录",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LivePkLogListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LivePkLogListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/pk/room": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取礼物记录的所有房间ID，用于列表选定房间搜索",
+                "tags": [
+                    "礼物管理"
+                ],
+                "summary": "获取全部房间ID",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LivePkFetchRoomGroupsResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/product/details": {
             "post": {
                 "security": [
@@ -5877,6 +5980,74 @@
                 }
             }
         },
+        "input.LivePkLogListPageReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "result": {
+                    "description": "我方胜负，与库中 self_result 同口径：-1=我方落败 2=我方获胜",
+                    "type": "integer",
+                    "enum": [
+                        -1,
+                        2
+                    ],
+                    "example": 2
+                },
+                "rival_uid": {
+                    "description": "对方 UID，精确匹配",
+                    "type": "integer",
+                    "example": 3493111237970284
+                },
+                "rival_uname": {
+                    "description": "对方昵称，模糊搜索",
+                    "type": "string",
+                    "example": "霜煜喵Yumiao"
+                },
+                "room_id": {
+                    "description": "本直播间真实房间号，精确匹配",
+                    "type": "integer",
+                    "example": 1972873316
+                },
+                "sortField": {
+                    "description": "排序字段",
+                    "type": "string",
+                    "example": "start_at"
+                },
+                "sortOrder": {
+                    "description": "排序方向 ascend/descend",
+                    "type": "string",
+                    "enum": [
+                        "ascend",
+                        "descend"
+                    ],
+                    "example": "descend"
+                },
+                "start_at": {
+                    "description": "PK 开始时间区间，毫秒级时间戳数组，取首尾两天（含当天 23:59:59）",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1789056000000,
+                        1789315199999
+                    ]
+                }
+            }
+        },
         "input.LiveQRCodePollReq": {
             "type": "object",
             "required": [
@@ -8678,6 +8849,150 @@
                 }
             }
         },
+        "resp.LivePkFetchRoomGroupsItem": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "integer"
+                }
+            }
+        },
+        "resp.LivePkFetchRoomGroupsResp": {
+            "type": "object",
+            "properties": {
+                "option": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LivePkFetchRoomGroupsItem"
+                    }
+                }
+            }
+        },
+        "resp.LivePkLogListPageItem": {
+            "type": "object",
+            "properties": {
+                "battle_type": {
+                    "description": "对战类型：2=经典PK 6=大乱斗",
+                    "type": "integer",
+                    "example": 2
+                },
+                "id": {
+                    "description": "记录ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "match_type": {
+                    "description": "匹配类型",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pk_id": {
+                    "description": "PK ID",
+                    "type": "integer",
+                    "example": 399983699
+                },
+                "pk_status": {
+                    "description": "PK 状态：101=即将开始 401=正常结束 404=异常结束",
+                    "type": "integer",
+                    "example": 401
+                },
+                "rival_result": {
+                    "description": "对方胜负，库中原始值：2=获胜 -1=落败",
+                    "type": "integer",
+                    "example": -1
+                },
+                "rival_room_id": {
+                    "description": "对方房间ID",
+                    "type": "integer",
+                    "example": 1727071466
+                },
+                "rival_uid": {
+                    "description": "对方UID",
+                    "type": "integer",
+                    "example": 3493111237970284
+                },
+                "rival_uname": {
+                    "description": "对方用户名",
+                    "type": "string",
+                    "example": "霜煜喵Yumiao"
+                },
+                "rival_votes": {
+                    "description": "对方最终PK值",
+                    "type": "integer",
+                    "example": 10
+                },
+                "room_id": {
+                    "description": "本直播间真实房间号",
+                    "type": "integer",
+                    "example": 1972873316
+                },
+                "self_result": {
+                    "description": "我方胜负，库中原始值：2=获胜 -1=落败 0=未能定位本直播间",
+                    "type": "integer",
+                    "example": 2
+                },
+                "self_votes": {
+                    "description": "我方最终PK值",
+                    "type": "integer",
+                    "example": 6160
+                },
+                "settle_at": {
+                    "description": "PK 结算时间，未收到结算事件时为空串",
+                    "type": "string",
+                    "example": "2025-01-02 12:27:22"
+                },
+                "start_at": {
+                    "description": "PK 开始时间，未开始为空串",
+                    "type": "string",
+                    "example": "2025-01-02 12:22:22"
+                }
+            }
+        },
+        "resp.LivePkLogListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LivePkLogListPageItem"
+                    }
+                },
+                "stats": {
+                    "description": "统计信息，与列表受相同筛选条件影响",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/resp.LivePkLogListPageStats"
+                        }
+                    ]
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "resp.LivePkLogListPageStats": {
+            "type": "object",
+            "properties": {
+                "lose_num": {
+                    "description": "我方失败场数",
+                    "type": "integer"
+                },
+                "total_num": {
+                    "description": "PK 场数（self_result 为 0 的记录既不算胜也不算负，所以场数不一定等于胜 + 负）",
+                    "type": "integer"
+                },
+                "win_num": {
+                    "description": "我方胜利场数",
+                    "type": "integer"
+                }
+            }
+        },
         "resp.LivePollQRCodeResp": {
             "type": "object",
             "properties": {
@@ -9632,6 +9947,44 @@
                 "quantity": {
                     "description": "购买数量",
                     "type": "integer",
+                    "example": 1
+                },
+                "receiver_detail": {
+                    "description": "收货人详细地址（实体订单）",
+                    "type": "string",
+                    "example": "xx路xx号"
+                },
+                "receiver_email": {
+                    "description": "收货人邮箱地址（虚拟订单）",
+                    "type": "string",
+                    "example": "x@x.com"
+                },
+                "receiver_name": {
+                    "description": "收货人姓名（实体订单）",
+                    "type": "string",
+                    "example": "张三"
+                },
+                "receiver_phone": {
+                    "description": "收货人手机号（实体订单）",
+                    "type": "string",
+                    "example": "18888888888"
+                },
+                "receiver_region": {
+                    "description": "收货人地区文字描述（实体订单）",
+                    "type": "string",
+                    "example": "山东省 济南市 历下区"
+                },
+                "receiver_type": {
+                    "description": "收货人地址类型，0 虚拟 / 1 实体",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.AddressType"
+                        }
+                    ],
                     "example": 1
                 },
                 "remark": {
