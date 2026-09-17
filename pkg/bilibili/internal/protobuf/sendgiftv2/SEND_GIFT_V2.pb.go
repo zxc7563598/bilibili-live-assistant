@@ -7,11 +7,12 @@
 package sendgiftv2
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -78,7 +79,7 @@ type SendGiftV2 struct {
 	SendMaster    *SendMaster            `protobuf:"bytes,7,opt,name=send_master,json=sendMaster,proto3" json:"send_master,omitempty"`
 	MedalInfo     *MedalInfo             `protobuf:"bytes,8,opt,name=medal_info,json=medalInfo,proto3" json:"medal_info,omitempty"`
 	BlindGift     *BlindGift             `protobuf:"bytes,9,opt,name=blind_gift,json=blindGift,proto3" json:"blind_gift,omitempty"`
-	GiftList      *GiftItem              `protobuf:"bytes,10,opt,name=gift_list,json=giftList,proto3" json:"gift_list,omitempty"`
+	GiftList      []*GiftItem            `protobuf:"bytes,10,rep,name=gift_list,json=giftList,proto3" json:"gift_list,omitempty"`
 	Switch        bool                   `protobuf:"varint,11,opt,name=switch,proto3" json:"switch,omitempty"`
 	Test          int64                  `protobuf:"varint,12,opt,name=test,proto3" json:"test,omitempty"`
 	WealthInfo    *WealthInfo            `protobuf:"bytes,13,opt,name=wealth_info,json=wealthInfo,proto3" json:"wealth_info,omitempty"`
@@ -181,7 +182,7 @@ func (x *SendGiftV2) GetBlindGift() *BlindGift {
 	return nil
 }
 
-func (x *SendGiftV2) GetGiftList() *GiftItem {
+func (x *SendGiftV2) GetGiftList() []*GiftItem {
 	if x != nil {
 		return x.GiftList
 	}
@@ -1702,7 +1703,7 @@ const file_SEND_GIFT_V2_proto_rawDesc = "" +
 	"\n" +
 	"blind_gift\x18\t \x01(\v2 .bilibili.send_gift_v2.BlindGiftR\tblindGift\x12<\n" +
 	"\tgift_list\x18\n" +
-	" \x01(\v2\x1f.bilibili.send_gift_v2.GiftItemR\bgiftList\x12\x16\n" +
+	" \x03(\v2\x1f.bilibili.send_gift_v2.GiftItemR\bgiftList\x12\x16\n" +
 	"\x06switch\x18\v \x01(\bR\x06switch\x12\x12\n" +
 	"\x04test\x18\f \x01(\x03R\x04test\x12B\n" +
 	"\vwealth_info\x18\r \x01(\v2!.bilibili.send_gift_v2.WealthInfoR\n" +

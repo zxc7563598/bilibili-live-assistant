@@ -102,20 +102,29 @@ type BlindGiftInfo struct {
 	OriginalGiftPrice int64  `json:"original_gift_price"` // 原始礼物价格(分)
 }
 
+// GiftItemInfo 是单份礼物的信息
+//
+// 一次送礼广播可能携带多份礼物：普通连击只有 1 份，盲盒爆出时可以有多份
+// （例如 100 个盲盒炸成虚天秘境/黄枫谷/燕家堡/血色禁地 4 种），因此用列表承载。
+type GiftItemInfo struct {
+	GiftID    int64  `json:"gift_id"`    // 礼物ID
+	GiftName  string `json:"gift_name"`  // 礼物名称
+	Num       int64  `json:"num"`        // 礼物数量
+	Price     int64  `json:"price"`      // 礼物标价单价(分)
+	TotalCoin int64  `json:"total_coin"` // 本项实际消耗(分)，盲盒爆出时按盲盒单价计
+}
+
 // SendGiftInfo 是 SEND_GIFT 与 SEND_GIFT_V2 消息中提取的关键字段
 type SendGiftInfo struct {
 	UID        int64          `json:"uid"`                  // 送礼用户UID
 	Uname      string         `json:"username"`             // 送礼用户名
-	GiftID     int64          `json:"gift_id"`              // 礼物ID
-	GiftName   string         `json:"gift_name"`            // 礼物名称
-	Price      int64          `json:"price"`                // 礼物价格(分)
-	Num        int64          `json:"num"`                  // 礼物数量
 	AnchorID   int64          `json:"anchor_id"`            // 主播UID
 	BadgeUID   int64          `json:"badge_uid"`            // 勋章主播UID
 	BadgeName  string         `json:"badge_name"`           // 勋章名称
 	BadgeLevel int64          `json:"badge_level"`          // 勋章等级
 	BadgeType  int64          `json:"badge_type"`           // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
 	BlindGift  *BlindGiftInfo `json:"blind_gift,omitempty"` // 盲盒礼物信息，非盲盒时为 nil
+	Gifts      []GiftItemInfo `json:"gifts"`                // 礼物明细，普通送礼 1 份；盲盒爆出时多份，gift_list 缺失时为空
 }
 
 // GuardBuyInfo 是 GUARD_BUY 消息中提取的关键字段
@@ -458,23 +467,26 @@ func ExtractSendGiftV2(raw string) (*SendGiftInfo, error) {
 	}
 	// 映射到 SendGiftInfo
 	result := &SendGiftInfo{
-		UID:      pb.Uid,
-		Uname:    pb.Uname,
-		GiftID:   0,
-		GiftName: "",
-		Price:    0,
-		Num:      0,
-		AnchorID: 0,
+		UID:   pb.Uid,
+		Uname: pb.Uname,
 	}
-	// 礼物信息
-	if pb.GiftList != nil {
-		result.GiftID = pb.GiftList.GiftId
-		result.GiftName = pb.GiftList.GiftName
-		result.Price = pb.GiftList.Price / 10
-		result.Num = pb.GiftList.Num
+	// 礼物明细 — 盲盒爆出时一次广播会携带多份礼物，必须全部保留
+	for _, item := range pb.GiftList {
+		// 实际消耗以 total_coin 为准；该字段缺失时退化为标价总额
+		totalCoin := item.TotalCoin
+		if totalCoin == 0 {
+			totalCoin = item.Price * item.Num
+		}
+		result.Gifts = append(result.Gifts, GiftItemInfo{
+			GiftID:    item.GiftId,
+			GiftName:  item.GiftName,
+			Num:       item.Num,
+			Price:     item.Price / 10,
+			TotalCoin: totalCoin / 10,
+		})
 		// 接受礼物的主播ID
-		if pb.GiftList.ReceiveUserInfo != nil {
-			result.AnchorID = pb.GiftList.ReceiveUserInfo.Uid
+		if result.AnchorID == 0 && item.ReceiveUserInfo != nil {
+			result.AnchorID = item.ReceiveUserInfo.Uid
 		}
 	}
 	// 勋章信息 — 用户未佩戴勋章时为 null
@@ -515,6 +527,7 @@ func ExtractSendGift(raw string) (*SendGiftInfo, error) {
 		GiftName      string `json:"giftName"`
 		Price         int64  `json:"price"`
 		Num           int64  `json:"num"`
+		TotalCoin     int64  `json:"total_coin"`
 		ReceiverUinfo struct {
 			UID int64 `json:"uid"`
 		} `json:"receiver_uinfo"`
@@ -531,14 +544,22 @@ func ExtractSendGift(raw string) (*SendGiftInfo, error) {
 	if err := json.Unmarshal(outer.Data, &data); err != nil {
 		return nil, fmt.Errorf("解析 SEND_GIFT data 字段失败: %w", err)
 	}
+	// 实际消耗以 total_coin 为准；该字段缺失时退化为标价总额
+	totalCoin := data.TotalCoin
+	if totalCoin == 0 {
+		totalCoin = data.Price * data.Num
+	}
 	result := &SendGiftInfo{
 		UID:      data.UID,
 		Uname:    data.Uname,
-		GiftID:   data.GiftID,
-		GiftName: data.GiftName,
-		Price:    data.Price / 10,
-		Num:      data.Num,
 		AnchorID: data.ReceiverUinfo.UID,
+		Gifts: []GiftItemInfo{{
+			GiftID:    data.GiftID,
+			GiftName:  data.GiftName,
+			Num:       data.Num,
+			Price:     data.Price / 10,
+			TotalCoin: totalCoin / 10,
+		}},
 	}
 	// 勋章信息 — 用户未佩戴勋章时为 null
 	if data.SenderUinfo.Medal != nil {
