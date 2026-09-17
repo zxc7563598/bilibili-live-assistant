@@ -49,8 +49,15 @@
 # 05 Robot Config Module
 # 06 Live Danmu Module
 # 07 Live Gift Module
-# 08 User Analysis Module
-#
+# 08 Live User Module
+# 09 App Config Module
+# 10 Product Module
+# 11 Order Module
+# 12 Feedback Module
+# 13 Address Module
+# 14 Upload Module
+# 15 LivePK Module
+
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
 # --------------------------------------------------
@@ -83,6 +90,7 @@ error:
   10006: Login status is abnormal, please log in again # Redis accessToken parsing failed
   10007: Login status is abnormal, please log in again # Redis accessToken data is abnormal
   10008: Login status is abnormal, please log in again # Redis accessToken has been refreshed
+  10009: Request parameter is invalid # Encryption parameter decryption failed (generic)
   10101: Invalid request parameters # Parameter validation failed
   10102: Please enter account # Account cannot be empty
   10103: Please enter password # Password cannot be empty
@@ -114,6 +122,61 @@ error:
   10501: Invalid request parameters # Parameter validation failed
   10601: Invalid request parameters # Parameter validation failed
   10801: Invalid request parameters # Parameter validation failed
+  10802: Password cannot be less than six digits # Password cannot be less than six digits
+  10901: Illegal image information # Image MIME type retrieval failed
+  11001: Request parameter is invalid # Parameter validation failed (Product module)
+  11002: Please enter the product name # Product name is empty
+  11003: Product name cannot exceed 255 characters # Product name too long
+  11004: Please upload the product cover # Product cover is empty
+  11005: Product cover URL cannot exceed 255 characters # Product cover URL too long
+  11006: Product price must be an integer not less than 0 # Invalid product price
+  11007: Please select a credit type # Credit type is not 0/1
+  11008: Please select a product type # Product type is not 0/1
+  11009: Sold quantity must be an integer not less than 0 # Invalid sold quantity
+  11010: Product tags cannot exceed 255 characters # Tags too long
+  11011: Product description cannot exceed 1000 characters # Description too long
+  11012: Please put at least one spec combination on sale # SKU count is 0
+  11013: Spec combinations cannot exceed 200 # SKU count exceeded
+  11014: Product images cannot exceed 200 # Image count exceeded
+  11015: Spec name cannot be empty # Spec name is empty
+  11016: Spec name cannot exceed 100 characters # Spec name too long
+  11017: Spec names must be unique # Duplicate spec name
+  11018: Spec value cannot be empty # Spec has no value / value is empty
+  11019: Spec value cannot exceed 100 characters # Spec value too long
+  11020: Spec values under the same spec must be unique # Duplicate spec value
+  11021: Spec combination does not match the spec settings # SKU spec snapshot mismatches spec definitions
+  11022: Spec combination price must be an integer not less than 0 # Invalid SKU price
+  11023: Spec combination stock must be an integer not less than 0 # Invalid SKU stock
+  11024: Product image URL cannot be empty # Image path is empty
+  11025: Product image URL cannot exceed 1000 characters # Image path too long
+  11026: Invalid product image type # Image type is not 0/1
+  11027: Spec types cannot exceed 10 # Spec type count exceeded
+  11028: Spec combination cost price must be an integer not less than 0 # Invalid SKU cost price
+  11029: Spec combination details are too long # Serialized SKU spec snapshot exceeds the column width
+  11030: Duplicate spec combination # Duplicate spec combination under the same product
+  11101: Request parameter is invalid # Order parameter is invalid
+  11201: Please select the feedback type # Feedback type is empty
+  11202: Feedback type is too long # Feedback type exceeds the maximum length limit
+  11203: Please enter feedback content # Feedback content is empty
+  11204: Feedback content is too long # Feedback content exceeds the maximum length limit
+  11205: Please enter contact information # Contact information is empty
+  11206: Contact information is too long # Contact information exceeds the maximum length limit
+  11301: Invalid address parameter # Address parameter validation failed
+  11302: Invalid region code # region_code is not a valid province-city-district chain
+  11303: Invalid address type # Invalid address type
+  11304: Please enter recipient name # Recipient name is empty
+  11305: Please enter phone number # Phone number is empty for physical address
+  11306: Please select a region # Region is empty or invalid for physical address
+  11307: Please enter detailed address # Detailed address is empty for physical address
+  11308: Please enter email address # Email is empty for virtual address
+  11401: Request parameter is invalid # Upload form parsing failed (Upload)
+  11402: Illegal image information # Uploaded content is not a valid image (Upload)
+  11403: Please upload an image file # No file received or the file is empty (Upload)
+  11404: Image size exceeds the limit # Upload body or file exceeds the size limit (Upload)
+  11405: Invalid upload scene # Scene is not in the upload whitelist (Upload)
+  11406: Image path cannot be empty # Image path is empty for OSS sync (Upload)
+  11407: Invalid image path # Path is not a valid /uploads access path for OSS sync (Upload)
+  11501: Invalid request parameters # Parameter validation failed (PK battle records)
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   30001: Unauthorized operation # The current account does not have access permission
@@ -134,10 +197,25 @@ error:
   40406: Failed to start listener # Start listener failed
   40407: Failed to stop listener # Stop listener failed
   40408: Listener connection error # Listener connection error
+  40801: Incorrect account or password # Password error (avoid being too specific)
+  40802: Account unavailable # User account disabled
+  40803: Insufficient balance # Insufficient balance for this redemption
+  41401: OSS is not configured, please save the Alibaba Cloud OSS config first # OSS config is incomplete before sync (Upload)
+  41101: Insufficient stock # Insufficient stock, unable to place order
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
   50801: Tokenizer initialization failed # Tokenizer initialization failed
+  50802: Unknown User # Failed to query user information
+  51401: Local image not found or has been cleaned, please re-upload # Local file to sync does not exist (Upload)
+  51001: Product does not exist # Product information does not exist
+  51101: Unable to find the product # Product or SKU does not exist
+  51102: No pending order # No active order draft
+  51103: The order to re-order does not exist # Historical draft does not exist or does not belong to the user
+  51104: The current order has expired # The current order has expired
+  51105: Order does not exist # Order not found (Order admin)
+  51301: Address not found # Address does not exist or does not belong to the user
+  60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed
   60103: System busy, please try again later # refreshToken generation failed
@@ -172,6 +250,26 @@ error:
   60601: System busy, please try again later # Database query exception
   60701: System busy, please try again later # Database query exception
   60801: System busy, please try again later # Database query exception
+  60802: System busy, please try again later # accessToken generation failed
+  60803: System busy, please try again later # refreshToken generation failed
+  60804: System busy, please try again later # Update admin token failed
+  60805: System busy, please try again later # Redis store accessToken failed
+  60806: System busy, please try again later # Redis store refreshToken failed
+  60807: System busy, please try again later # Redis clear token failed
+  60902: Failed to save config, please try again later # Database update error (App Config)
+  60903: Failed to refresh config cache, please try again later # Cache reload error (App Config)
+  60905: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure
+  60906: Alibaba Cloud OSS Configuration or Connection Exception # Alibaba Cloud OSS Configuration or Connection Exception
+  61001: System busy, please try again later # Database query exception
+  61002: Operation failed, please try again later # Product save failed (Product module)
+  61101: System busy, please try again later # Database error (Order module)
+  61201: System busy, please try again later # Database error (Feedback module)
+  61301: System busy, please try again later # Database error (Address module)
+  61401: Failed to save the image, please try again later # Image file save error (Upload)
+  61402: Failed to read the image, please try again later # Failed to read local image state (Upload)
+  61403: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure (Upload)
+  61404: Failed to sync image to OSS, please try again later # Image upload to OSS error (Upload)
+  61501: System busy, please try again later # Database query exception (PK battle records)
 
 gender:
   female: female
@@ -263,6 +361,47 @@ reward_policy:
 reward_type:
   stars: stars
   points: points
+
+product_image_type:
+  banner: banner
+  detail: detail
+
+product_type:
+  virtual: virtual
+  actual: actual
+
+stock_change_type:
+  order_deduct: order_deduct
+  return_refund: return_refund
+  admin_add: admin_add
+  admin_reduce: admin_reduce
+
+address_type:
+  virtual: virtual
+  actual: actual
+
+order_status:
+  pending_payment: pending_payment
+  pending_shipment: pending_shipment
+  pending_receipt: pending_receipt
+  completed: completed
+  cancelled: cancelled
+  after_sales: after_sales
+
+pay_status:
+  unpaid: unpaid
+  paid: paid
+  refunded: refunded
+
+ship_status:
+  pending: pending
+  shipped: shipped
+  delivered: delivered
+
+draft_status:
+  active: active
+  redeemed: redeemed
+  cancelled: cancelled
 
 no: no
 yes: yes

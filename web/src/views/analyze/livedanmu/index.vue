@@ -34,7 +34,7 @@ const levelColor = {
 }
 const roomOptions = ref(null)
 const columns = [
-  { title: '用户UID', key: 'uid', minWidth: 170 },
+  { title: '用户UID', key: 'uid', minWidth: 170, sorter: true },
   {
     title: '牌子',
     key: 'badge_room_id',
@@ -59,9 +59,9 @@ const columns = [
         : ''
     },
   },
-  { title: '用户昵称', key: 'uname', minWidth: 120 },
-  { title: '弹幕内容', key: 'msg' },
-  { title: '发送时间', key: 'send_at', width: 200 },
+  { title: '用户昵称', key: 'uname', minWidth: 120, sorter: true },
+  { title: '弹幕内容', key: 'msg', sorter: true },
+  { title: '发送时间', key: 'send_at', width: 200, sorter: true },
 ]
 function goToLive(room_id) {
   window.open(`https://live.bilibili.com/${room_id}`, '_blank', 'noopener,noreferrer')

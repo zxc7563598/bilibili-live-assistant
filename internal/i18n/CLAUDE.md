@@ -136,6 +136,11 @@ T MM XX
 | 01 | 管理员模块（Admin） |
 | 02 | 角色模块（Role） |
 | 03 | 菜单模块（Menu） |
+| 09 | App 配置模块（AppConfig） |
+| 10 | 商品模块（Product） |
+| 12 | 反馈模块（Feedback） |
+| 14 | 上传模块（Upload） |
+| 15 | PK 对战记录模块（LivePk） |
 
 新增业务模块时，分配新的 MM 编号并在此文档更新。
 

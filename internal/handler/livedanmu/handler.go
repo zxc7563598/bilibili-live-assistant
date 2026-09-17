@@ -100,8 +100,10 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 执行请求
 	svcResp, errCode, err := h.livedanmuSvc.ListPage(ctx, livedanmu.ListPageReq{
 		PageResp: livedanmu.PageResp{
-			PageNo:   req.PageNo,
-			PageSize: req.PageSize,
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
 		},
 		RoomID:      req.RoomID,
 		UID:         req.UID,

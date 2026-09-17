@@ -38,7 +38,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		return ListPageResp{}, 10601, errors.New("original 内容非法")
 	}
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	queue := model.LiveGiftListPageQuery{
 		RoomID:      req.RoomID,
 		UID:         req.UID,
@@ -50,6 +50,8 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SendAtEnd:   req.SendAtEnd,
 		Offset:      offset,
 		Limit:       limit,
+		SortField:   sortField,
+		SortOrder:   sortOrder,
 	}
 	listGift, total, err := s.liveGiftRepo.ListPage(ctx, nil, queue)
 	if err != nil {
@@ -73,7 +75,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 // BlindBoxListPage 用于获取盲盒礼物列表信息
 func (s *Service) BlindBoxListPage(ctx context.Context, req BlindBoxListPageReq) (BlindBoxListPageResp, int, error) {
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	queue := model.LiveGiftBlindBoxListPageQuery{
 		RoomID:           req.RoomID,
 		UID:              req.UID,
@@ -84,6 +86,8 @@ func (s *Service) BlindBoxListPage(ctx context.Context, req BlindBoxListPageReq)
 		SendAtEnd:        req.SendAtEnd,
 		Offset:           offset,
 		Limit:            limit,
+		SortField:        sortField,
+		SortOrder:        sortOrder,
 	}
 	listGift, total, err := s.liveGiftRepo.BlindBoxListPage(ctx, nil, queue)
 	if err != nil {

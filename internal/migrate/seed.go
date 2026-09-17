@@ -27,7 +27,11 @@ func Seed(db *gorm.DB) error {
 	if err := seedRobotConfigs(db); err != nil {
 		return err
 	}
-	return nil
+	if err := seedAppConfigs(db); err != nil {
+		return err
+	}
+	// 种子数据带固定 ID，PostgreSQL 需要把自增序列推进到其后（其余数据库为空操作）
+	return syncPostgresSequences(db)
 }
 
 // seedRoles 初始化填充角色表
@@ -273,6 +277,186 @@ func seedMenus(db *gorm.DB) error {
 			Path:      "/user/analysis",
 			Component: "/src/views/analyze/user/index.vue",
 			Order:     3,
+		},
+		{
+			ID:        16,
+			Code:      "AppConfig",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  0,
+			Name:      "App 配置",
+			Icon:      "i-fe:smartphone",
+			Path:      "/app",
+			Component: "/src/views/appconfig/index.vue",
+			Order:     1,
+		},
+		{
+			ID:        17,
+			Code:      "Shop",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  0,
+			Name:      "商城管理",
+			Icon:      "i-fe:shopping-bag",
+			Path:      "",
+			Component: "",
+			Order:     3,
+		},
+		{
+			ID:        18,
+			Code:      "ShopProduct",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  17,
+			Name:      "商品管理",
+			Icon:      "i-fe:shopping-cart",
+			Path:      "/shop/product",
+			Component: "/src/views/shop/product/index.vue",
+			Order:     1,
+		},
+		{
+			ID:        19,
+			Code:      "ShopUser",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  17,
+			Name:      "用户管理",
+			Icon:      "i-fe:users",
+			Path:      "/shop/user",
+			Component: "/src/views/shop/user/index.vue",
+			Order:     0,
+		},
+		{
+			ID:        20,
+			Code:      "Order",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  0,
+			Name:      "订单管理",
+			Icon:      "i-fe:trello",
+			Path:      "",
+			Component: "",
+			Order:     4,
+		},
+		{
+			ID:        21,
+			Code:      "OrderList",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  20,
+			Name:      "订单列表",
+			Icon:      "i-fe:list",
+			Path:      "/order/list",
+			Component: "/src/views/order/list/index.vue",
+			Order:     0,
+		},
+		{
+			ID:        22,
+			Code:      "OrderDelivery",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  20,
+			Name:      "发货管理",
+			Icon:      "i-fe:package",
+			Path:      "/order/delivery",
+			Component: "/src/views/order/delivery/index.vue",
+			Order:     1,
+		},
+		{
+			ID:        23,
+			Code:      "ShopProductDetails",
+			Enable:    enum.EnableEnable,
+			Show:      enum.No,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  18,
+			Name:      "商品详情",
+			Icon:      "i-fe:edit",
+			Path:      "/shop/product/details",
+			Component: "/src/views/shop/product/details.vue",
+			Order:     1,
+		},
+		{
+			ID:        24,
+			Code:      "ShopUserDetails",
+			Enable:    enum.EnableEnable,
+			Show:      enum.No,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  19,
+			Name:      "用户详情",
+			Icon:      "i-fe:edit",
+			Path:      "/shop/user/details",
+			Component: "/src/views/shop/user/details.vue",
+			Order:     1,
+		},
+		{
+			ID:        25,
+			Code:      "OrderDetails",
+			Enable:    enum.EnableEnable,
+			Show:      enum.No,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  21,
+			Name:      "订单详情",
+			Icon:      "i-fe:edit",
+			Path:      "/order/list/details",
+			Component: "/src/views/order/list/details.vue",
+			Order:     2,
+		},
+		{
+			ID:        26,
+			Code:      "AddProduct",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "BUTTON",
+			ParentID:  18,
+			Name:      "添加商品",
+			Icon:      "i-fe:edit",
+			Path:      "",
+			Component: "",
+			Order:     0,
+		},
+		{
+			ID:        27,
+			Code:      "PkBattle",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  11,
+			Name:      "PK对战",
+			Icon:      "i-fe:shuffle",
+			Path:      "/pk/list",
+			Component: "/src/views/analyze/pk/index.vue",
+			Order:     4,
 		},
 	}
 	return db.Clauses(clause.OnConflict{
@@ -646,6 +830,89 @@ func seedRobotConfigs(db *gorm.DB) error {
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "group_name"}, {Name: "config_key"}},
+		DoNothing: true,
+	}).Create(&configs).Error
+}
+
+// seedAppConfigs 初始化 APP 配置表
+//
+// 以 config_key 为唯一键做幂等 upsert：
+// 已存在的配置项跳过（不覆盖用户在后台改过的值），未来新增的配置项会自动追加。
+func seedAppConfigs(db *gorm.DB) error {
+	configs := []model.AppConfig{
+		{
+			ConfigKey:   "site_name",
+			ConfigValue: "积分商城",
+			Remark:      "显示在浏览器标签栏、收藏夹以及手机桌面图标下方的名称",
+		},
+		{
+			ConfigKey:   "site_description",
+			ConfigValue: "这是xxxxx的积分商城",
+			Remark:      "PWA 应用描述（手机浏览器提示「添加到主屏幕」时显示的说明文案）",
+		},
+		{
+			ConfigKey:   "site_background_color",
+			ConfigValue: "#f5f6f8",
+			Remark:      "PWA 启动页背景色（应用打开瞬间到首页渲染完成前显示的背景颜色）",
+		},
+		{
+			ConfigKey:   "site_theme_color",
+			ConfigValue: "#965bff",
+			Remark:      "网站主题色（应用于按钮、边框、图标、选中状态等主要 UI 元素的颜色）",
+		},
+		{
+			ConfigKey:   "site_icon",
+			ConfigValue: "https://cdn.hejunjie.life/avatars/shop.png",
+			Remark:      "浏览器标签页图标，同时也是手机添加到桌面时的应用图标",
+		},
+		{
+			ConfigKey:   "register",
+			ConfigValue: "1",
+			Remark:      "是否允许用户自助注册。0-禁止注册，1-允许注册（默认开启）",
+		},
+		{
+			ConfigKey:   "logo",
+			ConfigValue: "https://cdn.hejunjie.life/avatars/shop.png",
+			Remark:      "网站 Logo 图片地址。建议与浏览器 favicon 图标保持一致，以便在标签页和收藏夹中统一显示",
+		},
+		{
+			ConfigKey:   "login_bg",
+			ConfigValue: "",
+			Remark:      "登录页背景图片地址。留空则自动根据当前主题主色生成纯色背景",
+		},
+		{
+			ConfigKey:   "login_title",
+			ConfigValue: "积分商城",
+			Remark:      "登录页顶部显示的主标题，用于品牌或产品名称展示",
+		},
+		{
+			ConfigKey:   "login_slogan",
+			ConfigValue: "纯美女神伊德利拉美貌盖世无双！",
+			Remark:      "登录页副标题或宣传语（Slogan），可填写品牌口号、活动标语等内容",
+		},
+		{
+			ConfigKey:   "oss_endpoint",
+			ConfigValue: "https://oss-cn-hangzhou.aliyuncs.com",
+			Remark:      "完整 OSS 地址",
+		},
+		{
+			ConfigKey:   "oss_access_key_id",
+			ConfigValue: "",
+			Remark:      "阿里云 AccessKey ID",
+		},
+		{
+			ConfigKey:   "oss_access_key_secret",
+			ConfigValue: "",
+			Remark:      "阿里云 AccessKey Secret",
+		},
+		{
+			ConfigKey:   "oss_bucket",
+			ConfigValue: "",
+			Remark:      "Bucket 名",
+		},
+	}
+	return db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "config_key"}},
 		DoNothing: true,
 	}).Create(&configs).Error
 }

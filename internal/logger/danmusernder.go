@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	// danmuSendLogDir 弹幕发送记录根目录
-	danmuSendLogDir = "logs/弹幕发送记录"
+	// danmuSendLogSubDir 弹幕发送记录在日志根目录下的子目录名
+	danmuSendLogSubDir = "弹幕发送记录"
 	// danmuSendLogMaxLines 每个文件最大行数
 	danmuSendLogMaxLines = 1000
 )
@@ -18,7 +18,7 @@ const (
 // DanmuSendLogger 弹幕发送记录器。
 //
 // 特性：
-//   - 日志写入独立目录 logs/弹幕发送记录/
+//   - 日志写入独立目录 <日志根目录>/弹幕发送记录/
 //   - 按日期分子目录（YYYY-MM-DD）
 //   - 每 1000 行自动分割新文件（编号递增）
 //   - 线程安全
@@ -64,7 +64,7 @@ func (l *DanmuSendLogger) Log(roomID int64, message string) {
 		l.fileNum++
 		l.lineCount = 0
 
-		dir := filepath.Join(danmuSendLogDir, today)
+		dir := filepath.Join(logDir, danmuSendLogSubDir, today)
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return // 目录创建失败，静默丢弃本条日志
 		}

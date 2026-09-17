@@ -95,8 +95,6 @@ func (p *giftProcessor) Cmds() []live.Cmd {
 }
 
 func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roomID int64) error {
-	var gift *model.LiveGift
-	var thankInfo *giftThankInfo
 	switch cmd {
 	case live.CmdSendGift, live.CmdSendGiftV2:
 		info, ok := data.(*live.SendGiftInfo)
@@ -104,53 +102,20 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			log.Printf("[live.Gift] 数据类型断言失败，期望 *live.SendGiftInfo，实际 %T", data)
 			return nil
 		}
-		gift = &model.LiveGift{
-			RoomID:     roomID,
-			UID:        info.UID,
-			Uname:      info.Uname,
-			GiftType:   enum.GiftTypeNormal,
-			GiftID:     info.GiftID,
-			GiftName:   info.GiftName,
-			Price:      info.Price,
-			Num:        info.Num,
-			BadgeUID:   info.BadgeUID,
-			BadgeName:  info.BadgeName,
-			BadgeLevel: info.BadgeLevel,
-			BadgeType:  enum.BadgeType(info.BadgeType),
-			LiveID:     0,
-			SendAt:     time.Now().Unix(),
-			Original:   enum.Yes,
+		// 一次广播可能携带多份礼物（盲盒爆出时可达数十种），每一份都当作独立的礼物推送处理
+		pushes := make([]giftPush, 0, len(info.Gifts))
+		for _, item := range info.Gifts {
+			gift, thankInfo := buildSendGift(roomID, info, item)
+			pushes = append(pushes, giftPush{gift: gift, thank: thankInfo})
 		}
-		if info.BlindGift != nil {
-			gift.Original = enum.No
-			gift.OriginalGiftID = info.BlindGift.OriginalGiftID
-			gift.OriginalGiftName = info.BlindGift.OriginalGiftName
-			gift.OriginalGiftPrice = info.BlindGift.OriginalGiftPrice
-		}
-		thankInfo = &giftThankInfo{
-			UID:       info.UID,
-			Uname:     info.Uname,
-			GiftID:    info.GiftID,
-			GiftName:  info.GiftName,
-			GiftType:  enum.GiftTypeNormal,
-			Price:     info.Price,
-			Num:       info.Num,
-			Original:  enum.Yes,
-			Badge:     info.BadgeUID == info.AnchorID,
-			BadgeType: enum.BadgeType(info.BadgeType),
-		}
-		thankInfo.OriginalGiftPrice = info.Price
-		if info.BlindGift != nil && info.BlindGift.OriginalGiftPrice > 0 {
-			thankInfo.Original = enum.No
-			thankInfo.OriginalGiftPrice = info.BlindGift.OriginalGiftPrice
-		}
+		p.processGifts(ctx, roomID, pushes)
 	case live.CmdGuardBuy:
 		info, ok := data.(*live.GuardBuyInfo)
 		if !ok {
 			log.Printf("[live.Gift] 数据类型断言失败，期望 *live.GuardBuyInfo，实际 %T", data)
 			return nil
 		}
-		gift = &model.LiveGift{
+		gift := &model.LiveGift{
 			RoomID:   roomID,
 			UID:      info.UID,
 			Uname:    info.Uname,
@@ -163,7 +128,7 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			SendAt:   time.Now().Unix(),
 			Original: enum.Yes,
 		}
-		thankInfo = &giftThankInfo{
+		thankInfo := &giftThankInfo{
 			UID:       info.UID,
 			Uname:     info.Uname,
 			GiftID:    info.GiftID,
@@ -176,13 +141,14 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			BadgeType: enum.BadgeType(info.GuardLevel),
 		}
 		thankInfo.OriginalGiftPrice = info.Price
+		p.processGifts(ctx, roomID, []giftPush{{gift: gift, thank: thankInfo}})
 	case live.CmdSuperDanmuMsg:
 		info, ok := data.(*live.SuperChatMessage)
 		if !ok {
 			log.Printf("[live.Gift] 数据类型断言失败，期望 *live.SuperChatMessage，实际 %T", data)
 			return nil
 		}
-		gift = &model.LiveGift{
+		gift := &model.LiveGift{
 			RoomID:     roomID,
 			UID:        info.UID,
 			Uname:      info.Uname,
@@ -199,7 +165,7 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			SendAt:     time.Now().Unix(),
 			Original:   enum.Yes,
 		}
-		thankInfo = &giftThankInfo{
+		thankInfo := &giftThankInfo{
 			UID:       info.UID,
 			Uname:     info.Uname,
 			GiftID:    info.GiftID,
@@ -212,36 +178,107 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			BadgeType: enum.BadgeType(info.BadgeType),
 		}
 		thankInfo.OriginalGiftPrice = info.Price
-	}
-	if gift != nil && thankInfo != nil {
-		// 注册用户
-		userID, err := p.liveUserSvc.EnsureUser(ctx, thankInfo.UID, thankInfo.Uname)
-		if err != nil {
-			log.Printf("[live.Gift] 注册并获取用户信息失败: %v", err)
-			return nil
-		}
-		if _, err := p.liveGiftRepo.Create(ctx, nil, gift); err != nil {
-			log.Printf("[live.Gift] 礼物存储失败: %v", err)
-			return nil
-		}
-		// 追加用户累计赠送礼物金额
-		if userID > 0 {
-			if err := p.liveUserSvc.AddTotalGiftAmount(ctx, userID, gift.Price*gift.Num); err != nil {
-				log.Printf("[live.Gift] 追加用户累计赠送礼物金额失败: %v", err)
-				return nil
-			}
-		}
-		// 处理后续事件
-		botUID := p.getBotUID()
-		liveStatus := p.roomState.LiveStatus()
-		// 礼物答谢
-		p.processGiftIn(thankInfo, roomID, botUID, liveStatus)
-		// 黑名单赎回
-		p.processRedeem(ctx, thankInfo.UID, thankInfo.Price, thankInfo.Num, roomID, botUID)
-		// 奖励发放
-		p.processReward(ctx, userID, thankInfo, botUID)
+		p.processGifts(ctx, roomID, []giftPush{{gift: gift, thank: thankInfo}})
 	}
 	return nil
+}
+
+// buildSendGift 把 SEND_GIFT / SEND_GIFT_V2 中的一份礼物明细组装成入库记录与答谢信息
+//
+// 盲盒爆出时送礼方与勋章信息取自整条广播，标价与数量取自该份明细；
+// 原始礼物信息（OriginalGiftID/Name/Price）取自整条广播的 blind_gift。
+func buildSendGift(roomID int64, info *live.SendGiftInfo, item live.GiftItemInfo) (*model.LiveGift, *giftThankInfo) {
+	gift := &model.LiveGift{
+		RoomID:     roomID,
+		UID:        info.UID,
+		Uname:      info.Uname,
+		GiftType:   enum.GiftTypeNormal,
+		GiftID:     item.GiftID,
+		GiftName:   item.GiftName,
+		Price:      item.Price,
+		Num:        item.Num,
+		BadgeUID:   info.BadgeUID,
+		BadgeName:  info.BadgeName,
+		BadgeLevel: info.BadgeLevel,
+		BadgeType:  enum.BadgeType(info.BadgeType),
+		LiveID:     0,
+		SendAt:     time.Now().Unix(),
+		Original:   enum.Yes,
+	}
+	if info.BlindGift != nil {
+		gift.Original = enum.No
+		gift.OriginalGiftID = info.BlindGift.OriginalGiftID
+		gift.OriginalGiftName = info.BlindGift.OriginalGiftName
+		gift.OriginalGiftPrice = info.BlindGift.OriginalGiftPrice
+	}
+	thankInfo := &giftThankInfo{
+		UID:       info.UID,
+		Uname:     info.Uname,
+		GiftID:    item.GiftID,
+		GiftName:  item.GiftName,
+		GiftType:  enum.GiftTypeNormal,
+		Price:     item.Price,
+		Num:       item.Num,
+		Original:  enum.Yes,
+		Badge:     info.BadgeUID == info.AnchorID,
+		BadgeType: enum.BadgeType(info.BadgeType),
+	}
+	thankInfo.OriginalGiftPrice = item.Price
+	if info.BlindGift != nil && info.BlindGift.OriginalGiftPrice > 0 {
+		thankInfo.Original = enum.No
+		thankInfo.OriginalGiftPrice = info.BlindGift.OriginalGiftPrice
+	}
+	return gift, thankInfo
+}
+
+// giftPush 一次推送中的一份礼物：待入库的记录与对应的答谢信息
+type giftPush struct {
+	gift  *model.LiveGift
+	thank *giftThankInfo
+}
+
+// processGifts 处理一次礼物推送（普通送礼只有 1 份，盲盒爆出时可达数十份）
+//
+// 入库走批量接口，拼成单条多行 INSERT，避免写一半失败时落库数据永久缺斤少两；
+// 入库、累计金额属于同一用户的一次广播，只做一遍，答谢等后续事件再逐份触发。
+func (p *giftProcessor) processGifts(ctx context.Context, roomID int64, pushes []giftPush) {
+	if len(pushes) == 0 {
+		return
+	}
+	// 注册用户 —— 同一广播内的多份礼物属于同一用户，只需注册一次
+	userID, err := p.liveUserSvc.EnsureUser(ctx, pushes[0].thank.UID, pushes[0].thank.Uname)
+	if err != nil {
+		log.Printf("[live.Gift] 注册并获取用户信息失败: %v", err)
+		return
+	}
+	entities := make([]model.LiveGift, 0, len(pushes))
+	var totalAmount int64
+	for _, push := range pushes {
+		entities = append(entities, *push.gift)
+		totalAmount += push.gift.Price * push.gift.Num
+	}
+	if err := p.liveGiftRepo.CreateBatch(ctx, nil, entities); err != nil {
+		log.Printf("[live.Gift] 礼物存储失败: %v", err)
+		return
+	}
+	// 追加用户累计赠送礼物金额
+	if userID > 0 {
+		if err := p.liveUserSvc.AddTotalGiftAmount(ctx, userID, totalAmount); err != nil {
+			log.Printf("[live.Gift] 追加用户累计赠送礼物金额失败: %v", err)
+			return
+		}
+	}
+	// 处理后续事件
+	botUID := p.getBotUID()
+	liveStatus := p.roomState.LiveStatus()
+	for _, push := range pushes {
+		// 礼物答谢
+		p.processGiftIn(push.thank, roomID, botUID, liveStatus)
+		// 黑名单赎回
+		p.processRedeem(ctx, push.thank.UID, push.thank.Price, push.thank.Num, roomID, botUID)
+		// 奖励发放
+		p.processReward(ctx, userID, push.thank, botUID)
+	}
 }
 
 // processGiftIn 处理礼物答谢逻辑

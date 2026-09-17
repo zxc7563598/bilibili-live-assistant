@@ -4,6 +4,9 @@ import "time"
 
 // Format 将时间戳格式化为标准格式
 func Format(ts int64) string {
+	if ts == 0 {
+		return ""
+	}
 	return time.Unix(ts, 0).Format(time.DateTime)
 }
 

@@ -36,6 +36,8 @@ type LiveSessionListPageQuery struct {
 	EndAtEnd     *int64
 	Offset       int
 	Limit        int
+	SortField    *string
+	SortOrder    *string
 }
 
 // LiveSessionUpdateStartForm 更新开播信息，不对应数据库表

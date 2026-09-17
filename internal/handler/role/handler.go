@@ -55,8 +55,10 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 执行请求
 	svcResp, errCode, err := h.roleSvc.ListPage(ctx, role.ListPageReq{
 		PageResp: role.PageResp{
-			PageNo:   req.PageNo,
-			PageSize: req.PageSize,
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
 		},
 		Name:   req.Name,
 		Enable: req.Enable,

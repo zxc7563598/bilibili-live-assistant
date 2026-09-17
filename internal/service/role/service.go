@@ -42,12 +42,14 @@ func New(roleRepo role.Repository, adminRepo admin.Repository, roleMenuRepo role
 // ListPage 用于获取角色分页信息
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	roles, total, err := s.roleRepo.ListPage(ctx, nil, model.RoleListPageQuery{
-		Name:   req.Name,
-		Enable: req.Enable,
-		Offset: offset,
-		Limit:  limit,
+		Name:      req.Name,
+		Enable:    req.Enable,
+		Offset:    offset,
+		Limit:     limit,
+		SortField: sortField,
+		SortOrder: sortOrder,
 	})
 	if err != nil {
 		return ListPageResp{}, 60201, err

@@ -2,12 +2,38 @@ package live_session
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
 	"gorm.io/gorm"
 )
+
+// sortColumns 允许参与 ListPage 排序的 DB 列
+var sortColumns = map[string]string{
+	"id":               "id",
+	"room_id":          "room_id",
+	"uid":              "uid",
+	"live_key":         "live_key",
+	"start_at":         "start_at",
+	"start_source":     "start_source",
+	"danmu_count":      "danmu_count",
+	"gift_count":       "gift_count",
+	"guard_count":      "guard_count",
+	"super_chat_count": "super_chat_count",
+	"total_revenue":    "total_revenue",
+	"end_at":           "end_at",
+	"end_detail":       "end_detail",
+	"created_at":       "created_at",
+	"updated_at":       "updated_at",
+}
+
+// sortOrder 允许的排序方向 → SQL 方向。
+var sortOrder = map[string]string{
+	"ascend":  "asc",
+	"descend": "desc",
+}
 
 type Repository interface {
 	base.Repository[model.LiveSession]
@@ -66,7 +92,18 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveSe
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	err := db.Order("start_at desc").Offset(query.Offset).Limit(query.Limit).Find(&list).Error
+	// 默认与现状一致；排序参数非法/缺失时静默回退该默认
+	orderClause := "start_at desc"
+	if query.SortField != nil && query.SortOrder != nil {
+		// 方向先小写归一化再查白名单，非法值直接回退默认
+		if field, ok := sortColumns[*query.SortField]; ok {
+			if dir, ok := sortOrder[strings.ToLower(*query.SortOrder)]; ok {
+				// field/dir 均来自字面量白名单，杜绝注入；id asc 保证同键值时翻页稳定
+				orderClause = field + " " + dir + ", id asc"
+			}
+		}
+	}
+	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
 }
 

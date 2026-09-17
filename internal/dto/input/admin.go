@@ -36,6 +36,10 @@ type AdminListPageReq struct {
 	PageNo int `json:"pageNo" binding:"required" err:"required=10101" example:"1"`
 	// 每页展示条数
 	PageSize int `json:"pageSize" binding:"required" err:"required=10101" example:"20"`
+	// 排序字段
+	SortField *string `json:"sortField" example:"points"`
+	// 排序方向 ascend/descend
+	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
 	// 用户名，支持模糊搜索
 	Username *string `json:"username" example:"admin"`
 	// 性别

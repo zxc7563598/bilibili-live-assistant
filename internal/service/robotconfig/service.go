@@ -75,7 +75,7 @@ func (s *Service) ApplyRoomConfig(ctx context.Context, data RoomConfigReq) (int,
 	return s.applyConfig(ctx, "room", roomConfigReqToMap(data))
 }
 
-// GetRoomID 从缓存读取默认直播间房间号（内部使用，不暴露给前端配置页面）
+// GetRoomID 从缓存读取默认直播间房间号
 func (s *Service) GetRoomID() int64 {
 	val, ok := s.configCache.Get("room", "room_id")
 	if !ok || val == "0" {

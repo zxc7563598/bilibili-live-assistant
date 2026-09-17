@@ -41,9 +41,12 @@ go.work.sum
 tmp/
 
 /internal/webui/dist
+/internal/webui/shop
 config.yaml
 /bin
 /logs
+/uploads
 
 .claude
 bilibili_state.json
+data.db

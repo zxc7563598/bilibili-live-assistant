@@ -131,8 +131,8 @@ web/src
 
 | Prop             | 说明                                                                                               |
 | ---------------- | -------------------------------------------------------------------------------------------------- |
-| `columns` (必传) | Naive UI 表格列配置                                                                                |
-| `getData` (必传) | 数据请求方法，自动传 `{ ...queryItems, pageNo, pageSize }`，需返回 `{ data: { pageData, total } }` |
+| `columns` (必传) | Naive UI 表格列配置；数据列加 `sorter: true` 即启用远程列排序（`key` 作 DB 排序列名，`key` 与 DB 列不一致时可写 `sortField` 覆盖），后端需按 liveuser 模式在白名单内支持                                                                                |
+| `getData` (必传) | 数据请求方法，自动传 `{ ...queryItems, pageNo, pageSize }`，排序激活时额外带 `sortField`/`sortOrder`，需返回 `{ data: { pageData, total } }` |
 | `queryItems`     | 查询参数（v-model）                                                                                |
 | `remote`         | 是否后端分页（默认 true）                                                                          |
 

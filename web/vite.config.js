@@ -14,9 +14,15 @@ import { pluginIcons, pluginPagePathes } from './build/plugin-isme'
 
 const API_PREFIX_REGEXP = /^\/api/
 
+// 本地开发时后端的默认地址。VITE_PROXY_TARGET 留空是为了让容器部署走同源，
+// 但本地 dev server 必须有一个真实目标，所以这里兜底；只作用于 server.proxy，
+// vite build 不读该配置，产物不受影响。
+const DEV_PROXY_TARGET = 'http://localhost:25443'
+
 export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd())
   const { VITE_PUBLIC_PATH, VITE_PROXY_TARGET } = viteEnv
+  const proxyTarget = VITE_PROXY_TARGET || DEV_PROXY_TARGET
 
   return {
     base: VITE_PUBLIC_PATH || '/',
@@ -52,7 +58,7 @@ export default defineConfig(({ mode }) => {
       open: false,
       proxy: {
         '/api': {
-          target: VITE_PROXY_TARGET,
+          target: proxyTarget,
           changeOrigin: true,
           rewrite: path => path.replace(API_PREFIX_REGEXP, ''),
           secure: false,
@@ -62,6 +68,12 @@ export default defineConfig(({ mode }) => {
               proxyRes.headers['x-real-url'] = new URL(req.url || '', options.target)?.href || ''
             })
           },
+        },
+        // 上传文件（pkg/fileutil.SaveUploadedFile 落盘到后端 uploads/ 目录），开发环境代理到后端以便本地预览
+        '/uploads': {
+          target: proxyTarget,
+          changeOrigin: true,
+          secure: false,
         },
       },
     },

@@ -6,6 +6,10 @@ type LiveDanmuListPageReq struct {
 	PageNo int `json:"pageNo" binding:"required" err:"required=10601" example:"1"`
 	// 每页展示条数
 	PageSize int `json:"pageSize" binding:"required" err:"required=10601" example:"20"`
+	// 排序字段
+	SortField *string `json:"sortField" example:"points"`
+	// 排序方向 ascend/descend
+	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
 	// 房间ID
 	RoomID *int64 `json:"room_id" example:"22384516"`
 	// 用户ID

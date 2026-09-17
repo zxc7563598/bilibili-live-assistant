@@ -16,6 +16,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/docs"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/bootstrap"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/migrate"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/version"
 )
 
@@ -35,6 +36,7 @@ import (
 func main() {
 	port := flag.Int("port", 25443, "服务端口")
 	configPath := flag.String("config", "config.yaml", "配置文件路径")
+	seedProducts := flag.Bool("seed-products", false, "填充商城商品测试数据后退出，不启动服务（仅供测试环境）")
 	flag.Parse()
 	// 未显式设置 GIN_MODE 时默认使用 release 模式（开发用 make dev-go 传 GIN_MODE=debug）
 	if os.Getenv("GIN_MODE") == "" {
@@ -52,6 +54,21 @@ func main() {
 	cfg, err := config.LoadConfig(*configPath)
 	if err != nil {
 		log.Fatalf("无法加载配置: %v", err)
+	}
+	// 手动填充测试数据：仅初始化数据库 + 迁移 + 写入测试商品，然后退出，不启动服务
+	if *seedProducts {
+		db, err := config.InitDB(cfg)
+		if err != nil {
+			log.Fatalf("无法初始化数据库: %v", err)
+		}
+		if err := migrate.Run(db); err != nil {
+			log.Fatalf("数据库迁移失败: %v", err)
+		}
+		if err := migrate.SeedProducts(db); err != nil {
+			log.Fatalf("测试数据填充失败: %v", err)
+		}
+		log.Println("测试数据填充完成，服务未启动")
+		return
 	}
 	// 初始化应用
 	app := bootstrap.NewApp(cfg)

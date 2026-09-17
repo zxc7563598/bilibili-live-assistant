@@ -20,17 +20,19 @@ type Cmd string
 
 // B站 直播 WebSocket 常见命令字
 const (
-	CmdLiveStart     Cmd = "LIVE"               // 直播开始
-	CmdLiveCutOff    Cmd = "CUT_OFF"            // 直播被超管切断
-	CmdLiveRoomLock  Cmd = "ROOM_LOCK"          // 直播间被封
-	CmdLiveEnd       Cmd = "PREPARING"          // 直播结束（下播）
-	CmdSendGift      Cmd = "SEND_GIFT"          // 送礼消息
-	CmdSendGiftV2    Cmd = "SEND_GIFT_V2"       // 送礼消息V2
-	CmdGuardBuy      Cmd = "GUARD_BUY"          // 大航海（舰长/提督/总督）购买
-	CmdInteractWord  Cmd = "INTERACT_WORD_V2"   // 用户互动（关注、分享等）
-	CmdDanmuMsg      Cmd = "DANMU_MSG"          // 弹幕消息
-	CmdPkStart       Cmd = "PK_BATTLE_PRE_NEW"  // PK即将开始
-	CmdSuperDanmuMsg Cmd = "SUPER_CHAT_MESSAGE" // 醒目留言
+	CmdLiveStart     Cmd = "LIVE"                 // 直播开始
+	CmdLiveCutOff    Cmd = "CUT_OFF"              // 直播被超管切断
+	CmdLiveRoomLock  Cmd = "ROOM_LOCK"            // 直播间被封
+	CmdLiveEnd       Cmd = "PREPARING"            // 直播结束（下播）
+	CmdSendGift      Cmd = "SEND_GIFT"            // 送礼消息
+	CmdSendGiftV2    Cmd = "SEND_GIFT_V2"         // 送礼消息V2
+	CmdGuardBuy      Cmd = "GUARD_BUY"            // 大航海（舰长/提督/总督）购买
+	CmdInteractWord  Cmd = "INTERACT_WORD_V2"     // 用户互动（关注、分享等）
+	CmdDanmuMsg      Cmd = "DANMU_MSG"            // 弹幕消息
+	CmdPkStart       Cmd = "PK_BATTLE_PRE_NEW"    // PK即将开始
+	CmdPkBattleEnd   Cmd = "PK_BATTLE_END"        // PK结束（battle_type=2 经典PK）
+	CmdPkSettleNew   Cmd = "PK_BATTLE_SETTLE_NEW" // PK结算（battle_type=6 大乱斗）
+	CmdSuperDanmuMsg Cmd = "SUPER_CHAT_MESSAGE"   // 醒目留言
 )
 
 // Message 表示一条从直播间 WebSocket 收到的消息
@@ -100,20 +102,29 @@ type BlindGiftInfo struct {
 	OriginalGiftPrice int64  `json:"original_gift_price"` // 原始礼物价格(分)
 }
 
+// GiftItemInfo 是单份礼物的信息
+//
+// 一次送礼广播可能携带多份礼物：普通连击只有 1 份，盲盒爆出时可以有多份
+// （例如 100 个盲盒炸成虚天秘境/黄枫谷/燕家堡/血色禁地 4 种），因此用列表承载。
+type GiftItemInfo struct {
+	GiftID    int64  `json:"gift_id"`    // 礼物ID
+	GiftName  string `json:"gift_name"`  // 礼物名称
+	Num       int64  `json:"num"`        // 礼物数量
+	Price     int64  `json:"price"`      // 礼物标价单价(分)
+	TotalCoin int64  `json:"total_coin"` // 本项实际消耗(分)，盲盒爆出时按盲盒单价计
+}
+
 // SendGiftInfo 是 SEND_GIFT 与 SEND_GIFT_V2 消息中提取的关键字段
 type SendGiftInfo struct {
 	UID        int64          `json:"uid"`                  // 送礼用户UID
 	Uname      string         `json:"username"`             // 送礼用户名
-	GiftID     int64          `json:"gift_id"`              // 礼物ID
-	GiftName   string         `json:"gift_name"`            // 礼物名称
-	Price      int64          `json:"price"`                // 礼物价格(分)
-	Num        int64          `json:"num"`                  // 礼物数量
 	AnchorID   int64          `json:"anchor_id"`            // 主播UID
 	BadgeUID   int64          `json:"badge_uid"`            // 勋章主播UID
 	BadgeName  string         `json:"badge_name"`           // 勋章名称
 	BadgeLevel int64          `json:"badge_level"`          // 勋章等级
 	BadgeType  int64          `json:"badge_type"`           // 勋章类型 0=普通用户，1=总督，2=提督，3=舰长
 	BlindGift  *BlindGiftInfo `json:"blind_gift,omitempty"` // 盲盒礼物信息，非盲盒时为 nil
+	Gifts      []GiftItemInfo `json:"gifts"`                // 礼物明细，普通送礼 1 份；盲盒爆出时多份，gift_list 缺失时为空
 }
 
 // GuardBuyInfo 是 GUARD_BUY 消息中提取的关键字段
@@ -146,11 +157,51 @@ type PkBattlePreNewInfo struct {
 	PkID       int64  `json:"pk_id"`       // PK ID
 	PkStatus   int64  `json:"pk_status"`   // PK 状态
 	Timestamp  int64  `json:"timestamp"`   // 时间戳
-	Uname      string `json:"username"`    // 对方用户名
+	Uname      string `json:"uname"`       // 对方用户名
 	UID        int64  `json:"uid"`         // 对方用户UID
 	RoomID     int64  `json:"room_id"`     // 对方房间ID
 	BattleType int64  `json:"battle_type"` // 对战类型
 	MatchType  int64  `json:"match_type"`  // 匹配类型
+}
+
+// PkSideInfo 是 PK 对战其中一方的结算数据
+//
+// 对应 PK_BATTLE_END / PK_BATTLE_SETTLE_NEW 中的 init_info（发起方）与 match_info（被匹配方）。
+type PkSideInfo struct {
+	RoomID int64 `json:"room_id"` // 房间ID
+	Votes  int64 `json:"votes"`   // 最终PK值
+	// 胜负字段：两个事件对该字段的命名不同，这里按各自的原始名称原样接收，
+	// 未出现的一方恒为 0，具体怎么判定交给业务层
+	WinnerType int64 `json:"winner_type"`
+	ResultType int64 `json:"result_type"`
+}
+
+// PkBattleEndInfo 是 PK_BATTLE_END 消息中提取的关键字段（battle_type=2 经典PK）
+type PkBattleEndInfo struct {
+	PkID       int64       `json:"pk_id"`       // PK ID
+	PkStatus   int64       `json:"pk_status"`   // PK 状态
+	Timestamp  int64       `json:"timestamp"`   // 秒级时间戳
+	SendTime   int64       `json:"send_time"`   // 毫秒级时间戳
+	BattleType int64       `json:"battle_type"` // 对战类型
+	InitInfo   *PkSideInfo `json:"init_info"`   // 发起方
+	MatchInfo  *PkSideInfo `json:"match_info"`  // 被匹配方
+	Timer      int64       `json:"timer"`       // 冻结倒计时
+	ShowStreak bool        `json:"show_streak"` // 是否展示连胜
+}
+
+// PkBattleSettleNewInfo 是 PK_BATTLE_SETTLE_NEW 消息中提取的关键字段（battle_type=6 大乱斗）
+type PkBattleSettleNewInfo struct {
+	PkID          int64       `json:"pk_id"`           // PK ID
+	PkStatus      int64       `json:"pk_status"`       // PK 状态
+	Timestamp     int64       `json:"timestamp"`       // 秒级时间戳
+	SendTime      int64       `json:"send_time"`       // 毫秒级时间戳
+	BattleType    int64       `json:"battle_type"`     // 对战类型
+	InitInfo      *PkSideInfo `json:"init_info"`       // 发起方
+	MatchInfo     *PkSideInfo `json:"match_info"`      // 被匹配方
+	PunishName    string      `json:"punish_name"`     // 惩罚名称
+	PunishEndTime int64       `json:"punish_end_time"` // 惩罚结束时间（秒级）
+	SettleStatus  int64       `json:"settle_status"`   // 结算状态
+	DmScore       int64       `json:"dmscore"`         // 弹幕分数
 }
 
 // SuperChatMessage 是 SUPER_CHAT_MESSAGE 消息中提取的关键字段
@@ -256,6 +307,80 @@ func ExtractPkBattlePreNew(raw string) (*PkBattlePreNewInfo, error) {
 	}, nil
 }
 
+// ExtractPkBattleEnd 从原始 JSON 中提取 PK 结束信息（PK_BATTLE_END，battle_type=2）
+func ExtractPkBattleEnd(raw string) (*PkBattleEndInfo, error) {
+	var outer struct {
+		PkID      int64           `json:"pk_id"`
+		PkStatus  int64           `json:"pk_status"`
+		Timestamp int64           `json:"timestamp"`
+		SendTime  int64           `json:"send_time"`
+		Data      json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_END 外层消息失败: %w", err)
+	}
+	var data struct {
+		BattleType int64       `json:"battle_type"`
+		InitInfo   *PkSideInfo `json:"init_info"`
+		MatchInfo  *PkSideInfo `json:"match_info"`
+		Timer      int64       `json:"timer"`
+		ShowStreak bool        `json:"show_streak"`
+	}
+	if err := json.Unmarshal(outer.Data, &data); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_END data 字段失败: %w", err)
+	}
+	return &PkBattleEndInfo{
+		PkID:       outer.PkID,
+		PkStatus:   outer.PkStatus,
+		Timestamp:  outer.Timestamp,
+		SendTime:   outer.SendTime,
+		BattleType: data.BattleType,
+		InitInfo:   data.InitInfo,
+		MatchInfo:  data.MatchInfo,
+		Timer:      data.Timer,
+		ShowStreak: data.ShowStreak,
+	}, nil
+}
+
+// ExtractPkBattleSettleNew 从原始 JSON 中提取 PK 结算信息（PK_BATTLE_SETTLE_NEW，battle_type=6）
+func ExtractPkBattleSettleNew(raw string) (*PkBattleSettleNewInfo, error) {
+	var outer struct {
+		PkID      int64           `json:"pk_id"`
+		PkStatus  int64           `json:"pk_status"`
+		Timestamp int64           `json:"timestamp"`
+		SendTime  int64           `json:"send_time"`
+		Data      json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(raw), &outer); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_SETTLE_NEW 外层消息失败: %w", err)
+	}
+	var data struct {
+		BattleType    int64       `json:"battle_type"`
+		InitInfo      *PkSideInfo `json:"init_info"`
+		MatchInfo     *PkSideInfo `json:"match_info"`
+		PunishName    string      `json:"punish_name"`
+		PunishEndTime int64       `json:"punish_end_time"`
+		SettleStatus  int64       `json:"settle_status"`
+		DmScore       int64       `json:"dmscore"`
+	}
+	if err := json.Unmarshal(outer.Data, &data); err != nil {
+		return nil, fmt.Errorf("解析 PK_BATTLE_SETTLE_NEW data 字段失败: %w", err)
+	}
+	return &PkBattleSettleNewInfo{
+		PkID:          outer.PkID,
+		PkStatus:      outer.PkStatus,
+		Timestamp:     outer.Timestamp,
+		SendTime:      outer.SendTime,
+		BattleType:    data.BattleType,
+		InitInfo:      data.InitInfo,
+		MatchInfo:     data.MatchInfo,
+		PunishName:    data.PunishName,
+		PunishEndTime: data.PunishEndTime,
+		SettleStatus:  data.SettleStatus,
+		DmScore:       data.DmScore,
+	}, nil
+}
+
 // ExtractInteractWordV2 从原始 JSON 中提取 protobuf 编码的用户互动信息(INTERACT_WORD_V2)
 func ExtractInteractWordV2(raw string) (*InteractWordV2Info, error) {
 	// JSON 解析外层，提取 data.pb 字段
@@ -342,23 +467,26 @@ func ExtractSendGiftV2(raw string) (*SendGiftInfo, error) {
 	}
 	// 映射到 SendGiftInfo
 	result := &SendGiftInfo{
-		UID:      pb.Uid,
-		Uname:    pb.Uname,
-		GiftID:   0,
-		GiftName: "",
-		Price:    0,
-		Num:      0,
-		AnchorID: 0,
+		UID:   pb.Uid,
+		Uname: pb.Uname,
 	}
-	// 礼物信息
-	if pb.GiftList != nil {
-		result.GiftID = pb.GiftList.GiftId
-		result.GiftName = pb.GiftList.GiftName
-		result.Price = pb.GiftList.Price / 10
-		result.Num = pb.GiftList.Num
+	// 礼物明细 — 盲盒爆出时一次广播会携带多份礼物，必须全部保留
+	for _, item := range pb.GiftList {
+		// 实际消耗以 total_coin 为准；该字段缺失时退化为标价总额
+		totalCoin := item.TotalCoin
+		if totalCoin == 0 {
+			totalCoin = item.Price * item.Num
+		}
+		result.Gifts = append(result.Gifts, GiftItemInfo{
+			GiftID:    item.GiftId,
+			GiftName:  item.GiftName,
+			Num:       item.Num,
+			Price:     item.Price / 10,
+			TotalCoin: totalCoin / 10,
+		})
 		// 接受礼物的主播ID
-		if pb.GiftList.ReceiveUserInfo != nil {
-			result.AnchorID = pb.GiftList.ReceiveUserInfo.Uid
+		if result.AnchorID == 0 && item.ReceiveUserInfo != nil {
+			result.AnchorID = item.ReceiveUserInfo.Uid
 		}
 	}
 	// 勋章信息 — 用户未佩戴勋章时为 null
@@ -399,6 +527,7 @@ func ExtractSendGift(raw string) (*SendGiftInfo, error) {
 		GiftName      string `json:"giftName"`
 		Price         int64  `json:"price"`
 		Num           int64  `json:"num"`
+		TotalCoin     int64  `json:"total_coin"`
 		ReceiverUinfo struct {
 			UID int64 `json:"uid"`
 		} `json:"receiver_uinfo"`
@@ -415,14 +544,22 @@ func ExtractSendGift(raw string) (*SendGiftInfo, error) {
 	if err := json.Unmarshal(outer.Data, &data); err != nil {
 		return nil, fmt.Errorf("解析 SEND_GIFT data 字段失败: %w", err)
 	}
+	// 实际消耗以 total_coin 为准；该字段缺失时退化为标价总额
+	totalCoin := data.TotalCoin
+	if totalCoin == 0 {
+		totalCoin = data.Price * data.Num
+	}
 	result := &SendGiftInfo{
 		UID:      data.UID,
 		Uname:    data.Uname,
-		GiftID:   data.GiftID,
-		GiftName: data.GiftName,
-		Price:    data.Price / 10,
-		Num:      data.Num,
 		AnchorID: data.ReceiverUinfo.UID,
+		Gifts: []GiftItemInfo{{
+			GiftID:    data.GiftID,
+			GiftName:  data.GiftName,
+			Num:       data.Num,
+			Price:     data.Price / 10,
+			TotalCoin: totalCoin / 10,
+		}},
 	}
 	// 勋章信息 — 用户未佩戴勋章时为 null
 	if data.SenderUinfo.Medal != nil {

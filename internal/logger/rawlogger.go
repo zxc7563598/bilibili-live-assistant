@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	// rawLogDir 原始消息日志根目录
-	rawLogDir = "logs/直播间监听原始信息"
+	// rawLogSubDir 原始消息日志在日志根目录下的子目录名
+	rawLogSubDir = "直播间监听原始信息"
 	// rawLogMaxLines 每个文件最大行数
 	rawLogMaxLines = 1000
 )
@@ -18,7 +18,7 @@ const (
 // RawMessageLogger 直播间原始消息日志记录器。
 //
 // 特性：
-//   - 日志写入独立目录 logs/直播间监听原始信息/
+//   - 日志写入独立目录 <日志根目录>/直播间监听原始信息/
 //   - 按日期分子目录（YYYY-MM-DD）
 //   - 按 msg.Cmd 分文件（每种消息类型独立文件）
 //   - 每 1000 行自动分割新文件（编号递增）
@@ -78,7 +78,7 @@ func (l *RawMessageLogger) Log(cmd string, raw []byte) {
 		w.fileNum++
 		w.lineCount = 0
 
-		dir := filepath.Join(rawLogDir, today)
+		dir := filepath.Join(logDir, rawLogSubDir, today)
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return // 目录创建失败，静默丢弃本条日志
 		}

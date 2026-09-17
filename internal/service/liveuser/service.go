@@ -2,9 +2,13 @@ package liveuser
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
@@ -12,12 +16,24 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/tokenizer"
 	"gorm.io/gorm"
 )
 
+// 站点基础配置键
+const (
+	keyRegister = "register"
+)
+
 type Service struct {
+	client                *bilibili.Client
 	db                    *gorm.DB
+	rdb                   *redis.Client
+	appConfigCache        *appconfig.Cache
 	liveUserRepo          live_user.Repository
 	liveUserCreditLogRepo live_user_credit_log.Repository
 	liveDanmuRepo         live_danmu.Repository
@@ -27,9 +43,12 @@ type Service struct {
 
 const userDanmuAnalysisLimit = 20
 
-func New(db *gorm.DB, liveUserRepo live_user.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository) *Service {
+func New(db *gorm.DB, rdb *redis.Client, appConfigCache *appconfig.Cache, liveUserRepo live_user.Repository, liveUserCreditLogRepo live_user_credit_log.Repository, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository) *Service {
 	return &Service{
+		client:                bilibili.NewClient(),
 		db:                    db,
+		rdb:                   rdb,
+		appConfigCache:        appConfigCache,
 		liveUserRepo:          liveUserRepo,
 		liveUserCreditLogRepo: liveUserCreditLogRepo,
 		liveDanmuRepo:         liveDanmuRepo,
@@ -41,15 +60,17 @@ func New(db *gorm.DB, liveUserRepo live_user.Repository, liveUserCreditLogRepo l
 // ListPage 用于获取用户列表信息
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	listDanmu, total, err := s.liveUserRepo.ListPage(ctx, nil, model.LiveUserListPageQuery{
-		UID:    req.UID,
-		Uname:  req.Uname,
-		Offset: offset,
-		Limit:  limit,
+		UID:       req.UID,
+		Uname:     req.Uname,
+		Offset:    offset,
+		Limit:     limit,
+		SortField: sortField,
+		SortOrder: sortOrder,
 	})
 	if err != nil {
-		return ListPageResp{}, 60601, err
+		return ListPageResp{}, 60801, err
 	}
 	// 返回数据
 	return ListPageResp{
@@ -239,6 +260,270 @@ func (s *Service) AddPointsLog(ctx context.Context, params AddCreditLogParams) e
 // AddStarsLog 增加用户星光记录（增加或减少）
 func (s *Service) AddStarsLog(ctx context.Context, params AddCreditLogParams) error {
 	return s.addCreditLog(ctx, params, enum.CreditTypeStars, live_user.CreditFieldStars)
+}
+
+// ExistsAccount 获取用户是否存在
+func (s *Service) ExistsAccount(ctx context.Context, account int64) (bool, int, error) {
+	// 获取用户是否存在
+	exists, err := s.liveUserRepo.ExistsByUID(ctx, nil, account)
+	if err != nil {
+		return false, 60801, err
+	}
+	return exists, 0, nil
+}
+
+// Login 执行登录
+func (s *Service) Login(ctx context.Context, account int64, password string) (TokenResp, int, error) {
+	// 获取用户信息
+	user, err := s.liveUserRepo.GetByUID(ctx, nil, account)
+	if err != nil {
+		return TokenResp{}, 60801, err
+	}
+	// 用户不存在且不允许注册，直接结束
+	register := ptr.ParseEnumInt[enum.YesNo](s.configValue(keyRegister))
+	if user == nil && register == enum.No {
+		return TokenResp{}, 50802, nil
+	}
+	// 已存在用户：先校验启用状态与密码，避免对无效请求发起 B站 请求
+	if user != nil {
+		if user.Enable != enum.EnableEnable {
+			return TokenResp{}, 40802, nil
+		}
+		if user.Password != "" && !crypto.CheckPassword(user.Password, password) {
+			return TokenResp{}, 40801, nil
+		}
+	}
+	// 从B站获取主播信息（注册 / 同步名称头像 / 无密码设置密码都需要）
+	master, err := s.client.User.GetMasterInfo(ctx, account)
+	if err != nil {
+		return TokenResp{}, 50802, nil
+	}
+	if master.Name == "" && master.Face == "" {
+		return TokenResp{}, 50802, nil
+	}
+	// 用户不存在：自动注册后回查完整记录
+	if user == nil {
+		if _, err := s.EnsureUser(ctx, master.UID, master.Name); err != nil {
+			return TokenResp{}, 60801, err
+		}
+		user, err = s.liveUserRepo.GetByUID(ctx, nil, master.UID)
+		if err != nil || user == nil {
+			return TokenResp{}, 60801, err
+		}
+	}
+	// 无密码用户：将本次输入的密码作为其密码
+	if user.Password == "" {
+		hash, err := crypto.HashPassword(password)
+		if err != nil {
+			return TokenResp{}, 50802, err
+		}
+		if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, hash); err != nil {
+			return TokenResp{}, 60801, err
+		}
+	}
+	// 同步名称与头像（仅在变化时写库）
+	if user.Uname != master.Name {
+		if err := s.liveUserRepo.UpdateName(ctx, nil, user.ID, master.Name); err != nil {
+			return TokenResp{}, 60801, err
+		}
+	}
+	if user.Face != master.Face {
+		if err := s.liveUserRepo.UpdateFace(ctx, nil, user.ID, master.Face); err != nil {
+			return TokenResp{}, 60801, err
+		}
+	}
+	// 更新token
+	return s.updateToken(ctx, user.ID)
+}
+
+// RefreshLogin 用于刷新用户登录状态
+func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (TokenResp, int, error) {
+	claims, err := jwt.ParseToken(refreshToken)
+	if err != nil {
+		return TokenResp{}, 10002, err
+	}
+	if claims.Type != "refresh" {
+		return TokenResp{}, 10003, nil
+	}
+	// 获取用户信息
+	user, err := s.liveUserRepo.GetByID(ctx, nil, claims.ID)
+	if err != nil {
+		return TokenResp{}, 60801, err
+	}
+	// 验证信息
+	if user == nil {
+		return TokenResp{}, 50802, nil
+	}
+	if user.Token == nil || *user.Token != refreshToken {
+		return TokenResp{}, 20001, nil
+	}
+	// 更新token
+	return s.updateToken(ctx, claims.ID)
+}
+
+// Logout 用于退出用户登录
+func (s *Service) Logout(ctx context.Context, userID int64) (int, error) {
+	// 清空用户token
+	if s.rdb != nil {
+		err := s.rdb.Del(ctx,
+			jwt.UserTokenKey(userID),
+			jwt.UserRefreshKey(userID),
+		).Err()
+		if err != nil {
+			return 60807, err
+		}
+	}
+	if err := s.liveUserRepo.UpdateTokenByID(ctx, nil, userID, nil); err != nil {
+		return 60804, err
+	}
+	// 返回数据
+	return 0, nil
+}
+
+// ChangePassword 用于根据用户旧密码修改密码
+func (s *Service) ChangePassword(ctx context.Context, userID int64, oldPassword, newPassword string) (int, error) {
+	// 根据主键ID获取用户信息
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return 60801, err
+	}
+	if user == nil {
+		return 50802, nil
+	}
+	// 验证旧密码是否正确
+	if !crypto.CheckPassword(user.Password, oldPassword) {
+		return 40801, nil
+	}
+	// 新密码加密并更新
+	password, err := crypto.HashPassword(newPassword)
+	if err != nil {
+		return 60801, err
+	}
+	if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, password); err != nil {
+		return 60801, err
+	}
+	// 返回结果
+	return 0, nil
+}
+
+// ResetPassword 用于直接重置用户密码
+func (s *Service) ResetPassword(ctx context.Context, userID int64, newPassword string) (int, error) {
+	// 根据主键ID获取用户信息
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return 60801, err
+	}
+	if user == nil {
+		return 50802, nil
+	}
+	// 新密码加密并更新
+	password, err := crypto.HashPassword(newPassword)
+	if err != nil {
+		return 60801, err
+	}
+	if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, password); err != nil {
+		return 60801, err
+	}
+	// 返回结果
+	return 0, nil
+}
+
+// UserInfo 获取用户基本信息
+func (s *Service) UserInfo(ctx context.Context, userID int64) (UserInfoResp, int, error) {
+	// 根据主键ID获取用户信息
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return UserInfoResp{}, 60801, err
+	}
+	if user == nil {
+		return UserInfoResp{}, 50802, nil
+	}
+	return UserInfoResp{
+		UID:    user.UID,
+		Avatar: user.Face,
+		Name:   user.Uname,
+		Points: user.Points,
+		Stars:  user.Stars,
+	}, 0, nil
+}
+
+// UserAssetsPage 分页获取用户账户变更记录
+func (s *Service) UserAssetsPage(ctx context.Context, userID int64, req UserAssetsPageReq) (UserAssetsPageResp, int, error) {
+	// 根据主键ID获取用户信息
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
+	list, total, err := s.liveUserCreditLogRepo.ListPage(ctx, nil, model.LiveUserCreditLogListPageQuery{
+		UID:        req.UID,
+		UserID:     &userID,
+		Uname:      req.Uname,
+		CreditType: req.CreditType,
+		ChangeType: req.ChangeType,
+		Offset:     offset,
+		Limit:      limit,
+		SortField:  sortField,
+		SortOrder:  sortOrder,
+	})
+	if err != nil {
+		return UserAssetsPageResp{}, 60801, err
+	}
+	// 返回数据
+	return UserAssetsPageResp{
+		Total:    total,
+		PageData: toUserAssetsPageItems(list),
+	}, 0, nil
+}
+
+// SaveBalance 管理员手动变更用户余额
+//
+// 与其他余额变更入口一致，走 addCreditLog 原子更新资产并写流水，
+// 操作方固定记为管理员，便于后续追溯是谁调整的
+func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, creditType, changeType int, changeAmount int64, remark *string) (int, error) {
+	ct := enum.CreditType(creditType)
+	if !ct.IsValid() {
+		return 10801, fmt.Errorf("非法的资产类型: %d", creditType)
+	}
+	t := enum.ChangeType(changeType)
+	if !t.IsValid() {
+		return 10801, fmt.Errorf("非法的变动类型: %d", changeType)
+	}
+	if changeAmount <= 0 {
+		return 10801, fmt.Errorf("变动数值必须大于 0: %d", changeAmount)
+	}
+	desc := strings.TrimSpace(ptr.Deref(remark))
+	if desc == "" {
+		desc = fmt.Sprintf("管理员后台手动%s%s %d", t.Text("zh"), ct.Text("zh"), changeAmount)
+	}
+	// 组装流水参数
+	params := AddCreditLogParams{
+		UserID:       userID,
+		ChangeType:   t,
+		ChangeAmount: changeAmount,
+		BizType:      "admin",
+		Remark:       desc,
+		OperatorType: enum.OperatorTypeAdmin,
+		OperatorID:   adminID,
+	}
+	// 执行变更
+	var err error
+	switch ct {
+	case enum.CreditTypePoints:
+		err = s.AddPointsLog(ctx, params)
+	case enum.CreditTypeStars:
+		err = s.AddStarsLog(ctx, params)
+	default:
+		return 10801, fmt.Errorf("暂不支持的资产类型: %d", int(ct))
+	}
+	if err != nil {
+		switch {
+		case errors.Is(err, live_user.ErrUserNotFound):
+			return 50802, err
+		case errors.Is(err, live_user.ErrInsufficientBalance):
+			return 40803, err
+		default:
+			return 60801, err
+		}
+	}
+	// 返回结果
+	return 0, nil
 }
 
 // addCreditLog 增加用户资产记录（增加或减少）

@@ -38,6 +38,10 @@ func parseMessageData(cmd live.Cmd, raw string) (any, error) {
 		return live.ExtractDanmuMsg(raw)
 	case live.CmdPkStart:
 		return live.ExtractPkBattlePreNew(raw)
+	case live.CmdPkBattleEnd:
+		return live.ExtractPkBattleEnd(raw)
+	case live.CmdPkSettleNew:
+		return live.ExtractPkBattleSettleNew(raw)
 	default:
 		return nil, nil
 	}

@@ -31,3 +31,19 @@ func toLiveUserWordFrequencyItems(item []liveuser.WordFrequency) []resp.LiveUser
 	}
 	return res
 }
+
+func toLiveUserAssetsPageItems(list []liveuser.UserAssetsPageItem) []resp.LiveUserAssetsPageItem {
+	res := make([]resp.LiveUserAssetsPageItem, 0, len(list))
+	for _, v := range list {
+		res = append(res, resp.LiveUserAssetsPageItem{
+			ID:           v.ID,
+			CreditType:   v.CreditType,
+			ChangeAmount: v.ChangeAmount,
+			ChangeType:   v.ChangeType,
+			AfterValue:   v.AfterValue,
+			Remark:       v.Remark,
+			CreatedAt:    v.CreatedAt,
+		})
+	}
+	return res
+}

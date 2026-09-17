@@ -29,7 +29,7 @@ func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, i
 // ListPage 用于获取弹幕列表信息
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	listDanmu, total, err := s.liveDanmuRepo.ListPage(ctx, nil, model.LiveDanmuListPageQuery{
 		RoomID:      req.RoomID,
 		UID:         req.UID,
@@ -39,6 +39,8 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SendAtEnd:   req.SendAtEnd,
 		Offset:      offset,
 		Limit:       limit,
+		SortField:   sortField,
+		SortOrder:   sortOrder,
 	})
 	if err != nil {
 		return ListPageResp{}, 60601, err

@@ -103,8 +103,10 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 执行请求
 	svcResp, errCode, err := h.livegiftSvc.ListPage(ctx, livegift.ListPageReq{
 		PageResp: livegift.PageResp{
-			PageNo:   req.PageNo,
-			PageSize: req.PageSize,
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
 		},
 		RoomID:      req.RoomID,
 		UID:         req.UID,
@@ -188,8 +190,10 @@ func (h *Handler) BlindBoxListPage(c *gin.Context) {
 	// 执行请求
 	svcResp, errCode, err := h.livegiftSvc.BlindBoxListPage(ctx, livegift.BlindBoxListPageReq{
 		PageResp: livegift.PageResp{
-			PageNo:   req.PageNo,
-			PageSize: req.PageSize,
+			PageNo:    req.PageNo,
+			PageSize:  req.PageSize,
+			SortField: req.SortField,
+			SortOrder: req.SortOrder,
 		},
 		RoomID:           req.RoomID,
 		UID:              req.UID,

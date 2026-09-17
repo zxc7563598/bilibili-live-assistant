@@ -1,5 +1,7 @@
 package resp
 
+import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+
 // LiveUserListPageResp 分页查询用户列表返回
 type LiveUserListPageResp struct {
 	// 总计条数
@@ -54,4 +56,62 @@ type LiveUserWordFrequency struct {
 	Word string `json:"word" example:"xxx"`
 	// 出现次数
 	Count int64 `json:"count" example:"32"`
+}
+
+// LiveUserExistsAccountResp 判断用户账号是否存在返回
+type LiveUserExistsAccountResp struct {
+	// 是否存在
+	Exist bool `json:"exist"  example:"false"`
+}
+
+// LiveUserLoginResp 用户登录返回
+type LiveUserLoginResp struct {
+	// access token
+	AccessToken string `json:"access_token" example:"Bearer xxxxxxxxxx"`
+	// refresh token
+	RefreshToken string `json:"refresh_token" example:"Bearer xxxxxxxxxx"`
+}
+
+// LiveUserUserInfoResp 获取用户基本信息返回
+type LiveUserUserInfoResp struct {
+	// 用户uid
+	UID int64 `json:"uid" example:"4325051"`
+	// 用户头像
+	Avatar string `json:"avatar" example:"https://xxxxxx.xxx.com"`
+	// 用户昵称
+	Name string `json:"name" example:"哎呀又胖啦"`
+	// 用户剩余积分
+	Points int64 `json:"points" example:"30"`
+	// 用户剩余星光
+	Stars int64 `json:"stars" example:"50"`
+}
+
+// LiveUserGetRoomIDResp 获取直播间房间号返回
+type LiveUserGetRoomIDResp struct {
+	RoomID int64 `json:"room_id" example:"22384516"`
+}
+
+// LiveUserAssetsPageResp 用户分页查询账户记录返回
+type LiveUserAssetsPageResp struct {
+	// 总计条数
+	Total int64 `json:"total" example:"100"`
+	// 当前页码数据
+	PageData []LiveUserAssetsPageItem `json:"pageData"`
+}
+
+type LiveUserAssetsPageItem struct {
+	// ID
+	ID int64 `json:"id" example:"1"`
+	// 备注/原因说明
+	Remark string `json:"remark" example:"xxxxxxxxx"`
+	// 变动类型
+	ChangeType enum.ChangeType `json:"change_type" example:"1" enums:"0,1"`
+	// 变动数值
+	ChangeAmount int64 `json:"change_amount" example:"100"`
+	// 积分类型
+	CreditType enum.CreditType `json:"credit_type" example:"1" enums:"0,1"`
+	// 发生时间
+	CreatedAt string `json:"created_at" example:"xxxx-xx-xx xx:xx:xx"`
+	// 变动后数值
+	AfterValue int64 `json:"after_value" example:"100"`
 }

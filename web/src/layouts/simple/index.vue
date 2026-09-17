@@ -3,7 +3,7 @@
 <template>
   <div class="wh-full flex">
     <aside
-      class="flex-col flex-shrink-0 transition-width-300"
+      class="flex-col shrink-0 transition-width-300"
       :class="appStore.collapsed ? 'w-64' : 'w-220'"
       border-r="1px solid light_border dark:dark_border"
     >

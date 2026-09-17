@@ -20,10 +20,8 @@ export default {
 /** 构建 WebSocket 连接 URL，token 通过 query string 传递（浏览器 WebSocket API 限制） */
 export function buildWsUrl(token) {
   try {
-    const baseUrl = import.meta.env.VITE_AXIOS_BASE_URL
-    if (!baseUrl) {
-      throw new Error('VITE_AXIOS_BASE_URL is not defined')
-    }
+    // 未配置绝对地址时退回当前页面来源（容器部署默认不配置，走同源相对地址）
+    const baseUrl = import.meta.env.VITE_AXIOS_BASE_URL || window.location.origin
     const url = new URL(baseUrl)
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
     return `${protocol}//${url.host}/api/admin/live/messages/stream?token=${token}`

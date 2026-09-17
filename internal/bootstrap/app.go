@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
@@ -14,23 +15,30 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/cron"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/fileutil"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"gorm.io/gorm"
 )
 
 // App 包含应用运行时依赖
 type App struct {
-	Engine      *gin.Engine
-	DB          *gorm.DB
-	Redis       *redis.Client
-	LiveService *live.Service
-	ConfigCache *robotconfig.Cache
-	Scheduler   *cron.Scheduler
+	Engine         *gin.Engine
+	DB             *gorm.DB
+	Redis          *redis.Client
+	LiveService    *live.Service
+	ConfigCache    *robotconfig.Cache
+	AppConfigCache *appconfig.Cache
+	Scheduler      *cron.Scheduler
 }
 
 func NewApp(cfg *config.Config) *App {
-	// 初始化日志
-	logger.InitAll()
+	// 初始化日志（日志根目录来自配置，相对路径已按配置文件所在目录解析为绝对路径）
+	logger.InitAll(cfg.Log.Dir)
+	// 上传文件落盘根目录（同样来自配置，对外访问前缀固定为 /uploads）
+	fileutil.SetUploadRoot(cfg.File.UploadDir)
+	log.Printf("日志目录: %s", cfg.Log.Dir)
+	log.Printf("上传目录: %s", cfg.File.UploadDir)
 	// 初始化redis
 	rdb, err := config.InitRedis(cfg)
 	if err != nil {
@@ -54,6 +62,12 @@ func NewApp(cfg *config.Config) *App {
 	}
 	// 初始化jwt
 	jwt.Init(cfg.JWT)
+	// 注入商城请求加密 HMAC 签名密钥（config.yaml crypto.sign_secret，未配置则用占位值）
+	crypto.SetSignSecret(cfg.Crypto.SignSecret, int64(cfg.Crypto.Timestamp))
+	// 确保 RSA 密钥对存在（不存在则自动生成到二进制同目录）
+	if _, err := crypto.EnsureRSAKeyPair(); err != nil {
+		log.Fatalf("RSA 密钥对初始化失败: %v", err)
+	}
 	// 处理依赖注入
 	// repository
 	repos := InitRepositories(db)
@@ -62,14 +76,18 @@ func NewApp(cfg *config.Config) *App {
 	if err := configCache.Init(context.Background()); err != nil {
 		log.Fatalf("机器人配置加载失败: %v", err)
 	}
+	// 初始化应用配置缓存
+	appConfigCache := appconfig.New(repos.AppConfig)
+	if err := appConfigCache.Init(context.Background()); err != nil {
+		log.Fatalf("应用配置加载失败: %v", err)
+	}
 	// service
-	services := InitServices(repos, db, rdb, cfg, configCache)
+	services := InitServices(repos, db, rdb, cfg, configCache, appConfigCache)
 	// 定时任务调度器（项目启动后常驻，退出时在 main.go 中统一停止）
-	scheduler := cron.New(cron.Job{
-		Name:     "live-unmute",
-		Interval: time.Minute,
-		Run:      services.Live.UnmuteDueUsers,
-	})
+	scheduler := cron.New(
+		cron.Job{Name: "live-unmute", Interval: time.Minute, Run: services.Live.UnmuteDueUsers},
+		cron.Job{Name: "order-draft-expire", Interval: time.Minute, Run: services.Order.ExpireDrafts},
+	)
 	scheduler.Start()
 	// handler
 	handlers := InitHandlers(services, rdb)
@@ -87,13 +105,14 @@ func NewApp(cfg *config.Config) *App {
 	}
 	// 注册路由
 	r := gin.New()
-	r = RouteRegister(r, rdb, handlers, cfg.CORS)
+	r = RouteRegister(r, rdb, handlers, cfg.CORS, cfg.Crypto)
 	return &App{
-		Engine:      r,
-		DB:          db,
-		Redis:       rdb,
-		LiveService: services.Live,
-		ConfigCache: configCache,
-		Scheduler:   scheduler,
+		Engine:         r,
+		DB:             db,
+		Redis:          rdb,
+		LiveService:    services.Live,
+		ConfigCache:    configCache,
+		AppConfigCache: appConfigCache,
+		Scheduler:      scheduler,
 	}
 }

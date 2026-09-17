@@ -1,0 +1,122 @@
+import { createRouter, createWebHistory } from 'vue-router'
+
+const defaultMeta = [
+  // { name: "theme-color", content: "#ffffff" }
+]
+
+const defaultTitle = import.meta.env.VITE_APP_NAME
+const routes = [
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('../pages/login/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/',
+    name: 'home',
+    component: () => import('../pages/home/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/details/:id',
+    name: 'details',
+    component: () => import('../pages/details/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/confirm',
+    name: 'confirm',
+    component: () => import('../pages/confirm/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('../pages/profile/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/address',
+    name: 'address',
+    component: () => import('../pages/user/address/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/address/edit/:id/:type?',
+    name: 'addressEdit',
+    component: () => import('../pages/user/address/edit.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/orders',
+    name: 'orders',
+    component: () => import('../pages/user/orders/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/assets',
+    name: 'assets',
+    component: () => import('../pages/user/assets/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/feedback',
+    name: 'feedback',
+    component: () => import('../pages/user/feedback/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+    path: '/user/password',
+    name: 'password',
+    component: () => import('../pages/user/password/index.vue'),
+    meta: {
+      title: defaultTitle,
+      metaTags: defaultMeta,
+    },
+  },
+  {
+  // 匹配为定义路由然后重定向到404页面
+    path: '/:pathMath(.*)',
+    redirect: '/',
+  },
+]
+
+// 设置路由
+const router = createRouter({
+  routes,
+  history: createWebHistory('/shop'),
+})
+
+// 导出路由
+export default router

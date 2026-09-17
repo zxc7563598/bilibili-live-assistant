@@ -4,6 +4,10 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/http/pprof"
+	"path"
+	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -12,14 +16,16 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/middleware"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/webui"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/fileutil"
 )
 
-func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg config.CORSConfig) *gin.Engine {
+func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg config.CORSConfig, cryptoCfg config.CryptoConfig) *gin.Engine {
 	r.RedirectTrailingSlash = false
 	r.RedirectFixedPath = false
 	// 日志注册
 	if gin.Mode() != gin.ReleaseMode {
 		registerApiDoc(r)
+		registerPprof(r)
 	}
 	// 中间件注册
 	r.Use(gin.Logger(), gin.Recovery(), middleware.CORSMiddleware(middleware.CORSConfig{
@@ -29,15 +35,56 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+	// 上传文件静态访问：文件由 pkg/fileutil.SaveUploadedFile 落盘到配置的上传目录
+	r.GET(fileutil.URLPrefix+"/*filepath", func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=604800")
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Content-Security-Policy", "sandbox")
+		http.StripPrefix(fileutil.URLPrefix+"/", http.FileServer(http.Dir(fileutil.UploadRoot()))).ServeHTTP(c.Writer, c.Request)
+	})
 	// altcha 验证码（独立路由，不受分组中间件影响）
 	r.GET("/auth/altcha/challenge", handlers.Altcha.Challenge)
 	// web路由
 	admin := r.Group("/admin")
 	registerWeb(admin)
+	// shop路由
+	shop := r.Group("/shop")
+	registerShop(shop)
+	// shop api路由
+	shopApi := r.Group("/api/shop")
+	// 请求体解密中间件：验证/解密前端 encryptRequest 加密的请求体，明文请求按策略放行或拒绝
+	shopApi.Use(middleware.ShopEncrypt(cryptoCfg.RequireEncryption))
+	shopApi.GET("/manifest", handlers.AppConfig.GetManifest)
+	shopApi.GET("/theme-color", handlers.AppConfig.GetThemeColor)
+	shopApi.GET("/login", handlers.AppConfig.GetLoginConfig)
+	shopApi.GET("/public-key", handlers.AppConfig.GetPublicKey)
+	// 按账号(UID)固定窗口限流：防止对同一账号暴力撞库 / 频繁探测。
+	// account 探测与 login 共用同一预算，避免交替请求绕过单接口上限。
+	accountLoginLimiter := middleware.NewAccountRateLimiter(10, time.Minute)
+	shopApi.POST("/liveuser/account", accountLoginLimiter, handlers.LiveUser.ExistsAccount)
+	shopApi.POST("/liveuser/login", accountLoginLimiter, handlers.LiveUser.Login)
+	shopApi.POST("/liveuser/refresh", handlers.LiveUser.Refresh)
+	shopApi.POST("/liveuser/logout", middleware.UserAuth(rdb), handlers.LiveUser.Logout)
+	shopApi.POST("/liveuser/info", middleware.UserAuth(rdb), handlers.LiveUser.GetUserInfo)
+	shopApi.POST("/liveuser/room-id", middleware.UserAuth(rdb), handlers.LiveUser.GetRoomID)
+	shopApi.POST("/product/list", middleware.UserAuth(rdb), handlers.Product.ShopListPage)
+	shopApi.POST("/product/detail", middleware.UserAuth(rdb), handlers.Product.ShopDetail)
+	shopApi.POST("/order/place", middleware.UserAuth(rdb), handlers.Order.PlaceOrder)
+	shopApi.POST("/order/confirm", middleware.UserAuth(rdb), handlers.Order.GetConfirm)
+	shopApi.POST("/order/again", middleware.UserAuth(rdb), handlers.Order.ReOrder)
+	shopApi.POST("/order/payment", middleware.UserAuth(rdb), handlers.Order.ConfirmPayment)
+	shopApi.POST("/order/list", middleware.UserAuth(rdb), handlers.Order.ListPageByUser)
+	shopApi.POST("/address/default", middleware.UserAuth(rdb), handlers.Address.GetDefaultAddress)
+	shopApi.POST("/address/list", middleware.UserAuth(rdb), handlers.Address.GetAddressList)
+	shopApi.POST("/address/detail", middleware.UserAuth(rdb), handlers.Address.GetAddressByID)
+	shopApi.POST("/address/save", middleware.UserAuth(rdb), handlers.Address.SaveAddress)
+	shopApi.POST("/address/delete", middleware.UserAuth(rdb), handlers.Address.DeleteAddress)
+	shopApi.POST("/liveuser/assets", middleware.UserAuth(rdb), handlers.LiveUser.UserAssetsPage)
+	shopApi.POST("/liveuser/change-password", middleware.UserAuth(rdb), handlers.LiveUser.ChangePassword)
+	shopApi.POST("/feedback/submit", middleware.UserAuth(rdb), handlers.Feedback.Submit)
 	// api路由
 	adminApi := r.Group("/api/admin")
-	// 登录接口：如有需要可以自行实现限流器
-	// loginLimiter := middleware.NewRateLimiter(10, 1*time.Minute)
+	// 登录接口：如需限流可参考 shop 端的按账号限流（middleware.NewAccountRateLimiter(10, time.Minute)）
 	adminApi.POST("/auth/login", handlers.Admin.Login)
 	adminApi.POST("/auth/captcha", handlers.Admin.CaptchaStatus)
 	// 认证路由（所有登录用户可访问）
@@ -101,6 +148,13 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/robot/share/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyShare)
 	adminApi.POST("/robot/reply/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetReply)
 	adminApi.POST("/robot/reply/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyReply)
+	// App 配置管理路由（所有登录用户可访问）
+	adminApi.POST("/appconfig/data", middleware.AdminAuth(rdb), handlers.AppConfig.GetConfig)
+	adminApi.POST("/appconfig/save", middleware.AdminAuth(rdb), handlers.AppConfig.SaveConfig)
+	adminApi.POST("/appconfig/oss_save", middleware.AdminAuth(rdb), handlers.AppConfig.SaveOssConfig)
+	// 图片上传 / OSS 同步（通用上传模块，scene 白名单见 internal/service/upload/common.go）
+	adminApi.POST("/upload/image", middleware.AdminAuth(rdb), handlers.Upload.UploadImage)
+	adminApi.POST("/upload/oss-sync", middleware.AdminAuth(rdb), handlers.Upload.SyncOSS)
 	// 弹幕列表路由
 	adminApi.POST("/livedanmu/room", middleware.AdminAuth(rdb), handlers.LiveDanmu.FetchRoomGroups)
 	adminApi.POST("/livedanmu/list", middleware.AdminAuth(rdb), handlers.LiveDanmu.ListPage)
@@ -108,30 +162,75 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/livegift/room", middleware.AdminAuth(rdb), handlers.LiveGift.FetchRoomGroups)
 	adminApi.POST("/livegift/list", middleware.AdminAuth(rdb), handlers.LiveGift.ListPage)
 	adminApi.POST("/livegift/blindbox", middleware.AdminAuth(rdb), handlers.LiveGift.BlindBoxListPage)
+	// PK 对战记录路由
+	adminApi.POST("/pk/room", middleware.AdminAuth(rdb), handlers.LivePk.FetchRoomGroups)
+	adminApi.POST("/pk/list", middleware.AdminAuth(rdb), handlers.LivePk.ListPage)
 	// 用户列表路由
 	adminApi.POST("/liveuser/list", middleware.AdminAuth(rdb), handlers.LiveUser.ListPage)
 	adminApi.POST("/liveuser/monthly", middleware.AdminAuth(rdb), handlers.LiveUser.UserMonthlyAnalysis)
 	adminApi.POST("/liveuser/danmu", middleware.AdminAuth(rdb), handlers.LiveUser.UserDanmuAnalysis)
+	adminApi.POST("/liveuser/details", middleware.AdminAuth(rdb), handlers.LiveUser.Details)
+	adminApi.POST("/liveuser/assets", middleware.AdminAuth(rdb), handlers.LiveUser.AssetsPageByID)
+	adminApi.POST("/liveuser/save-assets", middleware.AdminAuth(rdb), handlers.LiveUser.SaveBalance)
+	adminApi.POST("/liveuser/reset-password", middleware.AdminAuth(rdb), handlers.LiveUser.ResetPassword)
+	// 商品管理路由
+	adminApi.POST("/product/list", middleware.AdminAuth(rdb), handlers.Product.AdminListPage)
+	adminApi.POST("/product/enable", middleware.AdminAuth(rdb), handlers.Product.UpdateEnable)
+	adminApi.POST("/product/details", middleware.AdminAuth(rdb), handlers.Product.AdminDetail)
+	adminApi.POST("/product/save", middleware.AdminAuth(rdb), handlers.Product.AdminSave)
+	// 订单管理路由
+	adminApi.POST("/order/list", middleware.AdminAuth(rdb), handlers.Order.ListPage)
+	adminApi.POST("/order/details", middleware.AdminAuth(rdb), handlers.Order.Details)
+	adminApi.POST("/order/ship-status", middleware.AdminAuth(rdb), handlers.Order.UpdateShipStatus)
+	adminApi.POST("/order/status", middleware.AdminAuth(rdb), handlers.Order.UpdateOrderStatus)
+	adminApi.POST("/order/receiver", middleware.AdminAuth(rdb), handlers.Order.UpdateReceiverInfo)
 	return r
 }
 
-func registerWeb(admin *gin.RouterGroup) {
+// staticCacheControl 为嵌入的静态资源设置合理的缓存策略。
+//
+// 必须在 http.StripPrefix 之前、基于完整请求路径调用（strip 后的路径不带
+// 前导斜杠，无法可靠识别 /assets/ 前缀）：
+//
+//   - sw.js / workbox-*.js / index.html 等入口与更新类文件返回 no-cache，
+//     要求每次回源校验。若它们被 HTTP 层缓存，PWA 的 Service Worker 将无法
+//     检测到新版本，老浏览器会一直展示旧内容（禁用浏览器缓存也绕不过 SW）；
+//   - /assets/ 下的资源文件名带内容 hash、内容不可变，可交给浏览器/CDN 永久缓存。
+func staticCacheControl(c *gin.Context) {
+	p := c.Request.URL.Path
+	switch name := path.Base(p); {
+	case strings.HasSuffix(p, "/"), name == "sw.js", strings.HasPrefix(name, "workbox-"), name == "index.html":
+		c.Header("Cache-Control", "no-cache")
+	case strings.Contains(p, "/assets/"):
+		c.Header("Cache-Control", "public, max-age=31536000, immutable")
+	}
+}
+
+func registerWeb(route *gin.RouterGroup) {
 	sub, err := fs.Sub(webui.Dist, "dist")
 	if err != nil {
 		panic(err)
 	}
 	fileServer := http.FileServer(http.FS(sub))
-	admin.GET("", func(c *gin.Context) {
+	route.GET("", func(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/admin/")
 	})
-	admin.GET("/*filepath", func(c *gin.Context) {
+	route.GET("/*filepath", func(c *gin.Context) {
+		staticCacheControl(c)
 		path := c.Param("filepath")
 		if len(path) > 0 && path[0] == '/' {
 			path = path[1:]
 		}
-		if _, err := sub.Open(path); err == nil {
-			http.StripPrefix("/admin/", fileServer).ServeHTTP(c.Writer, c.Request)
-			return
+		// index.html 不走 FileServer：它会对任何以 /index.html 结尾的路径 301 到
+		// "./"，该重定向被 PWA Service Worker 预缓存阶段跟随后，缓存里会存下
+		// redirected response，导航请求(redirect mode=manual)用到时浏览器报
+		// "a redirected response was used for a request whose redirect mode is not follow"。
+		// 显式请求 index.html 时直接内联 200 返回（与下方 SPA fallback 一致）。
+		if path != "index.html" {
+			if _, err := sub.Open(path); err == nil {
+				http.StripPrefix("/admin/", fileServer).ServeHTTP(c.Writer, c.Request)
+				return
+			}
 		}
 		index, err := sub.Open("index.html")
 		if err != nil {
@@ -139,10 +238,60 @@ func registerWeb(admin *gin.RouterGroup) {
 			return
 		}
 		defer index.Close()
+		c.Header("Cache-Control", "no-cache")
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.Status(http.StatusOK)
 		io.Copy(c.Writer, index)
 	})
+}
+
+func registerShop(route *gin.RouterGroup) {
+	sub, err := fs.Sub(webui.Shop, "shop")
+	if err != nil {
+		panic(err)
+	}
+	fileServer := http.FileServer(http.FS(sub))
+	route.GET("", func(c *gin.Context) {
+		c.Redirect(http.StatusFound, "/shop/")
+	})
+	route.GET("/*filepath", func(c *gin.Context) {
+		staticCacheControl(c)
+		path := c.Param("filepath")
+		if len(path) > 0 && path[0] == '/' {
+			path = path[1:]
+		}
+		// 见 registerWeb：显式请求 index.html 时绕过 FileServer 的 301 规范化，
+		// 避免 PWA 预缓存得到 redirected response。
+		if path != "index.html" {
+			if _, err := sub.Open(path); err == nil {
+				http.StripPrefix("/shop/", fileServer).ServeHTTP(c.Writer, c.Request)
+				return
+			}
+		}
+		index, err := sub.Open("index.html")
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		defer index.Close()
+		c.Header("Cache-Control", "no-cache")
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		c.Status(http.StatusOK)
+		io.Copy(c.Writer, index)
+	})
+}
+
+// registerPprof 在开发模式下注册 net/http/pprof 性能分析接口
+func registerPprof(r *gin.Engine) {
+	r.GET("/debug/pprof/", gin.WrapF(pprof.Index))
+	r.GET("/debug/pprof/cmdline", gin.WrapF(pprof.Cmdline))
+	r.GET("/debug/pprof/profile", gin.WrapF(pprof.Profile))
+	r.POST("/debug/pprof/symbol", gin.WrapF(pprof.Symbol))
+	r.GET("/debug/pprof/symbol", gin.WrapF(pprof.Symbol))
+	r.GET("/debug/pprof/trace", gin.WrapF(pprof.Trace))
+	for _, name := range []string{"allocs", "block", "goroutine", "heap", "mutex", "threadcreate"} {
+		r.GET("/debug/pprof/"+name, gin.WrapF(pprof.Handler(name).ServeHTTP))
+	}
 }
 
 func registerApiDoc(r *gin.Engine) {

@@ -201,13 +201,15 @@ func (s *Service) ChangePassword(ctx context.Context, adminID int64, oldPassword
 // ListPage 用于获取管理员列表信息
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 获取列表数据
-	offset, limit := req.OffsetLimit()
+	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	admins, total, err := s.adminRepo.ListPage(ctx, nil, model.AdminListPageQuery{
-		Username: req.Username,
-		Gender:   req.Gender,
-		Enable:   req.Enable,
-		Offset:   offset,
-		Limit:    limit,
+		Username:  req.Username,
+		Gender:    req.Gender,
+		Enable:    req.Enable,
+		Offset:    offset,
+		Limit:     limit,
+		SortField: sortField,
+		SortOrder: sortOrder,
 	})
 	if err != nil {
 		return ListPageResp{}, 60101, err

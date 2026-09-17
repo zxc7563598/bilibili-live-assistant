@@ -46,7 +46,7 @@ const levelColor = {
   3: '#4A90E2',
 }
 const columns = [
-  { title: '用户UID', key: 'uid', minWidth: 170 },
+  { title: '用户UID', key: 'uid', minWidth: 180, sorter: true },
   {
     title: '牌子',
     key: 'badge_name',
@@ -70,8 +70,8 @@ const columns = [
         : ''
     },
   },
-  { title: '用户昵称', key: 'uname', minWidth: 120 },
-  { title: '礼物名称', key: 'gift_name', render(row) {
+  { title: '用户昵称', key: 'uname', minWidth: 140, sorter: true },
+  { title: '礼物名称', key: 'gift_name', sorter: true, render(row) {
     return row.message
       ? h(
           NTooltip,
@@ -86,13 +86,14 @@ const columns = [
   {
     title: '单价',
     key: 'price',
-    width: 100,
+    width: 120,
+    sorter: true,
     render(row) {
       const price = row.price / 100
       return `¥${price.toFixed(2)}`
     },
   },
-  { title: '数量', key: 'num', width: 70 },
+  { title: '数量', key: 'num', width: 90, sorter: true },
   {
     title: '总价',
     key: 'total',
@@ -102,7 +103,7 @@ const columns = [
       return `¥${total.toFixed(2)}`
     },
   },
-  { title: '赠送时间', key: 'send_at', width: 200 },
+  { title: '赠送时间', key: 'send_at', width: 220, sorter: true },
 ]
 
 const query = ref({

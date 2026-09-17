@@ -4,11 +4,13 @@ import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 
 // 通用分页请求参数
 type PageResp struct {
-	PageNo   int `json:"pageNo"`
-	PageSize int `json:"pageSize"`
+	PageNo    int     `json:"pageNo"`
+	PageSize  int     `json:"pageSize"`
+	SortField *string `json:"sortField"`
+	SortOrder *string `json:"sortOrder"`
 }
 
-func (r *PageResp) OffsetLimit() (int, int) {
+func (r *PageResp) OffsetLimit() (int, int, *string, *string) {
 	if r.PageNo < 1 {
 		r.PageNo = 1
 	}
@@ -19,7 +21,12 @@ func (r *PageResp) OffsetLimit() (int, int) {
 		r.PageSize = 100
 	}
 	offset := (r.PageNo - 1) * r.PageSize
-	return offset, r.PageSize
+	return offset, r.PageSize, r.SortField, r.SortOrder
+}
+
+type TokenResp struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 // UserBalance 用户余额响应结构
@@ -81,4 +88,46 @@ type ListPageItem struct {
 	Stars           int64  `json:"stars"`
 	TotalDanmuCount int64  `json:"total_danmu_count"`
 	TotalGiftAmount int64  `json:"total_gift_amount"`
+}
+
+// UserInfo 请求返回
+type UserInfoResp struct {
+	UID    int64  `json:"uid"`
+	Avatar string `json:"avatar"`
+	Name   string `json:"name"`
+	Points int64  `json:"points"`
+	Stars  int64  `json:"stars"`
+}
+
+// UserAssetsPage 请求入参
+type UserAssetsPageReq struct {
+	PageResp
+	UID        *int64  `json:"uid"`
+	Uname      *string `json:"uname"`
+	CreditType *int    `json:"credit_type"`
+	ChangeType *int    `json:"change_type"`
+}
+
+// UserAssetsPage 请求返回
+type UserAssetsPageResp struct {
+	Total    int64 `json:"total"`
+	PageData []UserAssetsPageItem
+}
+
+type UserAssetsPageItem struct {
+	ID           int64             `json:"id"`
+	UserID       int64             `json:"user_id"`
+	UID          int64             `json:"uid"`
+	Uname        string            `json:"uname"`
+	Face         string            `json:"face"`
+	CreditType   enum.CreditType   `json:"credit_type"`
+	ChangeType   enum.ChangeType   `json:"change_type"`
+	ChangeAmount int64             `json:"change_amount"`
+	BeforeValue  int64             `json:"before_value"`
+	AfterValue   int64             `json:"after_value"`
+	BizType      string            `json:"biz_type"`
+	Remark       string            `json:"remark"`
+	OperatorType enum.OperatorType `json:"operator_type"`
+	OperatorID   int64             `json:"operator_id"`
+	CreatedAt    string            `json:"created_at"`
 }

@@ -31,6 +31,17 @@ func (rs *RoomState) LiveStatus() int {
 	return rs.info.LiveStatus
 }
 
+// RoomID 返回当前房间的真实房间号（长 ID）
+// 缓存为空时返回 0；仅有直播状态被 SetLiveStatus 写入时同样返回 0
+func (rs *RoomState) RoomID() int64 {
+	rs.mu.RLock()
+	defer rs.mu.RUnlock()
+	if rs.info == nil {
+		return 0
+	}
+	return rs.info.RoomID
+}
+
 // UID 返回当前房间的主播 UID
 // 缓存为空时返回 0
 func (rs *RoomState) UID() int64 {

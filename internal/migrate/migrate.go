@@ -28,6 +28,18 @@ func Run(db *gorm.DB) error {
 		&model.LiveUserBlacklist{},
 		&model.LiveInteractWord{},
 		&model.LiveUserCreditLog{},
+		&model.AppConfig{},
+		&model.Product{},
+		&model.ProductSku{},
+		&model.ProductSpec{},
+		&model.ProductSpecValue{},
+		&model.ProductImage{},
+		&model.ProductSkuStockLog{},
+		&model.LiveUserOrder{},
+		&model.LiveUserOrderDraft{},
+		&model.LiveUserAddress{},
+		&model.Feedback{},
+		&model.LivePkLog{},
 	); err != nil {
 		return err
 	}

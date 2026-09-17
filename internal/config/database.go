@@ -1,17 +1,21 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/glebarez/sqlite"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+// sqlStateDuplicateDatabase PostgreSQL「数据库已存在」的 SQLSTATE
+const sqlStateDuplicateDatabase = "42P04"
 
 // InitDB 根据配置初始化数据库，并返回 *gorm.DB
 func InitDB(cfg *Config) (*gorm.DB, error) {
@@ -138,10 +142,9 @@ func initPostgres(cfg *Config) (*gorm.DB, error) {
 		"CREATE DATABASE %s",
 		p.DBName,
 	)
-	if err := serverDB.Exec(createSQL).Error; err != nil {
-		if !strings.Contains(err.Error(), "already exists") {
-			return nil, fmt.Errorf("创建数据库失败: %w", err)
-		}
+	// 创建数据库（已存在则跳过，沿用现有库）
+	if err := serverDB.Exec(createSQL).Error; err != nil && !isDatabaseExists(err) {
+		return nil, fmt.Errorf("创建数据库失败: %w", err)
 	}
 	// 连接目标数据库
 	dsn := fmt.Sprintf(
@@ -157,4 +160,13 @@ func initPostgres(cfg *Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
 	return db, nil
+}
+
+// isDatabaseExists 判断错误是否为 PostgreSQL 的「数据库已存在」
+//
+// 按 SQLSTATE 42P04 判定而不是匹配错误文案：报错信息会随服务端 lc_messages
+// 本地化，匹配 "already exists" 一旦失效，正常启动会被误判成「创建数据库失败」。
+func isDatabaseExists(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == sqlStateDuplicateDatabase
 }
