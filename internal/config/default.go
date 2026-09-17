@@ -61,7 +61,7 @@ altcha: # altcha 验证码配置（hmac_key 留空则关闭验证码）
   hmac_key: ""
 
 crypto: # 商城请求加密配置
-  sign_secret: "{{CRYPTO_SIGN_SECRET}}" # 自动生成的随机 HMAC 签名密钥，预构建前端前需将该值同步到 shop/.env 的 VITE_SIGN_SECRET
+  sign_secret: "" # 自动生成的随机 HMAC 签名密钥，预构建前端前需将该值同步到 shop/.env 的 VITE_SIGN_SECRET
   timestamp: 60 # 请求时间偏差窗口（秒），用户请求数据中携带的时间与服务器时间误差超过此设置时视为重放攻击
   require_encryption: false # 是否强制请求体必须加密（仅全 HTTPS 部署可置 true，纯 HTTP 部署必须保持 false）
 
