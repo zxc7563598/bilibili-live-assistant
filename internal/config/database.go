@@ -98,15 +98,9 @@ func initMySQL(cfg *Config) (*gorm.DB, error) {
 
 // 初始化 SQLite
 func initSQLite(cfg *Config) (*gorm.DB, error) {
-	s := cfg.Database.Sqlite
-	filePath := s.FilePath
-	// 如果是相对路径，则相对于二进制文件所在目录解析
-	if !filepath.IsAbs(filePath) {
-		execPath, err := os.Executable()
-		if err == nil {
-			filePath = filepath.Join(filepath.Dir(execPath), filePath)
-		}
-	}
+	// 路径已由 config.LoadConfig → resolveRuntimeDirs 按配置文件所在目录解析为绝对路径，
+	// 此处不再二次推导（详见 internal/config/path.go）
+	filePath := cfg.Database.Sqlite.FilePath
 	// 确保数据库文件目录存在
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {

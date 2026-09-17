@@ -27,17 +27,28 @@ var (
 	rsaPriv         *rsa.PrivateKey
 	rsaPublicKeyB64 string
 	rsaInitErr      error
+	rsaKeyDir       string
 )
 
-// keyDir 返回二进制所在目录
+// SetKeyDir 注入 RSA 密钥对的落盘目录，必须在 EnsureRSAKeyPair 首次调用前执行。
+// 与 SetSignSecret 一样是启动期一次性注入，之后只读。
+func SetKeyDir(dir string) {
+	rsaKeyDir = dir
+}
+
+// keyDir 返回密钥落盘目录：已注入则用注入值（配置文件所在目录），
+// 未注入时兜底为二进制所在目录——go run 下那是临时目录，仅供未走配置加载的调用方使用。
 func keyDir() string {
+	if rsaKeyDir != "" {
+		return rsaKeyDir
+	}
 	if exe, err := os.Executable(); err == nil {
 		return filepath.Dir(exe)
 	}
 	return "."
 }
 
-// EnsureRSAKeyPair 确保 RSA 密钥对已存在；不存在则生成并落盘到二进制同目录。
+// EnsureRSAKeyPair 确保 RSA 密钥对已存在；不存在则生成并落盘（目录由 SetKeyDir 指定）。
 // 返回 SPKI DER 的 base64 编码公钥（供前端 importKey("spki",...) 使用）。
 // 幂等：sync.Once 缓存，bootstrap 启动调用一次 + handler 每请求调用只付出一次锁检查。
 func EnsureRSAKeyPair() (string, error) {

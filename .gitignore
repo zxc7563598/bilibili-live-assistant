@@ -50,3 +50,7 @@ config.yaml
 .claude
 bilibili_state.json
 data.db
+
+# 运行时自动生成的 RSA 密钥对（私钥务必不要提交）
+rsa_private_key.pem
+rsa_public_key.pem

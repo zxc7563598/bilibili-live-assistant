@@ -64,7 +64,9 @@ func NewApp(cfg *config.Config) *App {
 	jwt.Init(cfg.JWT)
 	// 注入商城请求加密 HMAC 签名密钥（config.yaml crypto.sign_secret，未配置则用占位值）
 	crypto.SetSignSecret(cfg.Crypto.SignSecret, int64(cfg.Crypto.Timestamp))
-	// 确保 RSA 密钥对存在（不存在则自动生成到二进制同目录）
+	// 注入 RSA 密钥对落盘目录：与 config.yaml 同目录，避免 go run 时落进临时目录
+	crypto.SetKeyDir(cfg.ConfigDir)
+	// 确保 RSA 密钥对存在（不存在则自动生成到配置文件同目录）
 	if _, err := crypto.EnsureRSAKeyPair(); err != nil {
 		log.Fatalf("RSA 密钥对初始化失败: %v", err)
 	}

@@ -106,6 +106,10 @@ type Config struct {
 	Live     LiveConfig         `yaml:"live"`
 	File     FileConfig         `yaml:"file"`
 	Log      LogConfig          `yaml:"log"`
+
+	// ConfigDir 配置文件所在目录（绝对路径），由 LoadConfig 填充，不从 YAML 读取。
+	// 供需要与配置同目录存放的运行时文件定位使用（如 RSA 密钥对）。
+	ConfigDir string `yaml:"-"`
 }
 
 // LoadConfig 解析 YAML

@@ -33,7 +33,7 @@ database:
   #   password: password
   #   dbname: databasename
   sqlite: # sqlite 数据库配置（不使用可不进行配置）
-    filepath: data.db # 数据库文件路径，相对路径相对于二进制所在目录
+    filepath: data.db # 数据库文件路径，相对路径相对于配置文件所在目录
 
 pool:
   max_open_conns: 25

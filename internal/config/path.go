@@ -20,6 +20,12 @@ func resolveRuntimeDirs(cfg *Config, configPath string) {
 	if abs, err := filepath.Abs(configPath); err == nil {
 		base = filepath.Dir(abs)
 	}
+	// 记录配置文件所在目录，供需要与配置同目录存放的运行时文件使用
+	cfg.ConfigDir = base
+	// SQLite 数据库文件：旧版本按二进制所在目录解析，go run 下二进制在临时目录，
+	// 开发时数据库会生成到临时目录（且随进程退出被清理），与配置文件分了家。
+	// 标准部署形态下 config.yaml 与二进制同目录，改为按配置目录解析后行为不变。
+	cfg.Database.Sqlite.FilePath = resolveDir(cfg.Database.Sqlite.FilePath, base)
 	cfg.File.UploadDir = resolveDir(cfg.File.UploadDir, base)
 	cfg.Log.Dir = resolveDir(cfg.Log.Dir, base)
 	// 登录态文件允许为空（表示不落盘），为空时原样返回
