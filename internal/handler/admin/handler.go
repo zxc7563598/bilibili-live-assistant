@@ -148,7 +148,7 @@ func (h *Handler) Logout(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -183,7 +183,7 @@ func (h *Handler) SwitchRole(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -234,7 +234,7 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -280,7 +280,7 @@ func (h *Handler) Details(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -336,7 +336,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -401,7 +401,7 @@ func (h *Handler) Save(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -457,7 +457,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -504,7 +504,7 @@ func (h *Handler) UpdatePassword(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -552,7 +552,7 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数

@@ -118,7 +118,7 @@ func bindUserRequest(c *gin.Context, log *zap.Logger, action string, req any, al
 	lang := i18n.GetLang(ctx)
 	user, ok := GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return UserRequest{}, false
 	}
 	if code, ok, err := bindAndValidate(c, req, allowEmpty); !ok {

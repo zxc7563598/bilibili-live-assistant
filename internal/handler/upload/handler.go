@@ -45,19 +45,19 @@ func (h *Handler) UploadImage(c *gin.Context) {
 	if _, formErr := c.MultipartForm(); formErr != nil {
 		var maxBytesErr *http.MaxBytesError
 		if errors.As(formErr, &maxBytesErr) {
-			handler.ErrorLog(logger.UploadLogger, "UploadImage 上传文件超过大小上限", 11404, formErr)
-			response.Error(c, lang, 11404)
+			handler.ErrorLog(logger.UploadLogger, "UploadImage 上传文件超过大小上限", uploadSvc.CodeFileTooLarge, formErr)
+			response.Error(c, lang, uploadSvc.CodeFileTooLarge)
 			return
 		}
-		handler.ErrorLog(logger.UploadLogger, "UploadImage multipart 表单解析失败", 11401, formErr)
-		response.Error(c, lang, 11401)
+		handler.ErrorLog(logger.UploadLogger, "UploadImage multipart 表单解析失败", uploadSvc.CodeFormParseFailed, formErr)
+		response.Error(c, lang, uploadSvc.CodeFormParseFailed)
 		return
 	}
 	file, err := c.FormFile("file")
 	if err != nil {
 		// MultipartForm 已解析成功，走到这里只可能是没带 file 字段
-		handler.ErrorLog(logger.UploadLogger, "UploadImage 未接收到上传文件", 11403, err)
-		response.Error(c, lang, 11403)
+		handler.ErrorLog(logger.UploadLogger, "UploadImage 未接收到上传文件", uploadSvc.CodeFileRequired, err)
+		response.Error(c, lang, uploadSvc.CodeFileRequired)
 		return
 	}
 	svcResp, errCode, err := h.uploadSvc.UploadImage(ctx, uploadSvc.UploadImageReq{

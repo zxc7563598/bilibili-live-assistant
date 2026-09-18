@@ -44,7 +44,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -107,7 +107,7 @@ func (h *Handler) UserMonthlyAnalysis(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -162,7 +162,7 @@ func (h *Handler) UserDanmuAnalysis(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -215,7 +215,7 @@ func (h *Handler) Details(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -269,7 +269,7 @@ func (h *Handler) AssetsPageByID(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -331,7 +331,7 @@ func (h *Handler) SaveBalance(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -384,7 +384,7 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -570,7 +570,7 @@ func (h *Handler) Logout(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -605,7 +605,7 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -651,7 +651,7 @@ func (h *Handler) GetUserInfo(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -691,7 +691,7 @@ func (h *Handler) GetRoomID(c *gin.Context) {
 	// 获取用户ID
 	_, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -717,7 +717,7 @@ func (h *Handler) UserAssetsPage(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数

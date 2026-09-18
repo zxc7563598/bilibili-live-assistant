@@ -29,7 +29,7 @@ func (s *Service) applyConfig(ctx context.Context, groupName string, data map[st
 	// 查询该分组下所有配置记录（含 ID）
 	records, err := s.robotconfigRepo.ListByField(ctx, nil, "group_name", groupName)
 	if err != nil {
-		return 60502, fmt.Errorf("查询 %s 配置失败: %w", groupName, err)
+		return CodeUpdateFailed, fmt.Errorf("查询 %s 配置失败: %w", groupName, err)
 	}
 	// 构建 config_key -> ID 索引
 	keyToID := make(map[string]int64, len(records))
@@ -50,11 +50,11 @@ func (s *Service) applyConfig(ctx context.Context, groupName string, data map[st
 		return nil
 	})
 	if err != nil {
-		return 60502, err
+		return CodeUpdateFailed, err
 	}
 	// 刷新缓存
 	if err := s.configCache.Reload(ctx); err != nil {
-		return 60503, fmt.Errorf("刷新配置缓存失败: %w", err)
+		return CodeCacheReloadFailed, fmt.Errorf("刷新配置缓存失败: %w", err)
 	}
 	return 0, nil
 }
@@ -105,7 +105,7 @@ func (s *Service) GetSignConfig(ctx context.Context) (SignConfigResp, int, error
 	}
 	resp, err := toSignConfigResp(group)
 	if err != nil {
-		return SignConfigResp{}, 60501, err
+		return SignConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }
@@ -125,7 +125,7 @@ func (s *Service) GetAdConfig(ctx context.Context) (AdConfigResp, int, error) {
 	}
 	resp, err := toAdConfigResp(group)
 	if err != nil {
-		return AdConfigResp{}, 60501, err
+		return AdConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }
@@ -145,7 +145,7 @@ func (s *Service) GetGiftConfig(ctx context.Context) (GiftConfigResp, int, error
 	}
 	resp, err := toGiftConfigResp(group)
 	if err != nil {
-		return GiftConfigResp{}, 60501, err
+		return GiftConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }
@@ -165,7 +165,7 @@ func (s *Service) GetPkConfig(ctx context.Context) (PkConfigResp, int, error) {
 	}
 	resp, err := toPkConfigResp(group)
 	if err != nil {
-		return PkConfigResp{}, 60501, err
+		return PkConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }
@@ -185,7 +185,7 @@ func (s *Service) GetWelcomeConfig(ctx context.Context) (WelcomeConfigResp, int,
 	}
 	resp, err := toWelcomeConfigResp(group)
 	if err != nil {
-		return WelcomeConfigResp{}, 60501, err
+		return WelcomeConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }
@@ -205,7 +205,7 @@ func (s *Service) GetFollowConfig(ctx context.Context) (FollowConfigResp, int, e
 	}
 	resp, err := toFollowConfigResp(group)
 	if err != nil {
-		return FollowConfigResp{}, 60501, err
+		return FollowConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }
@@ -225,7 +225,7 @@ func (s *Service) GetShareConfig(ctx context.Context) (ShareConfigResp, int, err
 	}
 	resp, err := toShareConfigResp(group)
 	if err != nil {
-		return ShareConfigResp{}, 60501, err
+		return ShareConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }
@@ -245,7 +245,7 @@ func (s *Service) GetReplyConfig(ctx context.Context) (ReplyConfigResp, int, err
 	}
 	resp, err := toReplyConfigResp(group)
 	if err != nil {
-		return ReplyConfigResp{}, 60501, err
+		return ReplyConfigResp{}, CodeQueryFailed, err
 	}
 	return resp, 0, nil
 }

@@ -1,5 +1,7 @@
 package middleware
 
+import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+
 import (
 	"bytes"
 	"encoding/json"
@@ -33,7 +35,7 @@ type shopEncryptedBody struct {
 //   - GET/HEAD/OPTIONS 等无请求体的请求直接放行（公钥下发 / manifest 不受影响）
 //   - 非 JSON 或明文（无加密字段）请求体：requireEncryption 为 true 时拒绝，否则放行
 //   - 加密字段部分缺失视为损坏的加密体，直接拒绝
-//   - 加密字段齐全则强制验签 + 解密，失败返回 10009
+//   - 加密字段齐全则强制验签 + 解密，失败返回 i18n.CodeDecryptFailed
 func ShopEncrypt(requireEncryption bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 无请求体的方法不处理
@@ -57,14 +59,14 @@ func ShopEncrypt(requireEncryption bool) gin.HandlerFunc {
 		// 部分加密字段 → 损坏的加密体，拒绝
 		if (enc.EnData != "") != (enc.EncPayload != "") ||
 			(enc.EnData != "") != (enc.Sign != "") {
-			response.Error(c, "", 10009)
+			response.Error(c, "", i18n.CodeDecryptFailed)
 			c.Abort()
 			return
 		}
 		// 明文请求体（无加密字段）
 		if enc.EnData == "" {
 			if requireEncryption {
-				response.Error(c, "", 10009)
+				response.Error(c, "", i18n.CodeDecryptFailed)
 				c.Abort()
 				return
 			}
@@ -75,7 +77,7 @@ func ShopEncrypt(requireEncryption bool) gin.HandlerFunc {
 		// 加密请求体：验签 + 解密
 		plain, err := crypto.DecryptRequest(enc.EnData, enc.EncPayload, enc.Timestamp, enc.Sign)
 		if err != nil {
-			response.Error(c, "", 10009)
+			response.Error(c, "", i18n.CodeDecryptFailed)
 			c.Abort()
 			return
 		}

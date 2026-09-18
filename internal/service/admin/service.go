@@ -45,26 +45,26 @@ func (s *Service) Login(ctx context.Context, username, password string) (LoginRe
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByUsername(ctx, nil, username)
 	if err != nil {
-		return LoginResp{}, 60101, err
+		return LoginResp{}, CodeQueryFailed, err
 	}
 	// 验证密码是否正确
 	if admin == nil {
-		return LoginResp{}, 50101, nil
+		return LoginResp{}, CodeAdminNotFound, nil
 	}
 	if !crypto.CheckPassword(admin.Password, password) {
-		return LoginResp{}, 40101, nil
+		return LoginResp{}, CodeLoginFailed, nil
 	}
 	// 验证账号是否启用
 	if admin.Enable != enum.EnableEnable {
-		return LoginResp{}, 40102, nil
+		return LoginResp{}, CodeAccountDisabled, nil
 	}
 	// 获取角色code
 	role, err := s.roleRepo.GetByID(ctx, nil, admin.RoleID)
 	if err != nil {
-		return LoginResp{}, 60101, err
+		return LoginResp{}, CodeQueryFailed, err
 	}
 	if role == nil {
-		return LoginResp{}, 50102, nil
+		return LoginResp{}, CodeRoleNotFound, nil
 	}
 	// 更新token
 	updateToken, errCode, err := s.updateToken(ctx, admin.ID, admin.RoleID, role.Code)
@@ -82,30 +82,30 @@ func (s *Service) Login(ctx context.Context, username, password string) (LoginRe
 func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (RefreshLoginResp, int, error) {
 	claims, err := jwt.ParseToken(refreshToken)
 	if err != nil {
-		return RefreshLoginResp{}, 20101, err
+		return RefreshLoginResp{}, CodeTokenInvalid, err
 	}
 	if claims.Type != "refresh" {
-		return RefreshLoginResp{}, 20102, nil
+		return RefreshLoginResp{}, CodeTokenTypeInvalid, nil
 	}
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, claims.ID)
 	if err != nil {
-		return RefreshLoginResp{}, 60101, err
+		return RefreshLoginResp{}, CodeQueryFailed, err
 	}
 	// 验证信息
 	if admin == nil {
-		return RefreshLoginResp{}, 50101, nil
+		return RefreshLoginResp{}, CodeAdminNotFound, nil
 	}
 	if admin.Token == nil || *admin.Token != refreshToken {
-		return RefreshLoginResp{}, 20103, nil
+		return RefreshLoginResp{}, CodeTokenExpired, nil
 	}
 	// 获取角色code
 	role, err := s.roleRepo.GetByID(ctx, nil, admin.RoleID)
 	if err != nil {
-		return RefreshLoginResp{}, 60101, err
+		return RefreshLoginResp{}, CodeQueryFailed, err
 	}
 	if role == nil {
-		return RefreshLoginResp{}, 50102, nil
+		return RefreshLoginResp{}, CodeRoleNotFound, nil
 	}
 	// 更新token
 	updateToken, errCode, err := s.updateToken(ctx, claims.ID, admin.RoleID, role.Code)
@@ -125,9 +125,9 @@ func (s *Service) Logout(ctx context.Context, adminID int64) (int, error) {
 	err := session.Logout(ctx, s.rdb, s.adminRepo, adminID)
 	switch {
 	case errors.Is(err, session.ErrTokenClearFailed):
-		return 60107, err
+		return CodeTokenClearFailed, err
 	case errors.Is(err, session.ErrTokenPersistFailed):
-		return 60104, err
+		return CodeTokenPersistFailed, err
 	}
 	return 0, nil
 }
@@ -137,25 +137,25 @@ func (s *Service) SwitchRole(ctx context.Context, adminID int64, code string) (S
 	// 获取角色信息
 	role, err := s.roleRepo.GetByCode(ctx, nil, code)
 	if err != nil {
-		return SwitchRoleResp{}, 60101, err
+		return SwitchRoleResp{}, CodeQueryFailed, err
 	}
 	if role == nil {
-		return SwitchRoleResp{}, 50102, nil
+		return SwitchRoleResp{}, CodeRoleNotFound, nil
 	}
 	if role.Enable != enum.EnableEnable {
-		return SwitchRoleResp{}, 40103, nil
+		return SwitchRoleResp{}, CodeRoleDisabled, nil
 	}
 	// 获取用户角色是否存在
 	exists, err := s.adminRoleRepo.ExistsByAdminIDAndRoleID(ctx, nil, adminID, role.ID)
 	if err != nil {
-		return SwitchRoleResp{}, 60101, err
+		return SwitchRoleResp{}, CodeQueryFailed, err
 	}
 	if !exists {
-		return SwitchRoleResp{}, 30101, nil
+		return SwitchRoleResp{}, CodeRoleSwitchForbidden, nil
 	}
 	// 变更角色
 	if err := s.adminRepo.UpdateRoleIDByID(ctx, nil, adminID, role.ID); err != nil {
-		return SwitchRoleResp{}, 60108, err
+		return SwitchRoleResp{}, CodeRoleChangeFailed, err
 	}
 	// 更新token
 	updateToken, errCode, err := s.updateToken(ctx, adminID, role.ID, role.Code)
@@ -174,25 +174,25 @@ func (s *Service) ChangePassword(ctx context.Context, adminID int64, oldPassword
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
-		return 60101, err
+		return CodeQueryFailed, err
 	}
 	if admin == nil {
-		return 50101, nil
+		return CodeAdminNotFound, nil
 	}
 	// 验证旧密码
 	if !crypto.CheckPassword(admin.Password, oldPassword) {
-		return 40101, nil
+		return CodeLoginFailed, nil
 	}
 	// 防止新旧密码相同
 	if crypto.CheckPassword(admin.Password, newPassword) {
-		return 40104, nil
+		return CodePasswordSameAsOld, nil
 	}
 	password, err := crypto.HashPassword(newPassword)
 	if err != nil {
-		return 60109, err
+		return CodePasswordHashFailed, err
 	}
 	if err := s.adminRepo.UpdatePasswordByID(ctx, nil, adminID, password); err != nil {
-		return 60110, err
+		return CodePasswordUpdateFailed, err
 	}
 	// 清空管理员登录状态并返回
 	return s.Logout(ctx, adminID)
@@ -212,7 +212,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SortOrder: sortOrder,
 	})
 	if err != nil {
-		return ListPageResp{}, 60101, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 获取列表管理员角色
 	adminIDs := make([]int64, 0, len(admins))
@@ -236,15 +236,15 @@ func (s *Service) Details(ctx context.Context, adminID int64) (DetailsResp, int,
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
-		return DetailsResp{}, 60101, err
+		return DetailsResp{}, CodeQueryFailed, err
 	}
 	if admin == nil {
-		return DetailsResp{}, 50101, nil
+		return DetailsResp{}, CodeAdminNotFound, nil
 	}
 	// 获取所有启用的角色
 	roles, err := s.roleRepo.ListEnabled(ctx, nil)
 	if err != nil {
-		return DetailsResp{}, 60101, err
+		return DetailsResp{}, CodeQueryFailed, err
 	}
 	// 组装参数
 	roleList := make([]RoleItem, 0, len(roles))
@@ -326,10 +326,10 @@ func (s *Service) Delete(ctx context.Context, adminID int64) (int, error) {
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
-		return 60101, err
+		return CodeQueryFailed, err
 	}
 	if admin == nil {
-		return 50101, nil
+		return CodeAdminNotFound, nil
 	}
 	// 踢出登录
 	errCode, err := s.Logout(ctx, adminID)
@@ -347,7 +347,7 @@ func (s *Service) Delete(ctx context.Context, adminID int64) (int, error) {
 		return nil
 	})
 	if err != nil {
-		return 60112, err
+		return CodeAdminDeleteFailed, err
 	}
 	// 返回数据
 	return 0, nil
@@ -358,17 +358,17 @@ func (s *Service) ResetAdminPassword(ctx context.Context, adminID int64, newPass
 	// 验证管理员是否存在
 	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
-		return 60101, err
+		return CodeQueryFailed, err
 	}
 	if admin == nil {
-		return 50101, nil
+		return CodeAdminNotFound, nil
 	}
 	password, err := crypto.HashPassword(newPassword)
 	if err != nil {
-		return 60109, err
+		return CodePasswordHashFailed, err
 	}
 	if err := s.adminRepo.UpdatePasswordByID(ctx, nil, adminID, password); err != nil {
-		return 60110, err
+		return CodePasswordUpdateFailed, err
 	}
 	// 清空管理员登录状态并返回
 	return s.Logout(ctx, adminID)
@@ -379,10 +379,10 @@ func (s *Service) UpdateProfile(ctx context.Context, req UpdateProfileReq) (int,
 	// 验证管理员是否存在
 	admin, err := s.adminRepo.GetByID(ctx, nil, req.ID)
 	if err != nil {
-		return 60101, err
+		return CodeQueryFailed, err
 	}
 	if admin == nil {
-		return 50101, nil
+		return CodeAdminNotFound, nil
 	}
 	// 变更管理员信息
 	if err := s.adminRepo.UpdateProfileByID(ctx, nil, req.ID, model.AdminUpdateProfileByIdForm{
@@ -392,7 +392,7 @@ func (s *Service) UpdateProfile(ctx context.Context, req UpdateProfileReq) (int,
 		Gender:   req.Gender,
 		Avatar:   req.Avatar,
 	}); err != nil {
-		return 60113, err
+		return CodeProfileUpdateFailed, err
 	}
 	return 0, nil
 }

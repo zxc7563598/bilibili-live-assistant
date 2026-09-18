@@ -16,21 +16,21 @@ import (
 func (s *Service) updateToken(ctx context.Context, adminID, roleID int64, roleCode string) (TokenResp, int, error) {
 	accessToken, err := jwt.GenerateAccessToken(adminID, "admin", roleID, roleCode)
 	if err != nil {
-		return TokenResp{}, 60102, err
+		return TokenResp{}, CodeAccessTokenGenFailed, err
 	}
 	newRefreshToken, err := jwt.GenerateRefreshToken(adminID, "admin", roleID, roleCode)
 	if err != nil {
-		return TokenResp{}, 60103, err
+		return TokenResp{}, CodeRefreshTokenGenFailed, err
 	}
 	if err := s.adminRepo.UpdateTokenByID(ctx, nil, adminID, &newRefreshToken); err != nil {
-		return TokenResp{}, 60104, err
+		return TokenResp{}, CodeTokenPersistFailed, err
 	}
 	if s.rdb != nil {
 		if err := s.rdb.Set(ctx, jwt.AdminTokenKey(adminID), accessToken, jwt.AccessTTL()).Err(); err != nil {
-			return TokenResp{}, 60105, err
+			return TokenResp{}, CodeAccessTokenCacheFailed, err
 		}
 		if err := s.rdb.Set(ctx, jwt.AdminRefreshKey(adminID), newRefreshToken, jwt.RefreshTTL()).Err(); err != nil {
-			return TokenResp{}, 60106, err
+			return TokenResp{}, CodeRefreshTokenCacheFailed, err
 		}
 	}
 	return TokenResp{
@@ -44,7 +44,7 @@ func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []int64) (
 	// 获取全部角色
 	roles, err := s.roleRepo.ListAll(ctx, nil)
 	if err != nil {
-		return nil, 60101, err
+		return nil, CodeQueryFailed, err
 	}
 	// 组装角色数据
 	roleMap := make(map[int64]RoleItem)
@@ -59,7 +59,7 @@ func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []int64) (
 	// 获取全部管理员对应角色
 	adminRoles, err := s.adminRoleRepo.ListByAdminIDs(ctx, nil, adminIDs)
 	if err != nil {
-		return nil, 60101, err
+		return nil, CodeQueryFailed, err
 	}
 	// 组装管理员对应角色数据
 	adminRoleMap := make(map[int64][]RoleItem)
@@ -77,27 +77,27 @@ func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []int64) (
 // add 用于创建管理员基本信息
 func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, int, error) {
 	if v := req.Username; v == nil || *v == "" {
-		return 0, 10101, nil
+		return 0, CodeParamInvalid, nil
 	}
 	if req.Enable == nil {
-		return 0, 10101, nil
+		return 0, CodeParamInvalid, nil
 	}
 	if v := req.Password; v == nil || *v == "" {
-		return 0, 10103, nil
+		return 0, CodePasswordRequired, nil
 	}
 	if len(*req.Password) < 6 {
-		return 0, 10104, nil
+		return 0, CodePasswordTooShort, nil
 	}
 	if len(*req.Password) > 32 {
-		return 0, 10105, nil
+		return 0, CodePasswordTooLong, nil
 	}
 	if len(req.RoleIds) == 0 {
-		return 0, 10108, nil
+		return 0, CodeRoleRequired, nil
 	}
 	// 添加数据
 	password, err := crypto.HashPassword(*req.Password)
 	if err != nil {
-		return 0, 60109, err
+		return 0, CodePasswordHashFailed, err
 	}
 	admin, err := s.adminRepo.Create(ctx, tx, &model.Admin{
 		Nickname: *req.Username,
@@ -108,7 +108,7 @@ func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, int
 		Enable:   *enum.BoolToEnablePtr(req.Enable),
 	})
 	if err != nil {
-		return 0, 60111, err
+		return 0, CodeAdminSaveFailed, err
 	}
 	return admin.ID, 0, nil
 }
@@ -125,7 +125,7 @@ func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, 
 		Enable:   enum.BoolToEnablePtr(req.Enable),
 		RoleID:   roleID,
 	}); err != nil {
-		return 0, 60111, err
+		return 0, CodeAdminSaveFailed, err
 	}
 	return *req.ID, 0, nil
 }
@@ -140,7 +140,7 @@ func (s *Service) bindRoles(ctx context.Context, tx *gorm.DB, adminID int64, rol
 	}
 	// 删除原有角色信息
 	if err := s.adminRoleRepo.DeleteByAdminID(ctx, tx, adminID); err != nil {
-		return 60114, err
+		return CodeRoleUnbindFailed, err
 	}
 	// 重新绑定角色信息
 	adminRoleList := make([]model.AdminRole, 0, len(roleIds))
@@ -151,7 +151,7 @@ func (s *Service) bindRoles(ctx context.Context, tx *gorm.DB, adminID int64, rol
 		})
 	}
 	if err := s.adminRoleRepo.CreateBatch(ctx, tx, adminRoleList); err != nil {
-		return 60115, err
+		return CodeRoleBindFailed, err
 	}
 	return 0, nil
 }

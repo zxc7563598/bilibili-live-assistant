@@ -168,7 +168,7 @@ func buildTestUIDSet(uids []int64) map[int64]struct{} {
 func (s *Service) GetQRCode(ctx context.Context) (*QRCodeResp, int, error) {
 	qr, err := s.client.Auth.GetQRCode(ctx)
 	if err != nil {
-		return nil, 60401, err
+		return nil, CodeBilibiliAPIFailed, err
 	}
 	return &QRCodeResp{
 		URL:       qr.URL,
@@ -187,7 +187,7 @@ func (s *Service) GetQRCode(ctx context.Context) (*QRCodeResp, int, error) {
 func (s *Service) PollQRCode(ctx context.Context, qrcodeKey string) (*PollQRCodeResp, int, error) {
 	status, err := s.client.Auth.PollQRCode(ctx, qrcodeKey)
 	if err != nil {
-		return nil, 60401, err
+		return nil, CodeBilibiliAPIFailed, err
 	}
 	resp := &PollQRCodeResp{
 		Status:    status.Code,
@@ -200,17 +200,17 @@ func (s *Service) PollQRCode(ctx context.Context, qrcodeKey string) (*PollQRCode
 	if status.Code == 0 {
 		// 请求 redirectURL 以通过 http.Client.Jar 自动捕获 Set-Cookie
 		if err := s.client.Get(ctx, status.RedirectURL, nil); err != nil {
-			return nil, 60401, fmt.Errorf("无法跳转到指定的重定向链接: %w”", err)
+			return nil, CodeBilibiliAPIFailed, fmt.Errorf("无法跳转到指定的重定向链接: %w”", err)
 		}
 		// 获取用户信息
 		userInfo, err := s.client.Auth.GetUserInfo(ctx)
 		if err != nil {
-			return nil, 60401, fmt.Errorf("登录成功后无法获取用户资料: %w", err)
+			return nil, CodeBilibiliAPIFailed, fmt.Errorf("登录成功后无法获取用户资料: %w", err)
 		}
 		// 获取设备指纹
 		buvidInfo, err := s.client.Auth.GetBuvid(ctx)
 		if err != nil {
-			return nil, 60401, fmt.Errorf("登录成功后无法获取 buvid: %w", err)
+			return nil, CodeBilibiliAPIFailed, fmt.Errorf("登录成功后无法获取 buvid: %w", err)
 		}
 		// 更新 session
 		s.client.SetSession(&bilibili.Session{
@@ -222,7 +222,7 @@ func (s *Service) PollQRCode(ctx context.Context, qrcodeKey string) (*PollQRCode
 		// 持久化到磁盘
 		if s.stateFile != "" {
 			if err := s.client.SaveState(s.stateFile); err != nil {
-				return nil, 60402, fmt.Errorf("save state after login: %w", err)
+				return nil, CodeStateFileFailed, fmt.Errorf("save state after login: %w", err)
 			}
 		}
 	}
@@ -264,7 +264,7 @@ func (s *Service) Logout(ctx context.Context) (int, error) {
 	// 删除持久化文件
 	if s.stateFile != "" {
 		if err := os.Remove(s.stateFile); err != nil && !os.IsNotExist(err) {
-			return 60402, fmt.Errorf("remove state file: %w", err)
+			return CodeStateFileFailed, fmt.Errorf("remove state file: %w", err)
 		}
 	}
 	return 0, nil
@@ -280,7 +280,7 @@ func (s *Service) Logout(ctx context.Context) (int, error) {
 //  3. 启动新房间的监听
 func (s *Service) SwitchRoom(ctx context.Context, roomID int64) (int, error) {
 	if roomID <= 0 {
-		return 40404, nil
+		return CodeRoomIDInvalid, nil
 	}
 	s.mu.Lock()
 	oldRoomID := s.roomID
@@ -331,15 +331,15 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 	// 前置检查
 	if s.listener != nil && s.listener.IsRunning() {
 		s.mu.Unlock()
-		return 40402, nil
+		return CodeListenerRunning, nil
 	}
 	if s.client.Session() == nil {
 		s.mu.Unlock()
-		return 40401, nil
+		return CodeNotLoggedIn, nil
 	}
 	if s.roomID <= 0 {
 		s.mu.Unlock()
-		return 40404, nil
+		return CodeRoomIDInvalid, nil
 	}
 	roomID := s.roomID
 	s.mu.Unlock()
@@ -352,13 +352,13 @@ func (s *Service) StartListener(ctx context.Context) (int, error) {
 		live.WithMsgChannelSize(512),
 	)
 	if err != nil {
-		return 40406, fmt.Errorf("创建监听器失败: %w", err)
+		return CodeStartListenerFailed, fmt.Errorf("创建监听器失败: %w", err)
 	}
 	// 创建独立 context 用于控制本次监听会话
 	listenerCtx, listenerCancel := context.WithCancel(context.Background())
 	if err := listener.Connect(listenerCtx); err != nil {
 		listenerCancel()
-		return 40406, fmt.Errorf("连接监听器失败: %w", err)
+		return CodeStartListenerFailed, fmt.Errorf("连接监听器失败: %w", err)
 	}
 	// 更新内部状态
 	s.mu.Lock()
@@ -412,7 +412,7 @@ func (s *Service) StopListener() (int, error) {
 	cancel()
 	// 停止 listener — 关闭 WebSocket，等待 run() goroutine 退出
 	if err := listener.Stop(); err != nil {
-		return 40407, err
+		return CodeStopListenerFailed, err
 	}
 	// 等待消息处理 goroutine 退出
 	<-procDone
@@ -441,7 +441,7 @@ func (s *Service) FetchListenerStatus(ctx context.Context) (*ListenerStatusResp,
 	if s.roomID > 0 {
 		roomInfo, err := s.client.Room.GetRealRoomInfo(ctx, s.roomID)
 		if err != nil {
-			return nil, 60401, fmt.Errorf("无法在线获取直播间信息: %w", err)
+			return nil, CodeBilibiliAPIFailed, fmt.Errorf("无法在线获取直播间信息: %w", err)
 		}
 		s.roomState.Update(roomInfo)
 		resp.UID = roomInfo.UID

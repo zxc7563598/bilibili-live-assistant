@@ -23,7 +23,7 @@ func New(liveGiftRepo live_gift.Repository) *Service {
 func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, int, error) {
 	roomIDs, err := s.liveGiftRepo.DistinctRoomIDs(ctx, nil)
 	if err != nil {
-		return []FetchRoomGroupsResp{}, 60701, err
+		return []FetchRoomGroupsResp{}, CodeQueryFailed, err
 	}
 	return toFetchRoomGroupsItems(roomIDs), 0, nil
 }
@@ -32,10 +32,10 @@ func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, i
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 校验枚举参数合法性，非法值直接返回参数错误
 	if req.GiftType != nil && !enum.GiftType(*req.GiftType).IsValid() {
-		return ListPageResp{}, 10701, errors.New("gift_type 内容非法")
+		return ListPageResp{}, CodeParamInvalid, errors.New("gift_type 内容非法")
 	}
 	if req.Original != nil && !enum.YesNo(*req.Original).IsValid() {
-		return ListPageResp{}, 10701, errors.New("original 内容非法")
+		return ListPageResp{}, CodeParamInvalid, errors.New("original 内容非法")
 	}
 	// 获取列表数据
 	offset, limit, sortField, sortOrder := req.OffsetLimit()
@@ -55,11 +55,11 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 	}
 	listGift, total, err := s.liveGiftRepo.ListPage(ctx, nil, queue)
 	if err != nil {
-		return ListPageResp{}, 60701, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	totalNum, totalAmount, err := s.liveGiftRepo.SumNumAndAmount(ctx, nil, queue)
 	if err != nil {
-		return ListPageResp{}, 60701, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageResp{
@@ -91,11 +91,11 @@ func (s *Service) BlindBoxListPage(ctx context.Context, req BlindBoxListPageReq)
 	}
 	listGift, total, err := s.liveGiftRepo.BlindBoxListPage(ctx, nil, queue)
 	if err != nil {
-		return BlindBoxListPageResp{}, 60701, err
+		return BlindBoxListPageResp{}, CodeQueryFailed, err
 	}
 	originalPrice, currentPrice, err := s.liveGiftRepo.SumOriginalAndCurrentPrice(ctx, nil, queue)
 	if err != nil {
-		return BlindBoxListPageResp{}, 60701, err
+		return BlindBoxListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return BlindBoxListPageResp{

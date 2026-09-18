@@ -56,7 +56,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SortOrder: sortOrder,
 	})
 	if err != nil {
-		return ListPageResp{}, 60201, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 获取菜单
 	roleIDs := make([]int64, 0, len(roles))
@@ -66,7 +66,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 	roleMenus, err := s.roleMenuRepo.ListByRoleIDs(ctx, nil, roleIDs)
 	if err != nil {
 		// 该读失败时 roleMenus 为 nil，若不拦住会让每个角色的权限都静默显示为空
-		return ListPageResp{}, 60201, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	menuIDs := make(map[int64][]int64)
 	for _, v := range roleMenus {
@@ -95,7 +95,7 @@ func (s *Service) ListAll(ctx context.Context) ([]ListAllResp, int, error) {
 	// 获取角色
 	roles, err := s.roleRepo.ListAll(ctx, nil)
 	if err != nil {
-		return nil, 60201, err
+		return nil, CodeQueryFailed, err
 	}
 	// 组装数据
 	list := make([]ListAllResp, 0, len(roles))
@@ -112,7 +112,7 @@ func (s *Service) ListAll(ctx context.Context) ([]ListAllResp, int, error) {
 
 // Save 用于创建或修改角色信息
 func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
-	// 校验类拒绝的错误码，需与系统错误 60202 区分，故带到事务外
+	// 校验类拒绝的错误码，需与系统错误 CodeSaveFailed 区分，故带到事务外
 	var errCode int
 	// 开启事务
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -134,7 +134,7 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 		// 放行等于静默清空该角色的全部权限，而接口还报成功。
 		if req.MenuIDs != nil {
 			if len(*req.MenuIDs) == 0 {
-				errCode = 10206
+				errCode = CodeMenuRequired
 				return fmt.Errorf("角色至少需要绑定一个菜单")
 			}
 			if err := s.resetRoleMenus(ctx, tx, roleID, *req.MenuIDs); err != nil {
@@ -147,7 +147,7 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 		if errCode != 0 {
 			return errCode, err
 		}
-		return 60202, err
+		return CodeSaveFailed, err
 	}
 	return 0, nil
 }
@@ -157,10 +157,10 @@ func (s *Service) Delete(ctx context.Context, roleID int64) (int, error) {
 	// 获取角色信息
 	role, err := s.roleRepo.GetByID(ctx, nil, roleID)
 	if err != nil {
-		return 60201, err
+		return CodeQueryFailed, err
 	}
 	if role == nil {
-		return 50201, nil
+		return CodeNotFound, nil
 	}
 	// 开启事务，删除角色
 	err = s.db.Transaction(func(tx *gorm.DB) error {
@@ -173,7 +173,7 @@ func (s *Service) Delete(ctx context.Context, roleID int64) (int, error) {
 		return nil
 	})
 	if err != nil {
-		return 60203, err
+		return CodeDeleteFailed, err
 	}
 	// 返回数据
 	return 0, nil
@@ -184,7 +184,7 @@ func (s *Service) GetRoleMenuTree(ctx context.Context, roleID int64, roleCode st
 	// 获取菜单信息
 	menus, err := s.getMenusByRole(ctx, roleID, roleCode)
 	if err != nil {
-		return nil, 60205, err
+		return nil, CodeMenuFetchFailed, err
 	}
 	// 整理菜单信息
 	list := make([]RoleMenuItem, 0, len(menus))
@@ -214,13 +214,13 @@ func (s *Service) AddRoleUsers(ctx context.Context, roleID int64, adminIds []int
 	// 获取角色信息
 	role, err := s.roleRepo.GetByID(ctx, nil, roleID)
 	if err != nil {
-		return 60201, err
+		return CodeQueryFailed, err
 	}
 	if role == nil {
-		return 50201, nil
+		return CodeNotFound, nil
 	}
 	if role.Enable == enum.EnableDisable {
-		return 40202, nil
+		return CodeRoleDisabled, nil
 	}
 	// 检查传入的管理员信息
 	adminID := make([]int64, 0, len(adminIds))
@@ -249,7 +249,7 @@ func (s *Service) AddRoleUsers(ctx context.Context, roleID int64, adminIds []int
 	// 批量为管理员添加角色
 	err = s.adminRoleRepo.BindRoles(ctx, nil, adminID, roleID)
 	if err != nil {
-		return 60206, err
+		return CodeBindAdminFailed, err
 	}
 	return 0, nil
 }
@@ -320,9 +320,9 @@ func (s *Service) RemoveRoleUsers(ctx context.Context, roleID int64, adminIds []
 	if err != nil {
 		// 业务规则拒绝与系统故障分开：前者重试多少次都不会成功，不该提示「请稍后重试」
 		if errors.Is(err, errOnlyRoleLeft) {
-			return 40203, err
+			return CodeOnlyRoleLeft, err
 		}
-		return 60206, err
+		return CodeBindAdminFailed, err
 	}
 	// 事务外处理 Redis（避免 DB 回滚时 Redis 已清理）
 	for _, id := range logoutAdminIDs {

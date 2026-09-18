@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 )
 
@@ -16,12 +17,12 @@ func RequireRole(allowedCodes ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		adminInfo, ok := handler.GetAdminInfo(c)
 		if !ok {
-			response.Error(c, "", 20001)
+			response.Error(c, "", i18n.CodeTokenExpired)
 			c.Abort()
 			return
 		}
 		if !allowedSet[adminInfo.RoleCode] {
-			response.Error(c, "", 30001)
+			response.Error(c, "", i18n.CodeForbidden)
 			c.Abort()
 			return
 		}

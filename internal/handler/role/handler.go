@@ -39,7 +39,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -101,7 +101,7 @@ func (h *Handler) ListAll(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -138,7 +138,7 @@ func (h *Handler) Save(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -196,7 +196,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -244,7 +244,7 @@ func (h *Handler) AddRoleUsers(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -293,7 +293,7 @@ func (h *Handler) RemoveRoleUsers(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -341,7 +341,7 @@ func (h *Handler) Permissions(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取角色权限内的菜单

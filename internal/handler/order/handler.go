@@ -39,7 +39,7 @@ func (h *Handler) PlaceOrder(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -84,7 +84,7 @@ func (h *Handler) GetConfirm(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -131,7 +131,7 @@ func (h *Handler) ReOrder(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -173,7 +173,7 @@ func (h *Handler) ConfirmPayment(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -216,7 +216,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 获取管理员信息
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -281,7 +281,7 @@ func (h *Handler) Details(c *gin.Context) {
 	// 获取管理员信息
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -323,7 +323,7 @@ func (h *Handler) UpdateShipStatus(c *gin.Context) {
 	// 获取管理员信息
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -373,7 +373,7 @@ func (h *Handler) UpdateOrderStatus(c *gin.Context) {
 	// 获取管理员信息
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -419,7 +419,7 @@ func (h *Handler) UpdateReceiverInfo(c *gin.Context) {
 	// 获取管理员信息
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -473,7 +473,7 @@ func (h *Handler) ListPageByUser(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数

@@ -48,7 +48,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SortOrder:  sortOrder,
 	})
 	if err != nil {
-		return ListPageResp{}, 61001, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageResp{
@@ -61,23 +61,23 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 func (s *Service) Details(ctx context.Context, id int64, includeDisabledProduct, includeDisabledImages bool) (DetailsResp, int, error) {
 	prod, err := s.productRepo.GetByID(ctx, nil, id)
 	if err != nil {
-		return DetailsResp{}, 61001, err
+		return DetailsResp{}, CodeQueryFailed, err
 	}
 	if prod == nil || (!includeDisabledProduct && prod.Enable != enum.EnableEnable) {
-		return DetailsResp{}, 51001, errors.New("商品不存在")
+		return DetailsResp{}, CodeNotFound, errors.New("商品不存在")
 	}
 	// 查询关联数据
 	skus, err := s.productSkuRepo.ListByProductID(ctx, nil, id)
 	if err != nil {
-		return DetailsResp{}, 61001, err
+		return DetailsResp{}, CodeQueryFailed, err
 	}
 	specs, err := s.productSpecRepo.ListByProductID(ctx, nil, id)
 	if err != nil {
-		return DetailsResp{}, 61001, err
+		return DetailsResp{}, CodeQueryFailed, err
 	}
 	specValues, err := s.productSpecValueRepo.ListByProductID(ctx, nil, id)
 	if err != nil {
-		return DetailsResp{}, 61001, err
+		return DetailsResp{}, CodeQueryFailed, err
 	}
 	var images []model.ProductImage
 	if includeDisabledImages {
@@ -86,7 +86,7 @@ func (s *Service) Details(ctx context.Context, id int64, includeDisabledProduct,
 		images, err = s.productImageRepo.ListEnabledByProductID(ctx, nil, id)
 	}
 	if err != nil {
-		return DetailsResp{}, 61001, err
+		return DetailsResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return toDetailsResp(prod, skus, specs, specValues, images), 0, nil
@@ -96,13 +96,13 @@ func (s *Service) Details(ctx context.Context, id int64, includeDisabledProduct,
 func (s *Service) UpdateEnable(ctx context.Context, id int64, enable bool) (int, error) {
 	prod, err := s.productRepo.GetByID(ctx, nil, id)
 	if err != nil {
-		return 61001, err
+		return CodeQueryFailed, err
 	}
 	if prod == nil {
-		return 51001, errors.New("商品不存在")
+		return CodeNotFound, errors.New("商品不存在")
 	}
 	if err := s.productRepo.UpdateField(ctx, nil, id, "enable", enum.BoolToEnablePtr(&enable)); err != nil {
-		return 61002, err
+		return CodeSaveFailed, err
 	}
 	return 0, nil
 }
@@ -130,9 +130,9 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (SaveResp, int, error) 
 	})
 	if err != nil {
 		if errors.Is(err, errProductNotFound) {
-			return SaveResp{}, 51001, err
+			return SaveResp{}, CodeNotFound, err
 		}
-		return SaveResp{}, 61002, err
+		return SaveResp{}, CodeSaveFailed, err
 	}
 	return SaveResp{ID: productID}, 0, nil
 }

@@ -38,7 +38,7 @@ func (h *Handler) GetPublicKey(c *gin.Context) {
 	lang := i18n.GetLang(ctx)
 	pubKeyB64, err := crypto.EnsureRSAKeyPair()
 	if err != nil {
-		response.Error(c, lang, 60001)
+		response.Error(c, lang, i18n.CodeSystemBusy)
 		return
 	}
 	keyID := crypto.PublicKeyID(pubKeyB64)

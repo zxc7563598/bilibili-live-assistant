@@ -48,7 +48,7 @@ func (s *Service) add(ctx context.Context, req SaveReq) (int, error) {
 		Order:     req.Order,
 	})
 	if err != nil {
-		return 60302, err
+		return CodeCreateFailed, err
 	}
 	return 0, nil
 }
@@ -68,7 +68,7 @@ func (s *Service) update(ctx context.Context, req SaveReq) (int, error) {
 		Component: req.Component,
 		Order:     req.Order,
 	}); err != nil {
-		return 60303, err
+		return CodeUpdateFailed, err
 	}
 	return 0, nil
 }

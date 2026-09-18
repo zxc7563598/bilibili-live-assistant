@@ -44,7 +44,7 @@ func New(appConfigCache *appconfig.Cache, appConfigRepo app_config.Repository) *
 // 配置缺失时不强校验、直接返回空值：
 //   - 文本字段（站点名、描述、颜色）允许为空，由前端自行兜底
 //   - 站点图标未配置时跳过 MIME 检测，避免整份 manifest 因缺图标而失败
-//   - 图标已配置但无法识别时返回 10901，便于定位配置问题
+//   - 图标已配置但无法识别时返回 CodeImageInvalid，便于定位配置问题
 func (s *Service) GetManifest() (ManifestResp, int, error) {
 	resp := ManifestResp{
 		Name:            s.appConfigCache.GetValue(keySiteName),
@@ -57,7 +57,7 @@ func (s *Service) GetManifest() (ManifestResp, int, error) {
 	}
 	mimeType, err := imagetype.GetMimeTypeSimple(icon)
 	if err != nil {
-		return ManifestResp{}, 10901, err
+		return ManifestResp{}, CodeImageInvalid, err
 	}
 	resp.Icon = icon
 	resp.IconType = mimeType
@@ -121,12 +121,12 @@ func (s *Service) SaveConfig(ctx context.Context, data SaveConfigReq) (int, erro
 		keySlogan:              data.LoginSlogan,
 	}
 	if err := s.appConfigRepo.SaveValues(ctx, nil, values); err != nil {
-		return 60902, fmt.Errorf("保存 App 配置失败: %w", err)
+		return CodeSaveFailed, fmt.Errorf("保存 App 配置失败: %w", err)
 	}
 	// 落库成功后刷新缓存
 	reloadCtx := context.WithoutCancel(ctx)
 	if err := s.appConfigCache.Reload(reloadCtx); err != nil {
-		return 60903, fmt.Errorf("刷新 App 配置缓存失败: %w", err)
+		return CodeCacheReloadFailed, fmt.Errorf("刷新 App 配置缓存失败: %w", err)
 	}
 	return 0, nil
 }
@@ -141,10 +141,10 @@ func (s *Service) SaveOssConfig(ctx context.Context, data SaveOssConfigReq) (int
 		Bucket:          data.OssBucket,
 	})
 	if err != nil {
-		return 60905, fmt.Errorf("OSS 初始化失败: %w", err)
+		return CodeOSSInitFailed, fmt.Errorf("OSS 初始化失败: %w", err)
 	}
 	if err := oss.CheckConfig(); err != nil {
-		return 60906, fmt.Errorf("OSS 验证失败: %w", err)
+		return CodeOSSConfigFailed, fmt.Errorf("OSS 验证失败: %w", err)
 	}
 	// 存储信息
 	values := map[string]string{
@@ -154,12 +154,12 @@ func (s *Service) SaveOssConfig(ctx context.Context, data SaveOssConfigReq) (int
 		appconfig.KeyOssBucket:          data.OssBucket,
 	}
 	if err := s.appConfigRepo.SaveValues(ctx, nil, values); err != nil {
-		return 60902, fmt.Errorf("保存 App 配置失败: %w", err)
+		return CodeSaveFailed, fmt.Errorf("保存 App 配置失败: %w", err)
 	}
 	// 落库成功后刷新缓存
 	reloadCtx := context.WithoutCancel(ctx)
 	if err := s.appConfigCache.Reload(reloadCtx); err != nil {
-		return 60903, fmt.Errorf("刷新 App 配置缓存失败: %w", err)
+		return CodeCacheReloadFailed, fmt.Errorf("刷新 App 配置缓存失败: %w", err)
 	}
 	return 0, nil
 }

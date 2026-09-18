@@ -23,7 +23,7 @@ func (s *Service) GetMenuTree(ctx context.Context) ([]MenuItem, int, error) {
 	// 获取菜单信息
 	menus, err := s.menuRepo.ListAll(ctx, nil)
 	if err != nil {
-		return nil, 60301, err
+		return nil, CodeQueryFailed, err
 	}
 	// 返回权限树
 	return s.buildTree(toMenuItems(menus), 0), 0, nil
@@ -33,7 +33,7 @@ func (s *Service) GetMenuTree(ctx context.Context) ([]MenuItem, int, error) {
 func (s *Service) MenuExists(ctx context.Context, path string) (bool, int, error) {
 	has, err := s.menuRepo.ExistsByPath(ctx, nil, path)
 	if err != nil {
-		return false, 60301, err
+		return false, CodeQueryFailed, err
 	}
 	return has, 0, nil
 }
@@ -42,7 +42,7 @@ func (s *Service) MenuExists(ctx context.Context, path string) (bool, int, error
 func (s *Service) ListMenuButtons(ctx context.Context, parentID int64) ([]MenuItem, int, error) {
 	buttons, err := s.menuRepo.ListButtonsByParentID(ctx, nil, parentID)
 	if err != nil {
-		return nil, 60301, err
+		return nil, CodeQueryFailed, err
 	}
 	return toMenuItems(buttons), 0, nil
 }
@@ -51,7 +51,7 @@ func (s *Service) ListMenuButtons(ctx context.Context, parentID int64) ([]MenuIt
 func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 	t := enum.MenuType(req.Type)
 	if !t.IsValid() {
-		return 10301, errors.New("type 类型异常")
+		return CodeParamInvalid, errors.New("type 类型异常")
 	}
 	isCreate := req.ID == nil || *req.ID == 0
 	if isCreate {
@@ -80,7 +80,7 @@ func (s *Service) ToggleMenuEnable(ctx context.Context, id int64) (int, error) {
 	}
 	err := s.menuRepo.ToggleEnableByID(ctx, nil, id)
 	if err != nil {
-		return 60304, err
+		return CodeToggleEnableFailed, err
 	}
 	return 0, nil
 }
@@ -93,7 +93,7 @@ func (s *Service) Delete(ctx context.Context, id int64) (int, error) {
 	}
 	err := s.menuRepo.Delete(ctx, nil, id)
 	if err != nil {
-		return 60305, err
+		return CodeDeleteFailed, err
 	}
 	return 0, nil
 }
@@ -102,10 +102,10 @@ func (s *Service) Delete(ctx context.Context, id int64) (int, error) {
 func (s *Service) checkMenuExists(ctx context.Context, id int64) (int, error) {
 	menu, err := s.menuRepo.GetByID(ctx, nil, id)
 	if err != nil {
-		return 60301, err
+		return CodeQueryFailed, err
 	}
 	if menu == nil {
-		return 50301, nil
+		return CodeNotFound, nil
 	}
 	return 0, nil
 }
