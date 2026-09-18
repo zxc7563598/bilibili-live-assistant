@@ -97,9 +97,7 @@ error:
   10104: Password length cannot be less than 6 characters # Password length < 6
   10105: Password length cannot exceed 32 characters # Password length > 32
   10106: Please select a role # Role cannot be empty
-  10107: Please enter nickname # Nickname cannot be empty
   10108: Please assign at least one role to this account # Administrators must be bound to at least one role
-  10109: Please complete the captcha verification # Captcha not submitted
   10201: Request parameter is invalid # Parameter verification failed
   10202: Please enter the role ID. The role code cannot be empty
   10203: Please enter a role name. # The role name cannot be empty
@@ -112,7 +110,6 @@ error:
   10303: Please enter the menu ID # The menu code cannot be empty
   10304: Please select menu type # Menu type cannot be empty
   10305: Please enter the menu name. # The menu name cannot be empty
-  10401: Invalid request parameters # Parameter validation failed (Live module)
   10402: QR code key is required # QR code key cannot be empty
   10403: Room ID is required # Room ID cannot be empty
   10404: Invalid room ID format # Room ID format is invalid
@@ -202,19 +199,13 @@ error:
   40102: Account unavailable # Admin account disabled
   40103: Role unavailable # Role disabled
   40104: New password cannot be the same as the old password # Old and new passwords match
-  40105: Captcha verification failed # altcha verification not passed
-  40106: Captcha expired, please refresh and try again # altcha challenge expired
-  40201: Binding failed, the administrator has already bound this role. # The current administrator already possesses this role
   40202: Binding failed, current role is unavailable # The current role has been deactivated
   40203: This administrator has only this role, it cannot be removed
   40401: Not logged in to Bilibili, please scan QR code first # Not logged in to Bilibili
   40402: Listener is already running # Listener already running
-  40403: Listener is not running # Listener not running
   40404: Invalid room ID # Room ID invalid
-  40405: Login failed or QR code expired # Login failed / QR code expired
   40406: Failed to start listener # Start listener failed
   40407: Failed to stop listener # Stop listener failed
-  40408: Listener connection error # Listener connection error
   40801: Incorrect account or password # Password error (avoid being too specific)
   40802: Account unavailable # User account disabled
   40803: Insufficient balance # Insufficient balance for this redemption
@@ -258,11 +249,9 @@ error:
   60113: Operation failed, please try again later # Update admin personal information failed
   60114: Operation failed, please try again later # Failed to delete the administrator's bound role
   60115: Operation failed, please try again later # Failed to add the bound role for the administrator
-  60116: System busy, please try again later # altcha captcha service error
   60201: System busy, please try again later # Database query exception
   60202: Operation failed, please try again later # Role information modification failed
   60203: Operation failed, please try again later # Role deletion failed
-  60204: Operation failed, please try again later # Failed to obtain permission menu based on role
   60205: Operation failed, please try again later # Menu information retrieval failed
   60206: Operation failed, please try again later # Role binding to the administrator failed
   60207: System busy, please try again later # Failed to clear admin token cache after role change
