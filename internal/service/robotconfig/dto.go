@@ -66,24 +66,19 @@ type PkConfigResp struct {
 	Content []string `json:"content"`
 }
 
-// GetWelcomeConfig 请求返回
-type WelcomeConfigResp struct {
+// SceneReplyConfigResp 场景答谢配置请求返回
+//
+// 进房欢迎（welcome）、感谢关注（follow）、感谢分享（share）三个模块的配置
+// 结构与读取方式完全一致，只有配置分组名不同，因此共用这一份出参。
+type SceneReplyConfigResp struct {
 	Enabled     string   `json:"enabled"`
 	Scene       string   `json:"scene"`
 	Requirement string   `json:"requirement"`
 	Content     []string `json:"content"`
 }
 
-// GetFollowConfig 请求返回
-type FollowConfigResp struct {
-	Enabled     string   `json:"enabled"`
-	Scene       string   `json:"scene"`
-	Requirement string   `json:"requirement"`
-	Content     []string `json:"content"`
-}
-
-// GetShareConfig 请求返回
-type ShareConfigResp struct {
+// SceneReplyConfigReq 场景答谢配置请求入参
+type SceneReplyConfigReq struct {
 	Enabled     string   `json:"enabled"`
 	Scene       string   `json:"scene"`
 	Requirement string   `json:"requirement"`
@@ -151,30 +146,6 @@ type GiftConfigReq struct {
 type PkConfigReq struct {
 	Enabled string   `json:"enabled"`
 	Content []string `json:"content"`
-}
-
-// ApplyWelcomeConfig 请求入参
-type WelcomeConfigReq struct {
-	Enabled     string   `json:"enabled"`
-	Scene       string   `json:"scene"`
-	Requirement string   `json:"requirement"`
-	Content     []string `json:"content"`
-}
-
-// ApplyFollowConfig 请求入参
-type FollowConfigReq struct {
-	Enabled     string   `json:"enabled"`
-	Scene       string   `json:"scene"`
-	Requirement string   `json:"requirement"`
-	Content     []string `json:"content"`
-}
-
-// ApplyShareConfig 请求入参
-type ShareConfigReq struct {
-	Enabled     string   `json:"enabled"`
-	Scene       string   `json:"scene"`
-	Requirement string   `json:"requirement"`
-	Content     []string `json:"content"`
 }
 
 // ApplyReplyConfig 请求入参

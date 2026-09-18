@@ -511,31 +511,6 @@ definitions:
     - content
     - type
     type: object
-  input.FollowConfigReq:
-    properties:
-      content:
-        description: 感谢内容（JSON 数组字符串）
-        items:
-          type: string
-        type: array
-      enabled:
-        description: 是否启用, 0-禁用, 1-启用
-        example: "1"
-        type: string
-      requirement:
-        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-        example: "0"
-        type: string
-      scene:
-        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
-        example: "1"
-        type: string
-    required:
-    - content
-    - enabled
-    - requirement
-    - scene
-    type: object
   input.GiftConfigReq:
     properties:
       content:
@@ -1893,21 +1868,10 @@ definitions:
     - name_trim_mode
     - reward_type
     type: object
-  input.SendDanmuReq:
-    properties:
-      message:
-        description: 弹幕内容，长度 1-40 个字符
-        example: 发送弹幕信息
-        maxLength: 40
-        minLength: 1
-        type: string
-    required:
-    - message
-    type: object
-  input.ShareConfigReq:
+  input.SceneReplyConfigReq:
     properties:
       content:
-        description: 感谢内容（JSON 数组字符串）
+        description: 答谢内容（JSON 数组字符串）
         items:
           type: string
         type: array
@@ -1916,7 +1880,7 @@ definitions:
         example: "1"
         type: string
       requirement:
-        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        description: 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
         example: "0"
         type: string
       scene:
@@ -1928,6 +1892,17 @@ definitions:
     - enabled
     - requirement
     - scene
+    type: object
+  input.SendDanmuReq:
+    properties:
+      message:
+        description: 弹幕内容，长度 1-40 个字符
+        example: 发送弹幕信息
+        maxLength: 40
+        minLength: 1
+        type: string
+    required:
+    - message
     type: object
   input.SignConfigReq:
     properties:
@@ -2000,31 +1975,6 @@ definitions:
         type: string
     required:
     - path
-    type: object
-  input.WelcomeConfigReq:
-    properties:
-      content:
-        description: 欢迎内容（JSON 数组字符串）
-        items:
-          type: string
-        type: array
-      enabled:
-        description: 是否启用, 0-禁用, 1-启用
-        example: "1"
-        type: string
-      requirement:
-        description: 欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-        example: "0"
-        type: string
-      scene:
-        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
-        example: "1"
-        type: string
-    required:
-    - content
-    - enabled
-    - requirement
-    - scene
     type: object
   resp.AdConfigResp:
     properties:
@@ -2608,26 +2558,6 @@ definitions:
         description: 总计条数
         example: 100
         type: integer
-    type: object
-  resp.FollowConfigResp:
-    properties:
-      content:
-        description: 感谢内容
-        items:
-          type: string
-        type: array
-      enabled:
-        description: 是否启用, 0-禁用, 1-启用
-        example: "1"
-        type: string
-      requirement:
-        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-        example: "0"
-        type: string
-      scene:
-        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
-        example: "1"
-        type: string
     type: object
   resp.GiftConfigResp:
     properties:
@@ -4279,10 +4209,10 @@ definitions:
           $ref: '#/definitions/resp.RoomGroupOptionItem'
         type: array
     type: object
-  resp.ShareConfigResp:
+  resp.SceneReplyConfigResp:
     properties:
       content:
-        description: 感谢内容
+        description: 答谢内容
         items:
           type: string
         type: array
@@ -4291,7 +4221,7 @@ definitions:
         example: "1"
         type: string
       requirement:
-        description: 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+        description: 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
         example: "0"
         type: string
       scene:
@@ -4405,26 +4335,6 @@ definitions:
       path:
         description: 上传后可直接访问的图片路径（本地为 /uploads/ 相对路径，同步 OSS 后为 http(s) 地址）
         example: /uploads/login_bg/1724716800123456789_a1b2c3d4.png
-        type: string
-    type: object
-  resp.WelcomeConfigResp:
-    properties:
-      content:
-        description: 欢迎内容
-        items:
-          type: string
-        type: array
-      enabled:
-        description: 是否启用, 0-禁用, 1-启用
-        example: "1"
-        type: string
-      requirement:
-        description: 欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-        example: "0"
-        type: string
-      scene:
-        description: 可用场景, 0-不限制, 1-直播中, 2-非直播中
-        example: "1"
         type: string
     type: object
   response.Response:
@@ -6157,7 +6067,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/input.FollowConfigReq'
+          $ref: '#/definitions/input.SceneReplyConfigReq'
       responses:
         "200":
           description: 统一响应（code=0成功，其它失败）
@@ -6188,7 +6098,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/resp.FollowConfigResp'
+                  $ref: '#/definitions/resp.SceneReplyConfigResp'
               type: object
       security:
       - BearerAuth: []
@@ -6432,7 +6342,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/input.ShareConfigReq'
+          $ref: '#/definitions/input.SceneReplyConfigReq'
       responses:
         "200":
           description: 统一响应（code=0成功，其它失败）
@@ -6463,7 +6373,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/resp.ShareConfigResp'
+                  $ref: '#/definitions/resp.SceneReplyConfigResp'
               type: object
       security:
       - BearerAuth: []
@@ -6542,7 +6452,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/input.WelcomeConfigReq'
+          $ref: '#/definitions/input.SceneReplyConfigReq'
       responses:
         "200":
           description: 统一响应（code=0成功，其它失败）
@@ -6573,7 +6483,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/resp.WelcomeConfigResp'
+                  $ref: '#/definitions/resp.SceneReplyConfigResp'
               type: object
       security:
       - BearerAuth: []

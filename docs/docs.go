@@ -2844,7 +2844,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/input.FollowConfigReq"
+                            "$ref": "#/definitions/input.SceneReplyConfigReq"
                         }
                     }
                 ],
@@ -2895,7 +2895,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/resp.FollowConfigResp"
+                                            "$ref": "#/definitions/resp.SceneReplyConfigResp"
                                         }
                                     }
                                 }
@@ -3299,7 +3299,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/input.ShareConfigReq"
+                            "$ref": "#/definitions/input.SceneReplyConfigReq"
                         }
                     }
                 ],
@@ -3350,7 +3350,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/resp.ShareConfigResp"
+                                            "$ref": "#/definitions/resp.SceneReplyConfigResp"
                                         }
                                     }
                                 }
@@ -3481,7 +3481,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/input.WelcomeConfigReq"
+                            "$ref": "#/definitions/input.SceneReplyConfigReq"
                         }
                     }
                 ],
@@ -3532,7 +3532,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/resp.WelcomeConfigResp"
+                                            "$ref": "#/definitions/resp.SceneReplyConfigResp"
                                         }
                                     }
                                 }
@@ -5908,39 +5908,6 @@ const docTemplate = `{
                 }
             }
         },
-        "input.FollowConfigReq": {
-            "type": "object",
-            "required": [
-                "content",
-                "enabled",
-                "requirement",
-                "scene"
-            ],
-            "properties": {
-                "content": {
-                    "description": "感谢内容（JSON 数组字符串）",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "enabled": {
-                    "description": "是否启用, 0-禁用, 1-启用",
-                    "type": "string",
-                    "example": "1"
-                },
-                "requirement": {
-                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
-                    "type": "string",
-                    "example": "0"
-                },
-                "scene": {
-                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
-                    "type": "string",
-                    "example": "1"
-                }
-            }
-        },
         "input.GiftConfigReq": {
             "type": "object",
             "required": [
@@ -7717,6 +7684,39 @@ const docTemplate = `{
                 }
             }
         },
+        "input.SceneReplyConfigReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "enabled",
+                "requirement",
+                "scene"
+            ],
+            "properties": {
+                "content": {
+                    "description": "答谢内容（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "enabled": {
+                    "description": "是否启用, 0-禁用, 1-启用",
+                    "type": "string",
+                    "example": "1"
+                },
+                "requirement": {
+                    "description": "答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "type": "string",
+                    "example": "0"
+                },
+                "scene": {
+                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
+                    "type": "string",
+                    "example": "1"
+                }
+            }
+        },
         "input.SendDanmuReq": {
             "type": "object",
             "required": [
@@ -7729,39 +7729,6 @@ const docTemplate = `{
                     "maxLength": 40,
                     "minLength": 1,
                     "example": "发送弹幕信息"
-                }
-            }
-        },
-        "input.ShareConfigReq": {
-            "type": "object",
-            "required": [
-                "content",
-                "enabled",
-                "requirement",
-                "scene"
-            ],
-            "properties": {
-                "content": {
-                    "description": "感谢内容（JSON 数组字符串）",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "enabled": {
-                    "description": "是否启用, 0-禁用, 1-启用",
-                    "type": "string",
-                    "example": "1"
-                },
-                "requirement": {
-                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
-                    "type": "string",
-                    "example": "0"
-                },
-                "scene": {
-                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
-                    "type": "string",
-                    "example": "1"
                 }
             }
         },
@@ -7856,39 +7823,6 @@ const docTemplate = `{
                     "description": "待同步图片的本地访问路径（由 /api/admin/upload/image 上传后返回的 /uploads/ 相对路径）",
                     "type": "string",
                     "example": "/uploads/site_icon/1724716800123456789_a1b2c3d4.png"
-                }
-            }
-        },
-        "input.WelcomeConfigReq": {
-            "type": "object",
-            "required": [
-                "content",
-                "enabled",
-                "requirement",
-                "scene"
-            ],
-            "properties": {
-                "content": {
-                    "description": "欢迎内容（JSON 数组字符串）",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "enabled": {
-                    "description": "是否启用, 0-禁用, 1-启用",
-                    "type": "string",
-                    "example": "1"
-                },
-                "requirement": {
-                    "description": "欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
-                    "type": "string",
-                    "example": "0"
-                },
-                "scene": {
-                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
-                    "type": "string",
-                    "example": "1"
                 }
             }
         },
@@ -8656,33 +8590,6 @@ const docTemplate = `{
                     "description": "总计条数",
                     "type": "integer",
                     "example": 100
-                }
-            }
-        },
-        "resp.FollowConfigResp": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "description": "感谢内容",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "enabled": {
-                    "description": "是否启用, 0-禁用, 1-启用",
-                    "type": "string",
-                    "example": "1"
-                },
-                "requirement": {
-                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
-                    "type": "string",
-                    "example": "0"
-                },
-                "scene": {
-                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
-                    "type": "string",
-                    "example": "1"
                 }
             }
         },
@@ -10913,11 +10820,11 @@ const docTemplate = `{
                 }
             }
         },
-        "resp.ShareConfigResp": {
+        "resp.SceneReplyConfigResp": {
             "type": "object",
             "properties": {
                 "content": {
-                    "description": "感谢内容",
+                    "description": "答谢内容",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -10929,7 +10836,7 @@ const docTemplate = `{
                     "example": "1"
                 },
                 "requirement": {
-                    "description": "感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
+                    "description": "答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
                     "type": "string",
                     "example": "0"
                 },
@@ -11082,33 +10989,6 @@ const docTemplate = `{
                     "description": "上传后可直接访问的图片路径（本地为 /uploads/ 相对路径，同步 OSS 后为 http(s) 地址）",
                     "type": "string",
                     "example": "/uploads/login_bg/1724716800123456789_a1b2c3d4.png"
-                }
-            }
-        },
-        "resp.WelcomeConfigResp": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "description": "欢迎内容",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "enabled": {
-                    "description": "是否启用, 0-禁用, 1-启用",
-                    "type": "string",
-                    "example": "1"
-                },
-                "requirement": {
-                    "description": "欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
-                    "type": "string",
-                    "example": "0"
-                },
-                "scene": {
-                    "description": "可用场景, 0-不限制, 1-直播中, 2-非直播中",
-                    "type": "string",
-                    "example": "1"
                 }
             }
         },

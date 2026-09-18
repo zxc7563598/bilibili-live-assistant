@@ -90,39 +90,17 @@ type PkConfigResp struct {
 	Content []string `json:"content"`
 }
 
-// WelcomeConfigResp 进房欢迎模块配置返回
-type WelcomeConfigResp struct {
+// SceneReplyConfigResp 场景答谢模块配置返回
+//
+// 进房欢迎（welcome）、感谢关注（follow）、感谢分享（share）三个模块共用。
+type SceneReplyConfigResp struct {
 	// 是否启用, 0-禁用, 1-启用
 	Enabled string `json:"enabled" example:"1"`
 	// 可用场景, 0-不限制, 1-直播中, 2-非直播中
 	Scene string `json:"scene" example:"1"`
-	// 欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+	// 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
 	Requirement string `json:"requirement" example:"0"`
-	// 欢迎内容
-	Content []string `json:"content"`
-}
-
-// FollowConfigResp 感谢关注模块配置返回
-type FollowConfigResp struct {
-	// 是否启用, 0-禁用, 1-启用
-	Enabled string `json:"enabled" example:"1"`
-	// 可用场景, 0-不限制, 1-直播中, 2-非直播中
-	Scene string `json:"scene" example:"1"`
-	// 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-	Requirement string `json:"requirement" example:"0"`
-	// 感谢内容
-	Content []string `json:"content"`
-}
-
-// ShareConfigResp 感谢分享模块配置返回
-type ShareConfigResp struct {
-	// 是否启用, 0-禁用, 1-启用
-	Enabled string `json:"enabled" example:"1"`
-	// 可用场景, 0-不限制, 1-直播中, 2-非直播中
-	Scene string `json:"scene" example:"1"`
-	// 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-	Requirement string `json:"requirement" example:"0"`
-	// 感谢内容
+	// 答谢内容
 	Content []string `json:"content"`
 }
 

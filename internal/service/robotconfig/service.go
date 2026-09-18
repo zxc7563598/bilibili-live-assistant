@@ -178,61 +178,51 @@ func (s *Service) ApplyPkConfig(ctx context.Context, data PkConfigReq) (int, err
 // ======================== welcome ========================
 
 // GetWelcomeConfig 用于获取进房欢迎模块配置
-func (s *Service) GetWelcomeConfig(ctx context.Context) (WelcomeConfigResp, int, error) {
-	group, ok := s.configCache.GetGroup("welcome")
-	if !ok {
-		return WelcomeConfigResp{}, 0, nil
-	}
-	resp, err := toWelcomeConfigResp(group)
-	if err != nil {
-		return WelcomeConfigResp{}, CodeQueryFailed, err
-	}
-	return resp, 0, nil
+func (s *Service) GetWelcomeConfig(ctx context.Context) (SceneReplyConfigResp, int, error) {
+	return s.getSceneReplyConfig(ctx, "welcome")
 }
 
 // ApplyWelcomeConfig 用于存储进房欢迎模块配置
-func (s *Service) ApplyWelcomeConfig(ctx context.Context, data WelcomeConfigReq) (int, error) {
-	return s.applyConfig(ctx, "welcome", welcomeConfigReqToMap(data))
+func (s *Service) ApplyWelcomeConfig(ctx context.Context, data SceneReplyConfigReq) (int, error) {
+	return s.applyConfig(ctx, "welcome", sceneReplyConfigReqToMap(data))
 }
 
 // ======================== follow ========================
 
 // GetFollowConfig 用于获取感谢关注模块配置
-func (s *Service) GetFollowConfig(ctx context.Context) (FollowConfigResp, int, error) {
-	group, ok := s.configCache.GetGroup("follow")
-	if !ok {
-		return FollowConfigResp{}, 0, nil
-	}
-	resp, err := toFollowConfigResp(group)
-	if err != nil {
-		return FollowConfigResp{}, CodeQueryFailed, err
-	}
-	return resp, 0, nil
+func (s *Service) GetFollowConfig(ctx context.Context) (SceneReplyConfigResp, int, error) {
+	return s.getSceneReplyConfig(ctx, "follow")
 }
 
 // ApplyFollowConfig 用于存储感谢关注模块配置
-func (s *Service) ApplyFollowConfig(ctx context.Context, data FollowConfigReq) (int, error) {
-	return s.applyConfig(ctx, "follow", followConfigReqToMap(data))
+func (s *Service) ApplyFollowConfig(ctx context.Context, data SceneReplyConfigReq) (int, error) {
+	return s.applyConfig(ctx, "follow", sceneReplyConfigReqToMap(data))
 }
 
 // ======================== share ========================
 
 // GetShareConfig 用于获取感谢分享模块配置
-func (s *Service) GetShareConfig(ctx context.Context) (ShareConfigResp, int, error) {
-	group, ok := s.configCache.GetGroup("share")
-	if !ok {
-		return ShareConfigResp{}, 0, nil
-	}
-	resp, err := toShareConfigResp(group)
-	if err != nil {
-		return ShareConfigResp{}, CodeQueryFailed, err
-	}
-	return resp, 0, nil
+func (s *Service) GetShareConfig(ctx context.Context) (SceneReplyConfigResp, int, error) {
+	return s.getSceneReplyConfig(ctx, "share")
 }
 
 // ApplyShareConfig 用于存储感谢分享模块配置
-func (s *Service) ApplyShareConfig(ctx context.Context, data ShareConfigReq) (int, error) {
-	return s.applyConfig(ctx, "share", shareConfigReqToMap(data))
+func (s *Service) ApplyShareConfig(ctx context.Context, data SceneReplyConfigReq) (int, error) {
+	return s.applyConfig(ctx, "share", sceneReplyConfigReqToMap(data))
+}
+
+// getSceneReplyConfig 读取场景答谢配置的共用实现。
+// 分组不存在时返回零值且不报错（该场景尚未配置过）。
+func (s *Service) getSceneReplyConfig(ctx context.Context, groupName string) (SceneReplyConfigResp, int, error) {
+	group, ok := s.configCache.GetGroup(groupName)
+	if !ok {
+		return SceneReplyConfigResp{}, 0, nil
+	}
+	resp, err := toSceneReplyConfigResp(group)
+	if err != nil {
+		return SceneReplyConfigResp{}, CodeQueryFailed, err
+	}
+	return resp, 0, nil
 }
 
 // ======================== reply ========================

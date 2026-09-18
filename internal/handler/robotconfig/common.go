@@ -78,26 +78,11 @@ func toPkConfigResp(svcResp robotconfigsvc.PkConfigResp) resp.PkConfigResp {
 	}
 }
 
-func toWelcomeConfigResp(svcResp robotconfigsvc.WelcomeConfigResp) resp.WelcomeConfigResp {
-	return resp.WelcomeConfigResp{
-		Enabled:     svcResp.Enabled,
-		Scene:       svcResp.Scene,
-		Requirement: svcResp.Requirement,
-		Content:     svcResp.Content,
-	}
-}
-
-func toFollowConfigResp(svcResp robotconfigsvc.FollowConfigResp) resp.FollowConfigResp {
-	return resp.FollowConfigResp{
-		Enabled:     svcResp.Enabled,
-		Scene:       svcResp.Scene,
-		Requirement: svcResp.Requirement,
-		Content:     svcResp.Content,
-	}
-}
-
-func toShareConfigResp(svcResp robotconfigsvc.ShareConfigResp) resp.ShareConfigResp {
-	return resp.ShareConfigResp{
+// toSceneReplyConfigResp 场景答谢配置转换：Service 出参 → 响应结构
+//
+// 进房欢迎 / 感谢关注 / 感谢分享三个模块共用一份结构与转换。
+func toSceneReplyConfigResp(svcResp robotconfigsvc.SceneReplyConfigResp) resp.SceneReplyConfigResp {
+	return resp.SceneReplyConfigResp{
 		Enabled:     svcResp.Enabled,
 		Scene:       svcResp.Scene,
 		Requirement: svcResp.Requirement,

@@ -284,7 +284,7 @@ func (h *Handler) ApplyPkConfig(c *gin.Context) {
 // @Tags 机器人配置
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Success 200 {object} response.Response{data=resp.WelcomeConfigResp} "统一响应（code=0成功，其它失败）"
+// @Success 200 {object} response.Response{data=resp.SceneReplyConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/welcome/get [post]
 func (h *Handler) GetWelcomeConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -295,7 +295,7 @@ func (h *Handler) GetWelcomeConfig(c *gin.Context) {
 		response.Error(c, lang, errCode)
 		return
 	}
-	response.Success(c, lang, toWelcomeConfigResp(svcResp))
+	response.Success(c, lang, toSceneReplyConfigResp(svcResp))
 }
 
 // @Summary 更新进房欢迎模块配置
@@ -303,19 +303,19 @@ func (h *Handler) GetWelcomeConfig(c *gin.Context) {
 // @Tags 机器人配置
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Param data body input.WelcomeConfigReq true "进房欢迎配置参数"
+// @Param data body input.SceneReplyConfigReq true "进房欢迎配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/welcome/apply [post]
 func (h *Handler) ApplyWelcomeConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-	var req input.WelcomeConfigReq
+	var req input.SceneReplyConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(logger.RobotConfigLogger, "ApplyWelcomeConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
-	errCode, err := h.robotConfigSvc.ApplyWelcomeConfig(ctx, robotconfigsvc.WelcomeConfigReq{
+	errCode, err := h.robotConfigSvc.ApplyWelcomeConfig(ctx, robotconfigsvc.SceneReplyConfigReq{
 		Enabled:     req.Enabled,
 		Scene:       req.Scene,
 		Requirement: req.Requirement,
@@ -334,7 +334,7 @@ func (h *Handler) ApplyWelcomeConfig(c *gin.Context) {
 // @Tags 机器人配置
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Success 200 {object} response.Response{data=resp.FollowConfigResp} "统一响应（code=0成功，其它失败）"
+// @Success 200 {object} response.Response{data=resp.SceneReplyConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/follow/get [post]
 func (h *Handler) GetFollowConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -345,7 +345,7 @@ func (h *Handler) GetFollowConfig(c *gin.Context) {
 		response.Error(c, lang, errCode)
 		return
 	}
-	response.Success(c, lang, toFollowConfigResp(svcResp))
+	response.Success(c, lang, toSceneReplyConfigResp(svcResp))
 }
 
 // @Summary 更新感谢关注模块配置
@@ -353,19 +353,19 @@ func (h *Handler) GetFollowConfig(c *gin.Context) {
 // @Tags 机器人配置
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Param data body input.FollowConfigReq true "感谢关注配置参数"
+// @Param data body input.SceneReplyConfigReq true "感谢关注配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/follow/apply [post]
 func (h *Handler) ApplyFollowConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-	var req input.FollowConfigReq
+	var req input.SceneReplyConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(logger.RobotConfigLogger, "ApplyFollowConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
-	errCode, err := h.robotConfigSvc.ApplyFollowConfig(ctx, robotconfigsvc.FollowConfigReq{
+	errCode, err := h.robotConfigSvc.ApplyFollowConfig(ctx, robotconfigsvc.SceneReplyConfigReq{
 		Enabled:     req.Enabled,
 		Scene:       req.Scene,
 		Requirement: req.Requirement,
@@ -384,7 +384,7 @@ func (h *Handler) ApplyFollowConfig(c *gin.Context) {
 // @Tags 机器人配置
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Success 200 {object} response.Response{data=resp.ShareConfigResp} "统一响应（code=0成功，其它失败）"
+// @Success 200 {object} response.Response{data=resp.SceneReplyConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/share/get [post]
 func (h *Handler) GetShareConfig(c *gin.Context) {
 	ctx := c.Request.Context()
@@ -395,7 +395,7 @@ func (h *Handler) GetShareConfig(c *gin.Context) {
 		response.Error(c, lang, errCode)
 		return
 	}
-	response.Success(c, lang, toShareConfigResp(svcResp))
+	response.Success(c, lang, toSceneReplyConfigResp(svcResp))
 }
 
 // @Summary 更新感谢分享模块配置
@@ -403,19 +403,19 @@ func (h *Handler) GetShareConfig(c *gin.Context) {
 // @Tags 机器人配置
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Param data body input.ShareConfigReq true "感谢分享配置参数"
+// @Param data body input.SceneReplyConfigReq true "感谢分享配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/share/apply [post]
 func (h *Handler) ApplyShareConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-	var req input.ShareConfigReq
+	var req input.SceneReplyConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(logger.RobotConfigLogger, "ApplyShareConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
-	errCode, err := h.robotConfigSvc.ApplyShareConfig(ctx, robotconfigsvc.ShareConfigReq{
+	errCode, err := h.robotConfigSvc.ApplyShareConfig(ctx, robotconfigsvc.SceneReplyConfigReq{
 		Enabled:     req.Enabled,
 		Scene:       req.Scene,
 		Requirement: req.Requirement,

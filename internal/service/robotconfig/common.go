@@ -217,21 +217,19 @@ func pkConfigReqToMap(req PkConfigReq) map[string]string {
 }
 
 // ======================== welcome ========================
-
-func toWelcomeConfigResp(group map[string]string) (WelcomeConfigResp, error) {
+func toSceneReplyConfigResp(group map[string]string) (SceneReplyConfigResp, error) {
 	content, err := getStringSlice(group, "content")
 	if err != nil {
-		return WelcomeConfigResp{}, err
+		return SceneReplyConfigResp{}, err
 	}
-	return WelcomeConfigResp{
+	return SceneReplyConfigResp{
 		Enabled:     getString(group, "enabled"),
 		Scene:       getString(group, "scene"),
 		Requirement: getString(group, "requirement"),
 		Content:     content,
 	}, nil
 }
-
-func welcomeConfigReqToMap(req WelcomeConfigReq) map[string]string {
+func sceneReplyConfigReqToMap(req SceneReplyConfigReq) map[string]string {
 	return map[string]string{
 		"enabled":     req.Enabled,
 		"scene":       req.Scene,
@@ -242,51 +240,7 @@ func welcomeConfigReqToMap(req WelcomeConfigReq) map[string]string {
 
 // ======================== follow ========================
 
-func toFollowConfigResp(group map[string]string) (FollowConfigResp, error) {
-	content, err := getStringSlice(group, "content")
-	if err != nil {
-		return FollowConfigResp{}, err
-	}
-	return FollowConfigResp{
-		Enabled:     getString(group, "enabled"),
-		Scene:       getString(group, "scene"),
-		Requirement: getString(group, "requirement"),
-		Content:     content,
-	}, nil
-}
-
-func followConfigReqToMap(req FollowConfigReq) map[string]string {
-	return map[string]string{
-		"enabled":     req.Enabled,
-		"scene":       req.Scene,
-		"requirement": req.Requirement,
-		"content":     marshalSlice(req.Content),
-	}
-}
-
 // ======================== share ========================
-
-func toShareConfigResp(group map[string]string) (ShareConfigResp, error) {
-	content, err := getStringSlice(group, "content")
-	if err != nil {
-		return ShareConfigResp{}, err
-	}
-	return ShareConfigResp{
-		Enabled:     getString(group, "enabled"),
-		Scene:       getString(group, "scene"),
-		Requirement: getString(group, "requirement"),
-		Content:     content,
-	}, nil
-}
-
-func shareConfigReqToMap(req ShareConfigReq) map[string]string {
-	return map[string]string{
-		"enabled":     req.Enabled,
-		"scene":       req.Scene,
-		"requirement": req.Requirement,
-		"content":     marshalSlice(req.Content),
-	}
-}
 
 // ======================== reply ========================
 

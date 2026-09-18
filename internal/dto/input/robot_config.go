@@ -90,39 +90,18 @@ type PkConfigReq struct {
 	Content []string `json:"content" binding:"required" err:"required=10501"`
 }
 
-// WelcomeConfigReq 进房欢迎模块配置请求
-type WelcomeConfigReq struct {
+// SceneReplyConfigReq 场景答谢模块配置请求
+//
+// 进房欢迎（welcome）、感谢关注（follow）、感谢分享（share）三个模块的表单
+// 字段完全一致，共用这一份入参；三者只是写往不同的配置分组。
+type SceneReplyConfigReq struct {
 	// 是否启用, 0-禁用, 1-启用
 	Enabled string `json:"enabled" binding:"required" err:"required=10501" example:"1"`
 	// 可用场景, 0-不限制, 1-直播中, 2-非直播中
 	Scene string `json:"scene" binding:"required" err:"required=10501" example:"1"`
-	// 欢迎门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
+	// 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
 	Requirement string `json:"requirement" binding:"required" err:"required=10501" example:"0"`
-	// 欢迎内容（JSON 数组字符串）
-	Content []string `json:"content" binding:"required" err:"required=10501"`
-}
-
-// FollowConfigReq 感谢关注模块配置请求
-type FollowConfigReq struct {
-	// 是否启用, 0-禁用, 1-启用
-	Enabled string `json:"enabled" binding:"required" err:"required=10501" example:"1"`
-	// 可用场景, 0-不限制, 1-直播中, 2-非直播中
-	Scene string `json:"scene" binding:"required" err:"required=10501" example:"1"`
-	// 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-	Requirement string `json:"requirement" binding:"required" err:"required=10501" example:"0"`
-	// 感谢内容（JSON 数组字符串）
-	Content []string `json:"content" binding:"required" err:"required=10501"`
-}
-
-// ShareConfigReq 感谢分享模块配置请求
-type ShareConfigReq struct {
-	// 是否启用, 0-禁用, 1-启用
-	Enabled string `json:"enabled" binding:"required" err:"required=10501" example:"1"`
-	// 可用场景, 0-不限制, 1-直播中, 2-非直播中
-	Scene string `json:"scene" binding:"required" err:"required=10501" example:"1"`
-	// 感谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
-	Requirement string `json:"requirement" binding:"required" err:"required=10501" example:"0"`
-	// 感谢内容（JSON 数组字符串）
+	// 答谢内容（JSON 数组字符串）
 	Content []string `json:"content" binding:"required" err:"required=10501"`
 }
 
