@@ -130,25 +130,57 @@ T MM XX
 
 ### 模块编号（MM）
 
-| 编号 | 模块 |
-|------|------|
-| 00 | 通用模块（Common） |
-| 01 | 管理员模块（Admin） |
-| 02 | 角色模块（Role） |
-| 03 | 菜单模块（Menu） |
-| 09 | App 配置模块（AppConfig） |
-| 10 | 商品模块（Product） |
-| 12 | 反馈模块（Feedback） |
-| 14 | 上传模块（Upload） |
-| 15 | PK 对战记录模块（LivePk） |
+| 编号 | 模块 | 常量文件 |
+|------|------|---------|
+| 00 | 通用模块（Common） | `internal/i18n/code.go` |
+| 01 | 管理员模块（Admin） | `internal/service/admin/code.go` |
+| 02 | 角色模块（Role） | `internal/service/role/code.go` |
+| 03 | 菜单模块（Menu） | `internal/service/menu/code.go` |
+| 04 | 直播模块（Live） | `internal/service/live/code.go` |
+| 05 | 机器人配置模块（RobotConfig） | `internal/service/robotconfig/code.go` |
+| 06 | 弹幕模块（LiveDanmu） | `internal/service/livedanmu/code.go` |
+| 07 | 礼物模块（LiveGift） | `internal/service/livegift/code.go` |
+| 08 | 用户模块（LiveUser） | `internal/service/liveuser/code.go` |
+| 09 | App 配置模块（AppConfig） | `internal/service/appconfig/code.go` |
+| 10 | 商品模块（Product） | `internal/service/product/code.go` |
+| 11 | 订单模块（Order） | `internal/service/order/code.go` |
+| 12 | 反馈模块（Feedback） | `internal/service/feedback/code.go` |
+| 13 | 收货地址模块（Address） | `internal/service/address/code.go` |
+| 14 | 上传模块（Upload） | `internal/service/upload/code.go` |
+| 15 | PK 对战记录模块（LivePk） | `internal/service/livepk/code.go` |
+| 16 | 验证码模块（Altcha） | `internal/service/altcha/code.go` |
+| 17–99 | 未分配 | — |
 
 新增业务模块时，分配新的 MM 编号并在此文档更新。
+
+## 错误码的归属规则
+
+**每个模块只使用本模块 MM 段的错误码，不引用其它模块的。**
+
+MM=00 是唯一例外：它是「通用模块」，中间件、参数校验与 handler 共用这一段
+（例如 20001 登录已过期由 12 个 handler 包共同返回）。**业务 service 不应引用 MM=00**，
+自己的登录态、参数错误等都要用本模块的码。
+
+由此产生一条推论，别去「优化」它：
+
+> **不同模块出现相同文案是可以接受的。** 多个模块都有「系统繁忙，请稍后重试」、
+> 「请求参数不合法」，但它们是各自的码。不要为了消除文案重复而让两个模块共用一个
+> 错误码——那样错误码就不再能标识是哪个模块出的问题，按模块分组的监控告警也会失效。
+
+代码里的引用一律用常量，不写五位数裸字面量：常量声明在各模块的 `code.go`，
+MM=00 的在 `internal/i18n/code.go`。
+
+**已知限制**：`internal/dto/input/*.go` 的 `err:"required=11001"` 这类 struct tag
+只能是字符串字面量，Go 没有机制引用常量，所以那里仍写数字。
 
 ## 核心约定
 
 1. 所有用户可见文本通过 i18n 获取，不在代码中写死
 2. 错误信息统一通过错误码 + `i18n.E()` 返回
-3. 新增错误码在 YAML 的 `error` 节点下添加
+3. 新增错误码在 YAML 的 `error` 节点下添加，**中英两份都要加**。漏加不会编译失败，
+   只会在界面上渲染成 `unknown error`（`i18n.go` 的兜底文案），且没有任何自动化校验
 4. 同一错误类型+模块下，XX 从 01 递增且不复用
-5. 优先使用业务错误（4xx），避免滥用参数错误（1xx）
+5. 优先使用业务错误（4xx），避免滥用参数错误（1xx）。
+   注意现有的 `10002`–`10008` 是登录态失效（认证错误）却编在 T=1 下，属历史遗留；
+   新模块的登录态错误请用 T=2（如 admin 的 `20101`–`20103`）
 6. 系统错误（6xx）不暴露内部细节，统一返回通用提示

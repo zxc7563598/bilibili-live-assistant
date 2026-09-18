@@ -115,7 +115,7 @@ func (s *Service) runAutoSender(ctx context.Context, done chan struct{}, scene, 
 	}
 }
 
-// checkAdScene 根据配置检查当前是否满足发送场景
+// checkAdSend 根据配置检查当前是否满足广告发送场景
 func (s *Service) checkAdSend(scene string) bool {
 	sceneValue := ptr.ParseEnumInt[enum.Scene](scene)
 	switch sceneValue {

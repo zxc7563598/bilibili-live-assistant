@@ -122,10 +122,10 @@ func InitHandlers(svc *Services) *Handlers {
 ```go
 // handler 结构体
 type Handler struct {
-    adminSvc admin.Service
+    adminSvc *admin.Service
 }
 
-func New(adminSvc admin.Service) *Handler {
+func New(adminSvc *admin.Service) *Handler {
     return &Handler{adminSvc: adminSvc}
 }
 ```
