@@ -21,8 +21,8 @@ type Repository interface {
 	ListButtonsByParentID(ctx context.Context, tx *gorm.DB, parentID int64) ([]model.Menu, error)
 	// UpdateByID 变更菜单基本信息
 	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.MenuUpdateByIdForm) error
-	// UpdateEnableByID 切换菜单启动状态
-	UpdateEnableByID(ctx context.Context, tx *gorm.DB, id int64) error
+	// ToggleEnableByID 切换菜单启动状态
+	ToggleEnableByID(ctx context.Context, tx *gorm.DB, id int64) error
 }
 
 // ListEnabled 获取全部启用菜单
@@ -73,8 +73,8 @@ func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form m
 	})
 }
 
-// UpdateEnableByID 切换菜单启动状态
-func (r *gormRepo) UpdateEnableByID(ctx context.Context, tx *gorm.DB, id int64) error {
+// ToggleEnableByID 切换菜单启动状态
+func (r *gormRepo) ToggleEnableByID(ctx context.Context, tx *gorm.DB, id int64) error {
 	db := r.ResolveDB(ctx, tx)
 	err := db.WithContext(ctx).
 		Model(&model.Menu{}).
