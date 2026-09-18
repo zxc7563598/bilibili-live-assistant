@@ -31,7 +31,7 @@ type danmuProcessor struct {
 	liveDanmuRepo         live_danmu.Repository
 	liveGiftRepo          live_gift.Repository
 	liveUserSignLogRepo   live_user_sign_log.Repository
-	LiveUserBlacklistRepo live_user_blacklist.Repository
+	liveUserBlacklistRepo live_user_blacklist.Repository
 	roomState             *RoomState
 	configCache           *robotconfig.Cache
 	client                *bilibili.Client
@@ -39,13 +39,13 @@ type danmuProcessor struct {
 	enqueueDanmu          func(msg string, kind string)
 }
 
-func newDanmuProcessor(liveUserSvc *liveuser.Service, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserSignLogRepo live_user_sign_log.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *danmuProcessor {
+func newDanmuProcessor(liveUserSvc *liveuser.Service, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserSignLogRepo live_user_sign_log.Repository, liveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *danmuProcessor {
 	return &danmuProcessor{
 		liveUserSvc:           liveUserSvc,
 		liveDanmuRepo:         liveDanmuRepo,
 		liveGiftRepo:          liveGiftRepo,
 		liveUserSignLogRepo:   liveUserSignLogRepo,
-		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
+		liveUserBlacklistRepo: liveUserBlacklistRepo,
 		roomState:             roomState,
 		configCache:           configCache,
 		client:                client,
@@ -391,7 +391,7 @@ func (p *danmuProcessor) blockUserForReply(uid, roomID int64, uname, msg, muteDu
 	}
 	ransomAmountValue, _ := strconv.ParseInt(ransomAmount, 10, 64)
 	muteDurationValue, _ := strconv.ParseInt(muteDuration, 10, 64)
-	_, err = p.LiveUserBlacklistRepo.Create(context.Background(), nil, &model.LiveUserBlacklist{
+	_, err = p.liveUserBlacklistRepo.Create(context.Background(), nil, &model.LiveUserBlacklist{
 		RoomID:          roomID,
 		UID:             uid,
 		Uname:           uname,
