@@ -68,7 +68,8 @@ type Repository interface {
 	ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveGift, error)
 	// ListByLiveID 根据 LiveID 查询礼物，按 SendAt 倒序，limit 控制最大条数
 	ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, limit int) ([]model.LiveGift, error)
-	// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的礼物关联到直播记录
+	// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的礼物批量关联到直播记录
+	// 判据 room_id + 时间区间，可能命中多行；区间为闭闭 [startTime, endTime]
 	UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error
 	// CountAndRevenueByRoomIDAndTimeRange 统计指定房间在时间范围内的礼物数量与收益（price * num）
 	CountAndRevenueByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (count int64, revenue int64, err error)
@@ -206,7 +207,7 @@ func (r *gormRepo) ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, 
 	return list, err
 }
 
-// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的礼物关联到直播记录
+// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的礼物批量关联到直播记录
 func (r *gormRepo) UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error {
 	db := r.ResolveDB(ctx, tx)
 	return db.Model(&model.LiveGift{}).

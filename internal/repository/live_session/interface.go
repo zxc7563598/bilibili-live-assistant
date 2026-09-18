@@ -47,9 +47,9 @@ type Repository interface {
 	UpdateEndByID(ctx context.Context, tx *gorm.DB, id int64, form model.LiveSessionUpdateEndForm) error
 	// UpdateStatsByID 根据 ID 更新统计数据（DanmuCount / GiftCount / GuardCount / SuperChatCount / TotalRevenue）
 	UpdateStatsByID(ctx context.Context, tx *gorm.DB, id int64, form model.LiveSessionUpdateStatsForm) error
-	// ListActive 获取所有未下播的记录
+	// ListActive 获取所有未下播的记录（判据是 end_at = 0），按 StartAt 升序
 	ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSession, error)
-	// ListActiveByRoomID 获取指定房间所有未下播的记录
+	// ListActiveByRoomID 获取指定房间所有未下播的记录（判据是 end_at = 0），按 StartAt 升序
 	ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID int64) ([]model.LiveSession, error)
 	// DistinctLiveDays 统计时间范围内有哪些天开播过（不区分主播/房间，通常只有一个主播），
 	// 返回「当月第几天」(1-31) 的集合作为 key；时间区间为闭开 [startAt, endAt)。
