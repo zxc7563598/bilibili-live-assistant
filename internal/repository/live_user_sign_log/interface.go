@@ -15,8 +15,8 @@ type Repository interface {
 
 	// CountByUID 统计指定UID的总签到次数
 	CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
-	// StreakByUID 计算指定UID的连续签到天数
-	StreakByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
+	// StreakDaysByUID 计算指定UID的连续签到天数
+	StreakDaysByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
 }
 
 // CountByUID 统计指定UID的总签到次数
@@ -29,10 +29,10 @@ func (r *gormRepo) CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int6
 	return count, err
 }
 
-// StreakByUID 计算指定UID的连续签到天数
+// StreakDaysByUID 计算指定UID的连续签到天数
 //
 // 以 sign_date 为准逐日回溯。sign_date 是写入时按服务器本地时区生成的 YYYY-MM-DD
-func (r *gormRepo) StreakByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error) {
+func (r *gormRepo) StreakDaysByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error) {
 	db := r.ResolveDB(ctx, tx)
 	var dates []string
 	if err := db.Model(&model.LiveUserSignLog{}).

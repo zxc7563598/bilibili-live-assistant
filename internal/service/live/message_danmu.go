@@ -255,7 +255,7 @@ func (p *danmuProcessor) resolveSignVars(ctx context.Context, info *live.DanmuMs
 	}
 	// IO：连续签到天数
 	if needed["streak"] {
-		streak, err := p.liveUserSignLogRepo.StreakByUID(ctx, nil, info.UID)
+		streak, err := p.liveUserSignLogRepo.StreakDaysByUID(ctx, nil, info.UID)
 		if err == nil {
 			vars["streak"] = strconv.FormatInt(streak, 10)
 		}
