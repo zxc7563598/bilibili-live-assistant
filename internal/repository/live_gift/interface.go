@@ -56,12 +56,12 @@ type Repository interface {
 	DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error)
 	// ListPage 分页查询礼物，Uname/GiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) ([]model.LiveGift, int64, error)
-	// ListStats 分页礼物列表聚合统计
-	ListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (int64, int64, error)
+	// SumNumAndAmount 按列表查询条件聚合礼物总数与总金额（price * num）
+	SumNumAndAmount(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (totalNum, totalAmount int64, err error)
 	// BlindBoxListPage 分页查询盲盒礼物，Uname/GiftName/OriginalGiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	BlindBoxListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) ([]model.LiveGift, int64, error)
-	// BlindBoxListStats 分页盲盒礼物列表聚合统计
-	BlindBoxListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (int64, int64, error)
+	// SumOriginalAndCurrentPrice 按盲盒列表查询条件聚合原价总额与现价总额
+	SumOriginalAndCurrentPrice(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (originalPrice, currentPrice int64, err error)
 	// SumTotalGiftAmountByUID 获取指定uid赠送总金额
 	SumTotalGiftAmountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
 	// ListByUID 根据 UID 查询礼物，按 SendAt 倒序，limit 控制最大条数
@@ -118,15 +118,15 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGi
 	return list, total, err
 }
 
-// ListStats 分页礼物列表聚合统计
-func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (int64, int64, error) {
+// SumNumAndAmount 按列表查询条件聚合礼物总数与总金额
+func (r *gormRepo) SumNumAndAmount(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (totalNum, totalAmount int64, err error) {
 	var result struct {
 		TotalNum    int64
 		TotalAmount int64
 	}
 	db := r.ResolveDB(ctx, tx).Model(&model.LiveGift{})
 	db = r.applyLiveGiftListQuery(db, query)
-	err := db.Select(`
+	err = db.Select(`
 		COALESCE(SUM(num), 0) AS total_num,
 		COALESCE(SUM(num * price), 0) AS total_amount
 	`).Scan(&result).Error
@@ -160,15 +160,15 @@ func (r *gormRepo) BlindBoxListPage(ctx context.Context, tx *gorm.DB, query mode
 	return list, total, err
 }
 
-// BlindBoxListStats 分页盲盒礼物列表聚合统计
-func (r *gormRepo) BlindBoxListStats(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (int64, int64, error) {
+// SumOriginalAndCurrentPrice 按盲盒列表查询条件聚合原价总额与现价总额
+func (r *gormRepo) SumOriginalAndCurrentPrice(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (originalPrice, currentPrice int64, err error) {
 	var result struct {
 		OriginalPrice int64
 		CurrentPrice  int64
 	}
 	db := r.ResolveDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
 	db = r.applyLiveGiftBlindBoxListQuery(db, query)
-	err := db.Select(`
+	err = db.Select(`
 		COALESCE(SUM(num * original_gift_price), 0) AS original_price,
 		COALESCE(SUM(num * price), 0) AS current_price
 	`).Scan(&result).Error
