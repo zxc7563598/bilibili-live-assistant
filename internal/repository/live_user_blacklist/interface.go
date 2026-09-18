@@ -2,7 +2,6 @@ package live_user_blacklist
 
 import (
 	"context"
-	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
@@ -14,7 +13,8 @@ import (
 type Repository interface {
 	base.Repository[model.LiveUserBlacklist]
 	// GetActiveByRoomUID 获取用户在指定房间内禁言中且未过期的黑名单记录
-	GetActiveByRoomUID(ctx context.Context, tx *gorm.DB, roomID, uid int64) (*model.LiveUserBlacklist, error)
+	// now 由调用方传入当前时间戳（秒级），与 ListExpiredMuted 保持同一约定，便于测试
+	GetActiveByRoomUID(ctx context.Context, tx *gorm.DB, roomID, uid, now int64) (*model.LiveUserBlacklist, error)
 	// UpdateUnmuteResult 根据黑名单ID更新解禁结果
 	UpdateUnmuteResult(ctx context.Context, tx *gorm.DB, id int64, status enum.MuteStatus, unmuteFailCount int64) error
 	// ListExpiredMuted 查询已到解禁时间但仍处于禁言状态的黑名单记录
@@ -23,13 +23,13 @@ type Repository interface {
 
 // GetActiveByRoomUID 获取用户在指定房间内禁言中且未过期的黑名单记录
 // 多条匹配时取 CreatedAt 最新的一条，不存在返回 nil
-func (r *gormRepo) GetActiveByRoomUID(ctx context.Context, tx *gorm.DB, roomID, uid int64) (*model.LiveUserBlacklist, error) {
+func (r *gormRepo) GetActiveByRoomUID(ctx context.Context, tx *gorm.DB, roomID, uid, now int64) (*model.LiveUserBlacklist, error) {
 	db := r.ResolveDB(ctx, tx)
 	var entity model.LiveUserBlacklist
 	err := db.Where("room_id = ?", roomID).
 		Where("uid = ?", uid).
 		Where("status = ?", enum.MuteStatusMuted).
-		Where("mute_expires_at > ?", time.Now().Unix()).
+		Where("mute_expires_at > ?", now).
 		Order("created_at desc").
 		First(&entity).Error
 	if err != nil {

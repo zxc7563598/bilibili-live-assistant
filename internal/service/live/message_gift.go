@@ -496,7 +496,7 @@ func (p *giftProcessor) processRedeem(ctx context.Context, uid, price, num, room
 		return
 	}
 	// 获取用户是否正在禁言中
-	black, err := p.LiveUserBlacklistRepo.GetActiveByRoomUID(ctx, nil, roomID, uid)
+	black, err := p.LiveUserBlacklistRepo.GetActiveByRoomUID(ctx, nil, roomID, uid, time.Now().Unix())
 	if err != nil {
 		log.Printf("[live.Gift] 获取黑名单数据失败: %v", err)
 		return
