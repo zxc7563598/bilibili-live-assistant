@@ -52,7 +52,7 @@ func newGiftMergeBuffer(interval time.Duration) *giftMergeBuffer {
 type giftProcessor struct {
 	liveUserSvc           *liveuser.Service
 	liveGiftRepo          live_gift.Repository
-	LiveUserBlacklistRepo live_user_blacklist.Repository
+	liveUserBlacklistRepo live_user_blacklist.Repository
 	roomState             *RoomState
 	configCache           *robotconfig.Cache
 	client                *bilibili.Client
@@ -76,11 +76,11 @@ type giftThankInfo struct {
 	BadgeType         enum.BadgeType // 牌子类型
 }
 
-func newGiftProcessor(liveUserSvc *liveuser.Service, liveGiftRepo live_gift.Repository, LiveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
+func newGiftProcessor(liveUserSvc *liveuser.Service, liveGiftRepo live_gift.Repository, liveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
 	return &giftProcessor{
 		liveUserSvc:           liveUserSvc,
 		liveGiftRepo:          liveGiftRepo,
-		LiveUserBlacklistRepo: LiveUserBlacklistRepo,
+		liveUserBlacklistRepo: liveUserBlacklistRepo,
 		roomState:             roomState,
 		configCache:           configCache,
 		client:                client,
@@ -496,7 +496,7 @@ func (p *giftProcessor) processRedeem(ctx context.Context, uid, price, num, room
 		return
 	}
 	// 获取用户是否正在禁言中
-	black, err := p.LiveUserBlacklistRepo.GetActiveByRoomUID(ctx, nil, roomID, uid, time.Now().Unix())
+	black, err := p.liveUserBlacklistRepo.GetActiveByRoomUID(ctx, nil, roomID, uid, time.Now().Unix())
 	if err != nil {
 		log.Printf("[live.Gift] 获取黑名单数据失败: %v", err)
 		return
@@ -515,7 +515,7 @@ func (p *giftProcessor) processRedeem(ctx context.Context, uid, price, num, room
 		log.Printf("[live.Gift] 获取黑名单列表需要的 CSRF 获取失败: %v", err)
 		return
 	}
-	unmuteUser(ctx, p.client, p.LiveUserBlacklistRepo, black, csrf)
+	unmuteUser(ctx, p.client, p.liveUserBlacklistRepo, black, csrf)
 }
 
 // processReward 奖励发放：根据系统设置为用户发放奖励

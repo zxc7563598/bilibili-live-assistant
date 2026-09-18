@@ -24,12 +24,12 @@ func (s *Service) UnmuteDueUsers(ctx context.Context) error {
 		log.Printf("[live.Unmute] 机器人未登录或缺少 CSRF，跳过解禁任务: %v", err)
 		return nil
 	}
-	list, err := s.LiveUserBlacklistRepo.ListExpiredMuted(ctx, nil, time.Now().Unix())
+	list, err := s.liveUserBlacklistRepo.ListExpiredMuted(ctx, nil, time.Now().Unix())
 	if err != nil {
 		return fmt.Errorf("查询到期黑名单失败: %w", err)
 	}
 	for i := range list {
-		unmuteUser(ctx, client, s.LiveUserBlacklistRepo, &list[i], csrf)
+		unmuteUser(ctx, client, s.liveUserBlacklistRepo, &list[i], csrf)
 	}
 	return nil
 }

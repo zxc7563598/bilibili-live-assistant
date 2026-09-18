@@ -24,20 +24,24 @@ import (
 	"gorm.io/gorm"
 )
 
+// Services 各 Service 一律用指针：
+// 一是各包的 New 本来就返回 *Service，二是 live.Service 内含 sync.Mutex 与 channel，
+// 用值类型会被复制（go vet 的 copylocks 会报），且 RobotConfig / LiveUser 这两个
+// 被 live.New 持有的共享实例会分裂成两份。
 type Services struct {
 	Address     *address.Service
-	Admin       admin.Service
-	Role        role.Service
-	Menu        menu.Service
-	Altcha      altcha.Service
+	Admin       *admin.Service
+	Role        *role.Service
+	Menu        *menu.Service
+	Altcha      *altcha.Service
 	Live        *live.Service
 	RobotConfig *robotconfigsvc.Service
-	LiveDanmu   livedanmu.Service
-	LiveGift    livegift.Service
-	LivePk      livepk.Service
+	LiveDanmu   *livedanmu.Service
+	LiveGift    *livegift.Service
+	LivePk      *livepk.Service
 	LiveUser    *liveuser.Service
-	AppConfig   appconfigsvc.Service
-	Product     product.Service
+	AppConfig   *appconfigsvc.Service
+	Product     *product.Service
 	Order       *order.Service
 	Feedback    *feedbacksvc.Service
 	Upload      *uploadsvc.Service
@@ -48,18 +52,18 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 	liveUserSvc := liveuser.New(db, rdb, appConfigCache, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveDanmu, repo.LiveGift, repo.LiveSession)
 	return &Services{
 		Address:     address.New(db, repo.LiveUserAddress),
-		Admin:       *admin.New(repo.Admin, repo.AdminRole, repo.Role, db, rdb),
-		Role:        *role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),
-		Menu:        *menu.New(repo.Menu),
-		Altcha:      *altcha.New(cfg.Altcha.HMACKey),
+		Admin:       admin.New(repo.Admin, repo.AdminRole, repo.Role, db, rdb),
+		Role:        role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),
+		Menu:        menu.New(repo.Menu),
+		Altcha:      altcha.New(cfg.Altcha.HMACKey),
 		Live:        live.New(cfg.Live, robotConfigSvc, liveUserSvc, configCache, repo.LiveDanmu, repo.LiveGift, repo.LiveSession, repo.LiveUser, repo.LiveUserSignLog, repo.LiveUserBlacklist, repo.LiveInteractWord, repo.LivePkLog),
 		RobotConfig: robotConfigSvc,
-		LiveDanmu:   *livedanmu.New(repo.LiveDanmu),
-		LiveGift:    *livegift.New(repo.LiveGift),
-		LivePk:      *livepk.New(repo.LivePkLog),
+		LiveDanmu:   livedanmu.New(repo.LiveDanmu),
+		LiveGift:    livegift.New(repo.LiveGift),
+		LivePk:      livepk.New(repo.LivePkLog),
 		LiveUser:    liveUserSvc,
-		AppConfig:   *appconfigsvc.New(appConfigCache, repo.AppConfig),
-		Product:     *product.New(db, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),
+		AppConfig:   appconfigsvc.New(appConfigCache, repo.AppConfig),
+		Product:     product.New(db, repo.Product, repo.ProductSku, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),
 		Order:       order.New(db, repo.LiveUserOrder, repo.LiveUserOrderDraft, repo.LiveUserAddress, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, liveUserSvc),
 		Feedback:    feedbacksvc.New(repo.Feedback),
 		Upload:      uploadsvc.New(appConfigCache),

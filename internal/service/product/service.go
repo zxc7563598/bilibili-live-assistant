@@ -9,31 +9,28 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_image"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_sku"
-	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_sku_stock_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_spec"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_spec_value"
 	"gorm.io/gorm"
 )
 
 type Service struct {
-	db                     *gorm.DB
-	productRepo            product.Repository
-	productSkuRepo         product_sku.Repository
-	productSkuStockLogRepo product_sku_stock_log.Repository
-	productImageRepo       product_image.Repository
-	productSpecRepo        product_spec.Repository
-	productSpecValueRepo   product_spec_value.Repository
+	db                   *gorm.DB
+	productRepo          product.Repository
+	productSkuRepo       product_sku.Repository
+	productImageRepo     product_image.Repository
+	productSpecRepo      product_spec.Repository
+	productSpecValueRepo product_spec_value.Repository
 }
 
-func New(db *gorm.DB, productRepo product.Repository, productSkuRepo product_sku.Repository, productSkuStockLogRepo product_sku_stock_log.Repository, productImageRepo product_image.Repository, productSpecRepo product_spec.Repository, productSpecValueRepo product_spec_value.Repository) *Service {
+func New(db *gorm.DB, productRepo product.Repository, productSkuRepo product_sku.Repository, productImageRepo product_image.Repository, productSpecRepo product_spec.Repository, productSpecValueRepo product_spec_value.Repository) *Service {
 	return &Service{
-		db:                     db,
-		productRepo:            productRepo,
-		productSkuRepo:         productSkuRepo,
-		productSkuStockLogRepo: productSkuStockLogRepo,
-		productImageRepo:       productImageRepo,
-		productSpecRepo:        productSpecRepo,
-		productSpecValueRepo:   productSpecValueRepo,
+		db:                   db,
+		productRepo:          productRepo,
+		productSkuRepo:       productSkuRepo,
+		productImageRepo:     productImageRepo,
+		productSpecRepo:      productSpecRepo,
+		productSpecValueRepo: productSpecValueRepo,
 	}
 }
 
