@@ -1336,7 +1336,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/resp.LiveDanmuFetchRoomGroupsResp"
+                                            "$ref": "#/definitions/resp.RoomGroupOptionsResp"
                                         }
                                     }
                                 }
@@ -1495,7 +1495,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/resp.LiveGiftFetchRoomGroupsResp"
+                                            "$ref": "#/definitions/resp.RoomGroupOptionsResp"
                                         }
                                     }
                                 }
@@ -2501,7 +2501,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/resp.LivePkFetchRoomGroupsResp"
+                                            "$ref": "#/definitions/resp.RoomGroupOptionsResp"
                                         }
                                     }
                                 }
@@ -8767,28 +8767,6 @@ const docTemplate = `{
                 }
             }
         },
-        "resp.LiveDanmuFetchRoomGroupsItem": {
-            "type": "object",
-            "properties": {
-                "label": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "integer"
-                }
-            }
-        },
-        "resp.LiveDanmuFetchRoomGroupsResp": {
-            "type": "object",
-            "properties": {
-                "option": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/resp.LiveDanmuFetchRoomGroupsItem"
-                    }
-                }
-            }
-        },
         "resp.LiveDanmuListPageItem": {
             "type": "object",
             "properties": {
@@ -8964,28 +8942,6 @@ const docTemplate = `{
                 "original_price": {
                     "description": "原礼物总金额（分）",
                     "type": "integer"
-                }
-            }
-        },
-        "resp.LiveGiftFetchRoomGroupsItem": {
-            "type": "object",
-            "properties": {
-                "label": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "integer"
-                }
-            }
-        },
-        "resp.LiveGiftFetchRoomGroupsResp": {
-            "type": "object",
-            "properties": {
-                "option": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/resp.LiveGiftFetchRoomGroupsItem"
-                    }
                 }
             }
         },
@@ -9188,28 +9144,6 @@ const docTemplate = `{
                     "description": "账号名称",
                     "type": "string",
                     "example": "你的B站昵称"
-                }
-            }
-        },
-        "resp.LivePkFetchRoomGroupsItem": {
-            "type": "object",
-            "properties": {
-                "label": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "integer"
-                }
-            }
-        },
-        "resp.LivePkFetchRoomGroupsResp": {
-            "type": "object",
-            "properties": {
-                "option": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/resp.LivePkFetchRoomGroupsItem"
-                    }
                 }
             }
         },
@@ -10949,6 +10883,33 @@ const docTemplate = `{
                     "description": "奖励类型, 0-星光, 1-积分",
                     "type": "string",
                     "example": "1"
+                }
+            }
+        },
+        "resp.RoomGroupOptionItem": {
+            "type": "object",
+            "properties": {
+                "label": {
+                    "description": "房间号文本（前端下拉要求 label 为字符串）",
+                    "type": "string",
+                    "example": "22384516"
+                },
+                "value": {
+                    "description": "房间号",
+                    "type": "integer",
+                    "example": 22384516
+                }
+            }
+        },
+        "resp.RoomGroupOptionsResp": {
+            "type": "object",
+            "properties": {
+                "option": {
+                    "description": "房间下拉选项",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.RoomGroupOptionItem"
+                    }
                 }
             }
         },

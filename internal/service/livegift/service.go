@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/roomgroup"
 )
 
 type Service struct {
@@ -20,12 +21,12 @@ func New(liveGiftRepo live_gift.Repository) *Service {
 }
 
 // FetchRoomGroups 用于获取不重复的房间ID信息
-func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, int, error) {
+func (s *Service) FetchRoomGroups(ctx context.Context) ([]roomgroup.Option, int, error) {
 	roomIDs, err := s.liveGiftRepo.DistinctRoomIDs(ctx, nil)
 	if err != nil {
-		return []FetchRoomGroupsResp{}, CodeQueryFailed, err
+		return []roomgroup.Option{}, CodeQueryFailed, err
 	}
-	return toFetchRoomGroupsItems(roomIDs), 0, nil
+	return roomgroup.FromIDs(roomIDs), 0, nil
 }
 
 // ListPage 用于获取礼物列表信息

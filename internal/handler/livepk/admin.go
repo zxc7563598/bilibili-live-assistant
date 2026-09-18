@@ -18,7 +18,7 @@ import (
 // @Tags 礼物管理
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Success 200 {object} response.Response{data=resp.LivePkFetchRoomGroupsResp} "统一响应（code=0成功，其它失败）"
+// @Success 200 {object} response.Response{data=resp.RoomGroupOptionsResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/pk/room [post]
 func (h *Handler) FetchRoomGroups(c *gin.Context) {
 	// 获取上下文/语言配置
@@ -35,7 +35,7 @@ func (h *Handler) FetchRoomGroups(c *gin.Context) {
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.LivePkLogger,
-			"livegiftSvc.FetchRoomGroups 调用失败",
+			"livepkSvc.FetchRoomGroups 调用失败",
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
@@ -44,8 +44,8 @@ func (h *Handler) FetchRoomGroups(c *gin.Context) {
 		return
 	}
 	// 返回结果
-	response.Success(c, lang, resp.LivePkFetchRoomGroupsResp{
-		Option: toFetchRoomGroupsItems(svcResp),
+	response.Success(c, lang, resp.RoomGroupOptionsResp{
+		Option: handler.ToRoomGroupOptions(svcResp),
 	})
 }
 

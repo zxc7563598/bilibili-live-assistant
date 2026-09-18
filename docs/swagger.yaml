@@ -2691,20 +2691,6 @@ definitions:
         example: 1
         type: integer
     type: object
-  resp.LiveDanmuFetchRoomGroupsItem:
-    properties:
-      label:
-        type: string
-      value:
-        type: integer
-    type: object
-  resp.LiveDanmuFetchRoomGroupsResp:
-    properties:
-      option:
-        items:
-          $ref: '#/definitions/resp.LiveDanmuFetchRoomGroupsItem'
-        type: array
-    type: object
   resp.LiveDanmuListPageItem:
     properties:
       badge_level:
@@ -2833,20 +2819,6 @@ definitions:
       original_price:
         description: 原礼物总金额（分）
         type: integer
-    type: object
-  resp.LiveGiftFetchRoomGroupsItem:
-    properties:
-      label:
-        type: string
-      value:
-        type: integer
-    type: object
-  resp.LiveGiftFetchRoomGroupsResp:
-    properties:
-      option:
-        items:
-          $ref: '#/definitions/resp.LiveGiftFetchRoomGroupsItem'
-        type: array
     type: object
   resp.LiveGiftListPageItem:
     properties:
@@ -2998,20 +2970,6 @@ definitions:
         description: 账号名称
         example: 你的B站昵称
         type: string
-    type: object
-  resp.LivePkFetchRoomGroupsItem:
-    properties:
-      label:
-        type: string
-      value:
-        type: integer
-    type: object
-  resp.LivePkFetchRoomGroupsResp:
-    properties:
-      option:
-        items:
-          $ref: '#/definitions/resp.LivePkFetchRoomGroupsItem'
-        type: array
     type: object
   resp.LivePkLogListPageItem:
     properties:
@@ -4302,6 +4260,25 @@ definitions:
         example: "1"
         type: string
     type: object
+  resp.RoomGroupOptionItem:
+    properties:
+      label:
+        description: 房间号文本（前端下拉要求 label 为字符串）
+        example: "22384516"
+        type: string
+      value:
+        description: 房间号
+        example: 22384516
+        type: integer
+    type: object
+  resp.RoomGroupOptionsResp:
+    properties:
+      option:
+        description: 房间下拉选项
+        items:
+          $ref: '#/definitions/resp.RoomGroupOptionItem'
+        type: array
+    type: object
   resp.ShareConfigResp:
     properties:
       content:
@@ -5271,7 +5248,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/resp.LiveDanmuFetchRoomGroupsResp'
+                  $ref: '#/definitions/resp.RoomGroupOptionsResp'
               type: object
       security:
       - BearerAuth: []
@@ -5364,7 +5341,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/resp.LiveGiftFetchRoomGroupsResp'
+                  $ref: '#/definitions/resp.RoomGroupOptionsResp'
               type: object
       security:
       - BearerAuth: []
@@ -5974,7 +5951,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/resp.LivePkFetchRoomGroupsResp'
+                  $ref: '#/definitions/resp.RoomGroupOptionsResp'
               type: object
       security:
       - BearerAuth: []

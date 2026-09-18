@@ -46,16 +46,6 @@ type LiveGiftListPageStats struct {
 	TotalAmount int64 `json:"total_amount"`
 }
 
-// LiveGiftFetchRoomGroupsResp 获取全部房间ID返回
-type LiveGiftFetchRoomGroupsResp struct {
-	Option []LiveGiftFetchRoomGroupsItem `json:"option"`
-}
-
-type LiveGiftFetchRoomGroupsItem struct {
-	Label string `json:"label"`
-	Value int64  `json:"value"`
-}
-
 // LiveGiftBlindBoxListPageResp 分页查询盲盒礼物列表返回
 type LiveGiftBlindBoxListPageResp struct {
 	// 总计条数

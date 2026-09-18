@@ -32,14 +32,3 @@ func toLiveDanmuListItems(list []livedanmu.ListPageItem) []resp.LiveDanmuListPag
 	}
 	return res
 }
-
-func toFetchRoomGroupsItems(list []livedanmu.FetchRoomGroupsResp) []resp.LiveDanmuFetchRoomGroupsItem {
-	res := make([]resp.LiveDanmuFetchRoomGroupsItem, 0, len(list))
-	for _, item := range list {
-		res = append(res, resp.LiveDanmuFetchRoomGroupsItem{
-			Label: item.Label,
-			Value: item.Value,
-		})
-	}
-	return res
-}

@@ -8,12 +8,6 @@ const (
 	resultWin  = 2  // 获胜
 )
 
-// FetchRoomGroups 请求返回
-type FetchRoomGroupsResp struct {
-	Label string `json:"label"`
-	Value int64  `json:"value"`
-}
-
 // ListPage 请求入参
 type ListPageReq struct {
 	pagination.PageResp

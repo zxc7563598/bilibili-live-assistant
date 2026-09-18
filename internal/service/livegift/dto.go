@@ -44,12 +44,6 @@ type ListPageStats struct {
 	TotalAmount int64 `json:"total_amount"`
 }
 
-// FetchRoomGroups 请求返回
-type FetchRoomGroupsResp struct {
-	Label string `json:"label"`
-	Value int64  `json:"value"`
-}
-
 // BlindBoxListPage 请求入参
 type BlindBoxListPageReq struct {
 	pagination.PageResp

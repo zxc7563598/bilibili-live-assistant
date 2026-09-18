@@ -33,9 +33,3 @@ type ListPageItem struct {
 	BadgeType   enum.BadgeType `json:"badge_type"`
 	SendAt      string         `json:"send_at"`
 }
-
-// FetchRoomGroups 请求返回
-type FetchRoomGroupsResp struct {
-	Label string `json:"label"`
-	Value int64  `json:"value"`
-}

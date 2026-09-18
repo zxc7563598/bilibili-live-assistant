@@ -42,14 +42,3 @@ func toLivePkLogListItems(list []livepk.ListPageItem) []resp.LivePkLogListPageIt
 	}
 	return res
 }
-
-func toFetchRoomGroupsItems(list []livepk.FetchRoomGroupsResp) []resp.LivePkFetchRoomGroupsItem {
-	res := make([]resp.LivePkFetchRoomGroupsItem, 0, len(list))
-	for _, item := range list {
-		res = append(res, resp.LivePkFetchRoomGroupsItem{
-			Label: item.Label,
-			Value: item.Value,
-		})
-	}
-	return res
-}

@@ -31,13 +31,3 @@ type LiveDanmuListPageItem struct {
 	// 创建时间
 	SendAt string `json:"send_at" example:"2025-01-02 12:22:22"`
 }
-
-// LiveDanmuFetchRoomGroupsResp 获取全部房间ID返回
-type LiveDanmuFetchRoomGroupsResp struct {
-	Option []LiveDanmuFetchRoomGroupsItem `json:"option"`
-}
-
-type LiveDanmuFetchRoomGroupsItem struct {
-	Label string `json:"label"`
-	Value int64  `json:"value"`
-}

@@ -53,13 +53,3 @@ type LivePkLogListPageStats struct {
 	// 我方失败场数
 	LoseNum int64 `json:"lose_num"`
 }
-
-// LivePkFetchRoomGroupsResp 获取全部房间ID返回
-type LivePkFetchRoomGroupsResp struct {
-	Option []LivePkFetchRoomGroupsItem `json:"option"`
-}
-
-type LivePkFetchRoomGroupsItem struct {
-	Label string `json:"label"`
-	Value int64  `json:"value"`
-}

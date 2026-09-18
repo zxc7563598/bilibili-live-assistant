@@ -38,17 +38,6 @@ func toLiveGiftListItems(list []livegift.ListPageItem) []resp.LiveGiftListPageIt
 	return res
 }
 
-func toFetchRoomGroupsItems(list []livegift.FetchRoomGroupsResp) []resp.LiveGiftFetchRoomGroupsItem {
-	res := make([]resp.LiveGiftFetchRoomGroupsItem, 0, len(list))
-	for _, item := range list {
-		res = append(res, resp.LiveGiftFetchRoomGroupsItem{
-			Label: item.Label,
-			Value: item.Value,
-		})
-	}
-	return res
-}
-
 func toLiveGiftBlindBoxListItems(list []livegift.BlindBoxListPageItem) []resp.LiveGiftBlindBoxListPageItem {
 	res := make([]resp.LiveGiftBlindBoxListPageItem, 0, len(list))
 	for _, v := range list {
