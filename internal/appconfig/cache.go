@@ -30,7 +30,7 @@ func New(repo app_config.Repository) *Cache {
 
 // Init 从数据库全量加载配置到内存
 func (c *Cache) Init(ctx context.Context) error {
-	configs, err := c.repo.GetAll(ctx, nil)
+	configs, err := c.repo.ListAll(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("加载应用配置失败: %w", err)
 	}
