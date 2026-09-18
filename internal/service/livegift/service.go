@@ -32,10 +32,10 @@ func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, i
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 校验枚举参数合法性，非法值直接返回参数错误
 	if req.GiftType != nil && !enum.GiftType(*req.GiftType).IsValid() {
-		return ListPageResp{}, 10601, errors.New("gift_type 内容非法")
+		return ListPageResp{}, 10701, errors.New("gift_type 内容非法")
 	}
 	if req.Original != nil && !enum.YesNo(*req.Original).IsValid() {
-		return ListPageResp{}, 10601, errors.New("original 内容非法")
+		return ListPageResp{}, 10701, errors.New("original 内容非法")
 	}
 	// 获取列表数据
 	offset, limit, sortField, sortOrder := req.OffsetLimit()

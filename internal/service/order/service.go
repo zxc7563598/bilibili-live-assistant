@@ -203,11 +203,11 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 		case errors.Is(err, errDraftStateChanged):
 			return 0, 51104, err
 		case errors.Is(err, errAddressNotFound):
-			return 0, 51301, err
+			return 0, 51106, err
 		case errors.Is(err, errProductNotFound), errors.Is(err, errSkuNotFound):
 			return 0, 51101, err
 		case errors.Is(err, live_user.ErrInsufficientBalance):
-			return 0, 40803, err
+			return 0, 41105, err
 		default:
 			return 0, 61101, err
 		}
@@ -363,7 +363,7 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 			order.ReceiverEmail = ptr.TrimStr(req.ReceiverEmail)
 		}
 		if order.ReceiverEmail == "" {
-			return 11308, nil
+			return 11107, nil
 		}
 	case enum.AddressTypeActual:
 		// 实体订单只改收货地址
@@ -390,19 +390,19 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 		}
 		// 合并后按实体地址必填项校验，顺序与 address.validateEntityFields 保持一致
 		if order.ReceiverName == "" {
-			return 11304, nil
+			return 11103, nil
 		}
 		if order.ReceiverPhone == "" {
-			return 11305, nil
+			return 11104, nil
 		}
 		if order.ReceiverRegionCode == "" {
-			return 11306, nil
+			return 11105, nil
 		}
 		if order.ReceiverDetail == "" {
-			return 11307, nil
+			return 11106, nil
 		}
 	default:
-		return 11303, errors.New("收货人地址类型不合法")
+		return 11102, errors.New("收货人地址类型不合法")
 	}
 	// 落库
 	if err := s.liveUserOrderRepo.Save(ctx, nil, order); err != nil {

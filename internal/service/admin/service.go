@@ -82,10 +82,10 @@ func (s *Service) Login(ctx context.Context, username, password string) (LoginRe
 func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (RefreshLoginResp, int, error) {
 	claims, err := jwt.ParseToken(refreshToken)
 	if err != nil {
-		return RefreshLoginResp{}, 10002, err
+		return RefreshLoginResp{}, 20101, err
 	}
 	if claims.Type != "refresh" {
-		return RefreshLoginResp{}, 10003, nil
+		return RefreshLoginResp{}, 20102, nil
 	}
 	// 获取管理员信息
 	admin, err := s.adminRepo.GetByID(ctx, nil, claims.ID)
@@ -97,7 +97,7 @@ func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (Refres
 		return RefreshLoginResp{}, 50101, nil
 	}
 	if admin.Token == nil || *admin.Token != refreshToken {
-		return RefreshLoginResp{}, 20001, nil
+		return RefreshLoginResp{}, 20103, nil
 	}
 	// 获取角色code
 	role, err := s.roleRepo.GetByID(ctx, nil, admin.RoleID)

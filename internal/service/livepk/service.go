@@ -22,7 +22,7 @@ func New(livePkLogRepo live_pk_log.Repository) *Service {
 func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, int, error) {
 	roomIDs, err := s.livePkLogRepo.DistinctRoomIDs(ctx, nil)
 	if err != nil {
-		return []FetchRoomGroupsResp{}, 60701, err
+		return []FetchRoomGroupsResp{}, 61501, err
 	}
 	return toFetchRoomGroupsItems(roomIDs), 0, nil
 }

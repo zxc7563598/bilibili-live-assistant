@@ -24,9 +24,9 @@ type OrderConfirmPaymentReq struct {
 
 type OrderListPageByUserReq struct {
 	// 页码
-	PageNo int `json:"pageNo" binding:"required" err:"required=10601" example:"1"`
+	PageNo int `json:"pageNo" binding:"required" err:"required=11101" example:"1"`
 	// 每页展示条数
-	PageSize int `json:"pageSize" binding:"required" err:"required=10601" example:"20"`
+	PageSize int `json:"pageSize" binding:"required" err:"required=11101" example:"20"`
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend

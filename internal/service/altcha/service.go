@@ -38,7 +38,7 @@ func (s *Service) CreateChallenge(_ context.Context) (*altcha.Challenge, int, er
 		KeyLength:           32,
 	})
 	if err != nil {
-		return nil, 60116, err
+		return nil, 61601, err
 	}
 	return &challenge, 0, nil
 }
@@ -58,17 +58,17 @@ func (s *Service) VerifySolution(_ context.Context, captcha *string) (int, error
 	}
 	// 已配置但未提交验证码
 	if captcha == nil || *captcha == "" {
-		return 10109, nil
+		return 11602, nil
 	}
 	// 解码 base64 payload
 	decoded, err := base64.StdEncoding.DecodeString(*captcha)
 	if err != nil {
-		return 10001, err
+		return 11601, err
 	}
 	// 解析 altcha payload
 	var payload altcha.Payload
 	if err := json.Unmarshal(decoded, &payload); err != nil {
-		return 10001, err
+		return 11601, err
 	}
 	// 验证 solution
 	result, err := altcha.VerifySolution(altcha.VerifySolutionOptions{
@@ -78,13 +78,13 @@ func (s *Service) VerifySolution(_ context.Context, captcha *string) (int, error
 		HMACSignatureSecret: s.hmacKey,
 	})
 	if err != nil {
-		return 60116, err
+		return 61601, err
 	}
 	if result.Expired {
-		return 40106, nil
+		return 41602, nil
 	}
 	if !result.Verified {
-		return 40105, nil
+		return 41601, nil
 	}
 	return 0, nil
 }
