@@ -1,5 +1,7 @@
 package liveuser
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -59,7 +61,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.liveuserSvc.ListPage(ctx, liveuser.ListPageReq{
-		PageResp: liveuser.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,
@@ -284,7 +286,7 @@ func (h *Handler) AssetsPageByID(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.liveuserSvc.ListUserAssets(ctx, req.UserID, liveuser.UserAssetsPageReq{
-		PageResp: liveuser.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,
@@ -732,7 +734,7 @@ func (h *Handler) UserAssetsPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.liveuserSvc.ListUserAssets(ctx, userInfo.UserID, liveuser.UserAssetsPageReq{
-		PageResp: liveuser.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,

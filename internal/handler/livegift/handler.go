@@ -1,5 +1,7 @@
 package livegift
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -102,7 +104,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.livegiftSvc.ListPage(ctx, livegift.ListPageReq{
-		PageResp: livegift.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,
@@ -189,7 +191,7 @@ func (h *Handler) BlindBoxListPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.livegiftSvc.BlindBoxListPage(ctx, livegift.BlindBoxListPageReq{
-		PageResp: livegift.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,

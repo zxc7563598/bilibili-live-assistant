@@ -1,5 +1,7 @@
 package product
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -48,7 +50,7 @@ func (h *Handler) ShopListPage(c *gin.Context) {
 	// 执行请求
 	enable := int(enum.EnableEnable)
 	svcResp, errCode, err := h.productSvc.ListPage(ctx, product.ListPageReq{
-		PageResp: product.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,
@@ -146,7 +148,7 @@ func (h *Handler) AdminListPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.productSvc.ListPage(ctx, product.ListPageReq{
-		PageResp: product.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,

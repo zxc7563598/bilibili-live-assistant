@@ -1,28 +1,9 @@
 package liveuser
 
-import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
-
-// 通用分页请求参数
-type PageResp struct {
-	PageNo    int     `json:"pageNo"`
-	PageSize  int     `json:"pageSize"`
-	SortField *string `json:"sortField"`
-	SortOrder *string `json:"sortOrder"`
-}
-
-func (r *PageResp) OffsetLimit() (int, int, *string, *string) {
-	if r.PageNo < 1 {
-		r.PageNo = 1
-	}
-	if r.PageSize < 1 {
-		r.PageSize = 10
-	}
-	if r.PageSize > 100 {
-		r.PageSize = 100
-	}
-	offset := (r.PageNo - 1) * r.PageSize
-	return offset, r.PageSize, r.SortField, r.SortOrder
-}
+import (
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+)
 
 type TokenResp struct {
 	AccessToken  string `json:"accessToken"`
@@ -69,7 +50,7 @@ type WordFrequency struct {
 
 // ListPage 请求入参
 type ListPageReq struct {
-	PageResp
+	pagination.PageResp
 	UID   *int64  `json:"uid"`
 	Uname *string `json:"uname"`
 }
@@ -101,7 +82,7 @@ type UserInfoResp struct {
 
 // UserAssetsPage 请求入参
 type UserAssetsPageReq struct {
-	PageResp
+	pagination.PageResp
 	UID        *int64  `json:"uid"`
 	Uname      *string `json:"uname"`
 	CreditType *int    `json:"credit_type"`

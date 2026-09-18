@@ -1,32 +1,13 @@
 package livedanmu
 
-import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
-
-// 通用分页请求参数
-type PageResp struct {
-	PageNo    int     `json:"pageNo"`
-	PageSize  int     `json:"pageSize"`
-	SortField *string `json:"sortField"`
-	SortOrder *string `json:"sortOrder"`
-}
-
-func (r *PageResp) OffsetLimit() (int, int, *string, *string) {
-	if r.PageNo < 1 {
-		r.PageNo = 1
-	}
-	if r.PageSize < 1 {
-		r.PageSize = 10
-	}
-	if r.PageSize > 100 {
-		r.PageSize = 100
-	}
-	offset := (r.PageNo - 1) * r.PageSize
-	return offset, r.PageSize, r.SortField, r.SortOrder
-}
+import (
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+)
 
 // ListPage 请求入参
 type ListPageReq struct {
-	PageResp
+	pagination.PageResp
 	RoomID      *int64  `json:"room_id"`
 	UID         *int64  `json:"uid"`
 	Uname       *string `json:"uname"`

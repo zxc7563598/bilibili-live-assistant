@@ -1,5 +1,7 @@
 package order
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -226,7 +228,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.orderSvc.ListPage(ctx, order.ListPageReq{
-		PageResp: order.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,
@@ -483,7 +485,7 @@ func (h *Handler) ListPageByUser(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.orderSvc.ListPageByUser(ctx, userInfo.UserID, order.ListPageByUserReq{
-		PageResp: order.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,
