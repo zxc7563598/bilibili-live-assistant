@@ -7,7 +7,7 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
-	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/session"
 	"gorm.io/gorm"
 )
 
@@ -121,19 +121,14 @@ func (s *Service) buildTree(list []RoleMenuItem, parentID int64) []RoleMenuItem 
 
 // logout 用于退出管理员的登录
 func (s *Service) logout(ctx context.Context, adminID int64) (int, error) {
-	// 清空用户token
-	if s.rdb != nil {
-		err := s.rdb.Del(ctx,
-			jwt.AdminTokenKey(adminID),
-			jwt.AdminRefreshKey(adminID),
-		).Err()
-		if err != nil {
-			return 60107, err
-		}
+	// 清空 token 的公共逻辑见 internal/service/session。
+	// 错误码用角色模块自己的：按约定每个模块只能使用本模块 MM 段的码。
+	err := session.Logout(ctx, s.rdb, s.adminRepo, adminID)
+	switch {
+	case errors.Is(err, session.ErrTokenClearFailed):
+		return 60207, err
+	case errors.Is(err, session.ErrTokenPersistFailed):
+		return 60208, err
 	}
-	if err := s.adminRepo.UpdateTokenByID(ctx, nil, adminID, nil); err != nil {
-		return 60104, err
-	}
-	// 返回数据
 	return 0, nil
 }

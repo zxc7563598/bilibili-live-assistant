@@ -241,6 +241,8 @@ error:
   60204: Operation failed, please try again later # Failed to obtain permission menu based on role
   60205: Operation failed, please try again later # Menu information retrieval failed
   60206: Operation failed, please try again later # Role binding to the administrator failed
+  60207: System busy, please try again later # Failed to clear admin token cache after role change
+  60208: System busy, please try again later # Failed to update admin token record after role change
   60301: System is busy, please try again later # Database query exception
   60302: Operation failed, please try again later # Menu information addition failed
   60303: Operation failed, please try again later # Menu information change failed

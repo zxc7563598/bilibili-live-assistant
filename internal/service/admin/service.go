@@ -10,6 +10,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/admin_role"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/role"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/session"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
@@ -120,20 +121,14 @@ func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (Refres
 
 // Logout 用于退出管理员登录
 func (s *Service) Logout(ctx context.Context, adminID int64) (int, error) {
-	// 清空用户token
-	if s.rdb != nil {
-		err := s.rdb.Del(ctx,
-			jwt.AdminTokenKey(adminID),
-			jwt.AdminRefreshKey(adminID),
-		).Err()
-		if err != nil {
-			return 60107, err
-		}
-	}
-	if err := s.adminRepo.UpdateTokenByID(ctx, nil, adminID, nil); err != nil {
+	// 清空 token 的公共逻辑见 internal/service/session
+	err := session.Logout(ctx, s.rdb, s.adminRepo, adminID)
+	switch {
+	case errors.Is(err, session.ErrTokenClearFailed):
+		return 60107, err
+	case errors.Is(err, session.ErrTokenPersistFailed):
 		return 60104, err
 	}
-	// 返回数据
 	return 0, nil
 }
 
