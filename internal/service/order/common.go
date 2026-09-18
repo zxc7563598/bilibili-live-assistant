@@ -151,10 +151,10 @@ func (s *Service) returnStock(ctx context.Context, tx *gorm.DB, productID, skuID
 	}); err != nil {
 		return err
 	}
-	if err := s.productSkuRepo.IncrementStock(ctx, tx, skuID, quantity); err != nil {
+	if err := s.productSkuRepo.AdjustStock(ctx, tx, skuID, quantity); err != nil {
 		return err
 	}
-	return s.productRepo.IncrementStock(ctx, tx, productID, quantity)
+	return s.productRepo.AdjustStock(ctx, tx, productID, quantity)
 }
 
 // deductBalance 扣减用户余额并写资产流水，需在调用方事务内执行

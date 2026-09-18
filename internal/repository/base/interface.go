@@ -36,8 +36,8 @@ type Repository[T any] interface {
 	Count(ctx context.Context, tx *gorm.DB) (int64, error)
 	// Exists 判断指定字段的记录是否存在
 	Exists(ctx context.Context, tx *gorm.DB, field string, value any) (bool, error)
-	// IncrementField 原子调整指定字段的值（字段必须是 int64 类型，delta 可为负）
-	IncrementField(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) error
+	// AdjustField 原子调整指定字段的值（字段必须是 int64 类型，delta 可为负）
+	AdjustField(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) error
 }
 
 // GetByID 根据主键查询记录
@@ -173,9 +173,9 @@ func (r *Repo[T]) Exists(ctx context.Context, tx *gorm.DB, field string, value a
 	return count > 0, nil
 }
 
-// IncrementField 原子调整指定字段的值（字段必须是 int64 类型，delta 可为负）
+// AdjustField 原子调整指定字段的值（字段必须是 int64 类型，delta 可为负）
 // 如果没有命中任何记录，返回 gorm.ErrRecordNotFound
-func (r *Repo[T]) IncrementField(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) error {
+func (r *Repo[T]) AdjustField(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) error {
 	db := r.ResolveDB(ctx, tx)
 	res := db.Model(new(T)).Where("id = ?", id).Updates(map[string]any{
 		field: gorm.Expr(field+" + ?", delta),

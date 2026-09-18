@@ -14,7 +14,7 @@ const liveUserBackfillBatchSize = 500
 //
 // 依赖 Run() 中先执行的 AutoMigrate 创建这两列（不在此手动写 ALTER DDL）。
 // 幂等策略：只处理 total_danmu_count = 0 AND total_gift_amount = 0 的行——这两列刚被 AutoMigrate
-// 以 DEFAULT 0 创建时存量行全为 0；已被业务追加（IncrementField）或已被回填过的行必然至少一列为非 0，
+// 以 DEFAULT 0 创建时存量行全为 0；已被业务追加（AdjustField）或已被回填过的行必然至少一列为非 0，
 // 天然不会被触碰。半途中断后下次启动能自动补齐剩余全 0 行；真实历史就是 (0,0) 的用户每次启动会被重扫
 // 并判定为无需写回，属于无副作用的幂等操作。
 //

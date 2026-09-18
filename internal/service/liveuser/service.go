@@ -249,12 +249,12 @@ func (s *Service) GetUserBalance(ctx context.Context, uid int64) (*UserBalance, 
 
 // AddTotalDanmuCount 增加用户累计发送弹幕数
 func (s *Service) AddTotalDanmuCount(ctx context.Context, userID int64) error {
-	return s.liveUserRepo.IncrementField(ctx, nil, userID, "total_danmu_count", 1)
+	return s.liveUserRepo.AdjustField(ctx, nil, userID, "total_danmu_count", 1)
 }
 
 // AddTotalGiftAmount 增加用户累计赠送礼物金额
 func (s *Service) AddTotalGiftAmount(ctx context.Context, userID int64, amount int64) error {
-	return s.liveUserRepo.IncrementField(ctx, nil, userID, "total_gift_amount", amount)
+	return s.liveUserRepo.AdjustField(ctx, nil, userID, "total_gift_amount", amount)
 }
 
 // AddPointsLog 增加用户积分记录（增加或减少）
