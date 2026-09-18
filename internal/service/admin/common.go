@@ -39,7 +39,7 @@ func (s *Service) updateToken(ctx context.Context, adminID, roleID int64, roleCo
 	}, 0, nil
 }
 
-// getAdminRolesMap 用于获取 管理员 → 角色 映射列表
+// getAdminRolesMapByIDs 用于批量获取 管理员 → 角色 映射列表
 func (s *Service) getAdminRolesMapByIDs(ctx context.Context, adminIDs []int64) (map[int64][]RoleItem, int, error) {
 	// 获取全部角色
 	roles, err := s.roleRepo.ListAll(ctx, nil)

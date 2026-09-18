@@ -298,7 +298,7 @@ func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, 
 	return result, nil
 }
 
-// applyLiveGiftQuery 构建礼物列表筛选条件
+// applyLiveGiftListQuery 构建礼物列表筛选条件
 func (r *gormRepo) applyLiveGiftListQuery(db *gorm.DB, query model.LiveGiftListPageQuery) *gorm.DB {
 	if v := query.RoomID; v != nil {
 		db = db.Where("room_id = ?", *v)
