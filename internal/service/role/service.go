@@ -108,6 +108,8 @@ func (s *Service) ListAll(ctx context.Context) ([]ListAllResp, int, error) {
 
 // Save 用于创建或修改角色信息
 func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
+	// 校验类拒绝的错误码，需与系统错误 60202 区分，故带到事务外
+	var errCode int
 	// 开启事务
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		// 变更角色信息
@@ -122,8 +124,15 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 		if err != nil {
 			return err
 		}
-		// 重新绑定角色对应的权限
+		// 重新绑定角色对应的权限。
+		// MenuIDs 为 nil 表示本次不改动权限；传了但为空则必须拒绝——
+		// resetRoleMenus 会先删光旧关系再因 len == 0 直接返回，
+		// 放行等于静默清空该角色的全部权限，而接口还报成功。
 		if req.MenuIDs != nil {
+			if len(*req.MenuIDs) == 0 {
+				errCode = 10206
+				return fmt.Errorf("角色至少需要绑定一个菜单")
+			}
 			if err := s.resetRoleMenus(ctx, tx, roleID, *req.MenuIDs); err != nil {
 				return err
 			}
@@ -131,6 +140,9 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 		return nil
 	})
 	if err != nil {
+		if errCode != 0 {
+			return errCode, err
+		}
 		return 60202, err
 	}
 	return 0, nil
