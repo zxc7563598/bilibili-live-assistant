@@ -81,11 +81,11 @@ func (s *Service) placeOrder(ctx context.Context, userID, skuID, count int64) (i
 	if err != nil {
 		switch {
 		case errors.Is(err, errInsufficientStock):
-			return 0, 41101, err
+			return 0, CodeInsufficientStock, err
 		case errors.Is(err, errSkuNotFound):
-			return 0, 51101, err
+			return 0, CodeProductNotFound, err
 		default:
-			return 0, 61101, err
+			return 0, CodeQueryFailed, err
 		}
 	}
 	// 事务提交成功后注册定时器
@@ -336,18 +336,18 @@ func resolveRegionCode(src string) (regionCode, regionText string, errCode int) 
 	}
 	var codes []string
 	if err := json.Unmarshal([]byte(src), &codes); err != nil {
-		return "", "", 11108
+		return "", "", CodeRegionInvalid
 	}
 	if len(codes) == 0 {
 		return "", "", 0
 	}
 	text, ok := region.Resolve(codes)
 	if !ok {
-		return "", "", 11108
+		return "", "", CodeRegionInvalid
 	}
 	canonical, err := json.Marshal(codes)
 	if err != nil {
-		return "", "", 11108
+		return "", "", CodeRegionInvalid
 	}
 	return string(canonical), text, 0
 }

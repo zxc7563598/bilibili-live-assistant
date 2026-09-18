@@ -38,7 +38,7 @@ func (h *Handler) FetchRoomGroups(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 执行请求
@@ -75,7 +75,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 获取管理员ID
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数

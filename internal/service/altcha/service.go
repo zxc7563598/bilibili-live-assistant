@@ -38,7 +38,7 @@ func (s *Service) CreateChallenge(_ context.Context) (*altcha.Challenge, int, er
 		KeyLength:           32,
 	})
 	if err != nil {
-		return nil, 61601, err
+		return nil, CodeSystemBusy, err
 	}
 	return &challenge, 0, nil
 }
@@ -58,17 +58,17 @@ func (s *Service) VerifySolution(_ context.Context, captcha *string) (int, error
 	}
 	// 已配置但未提交验证码
 	if captcha == nil || *captcha == "" {
-		return 11602, nil
+		return CodeCaptchaRequired, nil
 	}
 	// 解码 base64 payload
 	decoded, err := base64.StdEncoding.DecodeString(*captcha)
 	if err != nil {
-		return 11601, err
+		return CodeParamInvalid, err
 	}
 	// 解析 altcha payload
 	var payload altcha.Payload
 	if err := json.Unmarshal(decoded, &payload); err != nil {
-		return 11601, err
+		return CodeParamInvalid, err
 	}
 	// 验证 solution
 	result, err := altcha.VerifySolution(altcha.VerifySolutionOptions{
@@ -79,13 +79,13 @@ func (s *Service) VerifySolution(_ context.Context, captcha *string) (int, error
 	})
 	if err != nil {
 		// altcha 库在校验不通过时返回 error（签名不匹配），属验证失败而非系统故障
-		return 41601, err
+		return CodeCaptchaFailed, err
 	}
 	if result.Expired {
-		return 41602, nil
+		return CodeCaptchaExpired, nil
 	}
 	if !result.Verified {
-		return 41601, nil
+		return CodeCaptchaFailed, nil
 	}
 	return 0, nil
 }

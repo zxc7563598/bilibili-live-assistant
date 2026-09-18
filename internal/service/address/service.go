@@ -25,11 +25,11 @@ func New(db *gorm.DB, liveUserAddressRepo live_user_address.Repository) *Service
 func (s *Service) GetDefaultAddress(ctx context.Context, userID int64, addressType int) (AddressItem, int, error) {
 	t := enum.AddressType(addressType)
 	if !t.IsValid() {
-		return AddressItem{}, 11303, nil
+		return AddressItem{}, CodeAddressTypeInvalid, nil
 	}
 	entity, err := s.liveUserAddressRepo.GetDefaultByUserID(ctx, nil, userID, t)
 	if err != nil {
-		return AddressItem{}, 61301, err
+		return AddressItem{}, CodeQueryFailed, err
 	}
 	if entity == nil {
 		return AddressItem{}, 0, nil
@@ -43,13 +43,13 @@ func (s *Service) ListAddresses(ctx context.Context, userID int64, addressType *
 	if addressType != nil {
 		v := enum.AddressType(*addressType)
 		if !v.IsValid() {
-			return []AddressItem{}, 11303, nil
+			return []AddressItem{}, CodeAddressTypeInvalid, nil
 		}
 		t = &v
 	}
 	list, err := s.liveUserAddressRepo.ListByUserID(ctx, nil, userID, t)
 	if err != nil {
-		return []AddressItem{}, 61301, err
+		return []AddressItem{}, CodeQueryFailed, err
 	}
 	items := make([]AddressItem, 0, len(list))
 	for _, entity := range list {
@@ -62,10 +62,10 @@ func (s *Service) ListAddresses(ctx context.Context, userID int64, addressType *
 func (s *Service) GetAddressByID(ctx context.Context, userID, id int64) (AddressItem, int, error) {
 	entity, err := s.liveUserAddressRepo.GetByID(ctx, nil, id)
 	if err != nil {
-		return AddressItem{}, 61301, err
+		return AddressItem{}, CodeQueryFailed, err
 	}
 	if entity == nil || entity.UserID != userID {
-		return AddressItem{}, 51301, nil
+		return AddressItem{}, CodeNotFound, nil
 	}
 	return toAddressItem(*entity), 0, nil
 }
@@ -82,7 +82,7 @@ func (s *Service) SaveAddress(ctx context.Context, userID int64, req AddressReq)
 	} else if v := enum.AddressType(*req.Type); v.IsValid() {
 		t = v
 	} else {
-		return 0, 11303, nil
+		return 0, CodeAddressTypeInvalid, nil
 	}
 	var isDefault enum.YesNo
 	if req.IsDefault == nil {
@@ -92,7 +92,7 @@ func (s *Service) SaveAddress(ctx context.Context, userID int64, req AddressReq)
 	} else if v := enum.YesNo(*req.IsDefault); v.IsValid() {
 		isDefault = v
 	} else {
-		return 0, 11301, nil
+		return 0, CodeParamInvalid, nil
 	}
 	// 事务外完成校验与实体组装
 	var entity model.LiveUserAddress
@@ -132,7 +132,7 @@ func (s *Service) SaveAddress(ctx context.Context, userID int64, req AddressReq)
 		return nil
 	})
 	if err != nil {
-		return 0, 61301, err
+		return 0, CodeQueryFailed, err
 	}
 	return addressID, 0, nil
 }
@@ -141,13 +141,13 @@ func (s *Service) SaveAddress(ctx context.Context, userID int64, req AddressReq)
 func (s *Service) DeleteAddress(ctx context.Context, userID, id int64) (int, error) {
 	entity, err := s.liveUserAddressRepo.GetByID(ctx, nil, id)
 	if err != nil {
-		return 61301, err
+		return CodeQueryFailed, err
 	}
 	if entity == nil || entity.UserID != userID {
-		return 51301, nil
+		return CodeNotFound, nil
 	}
 	if err := s.liveUserAddressRepo.Delete(ctx, nil, id); err != nil {
-		return 61301, err
+		return CodeQueryFailed, err
 	}
 	return 0, nil
 }

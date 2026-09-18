@@ -21,7 +21,7 @@ func New(liveDanmuRepo live_danmu.Repository) *Service {
 func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, int, error) {
 	roomIDs, err := s.liveDanmuRepo.DistinctRoomIDs(ctx, nil)
 	if err != nil {
-		return []FetchRoomGroupsResp{}, 60601, err
+		return []FetchRoomGroupsResp{}, CodeQueryFailed, err
 	}
 	return toFetchRoomGroupItems(roomIDs), 0, nil
 }
@@ -43,7 +43,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SortOrder:   sortOrder,
 	})
 	if err != nil {
-		return ListPageResp{}, 60601, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageResp{

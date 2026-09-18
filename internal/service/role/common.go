@@ -16,13 +16,13 @@ import (
 // 调用方据错误码区分是哪个字段不合规，不再一律报「操作失败」。
 func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, int, error) {
 	if v := req.Code; v == nil || *v == "" {
-		return 0, 10202, errors.New("code 不允许为空")
+		return 0, CodeCodeRequired, errors.New("code 不允许为空")
 	}
 	if v := req.Name; v == nil || *v == "" {
-		return 0, 10203, errors.New("name 不允许为空")
+		return 0, CodeNameRequired, errors.New("name 不允许为空")
 	}
 	if v := req.Enable; v == nil {
-		return 0, 10204, errors.New("enable 不允许为空")
+		return 0, CodeEnableRequired, errors.New("enable 不允许为空")
 	}
 	// 添加数据
 	role, err := s.roleRepo.Create(ctx, tx, &model.Role{
@@ -128,9 +128,9 @@ func (s *Service) logout(ctx context.Context, adminID int64) (int, error) {
 	err := session.Logout(ctx, s.rdb, s.adminRepo, adminID)
 	switch {
 	case errors.Is(err, session.ErrTokenClearFailed):
-		return 60207, err
+		return CodeTokenClearFailed, err
 	case errors.Is(err, session.ErrTokenPersistFailed):
-		return 60208, err
+		return CodeTokenPersistFailed, err
 	}
 	return 0, nil
 }

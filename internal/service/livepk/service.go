@@ -22,7 +22,7 @@ func New(livePkLogRepo live_pk_log.Repository) *Service {
 func (s *Service) FetchRoomGroups(ctx context.Context) ([]FetchRoomGroupsResp, int, error) {
 	roomIDs, err := s.livePkLogRepo.DistinctRoomIDs(ctx, nil)
 	if err != nil {
-		return []FetchRoomGroupsResp{}, 61501, err
+		return []FetchRoomGroupsResp{}, CodeQueryFailed, err
 	}
 	return toFetchRoomGroupsItems(roomIDs), 0, nil
 }
@@ -34,7 +34,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		switch *req.Result {
 		case resultLose, resultWin:
 		default:
-			return ListPageResp{}, 11501, errors.New("result 内容非法")
+			return ListPageResp{}, CodeParamInvalid, errors.New("result 内容非法")
 		}
 	}
 	// 获取列表数据
@@ -53,11 +53,11 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 	}
 	list, total, err := s.livePkLogRepo.ListPage(ctx, nil, query)
 	if err != nil {
-		return ListPageResp{}, 61501, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	totalNum, winNum, loseNum, err := s.livePkLogRepo.CountResultStats(ctx, nil, query)
 	if err != nil {
-		return ListPageResp{}, 61501, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageResp{

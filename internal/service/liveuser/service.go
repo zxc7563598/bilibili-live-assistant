@@ -70,7 +70,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SortOrder: sortOrder,
 	})
 	if err != nil {
-		return ListPageResp{}, 60801, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageResp{
@@ -83,7 +83,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 func (s *Service) GetUserMonthlyAnalysis(ctx context.Context, UID, year, month int64) (GetUserMonthlyAnalysisResp, int, error) {
 	// 校验年月参数，避免 time.Date 对非法值静默归一化
 	if year < 1970 || year > 2100 || month < 1 || month > 12 {
-		return GetUserMonthlyAnalysisResp{}, 10801, fmt.Errorf("非法的年月参数: year=%d, month=%d", year, month)
+		return GetUserMonthlyAnalysisResp{}, CodeParamInvalid, fmt.Errorf("非法的年月参数: year=%d, month=%d", year, month)
 	}
 	// 确定查询时间范围
 	start := time.Date(int(year), time.Month(month), 1, 0, 0, 0, 0, time.Local)
@@ -93,11 +93,11 @@ func (s *Service) GetUserMonthlyAnalysis(ctx context.Context, UID, year, month i
 	// 获取数据
 	danmu, err := s.liveDanmuRepo.CountDailyByUID(ctx, nil, UID, startTimestamp, endTimestamp)
 	if err != nil {
-		return GetUserMonthlyAnalysisResp{}, 60801, err
+		return GetUserMonthlyAnalysisResp{}, CodeQueryFailed, err
 	}
 	gift, err := s.liveGiftRepo.CountDailyByUID(ctx, nil, UID, startTimestamp, endTimestamp)
 	if err != nil {
-		return GetUserMonthlyAnalysisResp{}, 60801, err
+		return GetUserMonthlyAnalysisResp{}, CodeQueryFailed, err
 	}
 	giftCount := make(map[int64]int64, len(gift))
 	giftAmount := make(map[int64]int64, len(gift))
@@ -108,7 +108,7 @@ func (s *Service) GetUserMonthlyAnalysis(ctx context.Context, UID, year, month i
 	// 本月开播记录（不区分房间ID/主播，按开播时间 start_at 落在当月统计）
 	liveDaySet, err := s.liveSessionRepo.DistinctLiveDays(ctx, nil, startTimestamp, endTimestamp)
 	if err != nil {
-		return GetUserMonthlyAnalysisResp{}, 60801, err
+		return GetUserMonthlyAnalysisResp{}, CodeQueryFailed, err
 	}
 	// 仓库层返回的是日号集合，响应结构需要 map[日号]bool，这里转换一次
 	liveDays := make(map[int64]bool, len(liveDaySet))
@@ -127,14 +127,14 @@ func (s *Service) GetUserMonthlyAnalysis(ctx context.Context, UID, year, month i
 func (s *Service) GetUserDanmuAnalysis(ctx context.Context, UID int64) (GetUserDanmuAnalysisResp, int, error) {
 	danmu, err := s.liveDanmuRepo.ListMessagesByUID(ctx, nil, UID)
 	if err != nil {
-		return GetUserDanmuAnalysisResp{}, 60801, err
+		return GetUserDanmuAnalysisResp{}, CodeQueryFailed, err
 	}
 	if len(danmu) == 0 {
 		return GetUserDanmuAnalysisResp{}, 0, nil
 	}
 	tok, err := tokenizer.Get()
 	if err != nil {
-		return GetUserDanmuAnalysisResp{}, 50801, err
+		return GetUserDanmuAnalysisResp{}, CodeTokenizerInitFailed, err
 	}
 	// 单词
 	wordsData := tok.CutAndFilterAll(danmu)
@@ -282,7 +282,7 @@ func (s *Service) ExistsAccount(ctx context.Context, account int64) (bool, int, 
 	// 获取用户是否存在
 	exists, err := s.liveUserRepo.ExistsByUID(ctx, nil, account)
 	if err != nil {
-		return false, 60801, err
+		return false, CodeQueryFailed, err
 	}
 	return exists, 0, nil
 }
@@ -292,60 +292,60 @@ func (s *Service) Login(ctx context.Context, account int64, password string) (To
 	// 获取用户信息
 	user, err := s.liveUserRepo.GetByUID(ctx, nil, account)
 	if err != nil {
-		return TokenResp{}, 60801, err
+		return TokenResp{}, CodeQueryFailed, err
 	}
 	// 用户不存在且不允许注册，直接结束
 	register := ptr.ParseEnumInt[enum.YesNo](s.appConfigCache.GetValue(keyRegister))
 	if user == nil && register == enum.No {
-		return TokenResp{}, 50802, nil
+		return TokenResp{}, CodeUserNotFound, nil
 	}
 	// 已存在用户：先校验启用状态与密码，避免对无效请求发起 B站 请求
 	if user != nil {
 		if user.Enable != enum.EnableEnable {
-			return TokenResp{}, 40802, nil
+			return TokenResp{}, CodeAccountDisabled, nil
 		}
 		if user.Password != "" && !crypto.CheckPassword(user.Password, password) {
-			return TokenResp{}, 40801, nil
+			return TokenResp{}, CodeLoginFailed, nil
 		}
 	}
 	// 从B站获取主播信息（注册 / 同步名称头像 / 无密码设置密码都需要）
-	// 取不到是上游/网络问题，与「用户不存在」是两回事，不能都报 50802 未知用户
+	// 取不到是上游/网络问题，与「用户不存在」是两回事，不能都报 CodeUserNotFound 未知用户
 	master, err := s.client.User.GetMasterInfo(ctx, account)
 	if err != nil {
-		return TokenResp{}, 60808, nil
+		return TokenResp{}, CodeBilibiliUserFailed, nil
 	}
 	if master.Name == "" && master.Face == "" {
-		return TokenResp{}, 60808, nil
+		return TokenResp{}, CodeBilibiliUserFailed, nil
 	}
 	// 用户不存在：自动注册后回查完整记录
 	if user == nil {
 		if _, err := s.EnsureUser(ctx, master.UID, master.Name); err != nil {
-			return TokenResp{}, 60801, err
+			return TokenResp{}, CodeQueryFailed, err
 		}
 		user, err = s.liveUserRepo.GetByUID(ctx, nil, master.UID)
 		if err != nil || user == nil {
-			return TokenResp{}, 60801, err
+			return TokenResp{}, CodeQueryFailed, err
 		}
 	}
 	// 无密码用户：将本次输入的密码作为其密码
 	if user.Password == "" {
 		hash, err := crypto.HashPassword(password)
 		if err != nil {
-			return TokenResp{}, 50802, err
+			return TokenResp{}, CodeUserNotFound, err
 		}
 		if err := s.liveUserRepo.UpdatePasswordByID(ctx, nil, user.ID, hash); err != nil {
-			return TokenResp{}, 60801, err
+			return TokenResp{}, CodeQueryFailed, err
 		}
 	}
 	// 同步名称与头像（仅在变化时写库）
 	if user.Uname != master.Name {
 		if err := s.liveUserRepo.UpdateNameByID(ctx, nil, user.ID, master.Name); err != nil {
-			return TokenResp{}, 60801, err
+			return TokenResp{}, CodeQueryFailed, err
 		}
 	}
 	if user.Face != master.Face {
 		if err := s.liveUserRepo.UpdateFaceByID(ctx, nil, user.ID, master.Face); err != nil {
-			return TokenResp{}, 60801, err
+			return TokenResp{}, CodeQueryFailed, err
 		}
 	}
 	// 更新token
@@ -356,22 +356,22 @@ func (s *Service) Login(ctx context.Context, account int64, password string) (To
 func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (TokenResp, int, error) {
 	claims, err := jwt.ParseToken(refreshToken)
 	if err != nil {
-		return TokenResp{}, 20801, err
+		return TokenResp{}, CodeTokenInvalid, err
 	}
 	if claims.Type != "refresh" {
-		return TokenResp{}, 20802, nil
+		return TokenResp{}, CodeTokenTypeInvalid, nil
 	}
 	// 获取用户信息
 	user, err := s.liveUserRepo.GetByID(ctx, nil, claims.ID)
 	if err != nil {
-		return TokenResp{}, 60801, err
+		return TokenResp{}, CodeQueryFailed, err
 	}
 	// 验证信息
 	if user == nil {
-		return TokenResp{}, 50802, nil
+		return TokenResp{}, CodeUserNotFound, nil
 	}
 	if user.Token == nil || *user.Token != refreshToken {
-		return TokenResp{}, 20803, nil
+		return TokenResp{}, CodeTokenExpired, nil
 	}
 	// 更新token
 	return s.updateToken(ctx, claims.ID)
@@ -386,11 +386,11 @@ func (s *Service) Logout(ctx context.Context, userID int64) (int, error) {
 			jwt.UserRefreshKey(userID),
 		).Err()
 		if err != nil {
-			return 60807, err
+			return CodeTokenClearFailed, err
 		}
 	}
 	if err := s.liveUserRepo.UpdateTokenByID(ctx, nil, userID, nil); err != nil {
-		return 60804, err
+		return CodeTokenPersistFailed, err
 	}
 	// 返回数据
 	return 0, nil
@@ -401,22 +401,22 @@ func (s *Service) ChangePassword(ctx context.Context, userID int64, oldPassword,
 	// 根据主键ID获取用户信息
 	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
 	if err != nil {
-		return 60801, err
+		return CodeQueryFailed, err
 	}
 	if user == nil {
-		return 50802, nil
+		return CodeUserNotFound, nil
 	}
 	// 验证旧密码是否正确
 	if !crypto.CheckPassword(user.Password, oldPassword) {
-		return 40801, nil
+		return CodeLoginFailed, nil
 	}
 	// 新密码加密并更新
 	password, err := crypto.HashPassword(newPassword)
 	if err != nil {
-		return 60801, err
+		return CodeQueryFailed, err
 	}
 	if err := s.liveUserRepo.UpdatePasswordByID(ctx, nil, user.ID, password); err != nil {
-		return 60801, err
+		return CodeQueryFailed, err
 	}
 	// 返回结果
 	return 0, nil
@@ -427,18 +427,18 @@ func (s *Service) ResetPassword(ctx context.Context, userID int64, newPassword s
 	// 根据主键ID获取用户信息
 	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
 	if err != nil {
-		return 60801, err
+		return CodeQueryFailed, err
 	}
 	if user == nil {
-		return 50802, nil
+		return CodeUserNotFound, nil
 	}
 	// 新密码加密并更新
 	password, err := crypto.HashPassword(newPassword)
 	if err != nil {
-		return 60801, err
+		return CodeQueryFailed, err
 	}
 	if err := s.liveUserRepo.UpdatePasswordByID(ctx, nil, user.ID, password); err != nil {
-		return 60801, err
+		return CodeQueryFailed, err
 	}
 	// 返回结果
 	return 0, nil
@@ -449,10 +449,10 @@ func (s *Service) GetUserInfo(ctx context.Context, userID int64) (UserInfoResp, 
 	// 根据主键ID获取用户信息
 	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
 	if err != nil {
-		return UserInfoResp{}, 60801, err
+		return UserInfoResp{}, CodeQueryFailed, err
 	}
 	if user == nil {
-		return UserInfoResp{}, 50802, nil
+		return UserInfoResp{}, CodeUserNotFound, nil
 	}
 	return UserInfoResp{
 		UID:    user.UID,
@@ -479,7 +479,7 @@ func (s *Service) ListUserAssets(ctx context.Context, userID int64, req UserAsse
 		SortOrder:  sortOrder,
 	})
 	if err != nil {
-		return UserAssetsPageResp{}, 60801, err
+		return UserAssetsPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return UserAssetsPageResp{
@@ -495,14 +495,14 @@ func (s *Service) ListUserAssets(ctx context.Context, userID int64, req UserAsse
 func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, creditType, changeType int, changeAmount int64, remark *string) (int, error) {
 	ct := enum.CreditType(creditType)
 	if !ct.IsValid() {
-		return 10801, fmt.Errorf("非法的资产类型: %d", creditType)
+		return CodeParamInvalid, fmt.Errorf("非法的资产类型: %d", creditType)
 	}
 	t := enum.ChangeType(changeType)
 	if !t.IsValid() {
-		return 10801, fmt.Errorf("非法的变动类型: %d", changeType)
+		return CodeParamInvalid, fmt.Errorf("非法的变动类型: %d", changeType)
 	}
 	if changeAmount <= 0 {
-		return 10801, fmt.Errorf("变动数值必须大于 0: %d", changeAmount)
+		return CodeParamInvalid, fmt.Errorf("变动数值必须大于 0: %d", changeAmount)
 	}
 	desc := strings.TrimSpace(ptr.Deref(remark))
 	if desc == "" {
@@ -523,11 +523,11 @@ func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, credit
 	if err != nil {
 		switch {
 		case errors.Is(err, live_user.ErrUserNotFound):
-			return 50802, err
+			return CodeUserNotFound, err
 		case errors.Is(err, live_user.ErrInsufficientBalance):
-			return 40803, err
+			return CodeInsufficientBalance, err
 		default:
-			return 60801, err
+			return CodeQueryFailed, err
 		}
 	}
 	// 返回结果

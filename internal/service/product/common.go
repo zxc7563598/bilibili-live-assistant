@@ -112,10 +112,10 @@ func toDetailsResp(p *model.Product, skus []model.ProductSku, specs []model.Prod
 // validateSaveReq 校验保存请求里 binding 标签表达不了的嵌套规则
 func validateSaveReq(req SaveReq) (int, error) {
 	if len(req.Skus) == 0 {
-		return 11012, errors.New("未上架任何规格组合")
+		return CodeSkuRequired, errors.New("未上架任何规格组合")
 	}
 	if len(req.Skus) > maxSkuCount {
-		return 11013, errors.New("规格组合数量超限")
+		return CodeSkuTooMany, errors.New("规格组合数量超限")
 	}
 	def, errCode, err := validateSaveSpecs(req.Specs)
 	if errCode != 0 {
@@ -125,39 +125,39 @@ func validateSaveReq(req SaveReq) (int, error) {
 	seenCombos := make(map[string]struct{}, len(req.Skus))
 	for _, sku := range req.Skus {
 		if sku.Price < 0 {
-			return 11022, errors.New("SKU 价格非法")
+			return CodeSkuPriceInvalid, errors.New("SKU 价格非法")
 		}
 		if sku.CostPrice < 0 {
-			return 11028, errors.New("SKU 成本价非法")
+			return CodeSkuCostInvalid, errors.New("SKU 成本价非法")
 		}
 		if sku.Stock != nil && *sku.Stock < 0 {
-			return 11023, errors.New("SKU 库存非法")
+			return CodeSkuStockInvalid, errors.New("SKU 库存非法")
 		}
 		if errCode, err := validateSkuProps(def, sku.SpecProperties); errCode != 0 {
 			return errCode, err
 		}
 		specProperties, err := marshalSpecProperties(def.keys, sku.SpecProperties)
 		if err != nil {
-			return 11021, err
+			return CodeSkuSpecMismatch, err
 		}
 		if utf8.RuneCountInString(specProperties) > maxSpecPropertiesLen {
-			return 11029, errors.New("SKU 规格快照过长")
+			return CodeSkuSpecTooLong, errors.New("SKU 规格快照过长")
 		}
 		comboKey := canonicalSpecProperties(specProperties)
 		if _, ok := seenCombos[comboKey]; ok {
-			return 11030, errors.New("SKU 规格组合重复")
+			return CodeSkuDuplicate, errors.New("SKU 规格组合重复")
 		}
 		seenCombos[comboKey] = struct{}{}
 	}
 	for _, img := range req.Images {
 		if img.ImagePath == "" {
-			return 11024, errors.New("图片地址为空")
+			return CodeImagePathRequired, errors.New("图片地址为空")
 		}
 		if utf8.RuneCountInString(img.ImagePath) > maxImagePathLen {
-			return 11025, errors.New("图片地址过长")
+			return CodeImagePathTooLong, errors.New("图片地址过长")
 		}
 		if !enum.ProductImageType(img.Type).IsValid() {
-			return 11026, errors.New("图片类型非法")
+			return CodeImageTypeInvalid, errors.New("图片类型非法")
 		}
 	}
 	return 0, nil
@@ -171,30 +171,30 @@ func validateSaveSpecs(specs []SaveSpec) (specDefinition, int, error) {
 	}
 	for _, spec := range specs {
 		if spec.KeyName == "" {
-			return def, 11015, errors.New("规格名称为空")
+			return def, CodeSpecNameRequired, errors.New("规格名称为空")
 		}
 		if utf8.RuneCountInString(spec.KeyName) > maxSpecNameLen {
-			return def, 11016, errors.New("规格名称过长")
+			return def, CodeSpecNameTooLong, errors.New("规格名称过长")
 		}
 		// 重名规格会在规格快照里互相覆盖，必须拦掉
 		if _, ok := def.values[spec.KeyName]; ok {
-			return def, 11017, errors.New("规格名称重复")
+			return def, CodeSpecNameDuplicate, errors.New("规格名称重复")
 		}
 		def.keys = append(def.keys, spec.KeyName)
 
 		if len(spec.Values) == 0 {
-			return def, 11018, errors.New("规格下没有规格值")
+			return def, CodeSpecValueRequired, errors.New("规格下没有规格值")
 		}
 		valueSet := make(map[string]struct{}, len(spec.Values))
 		for _, value := range spec.Values {
 			if value.ValueName == "" {
-				return def, 11018, errors.New("规格值为空")
+				return def, CodeSpecValueRequired, errors.New("规格值为空")
 			}
 			if utf8.RuneCountInString(value.ValueName) > maxSpecValueLen {
-				return def, 11019, errors.New("规格值过长")
+				return def, CodeSpecValueTooLong, errors.New("规格值过长")
 			}
 			if _, ok := valueSet[value.ValueName]; ok {
-				return def, 11020, errors.New("规格值重复")
+				return def, CodeSpecValueDuplicate, errors.New("规格值重复")
 			}
 			valueSet[value.ValueName] = struct{}{}
 		}
@@ -207,18 +207,18 @@ func validateSaveSpecs(specs []SaveSpec) (specDefinition, int, error) {
 func validateSkuProps(def specDefinition, pairs []map[string]string) (int, error) {
 	props, err := flattenSpecProperties(pairs)
 	if err != nil {
-		return 11021, err
+		return CodeSkuSpecMismatch, err
 	}
 	if len(props) != len(def.keys) {
-		return 11021, errors.New("SKU 规格快照与商品规格数量不一致")
+		return CodeSkuSpecMismatch, errors.New("SKU 规格快照与商品规格数量不一致")
 	}
 	for _, key := range def.keys {
 		value, ok := props[key]
 		if !ok || value == "" {
-			return 11021, errors.New("SKU 规格快照缺少规格或规格值为空")
+			return CodeSkuSpecMismatch, errors.New("SKU 规格快照缺少规格或规格值为空")
 		}
 		if _, ok := def.values[key][value]; !ok {
-			return 11021, errors.New("SKU 规格快照引用了未定义的规格值")
+			return CodeSkuSpecMismatch, errors.New("SKU 规格快照引用了未定义的规格值")
 		}
 	}
 	return 0, nil

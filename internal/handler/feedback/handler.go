@@ -39,7 +39,7 @@ func (h *Handler) Submit(c *gin.Context) {
 	// 获取用户ID
 	userInfo, ok := handler.GetUserInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取请求参数
@@ -90,7 +90,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	// 获取管理员信息
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数
@@ -147,7 +147,7 @@ func (h *Handler) Details(c *gin.Context) {
 	// 获取管理员信息
 	adminInfo, ok := handler.GetAdminInfo(c)
 	if !ok {
-		response.Error(c, lang, 20001)
+		response.Error(c, lang, i18n.CodeTokenExpired)
 		return
 	}
 	// 获取参数

@@ -55,10 +55,10 @@ func (s *Service) buildCreateEntity(userID int64, req AddressReq, t enum.Address
 func (s *Service) buildUpdateEntity(ctx context.Context, userID int64, req AddressReq) (*model.LiveUserAddress, int, error) {
 	entity, err := s.liveUserAddressRepo.GetByID(ctx, nil, *req.ID)
 	if err != nil {
-		return nil, 61301, err
+		return nil, CodeQueryFailed, err
 	}
 	if entity == nil || entity.UserID != userID {
-		return nil, 51301, nil
+		return nil, CodeNotFound, nil
 	}
 
 	// 仅覆盖请求中提供的字段，未提供字段保留原值
@@ -103,24 +103,24 @@ func (s *Service) buildUpdateEntity(ctx context.Context, userID int64, req Addre
 // validateEntityFields 按地址类型校验实体必填项（创建与更新共用）
 func validateEntityFields(e *model.LiveUserAddress) int {
 	if e.Name == "" {
-		return 11304
+		return CodeNameRequired
 	}
 	switch e.Type {
 	case enum.AddressTypeActual:
 		// 实体地址：手机号 + 地区 + 详细地址
 		if e.Phone == "" {
-			return 11305
+			return CodePhoneRequired
 		}
 		if e.RegionCode == "" {
-			return 11306
+			return CodeRegionRequired
 		}
 		if e.Detail == "" {
-			return 11307
+			return CodeDetailRequired
 		}
 	default:
 		// 虚拟地址：仅需邮箱
 		if e.Email == "" {
-			return 11308
+			return CodeEmailRequired
 		}
 	}
 	return 0
@@ -136,14 +136,14 @@ func validateEntityFields(e *model.LiveUserAddress) int {
 func (s *Service) applyRegion(entity *model.LiveUserAddress, req AddressReq, required bool) (int, error) {
 	if req.RegionCode == nil {
 		if required {
-			return 11306, nil
+			return CodeRegionRequired, nil
 		}
 		return 0, nil
 	}
 	src := strings.TrimSpace(*req.RegionCode)
 	if src == "" {
 		if required {
-			return 11306, nil
+			return CodeRegionRequired, nil
 		}
 		entity.RegionCode = ""
 		entity.Region = ""
@@ -152,11 +152,11 @@ func (s *Service) applyRegion(entity *model.LiveUserAddress, req AddressReq, req
 
 	var codes []string
 	if err := json.Unmarshal([]byte(src), &codes); err != nil {
-		return 11302, err
+		return CodeRegionInvalid, err
 	}
 	if len(codes) == 0 {
 		if required {
-			return 11306, nil
+			return CodeRegionRequired, nil
 		}
 		entity.RegionCode = ""
 		entity.Region = ""
@@ -165,11 +165,11 @@ func (s *Service) applyRegion(entity *model.LiveUserAddress, req AddressReq, req
 
 	text, ok := region.Resolve(codes)
 	if !ok {
-		return 11302, nil
+		return CodeRegionInvalid, nil
 	}
 	canonical, err := json.Marshal(codes)
 	if err != nil {
-		return 11302, err
+		return CodeRegionInvalid, err
 	}
 	entity.RegionCode = string(canonical)
 	entity.Region = text

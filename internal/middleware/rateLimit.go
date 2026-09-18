@@ -1,5 +1,7 @@
 package middleware
 
+import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+
 import (
 	"bytes"
 	"encoding/json"
@@ -50,7 +52,7 @@ func (l *accountRateLimiter) middleware(c *gin.Context) {
 		return
 	}
 	if !l.allow(account) {
-		response.Error(c, "", 20002)
+		response.Error(c, "", i18n.CodeRateLimited)
 		c.Abort()
 		return
 	}

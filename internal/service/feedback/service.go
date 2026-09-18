@@ -24,22 +24,22 @@ func (s *Service) Add(ctx context.Context, userID int64, req CreateReq) (int, er
 	content := strings.TrimSpace(req.Content)
 	contact := strings.TrimSpace(req.Contact)
 	if t == "" {
-		return 11201, nil
+		return CodeTypeRequired, nil
 	}
 	if utf8.RuneCountInString(t) > 100 {
-		return 11202, nil
+		return CodeTypeTooLong, nil
 	}
 	if content == "" {
-		return 11203, nil
+		return CodeContentRequired, nil
 	}
 	if utf8.RuneCountInString(content) > 5000 {
-		return 11204, nil
+		return CodeContentTooLong, nil
 	}
 	if contact == "" {
-		return 11205, nil
+		return CodeContactRequired, nil
 	}
 	if utf8.RuneCountInString(contact) > 100 {
-		return 11206, nil
+		return CodeContactTooLong, nil
 	}
 	if _, err := s.feedbackRepo.Create(ctx, nil, &model.Feedback{
 		UserID:  userID,
@@ -47,7 +47,7 @@ func (s *Service) Add(ctx context.Context, userID int64, req CreateReq) (int, er
 		Content: content,
 		Contact: contact,
 	}); err != nil {
-		return 61201, err
+		return CodeQueryFailed, err
 	}
 	return 0, nil
 }
@@ -65,7 +65,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		Limit:     limit,
 	})
 	if err != nil {
-		return ListPageResp{}, 61201, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageResp{
@@ -78,10 +78,10 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 func (s *Service) Details(ctx context.Context, id int64) (DetailsItem, int, error) {
 	item, err := s.feedbackRepo.GetDetailByID(ctx, nil, id)
 	if err != nil {
-		return DetailsItem{}, 61201, err
+		return DetailsItem{}, CodeQueryFailed, err
 	}
 	if item == nil {
-		return DetailsItem{}, 51201, errors.New("投诉记录不存在")
+		return DetailsItem{}, CodeNotFound, errors.New("投诉记录不存在")
 	}
 	return toDetailsItem(*item), 0, nil
 }

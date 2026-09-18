@@ -1,5 +1,7 @@
 package validation
 
+import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+
 import (
 	"reflect"
 	"strconv"
@@ -25,5 +27,5 @@ func parseFieldError(e validator.FieldError, field reflect.StructField) int {
 			}
 		}
 	}
-	return 10001
+	return i18n.CodeParamInvalid
 }

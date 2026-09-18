@@ -53,10 +53,10 @@ func (s *Service) ReOrder(ctx context.Context, userID, draftID int64) (int64, in
 	// 读取历史草稿并校验归属
 	prev, err := s.liveUserOrderDraftRepo.GetByID(ctx, nil, draftID)
 	if err != nil {
-		return 0, 61101, err
+		return 0, CodeQueryFailed, err
 	}
 	if prev == nil || prev.UserID != userID {
-		return 0, 51103, errors.New("待重新购买的订单不存在或不属于当前用户")
+		return 0, CodeDraftNotFound, errors.New("待重新购买的订单不存在或不属于当前用户")
 	}
 	// 按该草稿的 SKU 与数量重新下单
 	return s.placeOrder(ctx, userID, prev.ProductSkuID, prev.Quantity)
@@ -67,33 +67,33 @@ func (s *Service) GetUserOrderDraft(ctx context.Context, userID int64) (UserOrde
 	// 获取用户当前 Active 状态的草稿
 	draft, err := s.liveUserOrderDraftRepo.GetActiveByUserID(ctx, nil, userID)
 	if err != nil {
-		return UserOrderDraftResp{}, 61101, err
+		return UserOrderDraftResp{}, CodeQueryFailed, err
 	}
 	// 让确认页能展示上次超时/取消的订单并引导重新购买
 	if draft == nil {
 		draft, err = s.liveUserOrderDraftRepo.GetLatestCancelledByUserID(ctx, nil, userID)
 		if err != nil {
-			return UserOrderDraftResp{}, 61101, err
+			return UserOrderDraftResp{}, CodeQueryFailed, err
 		}
 	}
 	if draft == nil {
-		return UserOrderDraftResp{}, 51102, errors.New("无待支付订单")
+		return UserOrderDraftResp{}, CodeNoPendingDraft, errors.New("无待支付订单")
 	}
 	// 获取商品信息
 	product, err := s.productRepo.GetByID(ctx, nil, draft.ProductID)
 	if err != nil {
-		return UserOrderDraftResp{}, 61101, err
+		return UserOrderDraftResp{}, CodeQueryFailed, err
 	}
 	if product == nil {
-		return UserOrderDraftResp{}, 51101, errors.New("商品不存在")
+		return UserOrderDraftResp{}, CodeProductNotFound, errors.New("商品不存在")
 	}
 	// 获取SKU信息
 	sku, err := s.productSkuRepo.GetByID(ctx, nil, draft.ProductSkuID)
 	if err != nil {
-		return UserOrderDraftResp{}, 61101, err
+		return UserOrderDraftResp{}, CodeQueryFailed, err
 	}
 	if sku == nil {
-		return UserOrderDraftResp{}, 51101, errors.New("商品SKU不存在")
+		return UserOrderDraftResp{}, CodeProductNotFound, errors.New("商品SKU不存在")
 	}
 	return UserOrderDraftResp{
 		ID:       draft.ID,
@@ -199,17 +199,17 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 	if err != nil {
 		switch {
 		case errors.Is(err, errDraftNotFound):
-			return 0, 51103, err
+			return 0, CodeDraftNotFound, err
 		case errors.Is(err, errDraftStateChanged):
-			return 0, 51104, err
+			return 0, CodeDraftExpired, err
 		case errors.Is(err, errAddressNotFound):
-			return 0, 51106, err
+			return 0, CodeAddressNotFound, err
 		case errors.Is(err, errProductNotFound), errors.Is(err, errSkuNotFound):
-			return 0, 51101, err
+			return 0, CodeProductNotFound, err
 		case errors.Is(err, live_user.ErrInsufficientBalance):
-			return 0, 41105, err
+			return 0, CodeInsufficientBalance, err
 		default:
-			return 0, 61101, err
+			return 0, CodeQueryFailed, err
 		}
 	}
 	return orderID, 0, nil
@@ -232,7 +232,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		SortOrder:   sortOrder,
 	})
 	if err != nil {
-		return ListPageResp{}, 61101, err
+		return ListPageResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageResp{
@@ -245,10 +245,10 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 func (s *Service) Details(ctx context.Context, id int64) (DetailsItem, int, error) {
 	item, err := s.liveUserOrderRepo.GetDetailByID(ctx, nil, id)
 	if err != nil {
-		return DetailsItem{}, 61101, err
+		return DetailsItem{}, CodeQueryFailed, err
 	}
 	if item == nil {
-		return DetailsItem{}, 51105, errors.New("订单不存在")
+		return DetailsItem{}, CodeOrderNotFound, errors.New("订单不存在")
 	}
 	return toDetailsItem(*item), 0, nil
 }
@@ -259,17 +259,17 @@ func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq)
 	// 读取订单
 	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, req.ID)
 	if err != nil {
-		return 61101, err
+		return CodeQueryFailed, err
 	}
 	if order == nil {
-		return 51105, errors.New("订单不存在")
+		return CodeOrderNotFound, errors.New("订单不存在")
 	}
 	if !req.ShipStatus.IsValid() {
-		return 11101, errors.New("发货状态不合法")
+		return CodeParamInvalid, errors.New("发货状态不合法")
 	}
 	// 虚拟商品没有物流环节，不接受快递信息
 	if order.ReceiverType != enum.AddressTypeActual && (req.ExpressCompany != nil || req.ExpressNo != nil) {
-		return 41102, errors.New("虚拟订单不支持快递信息")
+		return CodeVirtualNoExpress, errors.New("虚拟订单不支持快递信息")
 	}
 	// 快递信息仅在传了非空值时才覆盖，避免前端提交空串把已填单号冲掉
 	if v := ptr.TrimStr(req.ExpressCompany); v != "" {
@@ -302,7 +302,7 @@ func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq)
 	order.ShipStatus = req.ShipStatus
 	// 落库
 	if err := s.liveUserOrderRepo.Save(ctx, nil, order); err != nil {
-		return 61101, err
+		return CodeQueryFailed, err
 	}
 	return 0, nil
 }
@@ -312,13 +312,13 @@ func (s *Service) UpdateOrderStatus(ctx context.Context, req UpdateOrderStatusRe
 	// 读取订单
 	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, req.ID)
 	if err != nil {
-		return 61101, err
+		return CodeQueryFailed, err
 	}
 	if order == nil {
-		return 51105, errors.New("订单不存在")
+		return CodeOrderNotFound, errors.New("订单不存在")
 	}
 	if !req.OrderStatus.IsValid() {
-		return 11101, errors.New("订单状态不合法")
+		return CodeParamInvalid, errors.New("订单状态不合法")
 	}
 	// 已是目标状态直接返回：避免重复取消把真实的取消时间改晚
 	if order.OrderStatus == req.OrderStatus {
@@ -332,7 +332,7 @@ func (s *Service) UpdateOrderStatus(ctx context.Context, req UpdateOrderStatusRe
 	}
 	// 落库
 	if err := s.liveUserOrderRepo.Save(ctx, nil, order); err != nil {
-		return 61101, err
+		return CodeQueryFailed, err
 	}
 	return 0, nil
 }
@@ -343,10 +343,10 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 	// 否则用一个不存在的 ID 调本接口会拿到成功，排查问题时容易被误导
 	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, req.ID)
 	if err != nil {
-		return 61101, err
+		return CodeQueryFailed, err
 	}
 	if order == nil {
-		return 51105, errors.New("订单不存在")
+		return CodeOrderNotFound, errors.New("订单不存在")
 	}
 	// 未传任何可变更字段，无需落库
 	if req.ReceiverName == nil && req.ReceiverPhone == nil && req.ReceiverRegionCode == nil &&
@@ -357,18 +357,18 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 	case enum.AddressTypeVirtual:
 		// 虚拟订单只改邮箱，传了收货地址字段说明调用方串错了表单
 		if req.ReceiverName != nil || req.ReceiverPhone != nil || req.ReceiverRegionCode != nil || req.ReceiverDetail != nil {
-			return 41103, errors.New("虚拟订单只支持变更邮箱")
+			return CodeVirtualEmailOnly, errors.New("虚拟订单只支持变更邮箱")
 		}
 		if req.ReceiverEmail != nil {
 			order.ReceiverEmail = ptr.TrimStr(req.ReceiverEmail)
 		}
 		if order.ReceiverEmail == "" {
-			return 11107, nil
+			return CodeReceiverEmailRequired, nil
 		}
 	case enum.AddressTypeActual:
 		// 实体订单只改收货地址
 		if req.ReceiverEmail != nil {
-			return 41104, errors.New("实体订单只支持变更收货地址")
+			return CodeActualAddressOnly, errors.New("实体订单只支持变更收货地址")
 		}
 		if req.ReceiverName != nil {
 			order.ReceiverName = ptr.TrimStr(req.ReceiverName)
@@ -390,23 +390,23 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 		}
 		// 合并后按实体地址必填项校验，顺序与 address.validateEntityFields 保持一致
 		if order.ReceiverName == "" {
-			return 11103, nil
+			return CodeReceiverNameRequired, nil
 		}
 		if order.ReceiverPhone == "" {
-			return 11104, nil
+			return CodeReceiverPhoneRequired, nil
 		}
 		if order.ReceiverRegionCode == "" {
-			return 11105, nil
+			return CodeRegionRequired, nil
 		}
 		if order.ReceiverDetail == "" {
-			return 11106, nil
+			return CodeReceiverDetailRequired, nil
 		}
 	default:
-		return 11102, errors.New("收货人地址类型不合法")
+		return CodeAddressTypeInvalid, errors.New("收货人地址类型不合法")
 	}
 	// 落库
 	if err := s.liveUserOrderRepo.Save(ctx, nil, order); err != nil {
-		return 61101, err
+		return CodeQueryFailed, err
 	}
 	return 0, nil
 }
@@ -424,7 +424,7 @@ func (s *Service) ListPageByUser(ctx context.Context, userID int64, req ListPage
 		SortOrder:   sortOrder,
 	})
 	if err != nil {
-		return ListPageByUserResp{}, 61101, err
+		return ListPageByUserResp{}, CodeQueryFailed, err
 	}
 	// 返回数据
 	return ListPageByUserResp{

@@ -32,27 +32,27 @@ func New(appConfigCache *appconfig.Cache) *Service {
 func (s *Service) UploadImage(_ context.Context, req UploadImageReq) (UploadPathResp, int, error) {
 	subDir, ok := resolveScene(req.Scene)
 	if !ok {
-		return UploadPathResp{}, 11405, fmt.Errorf("未知上传场景: %q", req.Scene)
+		return UploadPathResp{}, CodeSceneInvalid, fmt.Errorf("未知上传场景: %q", req.Scene)
 	}
 	if req.File == nil || req.File.Size == 0 {
-		return UploadPathResp{}, 11403, errors.New("上传文件为空")
+		return UploadPathResp{}, CodeFileRequired, errors.New("上传文件为空")
 	}
 	if !sniffImage(req.File) {
-		return UploadPathResp{}, 11402, errors.New("上传内容不是有效图片")
+		return UploadPathResp{}, CodeNotImage, errors.New("上传内容不是有效图片")
 	}
 	uploadPath, err := fileutil.SaveUploadedFile(req.File, subDir)
 	switch {
 	case err == nil:
 		return UploadPathResp{Path: uploadPath}, 0, nil
 	case errors.Is(err, fileutil.ErrEmpty):
-		return UploadPathResp{}, 11403, err
+		return UploadPathResp{}, CodeFileRequired, err
 	case errors.Is(err, fileutil.ErrTooLarge):
-		return UploadPathResp{}, 11404, err
+		return UploadPathResp{}, CodeFileTooLarge, err
 	case errors.Is(err, fileutil.ErrInvalidDir):
 		// 白名单已保证子目录合法，走到这里属开发期传参问题
-		return UploadPathResp{}, 11405, err
+		return UploadPathResp{}, CodeSceneInvalid, err
 	default:
-		return UploadPathResp{}, 61401, fmt.Errorf("保存上传文件失败: %w", err)
+		return UploadPathResp{}, CodeSaveFailed, fmt.Errorf("保存上传文件失败: %w", err)
 	}
 }
 
@@ -60,32 +60,32 @@ func (s *Service) UploadImage(_ context.Context, req UploadImageReq) (UploadPath
 func (s *Service) SyncOSS(_ context.Context, path string) (UploadPathResp, int, error) {
 	localPath, err := fileutil.ResolveLocalPath(path)
 	if err != nil {
-		return UploadPathResp{}, 11407, fmt.Errorf("OSS 同步的图片路径不合法 %q: %w", path, err)
+		return UploadPathResp{}, CodePathInvalid, fmt.Errorf("OSS 同步的图片路径不合法 %q: %w", path, err)
 	}
 	// objectKey 由访问路径推导，不用本地路径：落盘目录可配置为绝对路径，
 	// 直接拿本地路径当 key 会把服务器目录结构写进 OSS 对象名
 	objectKey, err := fileutil.ObjectKey(path)
 	if err != nil {
-		return UploadPathResp{}, 11407, fmt.Errorf("OSS 同步的图片路径不合法 %q: %w", path, err)
+		return UploadPathResp{}, CodePathInvalid, fmt.Errorf("OSS 同步的图片路径不合法 %q: %w", path, err)
 	}
 	cfg, ok := s.ossConfigFromCache()
 	if !ok {
-		return UploadPathResp{}, 41401, errors.New("OSS 未配置：Endpoint/AccessKey ID/AccessKey Secret/bucket 需完整填写")
+		return UploadPathResp{}, CodeOSSNotConfigured, errors.New("OSS 未配置：Endpoint/AccessKey ID/AccessKey Secret/bucket 需完整填写")
 	}
 	client, err := oss.New(cfg)
 	if err != nil {
-		return UploadPathResp{}, 61403, fmt.Errorf("OSS 初始化失败: %w", err)
+		return UploadPathResp{}, CodeOSSInitFailed, fmt.Errorf("OSS 初始化失败: %w", err)
 	}
 	// 本地文件必须真实存在，OSS 无源可传；已被清理的文件需重新上传
 	if _, err := os.Stat(localPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return UploadPathResp{}, 51401, fmt.Errorf("OSS 同步的本地文件不存在: %s", localPath)
+			return UploadPathResp{}, CodeLocalFileNotFound, fmt.Errorf("OSS 同步的本地文件不存在: %s", localPath)
 		}
-		return UploadPathResp{}, 61402, fmt.Errorf("OSS 同步读取本地文件状态失败: %w", err)
+		return UploadPathResp{}, CodeReadFailed, fmt.Errorf("OSS 同步读取本地文件状态失败: %w", err)
 	}
 	url, err := client.UploadFile(localPath, objectKey)
 	if err != nil {
-		return UploadPathResp{}, 61404, fmt.Errorf("OSS 上传 %s 失败: %w", objectKey, err)
+		return UploadPathResp{}, CodeOSSUploadFailed, fmt.Errorf("OSS 上传 %s 失败: %w", objectKey, err)
 	}
 	return UploadPathResp{Path: url}, 0, nil
 }

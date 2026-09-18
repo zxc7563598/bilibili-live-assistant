@@ -16,21 +16,21 @@ import (
 func (s *Service) updateToken(ctx context.Context, userID int64) (TokenResp, int, error) {
 	accessToken, err := jwt.GenerateAccessToken(userID, "user", 0, "")
 	if err != nil {
-		return TokenResp{}, 60802, err
+		return TokenResp{}, CodeAccessTokenGenFailed, err
 	}
 	newRefreshToken, err := jwt.GenerateRefreshToken(userID, "user", 0, "")
 	if err != nil {
-		return TokenResp{}, 60803, err
+		return TokenResp{}, CodeRefreshTokenGenFailed, err
 	}
 	if err := s.liveUserRepo.UpdateTokenByID(ctx, nil, userID, &newRefreshToken); err != nil {
-		return TokenResp{}, 60804, err
+		return TokenResp{}, CodeTokenPersistFailed, err
 	}
 	if s.rdb != nil {
 		if err := s.rdb.Set(ctx, jwt.UserTokenKey(userID), accessToken, jwt.AccessTTL()).Err(); err != nil {
-			return TokenResp{}, 60805, err
+			return TokenResp{}, CodeAccessTokenCacheFailed, err
 		}
 		if err := s.rdb.Set(ctx, jwt.UserRefreshKey(userID), newRefreshToken, jwt.RefreshTTL()).Err(); err != nil {
-			return TokenResp{}, 60806, err
+			return TokenResp{}, CodeRefreshTokenCacheFailed, err
 		}
 	}
 	return TokenResp{

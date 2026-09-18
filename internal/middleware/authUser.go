@@ -1,5 +1,7 @@
 package middleware
 
+import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
+
 import (
 	"strings"
 
@@ -14,25 +16,25 @@ func UserAuth(rdb *redis.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Error(c, "", 10004)
+			response.Error(c, "", i18n.CodeAuthorizationMissing)
 			c.Abort()
 			return
 		}
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Error(c, "", 10005)
+			response.Error(c, "", i18n.CodeAuthorizationParseFailed)
 			c.Abort()
 			return
 		}
 		tokenString := parts[1]
 		claims, err := jwt.ParseToken(tokenString)
 		if err != nil {
-			response.Error(c, "", 10002)
+			response.Error(c, "", i18n.CodeAccessTokenParseFailed)
 			c.Abort()
 			return
 		}
 		if claims.Type != "access" {
-			response.Error(c, "", 10003)
+			response.Error(c, "", i18n.CodeAccessTokenInvalid)
 			c.Abort()
 			return
 		}
@@ -43,17 +45,17 @@ func UserAuth(rdb *redis.Client) gin.HandlerFunc {
 			key := jwt.UserTokenKey(claims.ID)
 			redisToken, err := rdb.Get(ctx, key).Result()
 			if err == redis.Nil {
-				response.Error(c, "", 10006)
+				response.Error(c, "", i18n.CodeCachedTokenParseFailed)
 				c.Abort()
 				return
 			}
 			if err != nil {
-				response.Error(c, "", 10007)
+				response.Error(c, "", i18n.CodeCachedTokenInvalid)
 				c.Abort()
 				return
 			}
 			if redisToken != tokenString {
-				response.Error(c, "", 10008)
+				response.Error(c, "", i18n.CodeTokenRefreshed)
 				c.Abort()
 				return
 			}
