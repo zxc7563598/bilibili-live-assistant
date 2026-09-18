@@ -569,9 +569,9 @@ func (p *giftProcessor) processBatteryReward(ctx context.Context, userID int64, 
 	var err error
 	switch rewardType {
 	case enum.RewardTypePoints:
-		err = p.liveUserSvc.AdjustPoints(ctx, params)
+		err = p.liveUserSvc.AdjustPoints(ctx, nil, params)
 	case enum.RewardTypeStars:
-		err = p.liveUserSvc.AdjustStars(ctx, params)
+		err = p.liveUserSvc.AdjustStars(ctx, nil, params)
 	}
 	return err
 }
@@ -590,9 +590,9 @@ func (p *giftProcessor) processVipReward(ctx context.Context, userID int64, rewa
 	var err error
 	switch rewardType {
 	case enum.RewardTypePoints:
-		err = p.liveUserSvc.AdjustPoints(ctx, params)
+		err = p.liveUserSvc.AdjustPoints(ctx, nil, params)
 	case enum.RewardTypeStars:
-		err = p.liveUserSvc.AdjustStars(ctx, params)
+		err = p.liveUserSvc.AdjustStars(ctx, nil, params)
 	}
 	return err
 }

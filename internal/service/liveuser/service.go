@@ -257,14 +257,24 @@ func (s *Service) AddTotalGiftAmount(ctx context.Context, userID int64, amount i
 	return s.liveUserRepo.AdjustField(ctx, nil, userID, "total_gift_amount", amount)
 }
 
-// AdjustPoints 增加用户积分记录（增加或减少）
-func (s *Service) AdjustPoints(ctx context.Context, params AdjustCreditParams) error {
-	return s.addCreditLog(ctx, params, enum.CreditTypePoints, live_user.CreditFieldPoints)
+// AdjustPoints 增减用户积分并写资产流水。tx 为 nil 时自开事务
+func (s *Service) AdjustPoints(ctx context.Context, tx *gorm.DB, params AdjustCreditParams) error {
+	return s.addCreditLog(ctx, tx, params, enum.CreditTypePoints, live_user.CreditFieldPoints)
 }
 
-// AdjustStars 增加用户星光记录（增加或减少）
-func (s *Service) AdjustStars(ctx context.Context, params AdjustCreditParams) error {
-	return s.addCreditLog(ctx, params, enum.CreditTypeStars, live_user.CreditFieldStars)
+// AdjustStars 增减用户星光并写资产流水。tx 为 nil 时自开事务
+func (s *Service) AdjustStars(ctx context.Context, tx *gorm.DB, params AdjustCreditParams) error {
+	return s.addCreditLog(ctx, tx, params, enum.CreditTypeStars, live_user.CreditFieldStars)
+}
+
+// AdjustCredit 按资产类型增减用户资产并写流水，供持有 creditType 而非具体资产名的调用方
+// （如订单模块）直接透传。tx 为 nil 时自开事务，非 nil 时复用调用方事务。
+func (s *Service) AdjustCredit(ctx context.Context, tx *gorm.DB, creditType enum.CreditType, params AdjustCreditParams) error {
+	field := live_user.CreditFieldStars
+	if creditType == enum.CreditTypePoints {
+		field = live_user.CreditFieldPoints
+	}
+	return s.addCreditLog(ctx, tx, params, creditType, field)
 }
 
 // ExistsAccount 获取用户是否存在
@@ -507,16 +517,8 @@ func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, credit
 		OperatorType: enum.OperatorTypeAdmin,
 		OperatorID:   adminID,
 	}
-	// 执行变更
-	var err error
-	switch ct {
-	case enum.CreditTypePoints:
-		err = s.AdjustPoints(ctx, params)
-	case enum.CreditTypeStars:
-		err = s.AdjustStars(ctx, params)
-	default:
-		return 10801, fmt.Errorf("暂不支持的资产类型: %d", int(ct))
-	}
+	// 执行变更（自开事务）
+	err := s.AdjustCredit(ctx, nil, ct, params)
 	if err != nil {
 		switch {
 		case errors.Is(err, live_user.ErrUserNotFound):
@@ -531,11 +533,12 @@ func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, credit
 	return 0, nil
 }
 
-// addCreditLog 增加用户资产记录（增加或减少）
+// addCreditLog 增减用户资产并写流水
 //
 // 资产变更交给数据库原子完成，再按其返回的变更前后数值写流水，
-// 保证并发场景下流水与用户余额始终对得上
-func (s *Service) addCreditLog(ctx context.Context, params AdjustCreditParams, creditType enum.CreditType, field string) error {
+// 保证并发场景下流水与用户余额始终对得上。
+// tx 为 nil 时自开事务；非 nil 时复用调用方事务（订单模块在自身事务里扣款即走这条）。
+func (s *Service) addCreditLog(ctx context.Context, tx *gorm.DB, params AdjustCreditParams, creditType enum.CreditType, field string) error {
 	if params.ChangeAmount < 0 {
 		return fmt.Errorf("变动数值不能为负数: %d", params.ChangeAmount)
 	}
@@ -552,7 +555,8 @@ func (s *Service) addCreditLog(ctx context.Context, params AdjustCreditParams, c
 	default:
 		return fmt.Errorf("未知的变动类型: %v", params.ChangeType)
 	}
-	return s.db.Transaction(func(tx *gorm.DB) error {
+	// 资产变更 + 写流水的整体逻辑，两种事务来源共用
+	apply := func(tx *gorm.DB) error {
 		// 原子变更用户资产，余额不足会被数据库条件拦下
 		beforeValue, afterValue, err := s.liveUserRepo.AdjustCredit(ctx, tx, params.UserID, field, delta)
 		if err != nil {
@@ -574,5 +578,10 @@ func (s *Service) addCreditLog(ctx context.Context, params AdjustCreditParams, c
 			return fmt.Errorf("创建记录失败：%w", err)
 		}
 		return nil
-	})
+	}
+	// 调用方已开启事务时复用，避免嵌套
+	if tx != nil {
+		return apply(tx)
+	}
+	return s.db.Transaction(apply)
 }

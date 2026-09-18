@@ -294,9 +294,9 @@ func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMs
 	var err error
 	switch rewardType {
 	case enum.CreditTypePoints:
-		err = p.liveUserSvc.AdjustPoints(ctx, params)
+		err = p.liveUserSvc.AdjustPoints(ctx, nil, params)
 	case enum.CreditTypeStars:
-		err = p.liveUserSvc.AdjustStars(ctx, params)
+		err = p.liveUserSvc.AdjustStars(ctx, nil, params)
 	}
 	return err
 }
