@@ -51,8 +51,10 @@ type Repository interface {
 	ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSession, error)
 	// ListActiveByRoomID 获取指定房间所有未下播的记录
 	ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID int64) ([]model.LiveSession, error)
-	// DistinctLiveDays 统计时间范围内每天是否有开播记录（不区分主播/房间，通常只有一个主播），map key 为「当月第几天」(1-31)，value 固定为 true 表示当天有开播
-	DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt int64, endAt int64) (map[int64]bool, error)
+	// DistinctLiveDays 统计时间范围内有哪些天开播过（不区分主播/房间，通常只有一个主播），
+	// 返回「当月第几天」(1-31) 的集合作为 key；时间区间为闭开 [startAt, endAt)。
+	// 注意 key 是日号而非日期，调用方需保证查询区间不跨月，否则不同月的同一天号会合并。
+	DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt int64, endAt int64) (map[int64]struct{}, error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -183,8 +185,9 @@ func (r *gormRepo) ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID i
 	return list, err
 }
 
-// DistinctLiveDays 统计时间范围内每天是否有开播记录（不区分主播/房间，通常只有一个主播），map key 为「当月第几天」(1-31)，value 固定为 true 表示当天有开播
-func (r *gormRepo) DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt int64, endAt int64) (map[int64]bool, error) {
+// DistinctLiveDays 统计时间范围内有哪些天开播过（不区分主播/房间，通常只有一个主播）
+// 返回「当月第几天」(1-31) 的集合；时间区间为闭开 [startAt, endAt)
+func (r *gormRepo) DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt int64, endAt int64) (map[int64]struct{}, error) {
 	db := r.ResolveDB(ctx, tx)
 	var startAts []int64
 	if err := db.Model(&model.LiveSession{}).
@@ -193,10 +196,10 @@ func (r *gormRepo) DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt in
 		Pluck("start_at", &startAts).Error; err != nil {
 		return nil, err
 	}
-	result := make(map[int64]bool)
+	result := make(map[int64]struct{})
 	for _, start := range startAts {
 		day := int64(time.Unix(start, 0).In(time.Local).Day())
-		result[day] = true
+		result[day] = struct{}{}
 	}
 	return result, nil
 }
