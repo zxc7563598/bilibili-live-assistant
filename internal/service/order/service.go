@@ -188,7 +188,7 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 		}
 		orderID = created.ID
 		// 回填下单锁定库存时的扣减流水，关联到订单
-		if err := s.productSkuStockLogRepo.UpdateByDraftID(ctx, tx, draftID, created.ID, orderSn); err != nil {
+		if err := s.productSkuStockLogRepo.UpdateOrderRefByDraftID(ctx, tx, draftID, created.ID, orderSn); err != nil {
 			return err
 		}
 		// 扣减用户余额并写资产流水

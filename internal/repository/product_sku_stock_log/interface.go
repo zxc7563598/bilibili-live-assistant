@@ -14,8 +14,8 @@ type Repository interface {
 	ListByProductSkuID(ctx context.Context, tx *gorm.DB, skuID int64, limit int) ([]model.ProductSkuStockLog, error)
 	// ListByProductID 根据商品ID获取库存流水，按创建时间倒序，limit 控制最大条数
 	ListByProductID(ctx context.Context, tx *gorm.DB, productID int64, limit int) ([]model.ProductSkuStockLog, error)
-	// UpdateByDraftID 按草稿ID回填扣减流水的 order_id / order_sn
-	UpdateByDraftID(ctx context.Context, tx *gorm.DB, draftID, orderID int64, orderSn string) error
+	// UpdateOrderRefByDraftID 按草稿ID回填扣减流水的 order_id / order_sn
+	UpdateOrderRefByDraftID(ctx context.Context, tx *gorm.DB, draftID, orderID int64, orderSn string) error
 }
 
 // ListByProductSkuID 根据SKU ID获取库存流水
@@ -34,8 +34,8 @@ func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID i
 	return list, err
 }
 
-// UpdateByDraftID 按草稿ID回填扣减流水的订单关联信息
-func (r *gormRepo) UpdateByDraftID(ctx context.Context, tx *gorm.DB, draftID, orderID int64, orderSn string) error {
+// UpdateOrderRefByDraftID 按草稿ID回填扣减流水的订单关联信息
+func (r *gormRepo) UpdateOrderRefByDraftID(ctx context.Context, tx *gorm.DB, draftID, orderID int64, orderSn string) error {
 	return r.ResolveDB(ctx, tx).Model(&model.ProductSkuStockLog{}).
 		Where("draft_id = ?", draftID).
 		Updates(map[string]any{"order_id": orderID, "order_sn": orderSn}).Error
