@@ -1,5 +1,7 @@
 package admin
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -351,7 +353,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.adminSvc.ListPage(ctx, admin.ListPageReq{
-		PageResp: admin.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,

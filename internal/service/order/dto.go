@@ -1,28 +1,9 @@
 package order
 
-import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
-
-// 通用分页请求参数
-type PageResp struct {
-	PageNo    int     `json:"pageNo"`
-	PageSize  int     `json:"pageSize"`
-	SortField *string `json:"sortField"`
-	SortOrder *string `json:"sortOrder"`
-}
-
-func (r *PageResp) OffsetLimit() (int, int, *string, *string) {
-	if r.PageNo < 1 {
-		r.PageNo = 1
-	}
-	if r.PageSize < 1 {
-		r.PageSize = 10
-	}
-	if r.PageSize > 100 {
-		r.PageSize = 100
-	}
-	offset := (r.PageNo - 1) * r.PageSize
-	return offset, r.PageSize, r.SortField, r.SortOrder
-}
+import (
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+)
 
 // PlaceOrderReq 请求入参
 type PlaceOrderReq struct {
@@ -50,7 +31,7 @@ type ProductItem struct {
 
 // ListPageByUserReq 请求入参
 type ListPageByUserReq struct {
-	PageResp
+	pagination.PageResp
 	OrderStatus *int `json:"order_status"`
 }
 
@@ -94,7 +75,7 @@ type ListPageItem struct {
 
 // ListPageReq 后台分页查询订单请求入参
 type ListPageReq struct {
-	PageResp
+	pagination.PageResp
 	UID         *int64
 	Uname       *string
 	OrderSn     *string

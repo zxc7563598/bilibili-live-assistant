@@ -1,5 +1,7 @@
 package feedback
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 // CreateReq 新增一条用户投诉/反馈的入参；UserID 由调用方从认证上下文传入，不放进请求体
 type CreateReq struct {
 	Type    string
@@ -7,31 +9,9 @@ type CreateReq struct {
 	Contact string
 }
 
-// PageResp 通用分页请求参数
-type PageResp struct {
-	PageNo    int     `json:"pageNo"`
-	PageSize  int     `json:"pageSize"`
-	SortField *string `json:"sortField"`
-	SortOrder *string `json:"sortOrder"`
-}
-
-func (r *PageResp) OffsetLimit() (int, int, *string, *string) {
-	if r.PageNo < 1 {
-		r.PageNo = 1
-	}
-	if r.PageSize < 1 {
-		r.PageSize = 10
-	}
-	if r.PageSize > 100 {
-		r.PageSize = 100
-	}
-	offset := (r.PageNo - 1) * r.PageSize
-	return offset, r.PageSize, r.SortField, r.SortOrder
-}
-
 // ListPageReq 后台分页查询投诉请求入参
 type ListPageReq struct {
-	PageResp
+	pagination.PageResp
 	// UID 联查 live_users.uid，精确匹配
 	UID *int64
 	// Uname 联查 live_users.uname，模糊匹配

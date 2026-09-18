@@ -1,32 +1,12 @@
 package livepk
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 // 我方胜负的取值，由 B站 下发的胜负字段收敛而来，与库中 self_result / rival_result 同口径
 const (
 	resultLose = -1 // 落败
 	resultWin  = 2  // 获胜
 )
-
-// 通用分页请求参数
-type PageResp struct {
-	PageNo    int     `json:"pageNo"`
-	PageSize  int     `json:"pageSize"`
-	SortField *string `json:"sortField"`
-	SortOrder *string `json:"sortOrder"`
-}
-
-func (r *PageResp) OffsetLimit() (int, int, *string, *string) {
-	if r.PageNo < 1 {
-		r.PageNo = 1
-	}
-	if r.PageSize < 1 {
-		r.PageSize = 10
-	}
-	if r.PageSize > 100 {
-		r.PageSize = 100
-	}
-	offset := (r.PageNo - 1) * r.PageSize
-	return offset, r.PageSize, r.SortField, r.SortOrder
-}
 
 // FetchRoomGroups 请求返回
 type FetchRoomGroupsResp struct {
@@ -36,7 +16,7 @@ type FetchRoomGroupsResp struct {
 
 // ListPage 请求入参
 type ListPageReq struct {
-	PageResp
+	pagination.PageResp
 	RoomID     *int64
 	RivalUID   *int64
 	RivalUname *string

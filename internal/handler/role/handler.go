@@ -1,5 +1,7 @@
 package role
 
+import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -54,7 +56,7 @@ func (h *Handler) ListPage(c *gin.Context) {
 	}
 	// 执行请求
 	svcResp, errCode, err := h.roleSvc.ListPage(ctx, role.ListPageReq{
-		PageResp: role.PageResp{
+		PageResp: pagination.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
 			SortField: req.SortField,
