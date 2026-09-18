@@ -12,7 +12,7 @@ type Repository interface {
 	base.Repository[model.RoleMenu]
 	// ListByRoleID 根据角色ID获取权限信息
 	ListByRoleID(ctx context.Context, tx *gorm.DB, roleID int64) ([]model.RoleMenu, error)
-	// DeleteByRoleID 删除角色ID相关的权限
+	// DeleteByRoleID 软删除该角色的全部菜单授权（可命中多行）
 	DeleteByRoleID(ctx context.Context, tx *gorm.DB, roleID int64) error
 	// ListByRoleIDs 根据角色ID批量获取
 	ListByRoleIDs(ctx context.Context, tx *gorm.DB, ids []int64) ([]model.RoleMenu, error)
@@ -23,7 +23,7 @@ func (r *gormRepo) ListByRoleID(ctx context.Context, tx *gorm.DB, roleID int64) 
 	return r.ListByField(ctx, tx, "role_id", roleID)
 }
 
-// DeleteByRoleID 删除角色ID相关的权限
+// DeleteByRoleID 软删除该角色的全部菜单授权（可命中多行）
 func (r *gormRepo) DeleteByRoleID(ctx context.Context, tx *gorm.DB, roleID int64) error {
 	db := r.ResolveDB(ctx, tx)
 	return db.Where("role_id = ?", roleID).Delete(&model.RoleMenu{}).Error

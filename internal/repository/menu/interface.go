@@ -19,7 +19,8 @@ type Repository interface {
 	ExistsByPath(ctx context.Context, tx *gorm.DB, path string) (bool, error)
 	// ListButtonsByParentID 获取菜单下的按钮
 	ListButtonsByParentID(ctx context.Context, tx *gorm.DB, parentID int64) ([]model.Menu, error)
-	// UpdateByID 变更菜单基本信息
+	// UpdateByID 按主键覆盖菜单的全部字段，不做空值过滤（form 里的零值会照写）
+	// 注意与 role.Repository.UpdateByID 语义相反——后者只更新非空字段
 	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.MenuUpdateByIdForm) error
 	// ToggleEnableByID 切换菜单启动状态
 	ToggleEnableByID(ctx context.Context, tx *gorm.DB, id int64) error
@@ -55,7 +56,7 @@ func (r *gormRepo) ListButtonsByParentID(ctx context.Context, tx *gorm.DB, paren
 	return list, nil
 }
 
-// UpdateByID 变更菜单基本信息
+// UpdateByID 按主键覆盖菜单的全部字段，不做空值过滤
 func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.MenuUpdateByIdForm) error {
 	return r.UpdateMap(ctx, tx, "id", id, map[string]any{
 		"code":       form.Code,

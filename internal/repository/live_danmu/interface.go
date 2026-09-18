@@ -39,7 +39,8 @@ type Repository interface {
 	ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveDanmu, error)
 	// ListByLiveID 根据 LiveID 查询弹幕，按 SendAt 倒序，limit 控制最大条数
 	ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, limit int) ([]model.LiveDanmu, error)
-	// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的弹幕关联到直播记录
+	// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的弹幕批量关联到直播记录
+	// 判据 room_id + 时间区间，可能命中多行；区间为闭闭 [startTime, endTime]
 	UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error
 	// CountByRoomIDAndTimeRange 统计指定房间在时间范围内的弹幕数量
 	CountByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
@@ -47,8 +48,10 @@ type Repository interface {
 	CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error)
 	// CountDailyByUID 根据uid统计用户在时间范围内的每日发言数量。
 	// 返回的 map key 为「当月第几天」(1-31)，value 为当日发言数。
+	// 区间为闭开 [startAt, endAt)（注意与 CountByRoomIDAndTimeRange 的闭闭区间不同）；
+	// key 是日号而非日期，调用方需保证区间不跨月，否则不同月的同一天号会合并。
 	CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, startAt int64, endAt int64) (map[int64]int64, error)
-	// ListMessagesByUID 根据uid获取用户全部弹幕信息
+	// ListMessagesByUID 获取指定用户的全部弹幕内容（msg 列），无排序、无条数上限
 	ListMessagesByUID(ctx context.Context, tx *gorm.DB, uid int64) ([]string, error)
 }
 
@@ -120,7 +123,7 @@ func (r *gormRepo) ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, 
 	return list, err
 }
 
-// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的弹幕关联到直播记录
+// UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的弹幕批量关联到直播记录
 func (r *gormRepo) UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error {
 	db := r.ResolveDB(ctx, tx)
 	return db.Model(&model.LiveDanmu{}).
@@ -164,7 +167,7 @@ func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, 
 	return result, nil
 }
 
-// ListMessagesByUID 根据uid获取用户全部弹幕信息
+// ListMessagesByUID 获取指定用户的全部弹幕内容（msg 列），无排序、无条数上限
 func (r *gormRepo) ListMessagesByUID(ctx context.Context, tx *gorm.DB, uid int64) ([]string, error) {
 	db := r.ResolveDB(ctx, tx)
 	var messages []string

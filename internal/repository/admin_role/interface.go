@@ -12,7 +12,7 @@ type Repository interface {
 	base.Repository[model.AdminRole]
 	// ExistsByAdminIDAndRoleID 判断管理员是否拥有指定角色
 	ExistsByAdminIDAndRoleID(ctx context.Context, tx *gorm.DB, adminID, roleID int64) (bool, error)
-	// DeleteByAdminID 根据管理员ID删除绑定记录
+	// DeleteByAdminID 软删除该管理员的全部角色绑定（可命中多行）
 	DeleteByAdminID(ctx context.Context, tx *gorm.DB, adminID int64) error
 	// ListByAdminIDs 根据多个管理员ID获取全部相关角色
 	ListByAdminIDs(ctx context.Context, tx *gorm.DB, adminIDs []int64) ([]model.AdminRole, error)
@@ -32,7 +32,7 @@ func (r *gormRepo) ExistsByAdminIDAndRoleID(ctx context.Context, tx *gorm.DB, ad
 	return count > 0, nil
 }
 
-// DeleteByAdminID 根据管理员ID删除绑定记录
+// DeleteByAdminID 软删除该管理员的全部角色绑定（可命中多行）
 func (r *gormRepo) DeleteByAdminID(ctx context.Context, tx *gorm.DB, adminID int64) error {
 	db := r.ResolveDB(ctx, tx)
 	return db.Where("admin_id = ?", adminID).Delete(&model.AdminRole{}).Error
