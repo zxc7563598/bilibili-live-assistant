@@ -161,6 +161,7 @@ error:
   11204: Feedback content is too long # Feedback content exceeds the maximum length limit
   11205: Please enter contact information # Contact information is empty
   11206: Contact information is too long # Contact information exceeds the maximum length limit
+  11207: Request parameter is invalid # Request parameter is invalid (Feedback admin)
   11301: Invalid address parameter # Address parameter validation failed
   11302: Invalid region code # region_code is not a valid province-city-district chain
   11303: Invalid address type # Invalid address type
@@ -214,6 +215,7 @@ error:
   51103: The order to re-order does not exist # Historical draft does not exist or does not belong to the user
   51104: The current order has expired # The current order has expired
   51105: Order does not exist # Order not found (Order admin)
+  51201: Feedback record does not exist # Feedback record not found (Feedback admin)
   51301: Address not found # Address does not exist or does not belong to the user
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception

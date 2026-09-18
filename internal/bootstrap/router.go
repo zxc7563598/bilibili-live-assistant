@@ -184,6 +184,9 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/order/ship-status", middleware.AdminAuth(rdb), handlers.Order.UpdateShipStatus)
 	adminApi.POST("/order/status", middleware.AdminAuth(rdb), handlers.Order.UpdateOrderStatus)
 	adminApi.POST("/order/receiver", middleware.AdminAuth(rdb), handlers.Order.UpdateReceiverInfo)
+	// 投诉管理路由
+	adminApi.POST("/feedback/list", middleware.AdminAuth(rdb), handlers.Feedback.ListPage)
+	adminApi.POST("/feedback/details", middleware.AdminAuth(rdb), handlers.Feedback.Details)
 	return r
 }
 
