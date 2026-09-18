@@ -112,7 +112,22 @@ type Repository[T any] interface {
 - 只有带方向校验的才用 `Increment*` / `Decrement*`，例如 `DecrementStock`
   会带上 `stock >= delta` 守卫
 - 领域动作可以直接用领域动词：`ToggleEnableByID`（翻转而非设置）、`CancelActiveByID`
-- 所有 `Delete*` 都是软删除，注释里写明
+- `Delete*` 默认是软删除，注释里写明。**例外：关联表用物理删除**
+
+### 关联表为什么必须物理删除
+
+`role_menus`、`admin_roles` 这种纯关联表，一行只表示「A 拥有 B」这个事实，
+软删除不保留任何有用信息，却会留下两个坑：
+
+1. **占着唯一索引**：`admin_roles` 有 `uk_admin_role(admin_id, role_id)`，
+   唯一索引不含 `deleted_at`，被软删除的行照样占着这个键。而绑定走的是
+   「先删后插」，于是重新绑定同一组合时插入会撞唯一键，
+   报 `gorm.ErrDuplicatedKey`（文案是 `duplicated key not allowed`）
+2. **堆积死行**：没有唯一索引的 `role_menus` 不报错，但每次重新授权都会
+   把旧行标成已删除却留在表里
+
+所以这类表的 `Delete*` 要写 `db.Unscoped().Where(...).Delete(&model.X{})`。
+写的时候注意：`Unscoped()` 只加在删除上，查询仍走默认的软删除过滤。
 
 ## 方法编写规范
 
