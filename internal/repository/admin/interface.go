@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
 	"gorm.io/gorm"
 )
 
@@ -96,8 +97,8 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.AdminL
 	db := r.getDB(ctx, tx)
 	db = db.Model(&model.Admin{})
 	if v := query.Username; v != nil && *v != "" {
-		escaped := escapeLike(*v)
-		db = db.Where("username LIKE ?", "%"+escaped+"%")
+		escaped := sqlutil.EscapeLike(*v)
+		db = db.Where("username LIKE ? ESCAPE '!'", "%"+escaped+"%")
 	}
 	if v := query.Gender; v != nil {
 		g := enum.Gender(*v)
@@ -157,16 +158,4 @@ func (r *gormRepo) UpdateProfileByID(ctx context.Context, tx *gorm.DB, id int64,
 		return nil
 	}
 	return r.UpdateMap(ctx, tx, "id", id, updateMap)
-}
-
-// escapeLike 转义 LIKE 查询中的特殊字符 _ %
-func escapeLike(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '%' || r == '_' || r == '\\' {
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }

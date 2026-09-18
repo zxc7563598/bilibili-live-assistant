@@ -83,7 +83,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleLi
     db := r.getDB(ctx, tx)
     db = db.Model(&model.Role{})
     if v := query.Name; v != nil && *v != "" {
-        db = db.Where("name LIKE ?", "%"+*v+"%")
+        db = db.Where("name LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
     }
     if v := query.Enable; v != nil {
         e := enum.Enable(*v)
@@ -104,6 +104,11 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleLi
 - 每个方法接受 `ctx context.Context` 和 `tx *gorm.DB`（事务支持）
 - 枚举值先校验 `IsValid()` 再使用
 - LIKE 查询注意防注入：用参数化 `?` 占位符拼接
+- 模糊搜索统一用 `sqlutil.EscapeLike` 转义搜索词，**并给 SQL 补上 `ESCAPE '!'` 子句**。
+  只转义不写 `ESCAPE` 是错的：SQLite 没有默认转义字符，会把转义符当成普通字符去匹配，
+  搜索词里含 `_` `%` `\` 时一条都查不到（MySQL/PostgreSQL 默认转义符恰好是反斜杠，
+  漏写在那两家上碰巧是对的，所以这个坑只在 SQLite 上暴露）。参考实现见
+  [pkg/sqlutil/like.go](../../pkg/sqlutil/like.go)
 
 ## 模块注册
 

@@ -8,6 +8,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
 	"gorm.io/gorm"
 )
 
@@ -296,18 +297,6 @@ func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, 
 	return result, nil
 }
 
-// escapeLike 转义 LIKE 查询中的特殊字符 _ %
-func escapeLike(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '%' || r == '_' || r == '\\' {
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
-}
-
 // applyLiveGiftQuery 构建礼物列表筛选条件
 func (r *gormRepo) applyLiveGiftListQuery(db *gorm.DB, query model.LiveGiftListPageQuery) *gorm.DB {
 	if v := query.RoomID; v != nil {
@@ -317,10 +306,10 @@ func (r *gormRepo) applyLiveGiftListQuery(db *gorm.DB, query model.LiveGiftListP
 		db = db.Where("uid = ?", *v)
 	}
 	if v := query.Uname; v != nil && *v != "" {
-		db = db.Where("uname LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("uname LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if v := query.GiftName; v != nil && *v != "" {
-		db = db.Where("gift_name LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("gift_name LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if v := query.GiftType; v != nil {
 		g := enum.GiftType(*v)
@@ -352,13 +341,13 @@ func (r *gormRepo) applyLiveGiftBlindBoxListQuery(db *gorm.DB, query model.LiveG
 		db = db.Where("uid = ?", *v)
 	}
 	if v := query.Uname; v != nil && *v != "" {
-		db = db.Where("uname LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("uname LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if v := query.GiftName; v != nil && *v != "" {
-		db = db.Where("gift_name LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("gift_name LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if v := query.OriginalGiftName; v != nil && *v != "" {
-		db = db.Where("original_gift_name LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("original_gift_name LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if v := query.SendAtStart; v != nil {
 		db = db.Where("send_at >= ?", *v)

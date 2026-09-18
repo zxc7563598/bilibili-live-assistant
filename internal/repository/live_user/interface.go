@@ -8,6 +8,7 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -89,7 +90,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 		db = db.Where("uid = ?", *v)
 	}
 	if v := query.Uname; v != nil && *v != "" {
-		db = db.Where("uname LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("uname LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -182,16 +183,4 @@ func (r *gormRepo) AddCredit(ctx context.Context, tx *gorm.DB, id int64, field s
 // UpdateTokenByID 根据 id 更换用户 refreshToken
 func (r *gormRepo) UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error {
 	return r.UpdateField(ctx, tx, id, "token", token)
-}
-
-// escapeLike 转义 LIKE 查询中的特殊字符 _ %
-func escapeLike(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '%' || r == '_' || r == '\\' {
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
 	"gorm.io/gorm"
 )
 
@@ -55,8 +56,8 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleLi
 	db := r.getDB(ctx, tx)
 	db = db.Model(&model.Role{})
 	if v := query.Name; v != nil && *v != "" {
-		escaped := escapeLike(*v)
-		db = db.Where("name LIKE ?", "%"+escaped+"%")
+		escaped := sqlutil.EscapeLike(*v)
+		db = db.Where("name LIKE ? ESCAPE '!'", "%"+escaped+"%")
 	}
 	if v := query.Enable; v != nil {
 		e := enum.Enable(*v)
@@ -104,15 +105,4 @@ func (r *gormRepo) UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form m
 		return nil
 	}
 	return r.UpdateMap(ctx, tx, "id", id, updateMap)
-}
-
-func escapeLike(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '%' || r == '_' || r == '\\' {
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
 	"gorm.io/gorm"
 )
 
@@ -135,7 +136,7 @@ func (r *gormRepo) applyLivePkLogListQuery(db *gorm.DB, query model.LivePkLogLis
 		db = db.Where("rival_uid = ?", *v)
 	}
 	if v := query.RivalUname; v != nil && *v != "" {
-		db = db.Where("rival_uname LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("rival_uname LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if v := query.SelfResult; v != nil {
 		db = db.Where("self_result = ?", *v)
@@ -147,16 +148,4 @@ func (r *gormRepo) applyLivePkLogListQuery(db *gorm.DB, query model.LivePkLogLis
 		db = db.Where("start_at <= ?", *v)
 	}
 	return db
-}
-
-// escapeLike 转义 LIKE 查询中的特殊字符 _ %
-func escapeLike(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '%' || r == '_' || r == '\\' {
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }

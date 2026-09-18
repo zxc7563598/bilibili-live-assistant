@@ -7,6 +7,7 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
 	"gorm.io/gorm"
 )
 
@@ -52,7 +53,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.Feedba
 		db = db.Where("lu.uid = ?", *v)
 	}
 	if v := query.Uname; v != nil && *v != "" {
-		db = db.Where("lu.uname LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("lu.uname LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -87,16 +88,4 @@ func (r *gormRepo) GetDetailByID(ctx context.Context, tx *gorm.DB, id int64) (*m
 		return nil, err
 	}
 	return &item, nil
-}
-
-// escapeLike 转义 LIKE 查询中的特殊字符 _ %
-func escapeLike(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '%' || r == '_' || r == '\\' {
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }

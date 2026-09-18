@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
 	"gorm.io/gorm"
 )
 
@@ -53,7 +54,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.Produc
 	db := r.getDB(ctx, tx)
 	db = db.Model(&model.Product{})
 	if v := query.Name; v != nil && *v != "" {
-		db = db.Where("name LIKE ?", "%"+escapeLike(*v)+"%")
+		db = db.Where("name LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
 	if v := query.CreditType; v != nil {
 		ct := enum.CreditType(*v)
@@ -115,16 +116,4 @@ func (r *gormRepo) DecrementStock(ctx context.Context, tx *gorm.DB, id, delta in
 		return false, res.Error
 	}
 	return res.RowsAffected > 0, nil
-}
-
-// escapeLike 转义 LIKE 查询中的特殊字符 _ %
-func escapeLike(s string) string {
-	var b strings.Builder
-	for _, r := range s {
-		if r == '%' || r == '_' || r == '\\' {
-			b.WriteRune('\\')
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }
