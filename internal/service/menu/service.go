@@ -73,6 +73,11 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 
 // ToggleMenuEnable 用于切换菜单启动状态
 func (s *Service) ToggleMenuEnable(ctx context.Context, id int64) (int, error) {
+	// 翻转是 UPDATE ... WHERE id = ? 形式，命中 0 行不报错，
+	// 不先查一次的话对不存在的 ID 会返回成功
+	if errCode, err := s.checkMenuExists(ctx, id); errCode != 0 {
+		return errCode, err
+	}
 	err := s.menuRepo.ToggleEnableByID(ctx, nil, id)
 	if err != nil {
 		return 60304, err
@@ -82,9 +87,25 @@ func (s *Service) ToggleMenuEnable(ctx context.Context, id int64) (int, error) {
 
 // Delete 用于删除菜单
 func (s *Service) Delete(ctx context.Context, id int64) (int, error) {
+	// 同上：软删除命中 0 行也不报错，需先确认菜单存在
+	if errCode, err := s.checkMenuExists(ctx, id); errCode != 0 {
+		return errCode, err
+	}
 	err := s.menuRepo.Delete(ctx, nil, id)
 	if err != nil {
 		return 60305, err
+	}
+	return 0, nil
+}
+
+// checkMenuExists 确认菜单存在，存在返回 (0, nil)
+func (s *Service) checkMenuExists(ctx context.Context, id int64) (int, error) {
+	menu, err := s.menuRepo.GetByID(ctx, nil, id)
+	if err != nil {
+		return 60301, err
+	}
+	if menu == nil {
+		return 50301, nil
 	}
 	return 0, nil
 }
