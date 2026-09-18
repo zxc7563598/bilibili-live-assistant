@@ -116,7 +116,7 @@ func (r *gormRepo) countByType(ctx context.Context, tx *gorm.DB, uid, roomID int
 }
 
 // listDistinctDaysByType 返回指定 UID 在指定房间内指定互动类型的去重日期，按时间倒序。
-// 日期以当天零点的时间戳表示，天数在 Go 侧去重，避免依赖 MySQL/PostgreSQL 各自的日期函数。
+// 日期以本地自然日零点的时间戳表示，天数在 Go 侧去重，避免依赖 MySQL/PostgreSQL 各自的日期函数。
 func (r *gormRepo) listDistinctDaysByType(ctx context.Context, tx *gorm.DB, uid, roomID int64, msgType enum.InteractType) ([]int64, error) {
 	db := r.ResolveDB(ctx, tx)
 	var timestamps []int64
@@ -129,12 +129,18 @@ func (r *gormRepo) listDistinctDaysByType(ctx context.Context, tx *gorm.DB, uid,
 	return distinctDays(timestamps), nil
 }
 
-// distinctDays 将时间戳列表去重为「当天零点」的日期序列，保持时间倒序
+// localDayStart 返回该时间戳所在「本地自然日」的零点时间戳
+func localDayStart(ts int64) int64 {
+	t := time.Unix(ts, 0).In(time.Local)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local).Unix()
+}
+
+// distinctDays 将时间戳列表去重为「本地自然日零点」的日期序列，保持时间倒序
 func distinctDays(timestamps []int64) []int64 {
 	days := make([]int64, 0, len(timestamps))
 	seen := make(map[int64]struct{}, len(timestamps))
 	for _, ts := range timestamps {
-		day := time.Unix(ts, 0).Truncate(24 * time.Hour).Unix()
+		day := localDayStart(ts)
 		if _, ok := seen[day]; ok {
 			continue
 		}
@@ -144,19 +150,21 @@ func distinctDays(timestamps []int64) []int64 {
 	return days
 }
 
-// streakDays 根据倒序的去重日期列表计算截至今天的连续天数
+// streakDays 根据倒序的去重日期列表计算截至今天的连续天数。
+// 按本地自然日比较，与 live_danmu.CountDailyByUID、live_session.DistinctLiveDays、
+// live_user_sign_log.StreakDaysByUID 的口径保持一致。
 func streakDays(days []int64) int64 {
 	if len(days) == 0 {
 		return 0
 	}
-	today := time.Now().Truncate(24 * time.Hour)
+	today := localDayStart(time.Now().Unix())
 	var streak int64
 	for i, d := range days {
-		day := time.Unix(d, 0).Truncate(24 * time.Hour)
-		expected := today.AddDate(0, 0, -i)
-		if day.Equal(expected) {
+		// 今天往前推 i 天的本地零点；再归一化一次，避免夏令时切换带来的小时偏移
+		expected := localDayStart(time.Unix(today, 0).In(time.Local).AddDate(0, 0, -i).Unix())
+		if d == expected {
 			streak++
-		} else if day.Before(expected) {
+		} else if d < expected {
 			break
 		}
 	}
