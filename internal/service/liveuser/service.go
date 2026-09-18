@@ -549,7 +549,7 @@ func (s *Service) addCreditLog(ctx context.Context, params AddCreditLogParams, c
 	}
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// 原子变更用户资产，余额不足会被数据库条件拦下
-		beforeValue, afterValue, err := s.liveUserRepo.AddCredit(ctx, tx, params.UserID, field, delta)
+		beforeValue, afterValue, err := s.liveUserRepo.AdjustCredit(ctx, tx, params.UserID, field, delta)
 		if err != nil {
 			return fmt.Errorf("更新用户资产失败：%w", err)
 		}

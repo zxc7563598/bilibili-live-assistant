@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// 资产字段名，AddCredit 只接受这两个值
+// 资产字段名，AdjustCredit 只接受这两个值
 const (
 	CreditFieldPoints = "points"
 	CreditFieldStars  = "stars"
@@ -64,8 +64,8 @@ type Repository interface {
 	// ListPage 分页查询用户，UID 精确匹配，Uname 模糊匹配；
 	// 支持按白名单字段排序，非法/空排序参数回退按 created_at desc
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery) ([]model.LiveUser, int64, error)
-	// AddCredit 原子增减用户资产（积分/星光），返回变更前、变更后的数值
-	AddCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (int64, int64, error)
+	// AdjustCredit 原子增减用户资产（积分/星光），返回变更前、变更后的数值
+	AdjustCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (before, after int64, err error)
 	// UpdateTokenByID 根据 id 更换用户 refreshToken
 	UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error
 }
@@ -142,13 +142,13 @@ func (r *gormRepo) CreateIfNotExist(ctx context.Context, tx *gorm.DB, entity *mo
 	return entity, nil
 }
 
-// AddCredit 原子增减用户资产（积分/星光），delta 为负数表示扣减，保证结果不会小于 0
+// AdjustCredit 原子增减用户资产（积分/星光），delta 为负数表示扣减，保证结果不会小于 0
 //
 // 直播消息每条都在独立 goroutine 中处理，同一用户的资产变更天然并发。
 // 这里把读改写整体交给数据库（UPDATE ... SET field = field + ?），
 // 避免"先查询再写绝对值"被并发覆盖导致积分丢失。
 // 返回变更前、变更后的数值，供调用方写入变动流水。
-func (r *gormRepo) AddCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (int64, int64, error) {
+func (r *gormRepo) AdjustCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (before, after int64, err error) {
 	if field != CreditFieldPoints && field != CreditFieldStars {
 		return 0, 0, fmt.Errorf("%w: %s", ErrInvalidCreditField, field)
 	}
@@ -163,8 +163,8 @@ func (r *gormRepo) AddCredit(ctx context.Context, tx *gorm.DB, id int64, field s
 	}
 	if res.RowsAffected == 0 {
 		// 没更新到行，区分"用户不存在"和"余额不足"
-		exists, err := r.Exists(ctx, tx, "id", id)
-		if err != nil {
+		var exists bool
+		if exists, err = r.Exists(ctx, tx, "id", id); err != nil {
 			return 0, 0, err
 		}
 		if !exists {
@@ -173,8 +173,7 @@ func (r *gormRepo) AddCredit(ctx context.Context, tx *gorm.DB, id int64, field s
 		return 0, 0, ErrInsufficientBalance
 	}
 	// 同事务内回读变更后的数值，变更前的值由 after - delta 反推
-	var after int64
-	if err := r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).Where("id = ?", id).Pluck(field, &after).Error; err != nil {
+	if err = r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).Where("id = ?", id).Pluck(field, &after).Error; err != nil {
 		return 0, 0, err
 	}
 	return after - delta, after, nil
