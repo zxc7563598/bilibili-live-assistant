@@ -145,9 +145,9 @@ func (h *Handler) UpdateRoom(c *gin.Context) {
 		response.Error(c, lang, code)
 		return
 	}
-	errCode, err := h.liveSvc.UpdateRoom(ctx, req.RoomID)
+	errCode, err := h.liveSvc.SwitchRoom(ctx, req.RoomID)
 	if errCode != 0 {
-		handler.ErrorLog(logger.LiveLogger, "liveSvc.UpdateRoom 调用失败", errCode, err)
+		handler.ErrorLog(logger.LiveLogger, "liveSvc.SwitchRoom 调用失败", errCode, err)
 		response.Error(c, lang, errCode)
 		return
 	}
@@ -204,9 +204,9 @@ func (h *Handler) GetListenerStatus(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	_ = ctx
-	svcResp, errCode, err := h.liveSvc.GetListenerStatus(ctx)
+	svcResp, errCode, err := h.liveSvc.FetchListenerStatus(ctx)
 	if errCode != 0 {
-		handler.ErrorLog(logger.LiveLogger, "liveSvc.GetListenerStatus 调用失败", errCode, err)
+		handler.ErrorLog(logger.LiveLogger, "liveSvc.FetchListenerStatus 调用失败", errCode, err)
 		response.Error(c, lang, errCode)
 		return
 	}
