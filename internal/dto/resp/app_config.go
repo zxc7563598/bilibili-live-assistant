@@ -50,18 +50,26 @@ type AppPublicKeyResp struct {
 	Sign string `json:"sign" example:"a1b2c3d4e5f60718293a4b5c6d7e8f90..."`
 }
 
-// AppShopThemeColorResp 商城 PWA / 站点配置返回
+// AppShopThemeColorResp 获取商城主题色返回
 type AppShopThemeColorResp struct {
+	// 主题色（十六进制）
 	Color string `json:"color" example:"#ffffff"`
 }
 
-// AppShopLoginConfigResp 获取登录页面配置信息返回
+// AppShopLoginConfigResp 获取登录页配置返回
+//
+// 商城端登录页展示用，登录前匿名可访问，不含任何敏感配置。
 type AppShopLoginConfigResp struct {
-	Register bool   `json:"register" example:"false"`
-	Logo     string `json:"logo" example:"https://cdn.hejunjie.life/avatars/shop.png"`
-	LoginBg  string `json:"login_bg" example:""`
-	Title    string `json:"title" example:"积分商城"`
-	Slogan   string `json:"slogan" example:"登录后可兑换积分好礼"`
+	// 是否允许用户自助注册
+	Register bool `json:"register" example:"false"`
+	// 登录页 Logo 路径
+	Logo string `json:"logo" example:"https://cdn.hejunjie.life/avatars/shop.png"`
+	// 登录页背景图路径（空串表示由前端按主题色生成）
+	LoginBg string `json:"login_bg" example:""`
+	// 登录页主标题
+	Title string `json:"title" example:"积分商城"`
+	// 登录页副标题 / Slogan
+	Slogan string `json:"slogan" example:"登录后可兑换积分好礼"`
 }
 
 // AppConfigDataResp 后台查询 App 全部配置返回

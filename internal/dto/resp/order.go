@@ -2,17 +2,21 @@ package resp
 
 import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 
-// OrderGetDraftResp 获取用户下单数据请求返回
+// OrderGetDraftResp 获取下单确认页数据返回
+//
+// 对应下单草稿：草稿在 ExpireAt 之前有效，超时会被自动回收。
 type OrderGetDraftResp struct {
-	// id
+	// 草稿ID
 	ID int64 `json:"id" example:"1"`
 	// 到期时间(毫秒级时间戳)
 	ExpireAt int64 `json:"expire_at" example:"1788417485000"`
-	// 产品信息
+	// 下单的商品与数量
 	Product ProductItem `json:"product"`
 }
 
-// ProductItem 单个产品信息
+// ProductItem 下单草稿中的商品信息
+//
+// 只包含确认页需要展示的字段，区别于商品列表/详情的 resp 结构。
 type ProductItem struct {
 	// 产品ID
 	ID int64 `json:"id" example:"2"`
@@ -32,7 +36,7 @@ type ProductItem struct {
 	Count int64 `json:"count" example:"0"`
 }
 
-// OrderListPageByUserResp 请求返回
+// OrderListPageByUserResp 商城端分页查询自己的订单返回
 type OrderListPageByUserResp struct {
 	// 总计条数
 	Total int64 `json:"total" example:"100"`
@@ -40,6 +44,7 @@ type OrderListPageByUserResp struct {
 	PageData []OrderListPageByUserItem `json:"pageData"`
 }
 
+// OrderListPageByUserItem 用户订单列表中的单条订单
 type OrderListPageByUserItem struct {
 	// id
 	ID int64 `json:"id" example:"1"`
@@ -89,6 +94,7 @@ type OrderListPageResp struct {
 	PageData []OrderListPageItem `json:"pageData"`
 }
 
+// OrderListPageItem 后台订单列表中的单条订单
 type OrderListPageItem struct {
 	// id
 	ID int64 `json:"id" example:"1"`

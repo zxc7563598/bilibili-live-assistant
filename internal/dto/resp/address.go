@@ -16,9 +16,9 @@ type AddressItem struct {
 	Detail string `json:"detail" example:"xxxxxxxxxxxxxxx"`
 	// 邮箱地址
 	Email string `json:"email" example:"xxxxxxxx@xxx.xx"`
-	// 类型
+	// 地址类型 0 虚拟 / 1 实体
 	Type int `json:"type" example:"1" enums:"0,1"`
-	// 默认地址
+	// 是否默认地址 0 否 / 1 是
 	IsDefault int `json:"is_default" example:"1" enums:"0,1"`
 }
 

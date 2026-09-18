@@ -10,6 +10,7 @@ type LivePkLogListPageResp struct {
 	Stats LivePkLogListPageStats `json:"stats"`
 }
 
+// LivePkLogListPageItem PK 对战记录列表中的单条记录
 type LivePkLogListPageItem struct {
 	// 记录ID
 	ID int64 `json:"id" example:"1"`
@@ -43,6 +44,7 @@ type LivePkLogListPageItem struct {
 	SettleAt string `json:"settle_at" example:"2025-01-02 12:27:22"`
 }
 
+// LivePkLogListPageStats PK 记录的汇总统计（与列表受相同筛选条件影响）
 type LivePkLogListPageStats struct {
 	// PK 场数（self_result 为 0 的记录既不算胜也不算负，所以场数不一定等于胜 + 负）
 	TotalNum int64 `json:"total_num"`

@@ -10,6 +10,7 @@ type LiveUserListPageResp struct {
 	PageData []LiveUserListPageItem `json:"pageData"`
 }
 
+// LiveUserListPageItem 用户列表中的单条用户
 type LiveUserListPageItem struct {
 	// 用户ID
 	ID int64 `json:"id" example:"1"`
@@ -27,19 +28,25 @@ type LiveUserListPageItem struct {
 	TotalGiftAmount int64 `json:"total_gift_amount" example:"100"`
 }
 
-// LiveUserUserMonthlyAnalysisResp 获取用户每日分析数据返回
+// LiveUserUserMonthlyAnalysisResp 获取用户某月分析数据返回
+//
+// 四个字段都是以「当月第几天」(1-31) 为 key 的稀疏映射：
+// 当天没有数据的键不会出现，前端按月历渲染时需要自己按缺失处理。
+// 注意 JSON 序列化后 map 的 key 会变成字符串。
 type LiveUserUserMonthlyAnalysisResp struct {
-	// 每日弹幕数量
+	// 每天的弹幕条数
 	DanmuCount map[int64]int64 `json:"danmu_count"`
-	// 每日礼物数量
+	// 每天的礼物个数
 	GiftCount map[int64]int64 `json:"gift_count"`
-	// 每日礼物金额
+	// 每天的礼物金额（分）
 	GiftAmount map[int64]int64 `json:"gift_amount"`
-	// 每日是否有开播
+	// 当天是否开播（key 为当月第几天）
 	LiveDays map[int64]bool `json:"live_days"`
 }
 
-// LiveUserUserDanmuAnalysisResp 获取用户弹幕分析返回
+// LiveUserUserDanmuAnalysisResp 获取用户弹幕词频分析返回
+//
+// 对同一批弹幕内容做不同粒度的切分，四种粒度各自独立统计、互不叠加。
 type LiveUserUserDanmuAnalysisResp struct {
 	// 单词数据
 	Words []LiveUserWordFrequency `json:"words"`
@@ -51,6 +58,7 @@ type LiveUserUserDanmuAnalysisResp struct {
 	Messages []LiveUserWordFrequency `json:"messages"`
 }
 
+// LiveUserWordFrequency 词频统计项
 type LiveUserWordFrequency struct {
 	// 内容
 	Word string `json:"word" example:"xxx"`
@@ -86,12 +94,15 @@ type LiveUserUserInfoResp struct {
 	Stars int64 `json:"stars" example:"50"`
 }
 
-// LiveUserGetRoomIDResp 获取直播间房间号返回
+// LiveUserGetRoomIDResp 获取当前用户绑定的直播间房间号返回
 type LiveUserGetRoomIDResp struct {
+	// 直播间真实房间号
 	RoomID int64 `json:"room_id" example:"22384516"`
 }
 
-// LiveUserAssetsPageResp 用户分页查询账户记录返回
+// LiveUserAssetsPageResp 分页查询账户变动记录返回
+//
+// 商城端查的是当前登录用户自己，管理端按 user_id 查指定用户，响应结构相同。
 type LiveUserAssetsPageResp struct {
 	// 总计条数
 	Total int64 `json:"total" example:"100"`
@@ -99,6 +110,7 @@ type LiveUserAssetsPageResp struct {
 	PageData []LiveUserAssetsPageItem `json:"pageData"`
 }
 
+// LiveUserAssetsPageItem 账户变动流水中的单条记录
 type LiveUserAssetsPageItem struct {
 	// ID
 	ID int64 `json:"id" example:"1"`

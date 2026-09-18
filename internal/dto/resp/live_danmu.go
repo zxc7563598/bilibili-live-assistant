@@ -10,6 +10,7 @@ type LiveDanmuListPageResp struct {
 	PageData []LiveDanmuListPageItem `json:"pageData"`
 }
 
+// LiveDanmuListPageItem 弹幕列表中的单条弹幕
 type LiveDanmuListPageItem struct {
 	// 弹幕ID
 	ID int64 `json:"id" example:"1"`

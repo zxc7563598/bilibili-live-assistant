@@ -8,8 +8,9 @@ type ProductListPageResp struct {
 	PageData []ProductListPageItem `json:"pageData"`
 }
 
+// ProductListPageItem 商品列表中的单条商品
 type ProductListPageItem struct {
-	// 管理员ID
+	// 商品ID
 	ID int64 `json:"id" example:"1"`
 	// 商品名称
 	Name string `json:"name" example:"小立牌"`

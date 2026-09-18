@@ -7943,7 +7943,7 @@ const docTemplate = `{
                     "example": 1
                 },
                 "is_default": {
-                    "description": "默认地址",
+                    "description": "是否默认地址 0 否 / 1 是",
                     "type": "integer",
                     "enum": [
                         0,
@@ -7972,7 +7972,7 @@ const docTemplate = `{
                     "example": "['370000', '370100', '370116']"
                 },
                 "type": {
-                    "description": "类型",
+                    "description": "地址类型 0 虚拟 / 1 实体",
                     "type": "integer",
                     "enum": [
                         0,
@@ -8013,7 +8013,7 @@ const docTemplate = `{
                     "example": 1
                 },
                 "is_default": {
-                    "description": "默认地址",
+                    "description": "是否默认地址 0 否 / 1 是",
                     "type": "integer",
                     "enum": [
                         0,
@@ -8042,7 +8042,7 @@ const docTemplate = `{
                     "example": "['370000', '370100', '370116']"
                 },
                 "type": {
-                    "description": "类型",
+                    "description": "地址类型 0 虚拟 / 1 实体",
                     "type": "integer",
                     "enum": [
                         0,
@@ -8071,7 +8071,7 @@ const docTemplate = `{
                     "example": 1
                 },
                 "is_default": {
-                    "description": "默认地址",
+                    "description": "是否默认地址 0 否 / 1 是",
                     "type": "integer",
                     "enum": [
                         0,
@@ -8100,7 +8100,7 @@ const docTemplate = `{
                     "example": "['370000', '370100', '370116']"
                 },
                 "type": {
-                    "description": "类型",
+                    "description": "地址类型 0 虚拟 / 1 实体",
                     "type": "integer",
                     "enum": [
                         0,
@@ -8434,22 +8434,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "login_bg": {
+                    "description": "登录页背景图路径（空串表示由前端按主题色生成）",
                     "type": "string",
                     "example": ""
                 },
                 "logo": {
+                    "description": "登录页 Logo 路径",
                     "type": "string",
                     "example": "https://cdn.hejunjie.life/avatars/shop.png"
                 },
                 "register": {
+                    "description": "是否允许用户自助注册",
                     "type": "boolean",
                     "example": false
                 },
                 "slogan": {
+                    "description": "登录页副标题 / Slogan",
                     "type": "string",
                     "example": "登录后可兑换积分好礼"
                 },
                 "title": {
+                    "description": "登录页主标题",
                     "type": "string",
                     "example": "积分商城"
                 }
@@ -8546,6 +8551,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "color": {
+                    "description": "主题色（十六进制）",
                     "type": "string",
                     "example": "#ffffff"
                 }
@@ -9461,6 +9467,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "room_id": {
+                    "description": "直播间真实房间号",
                     "type": "integer",
                     "example": 22384516
                 }
@@ -9605,7 +9612,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "danmu_count": {
-                    "description": "每日弹幕数量",
+                    "description": "每天的弹幕条数",
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer",
@@ -9613,7 +9620,7 @@ const docTemplate = `{
                     }
                 },
                 "gift_amount": {
-                    "description": "每日礼物金额",
+                    "description": "每天的礼物金额（分）",
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer",
@@ -9621,7 +9628,7 @@ const docTemplate = `{
                     }
                 },
                 "gift_count": {
-                    "description": "每日礼物数量",
+                    "description": "每天的礼物个数",
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer",
@@ -9629,7 +9636,7 @@ const docTemplate = `{
                     }
                 },
                 "live_days": {
-                    "description": "每日是否有开播",
+                    "description": "当天是否开播（key 为当月第几天）",
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"
@@ -9999,12 +10006,12 @@ const docTemplate = `{
                     "example": 1788417485000
                 },
                 "id": {
-                    "description": "id",
+                    "description": "草稿ID",
                     "type": "integer",
                     "example": 1
                 },
                 "product": {
-                    "description": "产品信息",
+                    "description": "下单的商品与数量",
                     "allOf": [
                         {
                             "$ref": "#/definitions/resp.ProductItem"
@@ -10568,7 +10575,7 @@ const docTemplate = `{
                     "example": true
                 },
                 "id": {
-                    "description": "管理员ID",
+                    "description": "商品ID",
                     "type": "integer",
                     "example": 1
                 },
@@ -10887,6 +10894,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "menu": {
+                    "description": "菜单权限树（含按钮类型节点）",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/resp.RoleMenuItem"

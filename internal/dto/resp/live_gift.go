@@ -12,6 +12,7 @@ type LiveGiftListPageResp struct {
 	Stats LiveGiftListPageStats `json:"stats"`
 }
 
+// LiveGiftListPageItem 礼物记录列表中的单条记录
 type LiveGiftListPageItem struct {
 	// 礼物ID
 	ID int64 `json:"id" example:"1"`
@@ -37,6 +38,7 @@ type LiveGiftListPageItem struct {
 	SendAt string `json:"send_at" example:"2025-01-02 12:22:22"`
 }
 
+// LiveGiftListPageStats 礼物列表的汇总统计（按当前筛选条件下的全量数据计算，不受分页影响）
 type LiveGiftListPageStats struct {
 	// 礼物总数
 	TotalNum int64 `json:"total_num"`
@@ -64,6 +66,9 @@ type LiveGiftBlindBoxListPageResp struct {
 	Stats LiveGiftBlindBoxListPageStats `json:"stats"`
 }
 
+// LiveGiftBlindBoxListPageItem 盲盒礼物记录列表中的单条记录
+//
+// 盲盒额外带出开出前的原礼物名称与单价，用于展示「原价/现价」对比。
 type LiveGiftBlindBoxListPageItem struct {
 	// 礼物ID
 	ID int64 `json:"id" example:"1"`
@@ -91,6 +96,7 @@ type LiveGiftBlindBoxListPageItem struct {
 	SendAt string `json:"send_at" example:"2025-01-02 12:22:22"`
 }
 
+// LiveGiftBlindBoxListPageStats 盲盒礼物列表的汇总统计（按当前筛选条件下的全量数据计算，不受分页影响）
 type LiveGiftBlindBoxListPageStats struct {
 	// 原礼物总金额（分）
 	OriginalPrice int64 `json:"original_price"`

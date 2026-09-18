@@ -22,6 +22,7 @@ type AdminListPageResp struct {
 	PageData []AdminListPageItem `json:"pageData"`
 }
 
+// AdminListPageItem 管理员列表中的单条管理员
 type AdminListPageItem struct {
 	// 管理员ID
 	ID int64 `json:"id" example:"1"`
@@ -65,6 +66,7 @@ type AdminDetailsResp struct {
 	CurrentRole AdminDetailsRoleItem `json:"currentRole"`
 }
 
+// AdminDetailsRoleItem 管理员拥有的角色项
 type AdminDetailsRoleItem struct {
 	// 角色ID
 	ID int64 `json:"id" example:"1"`
@@ -76,6 +78,7 @@ type AdminDetailsRoleItem struct {
 	Enable bool `json:"enable" example:"true"`
 }
 
+// AdminDetailsProfileItem 管理员的个人资料
 type AdminDetailsProfileItem struct {
 	// 管理员ID
 	ID int64 `json:"id" example:"1"`

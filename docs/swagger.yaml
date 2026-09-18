@@ -2065,7 +2065,7 @@ definitions:
         example: 1
         type: integer
       is_default:
-        description: 默认地址
+        description: 是否默认地址 0 否 / 1 是
         enum:
         - 0
         - 1
@@ -2088,7 +2088,7 @@ definitions:
         example: '[''370000'', ''370100'', ''370116'']'
         type: string
       type:
-        description: 类型
+        description: 地址类型 0 虚拟 / 1 实体
         enum:
         - 0
         - 1
@@ -2118,7 +2118,7 @@ definitions:
         example: 1
         type: integer
       is_default:
-        description: 默认地址
+        description: 是否默认地址 0 否 / 1 是
         enum:
         - 0
         - 1
@@ -2141,7 +2141,7 @@ definitions:
         example: '[''370000'', ''370100'', ''370116'']'
         type: string
       type:
-        description: 类型
+        description: 地址类型 0 虚拟 / 1 实体
         enum:
         - 0
         - 1
@@ -2163,7 +2163,7 @@ definitions:
         example: 1
         type: integer
       is_default:
-        description: 默认地址
+        description: 是否默认地址 0 否 / 1 是
         enum:
         - 0
         - 1
@@ -2186,7 +2186,7 @@ definitions:
         example: '[''370000'', ''370100'', ''370116'']'
         type: string
       type:
-        description: 类型
+        description: 地址类型 0 虚拟 / 1 实体
         enum:
         - 0
         - 1
@@ -2437,18 +2437,23 @@ definitions:
   resp.AppShopLoginConfigResp:
     properties:
       login_bg:
+        description: 登录页背景图路径（空串表示由前端按主题色生成）
         example: ""
         type: string
       logo:
+        description: 登录页 Logo 路径
         example: https://cdn.hejunjie.life/avatars/shop.png
         type: string
       register:
+        description: 是否允许用户自助注册
         example: false
         type: boolean
       slogan:
+        description: 登录页副标题 / Slogan
         example: 登录后可兑换积分好礼
         type: string
       title:
+        description: 登录页主标题
         example: 积分商城
         type: string
     type: object
@@ -2522,6 +2527,7 @@ definitions:
   resp.AppShopThemeColorResp:
     properties:
       color:
+        description: 主题色（十六进制）
         example: '#ffffff'
         type: string
     type: object
@@ -3193,6 +3199,7 @@ definitions:
   resp.LiveUserGetRoomIDResp:
     properties:
       room_id:
+        description: 直播间真实房间号
         example: 22384516
         type: integer
     type: object
@@ -3302,24 +3309,24 @@ definitions:
         additionalProperties:
           format: int64
           type: integer
-        description: 每日弹幕数量
+        description: 每天的弹幕条数
         type: object
       gift_amount:
         additionalProperties:
           format: int64
           type: integer
-        description: 每日礼物金额
+        description: 每天的礼物金额（分）
         type: object
       gift_count:
         additionalProperties:
           format: int64
           type: integer
-        description: 每日礼物数量
+        description: 每天的礼物个数
         type: object
       live_days:
         additionalProperties:
           type: boolean
-        description: 每日是否有开播
+        description: 当天是否开播（key 为当月第几天）
         type: object
     type: object
   resp.LiveUserWordFrequency:
@@ -3592,13 +3599,13 @@ definitions:
         example: 1788417485000
         type: integer
       id:
-        description: id
+        description: 草稿ID
         example: 1
         type: integer
       product:
         allOf:
         - $ref: '#/definitions/resp.ProductItem'
-        description: 产品信息
+        description: 下单的商品与数量
     type: object
   resp.OrderListPageByUserItem:
     properties:
@@ -4013,7 +4020,7 @@ definitions:
         example: true
         type: boolean
       id:
-        description: 管理员ID
+        description: 商品ID
         example: 1
         type: integer
       name:
@@ -4251,6 +4258,7 @@ definitions:
   resp.RolePermissionsResp:
     properties:
       menu:
+        description: 菜单权限树（含按钮类型节点）
         items:
           $ref: '#/definitions/resp.RoleMenuItem'
         type: array
