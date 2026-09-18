@@ -70,11 +70,11 @@ func (h *Handler) GetAddressList(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.addressSvc.GetAddressList(ur.Ctx, ur.User.UserID, req.Type)
+	svcResp, errCode, err := h.addressSvc.ListAddresses(ur.Ctx, ur.User.UserID, req.Type)
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.AddressLogger,
-			"addressSvc.GetAddressList 调用失败",
+			"addressSvc.ListAddresses 调用失败",
 			errCode,
 			err,
 			zap.Any("userInfo", ur.User),

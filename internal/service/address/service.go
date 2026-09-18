@@ -37,8 +37,8 @@ func (s *Service) GetDefaultAddress(ctx context.Context, userID int64, addressTy
 	return toAddressItem(*entity), 0, nil
 }
 
-// GetAddressList 获取用户收货地址列表；addressType 为 nil 时返回全部类型，否则仅返回该类型
-func (s *Service) GetAddressList(ctx context.Context, userID int64, addressType *int) ([]AddressItem, int, error) {
+// ListAddresses 获取用户收货地址列表；addressType 为 nil 时返回全部类型，否则仅返回该类型
+func (s *Service) ListAddresses(ctx context.Context, userID int64, addressType *int) ([]AddressItem, int, error) {
 	var t *enum.AddressType
 	if addressType != nil {
 		v := enum.AddressType(*addressType)
