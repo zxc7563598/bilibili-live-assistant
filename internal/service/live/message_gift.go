@@ -557,7 +557,7 @@ func (p *giftProcessor) processReward(ctx context.Context, userID int64, thankIn
 // processBatteryReward 按消费电池发放积分
 func (p *giftProcessor) processBatteryReward(ctx context.Context, userID int64, giftName string, rewardType enum.RewardType, price, num, magnification int64) error {
 	battery := price / 10
-	params := liveuser.AddCreditLogParams{
+	params := liveuser.AdjustCreditParams{
 		UserID:       userID,
 		ChangeType:   enum.ChangeTypeIncrease,
 		ChangeAmount: (battery * num) * magnification,
@@ -569,16 +569,16 @@ func (p *giftProcessor) processBatteryReward(ctx context.Context, userID int64, 
 	var err error
 	switch rewardType {
 	case enum.RewardTypePoints:
-		err = p.liveUserSvc.AddPointsLog(ctx, params)
+		err = p.liveUserSvc.AdjustPoints(ctx, params)
 	case enum.RewardTypeStars:
-		err = p.liveUserSvc.AddStarsLog(ctx, params)
+		err = p.liveUserSvc.AdjustStars(ctx, params)
 	}
 	return err
 }
 
 // processVipReward 按航海类型发放积分
 func (p *giftProcessor) processVipReward(ctx context.Context, userID int64, rewardType enum.RewardType, level enum.BadgeType, reward int64) error {
-	params := liveuser.AddCreditLogParams{
+	params := liveuser.AdjustCreditParams{
 		UserID:       userID,
 		ChangeType:   enum.ChangeTypeIncrease,
 		ChangeAmount: reward,
@@ -590,9 +590,9 @@ func (p *giftProcessor) processVipReward(ctx context.Context, userID int64, rewa
 	var err error
 	switch rewardType {
 	case enum.RewardTypePoints:
-		err = p.liveUserSvc.AddPointsLog(ctx, params)
+		err = p.liveUserSvc.AdjustPoints(ctx, params)
 	case enum.RewardTypeStars:
-		err = p.liveUserSvc.AddStarsLog(ctx, params)
+		err = p.liveUserSvc.AdjustStars(ctx, params)
 	}
 	return err
 }

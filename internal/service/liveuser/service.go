@@ -257,13 +257,13 @@ func (s *Service) AddTotalGiftAmount(ctx context.Context, userID int64, amount i
 	return s.liveUserRepo.AdjustField(ctx, nil, userID, "total_gift_amount", amount)
 }
 
-// AddPointsLog 增加用户积分记录（增加或减少）
-func (s *Service) AddPointsLog(ctx context.Context, params AddCreditLogParams) error {
+// AdjustPoints 增加用户积分记录（增加或减少）
+func (s *Service) AdjustPoints(ctx context.Context, params AdjustCreditParams) error {
 	return s.addCreditLog(ctx, params, enum.CreditTypePoints, live_user.CreditFieldPoints)
 }
 
-// AddStarsLog 增加用户星光记录（增加或减少）
-func (s *Service) AddStarsLog(ctx context.Context, params AddCreditLogParams) error {
+// AdjustStars 增加用户星光记录（增加或减少）
+func (s *Service) AdjustStars(ctx context.Context, params AdjustCreditParams) error {
 	return s.addCreditLog(ctx, params, enum.CreditTypeStars, live_user.CreditFieldStars)
 }
 
@@ -498,7 +498,7 @@ func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, credit
 		desc = fmt.Sprintf("管理员后台手动%s%s %d", t.Text("zh"), ct.Text("zh"), changeAmount)
 	}
 	// 组装流水参数
-	params := AddCreditLogParams{
+	params := AdjustCreditParams{
 		UserID:       userID,
 		ChangeType:   t,
 		ChangeAmount: changeAmount,
@@ -511,9 +511,9 @@ func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, credit
 	var err error
 	switch ct {
 	case enum.CreditTypePoints:
-		err = s.AddPointsLog(ctx, params)
+		err = s.AdjustPoints(ctx, params)
 	case enum.CreditTypeStars:
-		err = s.AddStarsLog(ctx, params)
+		err = s.AdjustStars(ctx, params)
 	default:
 		return 10801, fmt.Errorf("暂不支持的资产类型: %d", int(ct))
 	}
@@ -535,7 +535,7 @@ func (s *Service) SaveBalance(ctx context.Context, adminID, userID int64, credit
 //
 // 资产变更交给数据库原子完成，再按其返回的变更前后数值写流水，
 // 保证并发场景下流水与用户余额始终对得上
-func (s *Service) addCreditLog(ctx context.Context, params AddCreditLogParams, creditType enum.CreditType, field string) error {
+func (s *Service) addCreditLog(ctx context.Context, params AdjustCreditParams, creditType enum.CreditType, field string) error {
 	if params.ChangeAmount < 0 {
 		return fmt.Errorf("变动数值不能为负数: %d", params.ChangeAmount)
 	}

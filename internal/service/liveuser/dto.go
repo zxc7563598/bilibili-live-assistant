@@ -35,8 +35,8 @@ type UserBalance struct {
 	Stars  int64 // 星光
 }
 
-// AddCreditLogParams 添加积分/星光
-type AddCreditLogParams struct {
+// AdjustCreditParams 添加积分/星光
+type AdjustCreditParams struct {
 	UserID       int64             // 用户ID
 	ChangeType   enum.ChangeType   // 变动类型（增加/减少）
 	ChangeAmount int64             // 变动数值
