@@ -375,9 +375,11 @@ func (s *Service) ResetAdminPassword(ctx context.Context, adminID int64, newPass
 }
 
 // UpdateProfile 修改管理员个人信息
-func (s *Service) UpdateProfile(ctx context.Context, req UpdateProfileReq) (int, error) {
+//
+// 只能改自己：adminID 由 handler 取自 JWT，不接受调用方指定他人 ID。
+func (s *Service) UpdateProfile(ctx context.Context, adminID int64, req UpdateProfileReq) (int, error) {
 	// 验证管理员是否存在
-	admin, err := s.adminRepo.GetByID(ctx, nil, req.ID)
+	admin, err := s.adminRepo.GetByID(ctx, nil, adminID)
 	if err != nil {
 		return CodeQueryFailed, err
 	}
@@ -385,7 +387,7 @@ func (s *Service) UpdateProfile(ctx context.Context, req UpdateProfileReq) (int,
 		return CodeAdminNotFound, nil
 	}
 	// 变更管理员信息
-	if err := s.adminRepo.UpdateProfileByID(ctx, nil, req.ID, model.AdminUpdateProfileByIdForm{
+	if err := s.adminRepo.UpdateProfileByID(ctx, nil, adminID, model.AdminUpdateProfileByIdForm{
 		Nickname: req.Nickname,
 		Email:    req.Email,
 		Address:  req.Address,

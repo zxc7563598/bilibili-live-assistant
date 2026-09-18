@@ -355,16 +355,10 @@ definitions:
         - 2
         example: 1
         type: integer
-      id:
-        description: 管理员ID
-        example: 1
-        type: integer
       nickName:
         description: 名称
         example: test name
         type: string
-    required:
-    - id
     type: object
   input.AppConfigSaveConfigReq:
     properties:

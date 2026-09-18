@@ -77,9 +77,10 @@ type AdminResetAdminPasswordReq struct {
 }
 
 // AdminUpdateProfileReq 修改管理员个人信息请求
+//
+// 不含管理员 ID：改的只能是当前登录管理员本人，身份取自 JWT。
+// 前端多传的 id 字段会被 JSON 解码忽略。
 type AdminUpdateProfileReq struct {
-	// 管理员ID
-	ID int64 `json:"id" binding:"required" err:"required=10101" example:"1"`
 	// 名称
 	Nickname *string `json:"nickName" example:"test name"`
 	// 性别

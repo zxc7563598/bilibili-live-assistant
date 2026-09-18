@@ -91,7 +91,6 @@ type SaveReq struct {
 
 // UpdateProfile 请求入参
 type UpdateProfileReq struct {
-	ID       int64   `json:"id"`
 	Nickname *string `json:"nickName"`
 	Gender   *int    `json:"gender"`
 	Address  *string `json:"address"`

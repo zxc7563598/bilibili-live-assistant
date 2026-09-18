@@ -554,8 +554,8 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	errCode, err := h.adminSvc.UpdateProfile(ctx, admin.UpdateProfileReq{
-		ID:       req.ID,
+	// 以 JWT 里的管理员 ID 为准，不接受请求体指定他人，避免越权改别人的资料
+	errCode, err := h.adminSvc.UpdateProfile(ctx, adminInfo.AdminID, admin.UpdateProfileReq{
 		Nickname: req.Nickname,
 		Gender:   req.Gender,
 		Address:  req.Address,
@@ -568,8 +568,7 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 			"adminSvc.UpdateProfile 调用失败",
 			errCode,
 			err,
-			zap.Any("adminInfo", adminInfo),
-			zap.Int64("req.id", req.ID),
+			zap.Int64("adminInfo.adminID", adminInfo.AdminID),
 			zap.Any("req.nickname", req.Nickname),
 			zap.Any("req.gender", req.Gender),
 			zap.Any("req.Address", req.Address),

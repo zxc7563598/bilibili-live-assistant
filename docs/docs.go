@@ -5682,9 +5682,6 @@ const docTemplate = `{
         },
         "input.AdminUpdateProfileReq": {
             "type": "object",
-            "required": [
-                "id"
-            ],
             "properties": {
                 "address": {
                     "description": "居住地址",
@@ -5709,11 +5706,6 @@ const docTemplate = `{
                         1,
                         2
                     ],
-                    "example": 1
-                },
-                "id": {
-                    "description": "管理员ID",
-                    "type": "integer",
                     "example": 1
                 },
                 "nickName": {
