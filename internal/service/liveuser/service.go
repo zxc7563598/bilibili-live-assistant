@@ -196,7 +196,7 @@ func (s *Service) EnsureUser(ctx context.Context, uid int64, uname string) (int6
 	}
 	if user != nil {
 		if user.Uname != uname {
-			if err := s.liveUserRepo.UpdateName(ctx, nil, user.ID, uname); err != nil {
+			if err := s.liveUserRepo.UpdateNameByID(ctx, nil, user.ID, uname); err != nil {
 				return 0, fmt.Errorf("更新用户名称失败：%w", err)
 			}
 		}
@@ -317,18 +317,18 @@ func (s *Service) Login(ctx context.Context, account int64, password string) (To
 		if err != nil {
 			return TokenResp{}, 50802, err
 		}
-		if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, hash); err != nil {
+		if err := s.liveUserRepo.UpdatePasswordByID(ctx, nil, user.ID, hash); err != nil {
 			return TokenResp{}, 60801, err
 		}
 	}
 	// 同步名称与头像（仅在变化时写库）
 	if user.Uname != master.Name {
-		if err := s.liveUserRepo.UpdateName(ctx, nil, user.ID, master.Name); err != nil {
+		if err := s.liveUserRepo.UpdateNameByID(ctx, nil, user.ID, master.Name); err != nil {
 			return TokenResp{}, 60801, err
 		}
 	}
 	if user.Face != master.Face {
-		if err := s.liveUserRepo.UpdateFace(ctx, nil, user.ID, master.Face); err != nil {
+		if err := s.liveUserRepo.UpdateFaceByID(ctx, nil, user.ID, master.Face); err != nil {
 			return TokenResp{}, 60801, err
 		}
 	}
@@ -399,7 +399,7 @@ func (s *Service) ChangePassword(ctx context.Context, userID int64, oldPassword,
 	if err != nil {
 		return 60801, err
 	}
-	if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, password); err != nil {
+	if err := s.liveUserRepo.UpdatePasswordByID(ctx, nil, user.ID, password); err != nil {
 		return 60801, err
 	}
 	// 返回结果
@@ -421,7 +421,7 @@ func (s *Service) ResetPassword(ctx context.Context, userID int64, newPassword s
 	if err != nil {
 		return 60801, err
 	}
-	if err := s.liveUserRepo.UpdatePassword(ctx, nil, user.ID, password); err != nil {
+	if err := s.liveUserRepo.UpdatePasswordByID(ctx, nil, user.ID, password); err != nil {
 		return 60801, err
 	}
 	// 返回结果

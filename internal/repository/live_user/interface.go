@@ -53,12 +53,12 @@ type Repository interface {
 	GetByUID(ctx context.Context, tx *gorm.DB, uid int64) (*model.LiveUser, error)
 	// ExistsByUID 根据 B站 UID 获取用户是否存在
 	ExistsByUID(ctx context.Context, tx *gorm.DB, uid int64) (bool, error)
-	// UpdateName 根据 ID 变更用户昵称
-	UpdateName(ctx context.Context, tx *gorm.DB, id int64, uname string) error
-	// UpdateFace 根据 ID 变更用户头像 URL
-	UpdateFace(ctx context.Context, tx *gorm.DB, id int64, face string) error
-	// UpdatePassword 根据 ID 变更用户密码
-	UpdatePassword(ctx context.Context, tx *gorm.DB, id int64, password string) error
+	// UpdateNameByID 根据 ID 变更用户昵称
+	UpdateNameByID(ctx context.Context, tx *gorm.DB, id int64, uname string) error
+	// UpdateFaceByID 根据 ID 变更用户头像 URL
+	UpdateFaceByID(ctx context.Context, tx *gorm.DB, id int64, face string) error
+	// UpdatePasswordByID 根据 ID 变更用户密码
+	UpdatePasswordByID(ctx context.Context, tx *gorm.DB, id int64, password string) error
 	// CreateIfNotExist 若 uid 已存在则忽略创建并返回已有记录，否则创建新记录
 	CreateIfNotExist(ctx context.Context, tx *gorm.DB, entity *model.LiveUser) (*model.LiveUser, error)
 	// ListPage 分页查询用户，UID 精确匹配，Uname 模糊匹配；
@@ -110,18 +110,18 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 	return list, total, err
 }
 
-// UpdateName 根据 ID 变更用户昵称
-func (r *gormRepo) UpdateName(ctx context.Context, tx *gorm.DB, id int64, uname string) error {
+// UpdateNameByID 根据 ID 变更用户昵称
+func (r *gormRepo) UpdateNameByID(ctx context.Context, tx *gorm.DB, id int64, uname string) error {
 	return r.UpdateField(ctx, tx, id, "uname", uname)
 }
 
-// UpdateFace 根据 ID 变更用户头像 URL
-func (r *gormRepo) UpdateFace(ctx context.Context, tx *gorm.DB, id int64, face string) error {
+// UpdateFaceByID 根据 ID 变更用户头像 URL
+func (r *gormRepo) UpdateFaceByID(ctx context.Context, tx *gorm.DB, id int64, face string) error {
 	return r.UpdateField(ctx, tx, id, "face", face)
 }
 
-// UpdatePassword 根据 ID 变更用户密码
-func (r *gormRepo) UpdatePassword(ctx context.Context, tx *gorm.DB, id int64, password string) error {
+// UpdatePasswordByID 根据 ID 变更用户密码
+func (r *gormRepo) UpdatePasswordByID(ctx context.Context, tx *gorm.DB, id int64, password string) error {
 	return r.UpdateField(ctx, tx, id, "password", password)
 }
 
