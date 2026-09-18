@@ -433,8 +433,8 @@ func (s *Service) ResetPassword(ctx context.Context, userID int64, newPassword s
 	return 0, nil
 }
 
-// UserInfo 获取用户基本信息
-func (s *Service) UserInfo(ctx context.Context, userID int64) (UserInfoResp, int, error) {
+// GetUserInfo 获取用户基本信息
+func (s *Service) GetUserInfo(ctx context.Context, userID int64) (UserInfoResp, int, error) {
 	// 根据主键ID获取用户信息
 	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
 	if err != nil {
@@ -452,8 +452,8 @@ func (s *Service) UserInfo(ctx context.Context, userID int64) (UserInfoResp, int
 	}, 0, nil
 }
 
-// UserAssetsPage 分页获取用户账户变更记录
-func (s *Service) UserAssetsPage(ctx context.Context, userID int64, req UserAssetsPageReq) (UserAssetsPageResp, int, error) {
+// ListUserAssets 分页获取用户账户变更记录
+func (s *Service) ListUserAssets(ctx context.Context, userID int64, req UserAssetsPageReq) (UserAssetsPageResp, int, error) {
 	// 根据主键ID获取用户信息
 	offset, limit, sortField, sortOrder := req.OffsetLimit()
 	list, total, err := s.liveUserCreditLogRepo.ListPage(ctx, nil, model.LiveUserCreditLogListPageQuery{
