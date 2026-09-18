@@ -104,10 +104,25 @@ func (p *pkProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roomI
 	return nil
 }
 
+// roomID 返回当前监听的房间号。
+// 优先取实时房间信息；但 RoomState 在只被 SetLiveStatus 写入过直播状态时 RoomID() 会返回 0，
+// 此时回退到配置里的房间号，避免 PK 记录落库时 room_id 为 0、之后按房间筛不出来。
+func (p *pkProcessor) roomID() int64 {
+	if id := p.roomState.RoomID(); id != 0 {
+		return id
+	}
+	if val, ok := p.configCache.Get("room", "room_id"); ok {
+		if id, err := strconv.ParseInt(val, 10, 64); err == nil {
+			return id
+		}
+	}
+	return 0
+}
+
 // recordPkStart PK 开始事件落库：一场 PK 一条记录，结束/结算事件按 pk_id 回填
 func (p *pkProcessor) recordPkStart(ctx context.Context, info *live.PkBattlePreNewInfo) {
 	entry := &model.LivePkLog{
-		RoomID:      p.roomState.RoomID(),
+		RoomID:      p.roomID(),
 		PkID:        info.PkID,
 		PkStatus:    info.PkStatus,
 		BattleType:  info.BattleType,
@@ -124,7 +139,7 @@ func (p *pkProcessor) recordPkStart(ctx context.Context, info *live.PkBattlePreN
 
 // processPkSettle PK 结束/结算事件：按 pk_id 找到开始记录，回填状态与双方比分
 func (p *pkProcessor) processPkSettle(ctx context.Context, s *pkBattleSnapshot) {
-	ourRoomID := p.roomState.RoomID()
+	ourRoomID := p.roomID()
 	ourSide, rivalSide, ok := locatePkSides(ourRoomID, s.InitInfo, s.MatchInfo)
 	entry, err := p.pkLogRepo.GetByPkID(ctx, nil, s.PkID)
 	if err != nil {
