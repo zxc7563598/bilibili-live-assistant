@@ -9,12 +9,12 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_address"
-	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_credit_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_order"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_order_draft"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_sku"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_sku_stock_log"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 	"gorm.io/gorm"
 )
@@ -27,11 +27,10 @@ type Service struct {
 	productRepo            product.Repository
 	productSkuRepo         product_sku.Repository
 	productSkuStockLogRepo product_sku_stock_log.Repository
-	liveUserRepo           live_user.Repository
-	liveUserCreditLogRepo  live_user_credit_log.Repository
+	liveUserSvc            *liveuser.Service
 }
 
-func New(db *gorm.DB, liveUserOrderRepo live_user_order.Repository, liveUserOrderDraftRepo live_user_order_draft.Repository, liveUserAddress live_user_address.Repository, productRepo product.Repository, productSkuRepo product_sku.Repository, productSkuStockLogRepo product_sku_stock_log.Repository, liveUserRepo live_user.Repository, liveUserCreditLogRepo live_user_credit_log.Repository) *Service {
+func New(db *gorm.DB, liveUserOrderRepo live_user_order.Repository, liveUserOrderDraftRepo live_user_order_draft.Repository, liveUserAddress live_user_address.Repository, productRepo product.Repository, productSkuRepo product_sku.Repository, productSkuStockLogRepo product_sku_stock_log.Repository, liveUserSvc *liveuser.Service) *Service {
 	return &Service{
 		db:                     db,
 		liveUserOrderRepo:      liveUserOrderRepo,
@@ -40,8 +39,7 @@ func New(db *gorm.DB, liveUserOrderRepo live_user_order.Repository, liveUserOrde
 		productRepo:            productRepo,
 		productSkuRepo:         productSkuRepo,
 		productSkuStockLogRepo: productSkuStockLogRepo,
-		liveUserRepo:           liveUserRepo,
-		liveUserCreditLogRepo:  liveUserCreditLogRepo,
+		liveUserSvc:            liveUserSvc,
 	}
 }
 
