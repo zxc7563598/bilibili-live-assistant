@@ -121,6 +121,7 @@ error:
   10407: Danmu content is too long # Danmu content exceeds the maximum length limit
   10501: Invalid request parameters # Parameter validation failed
   10601: Invalid request parameters # Parameter validation failed
+  10701: Invalid request parameters
   10801: Invalid request parameters # Parameter validation failed
   10802: Password cannot be less than six digits # Password cannot be less than six digits
   10901: Illegal image information # Image MIME type retrieval failed
@@ -155,6 +156,13 @@ error:
   11029: Spec combination details are too long # Serialized SKU spec snapshot exceeds the column width
   11030: Duplicate spec combination # Duplicate spec combination under the same product
   11101: Request parameter is invalid # Order parameter is invalid
+  11102: Invalid address type # Invalid address type
+  11103: Please enter recipient name # Recipient name is empty
+  11104: Please enter phone number # Phone number is empty for physical address
+  11105: Please select a region # Region is empty or invalid for physical address
+  11106: Please enter detailed address # Detailed address is empty for physical address
+  11107: Please enter email address # Email is empty for virtual address
+  11108: Invalid region code # region_code is not a valid province-city-district chain
   11201: Please select the feedback type # Feedback type is empty
   11202: Feedback type is too long # Feedback type exceeds the maximum length limit
   11203: Please enter feedback content # Feedback content is empty
@@ -178,8 +186,16 @@ error:
   11406: Image path cannot be empty # Image path is empty for OSS sync (Upload)
   11407: Invalid image path # Path is not a valid /uploads access path for OSS sync (Upload)
   11501: Invalid request parameters # Parameter validation failed (PK battle records)
+  11601: Invalid request parameters
+  11602: Please complete the captcha verification
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
+  20101: Login status is abnormal, please log in again
+  20102: Login status is abnormal, please log in again
+  20103: Login expired, please log in again
+  20801: Login status is abnormal, please log in again
+  20802: Login status is abnormal, please log in again
+  20803: Login expired, please log in again
   30001: Unauthorized operation # The current account does not have access permission
   30101: Unable to switch to this role # Current account lacks permission to switch to this role
   40101: Incorrect account or password # Password error (avoid being too specific)
@@ -190,6 +206,7 @@ error:
   40106: Captcha expired, please refresh and try again # altcha challenge expired
   40201: Binding failed, the administrator has already bound this role. # The current administrator already possesses this role
   40202: Binding failed, current role is unavailable # The current role has been deactivated
+  40203: This administrator has only this role, it cannot be removed
   40401: Not logged in to Bilibili, please scan QR code first # Not logged in to Bilibili
   40402: Listener is already running # Listener already running
   40403: Listener is not running # Listener not running
@@ -203,6 +220,12 @@ error:
   40803: Insufficient balance # Insufficient balance for this redemption
   41401: OSS is not configured, please save the Alibaba Cloud OSS config first # OSS config is incomplete before sync (Upload)
   41101: Insufficient stock # Insufficient stock, unable to place order
+  41102: Virtual orders do not support express information
+  41103: Virtual orders only support changing the email
+  41104: Physical orders only support changing the shipping address
+  41105: Insufficient balance
+  41601: Captcha verification failed
+  41602: Captcha expired, please refresh and try again
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
@@ -216,6 +239,7 @@ error:
   51103: The order to re-order does not exist # Historical draft does not exist or does not belong to the user
   51104: The current order has expired # The current order has expired
   51105: Order does not exist # Order not found (Order admin)
+  51106: Address not found
   51201: Feedback record does not exist # Feedback record not found (Feedback admin)
   51301: Address not found # Address does not exist or does not belong to the user
   60001: System busy, please try again later # RSA key initialization failed
@@ -249,6 +273,7 @@ error:
   60304: Operation failed, please try again later # Menu status switching failed
   60305: Operation failed, please try again later # Menu deletion failed
   60401: Bilibili API request failed, please try again later # Bilibili API request failed
+  60402: Failed to read/write local state file, please try again later
   60501: Failed to get config, please try again later # Database query error (Robot Config)
   60502: Failed to update config, please try again later # Database update error (Robot Config)
   60503: Failed to refresh config cache, please try again later # Cache reload error (Robot Config)
@@ -261,6 +286,7 @@ error:
   60805: System busy, please try again later # Redis store accessToken failed
   60806: System busy, please try again later # Redis store refreshToken failed
   60807: System busy, please try again later # Redis clear token failed
+  60808: Failed to get Bilibili user info, please try again later
   60902: Failed to save config, please try again later # Database update error (App Config)
   60903: Failed to refresh config cache, please try again later # Cache reload error (App Config)
   60905: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure
@@ -275,6 +301,10 @@ error:
   61403: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure (Upload)
   61404: Failed to sync image to OSS, please try again later # Image upload to OSS error (Upload)
   61501: System busy, please try again later # Database query exception (PK battle records)
+  61601: System busy, please try again later
+
+
+
 
 gender:
   female: female
