@@ -40,11 +40,11 @@ func (h *Handler) List(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.menuSvc.MenuTree(ctx)
+	svcResp, errCode, err := h.menuSvc.GetMenuTree(ctx)
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.MenuLogger,
-			"menuSvc.MenuTree 调用失败",
+			"menuSvc.GetMenuTree 调用失败",
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
@@ -139,11 +139,11 @@ func (h *Handler) Buttons(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.menuSvc.MenuButtons(ctx, req.ParentID)
+	svcResp, errCode, err := h.menuSvc.ListMenuButtons(ctx, req.ParentID)
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.MenuLogger,
-			"menuSvc.MenuButtons 调用失败",
+			"menuSvc.ListMenuButtons 调用失败",
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
