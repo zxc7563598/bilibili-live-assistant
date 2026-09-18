@@ -62,9 +62,12 @@ func aggregateSessionStats(ctx context.Context, session model.LiveSession, endAt
 	return nil
 }
 
-// endSessionAndAggregate 结束指定会话并聚合统计数据
-func (s *Service) endSessionAndAggregate(ctx context.Context, session model.LiveSession, endAt int64, endReason enum.EndReason, endSource enum.EndSource, endDetail string) error {
-	if err := s.liveSessionRepo.UpdateEndByID(ctx, nil, session.ID, model.LiveSessionUpdateEndForm{
+// endSessionAndAggregate 结束指定会话并聚合统计数据。
+//
+// Service、liveStatusProcessor、liveEndProcessor 原本各有一份完全相同的实现，
+// 收敛为此函数；与 aggregateSessionStats 一样以仓储为参数，不必为每个接收者留一份方法。
+func endSessionAndAggregate(ctx context.Context, session model.LiveSession, endAt int64, endReason enum.EndReason, endSource enum.EndSource, endDetail string, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository) error {
+	if err := liveSessionRepo.UpdateEndByID(ctx, nil, session.ID, model.LiveSessionUpdateEndForm{
 		EndAt:     &endAt,
 		EndReason: &endReason,
 		EndSource: &endSource,
@@ -72,7 +75,7 @@ func (s *Service) endSessionAndAggregate(ctx context.Context, session model.Live
 	}); err != nil {
 		return err
 	}
-	return aggregateSessionStats(ctx, session, endAt, s.liveDanmuRepo, s.liveGiftRepo, s.liveSessionRepo)
+	return aggregateSessionStats(ctx, session, endAt, liveDanmuRepo, liveGiftRepo, liveSessionRepo)
 }
 
 // syncSessionsOnStart 在监听启动后同步会话状态
@@ -88,7 +91,7 @@ func (s *Service) syncSessionsOnStart(ctx context.Context, roomID int64) {
 		if session.RoomID == roomID {
 			continue // 跳过监听房间，后续根据 LiveStatus 处理
 		}
-		if err := s.endSessionAndAggregate(ctx, session, now, enum.EndReasonNormal, enum.EndSourceManual, "监听房间切换，系统自动结束"); err != nil {
+		if err := endSessionAndAggregate(ctx, session, now, enum.EndReasonNormal, enum.EndSourceManual, "监听房间切换，系统自动结束", s.liveDanmuRepo, s.liveGiftRepo, s.liveSessionRepo); err != nil {
 			log.Printf("[live.Service] 同步会话：结束非监听房间会话失败 (ID:%d, RoomID:%d): %v", session.ID, session.RoomID, err)
 		}
 	}
@@ -125,7 +128,7 @@ func (s *Service) syncSessionsOnStart(ctx context.Context, roomID int64) {
 	if !isLive && hasActiveSession {
 		// 实际未直播，但有活跃记录
 		for _, session := range roomActiveSessions {
-			if err := s.endSessionAndAggregate(ctx, session, now, enum.EndReasonNormal, enum.EndSourcePolling, "启动监听时轮询检测到直播已结束"); err != nil {
+			if err := endSessionAndAggregate(ctx, session, now, enum.EndReasonNormal, enum.EndSourcePolling, "启动监听时轮询检测到直播已结束", s.liveDanmuRepo, s.liveGiftRepo, s.liveSessionRepo); err != nil {
 				log.Printf("[live.Service] 同步会话：结束当前房间会话失败 (ID:%d): %v", session.ID, err)
 			}
 		}
