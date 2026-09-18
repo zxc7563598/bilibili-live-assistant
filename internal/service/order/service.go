@@ -254,7 +254,8 @@ func (s *Service) Details(ctx context.Context, id int64) (DetailsItem, int, erro
 	return toDetailsItem(*item), 0, nil
 }
 
-// UpdateShipStatus 后台变更发货状态，并按目标发货状态联动订单状态
+// UpdateShipStatus 后台变更发货状态，并按目标发货状态联动订单状态与发货时间。
+// 注意：目标状态为「待发货」时视为撤销发货，会一并清空已填的快递信息与发货时间。
 func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq) (int, error) {
 	// 读取订单
 	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, req.ID)
