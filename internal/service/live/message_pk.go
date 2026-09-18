@@ -247,7 +247,7 @@ func (p *pkProcessor) resolvePkVars(ctx context.Context, info *live.PkBattlePreN
 	}
 	// 历史战绩：三个数出自同一条聚合查询，所以合并成一次 IO
 	if needed["pk_num"] || needed["pk_win_num"] || needed["pk_lose_num"] {
-		pkNum, winNum, loseNum, err := p.pkLogRepo.RivalStats(ctx, nil, info.UID, info.PkID)
+		pkNum, winNum, loseNum, err := p.pkLogRepo.CountRivalResults(ctx, nil, info.UID, info.PkID)
 		if err != nil {
 			log.Printf("[live.PK] 统计与对手的历史战绩失败 (rival_uid=%d): %v", info.UID, err)
 		} else {

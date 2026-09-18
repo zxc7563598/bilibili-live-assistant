@@ -46,10 +46,10 @@ type Repository interface {
 	GetByPkID(ctx context.Context, tx *gorm.DB, pkID int64) (*model.LivePkLog, error)
 	// ListPage 分页查询 PK 记录，支持房间号/对方UID/对方名称/我方胜负/开始时间筛选与白名单排序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) ([]model.LivePkLog, int64, error)
-	// ListStats 按与 ListPage 相同的筛选条件聚合出场次、我方胜利数与失败数
-	ListStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error)
-	// RivalStats 聚合与指定对手的历史战绩，excludePkID > 0 时排除该场
-	RivalStats(ctx context.Context, tx *gorm.DB, rivalUID, excludePkID int64) (totalNum, winNum, loseNum int64, err error)
+	// CountResultStats 按与 ListPage 相同的筛选条件聚合出场次、我方胜利数与失败数
+	CountResultStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error)
+	// CountRivalResults 聚合与指定对手的历史战绩，excludePkID > 0 时排除该场
+	CountRivalResults(ctx context.Context, tx *gorm.DB, rivalUID, excludePkID int64) (totalNum, winNum, loseNum int64, err error)
 }
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
@@ -91,16 +91,16 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LivePk
 	return list, total, err
 }
 
-// ListStats 与 ListPage 共用同一套筛选条件，保证统计口径与列表完全一致
-func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error) {
+// CountResultStats 与 ListPage 共用同一套筛选条件，保证统计口径与列表完全一致
+func (r *gormRepo) CountResultStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error) {
 	db := r.applyLivePkLogListQuery(r.ResolveDB(ctx, tx).Model(&model.LivePkLog{}), query)
 	return livePkLogStats(db)
 }
 
-// RivalStats 聚合与指定对手的历史战绩，供 PK 播报取「跟这位主播打过几场、赢几场、输几场」
+// CountRivalResults 聚合与指定对手的历史战绩，供 PK 播报取「跟这位主播打过几场、赢几场、输几场」
 //
 // 正在进行的这一场在 PK 开始事件里已经落库，统计历史战绩时用 excludePkID 排除掉。
-func (r *gormRepo) RivalStats(ctx context.Context, tx *gorm.DB, rivalUID, excludePkID int64) (totalNum, winNum, loseNum int64, err error) {
+func (r *gormRepo) CountRivalResults(ctx context.Context, tx *gorm.DB, rivalUID, excludePkID int64) (totalNum, winNum, loseNum int64, err error) {
 	db := r.ResolveDB(ctx, tx).Model(&model.LivePkLog{}).Where("rival_uid = ?", rivalUID)
 	if excludePkID > 0 {
 		db = db.Where("pk_id <> ?", excludePkID)
@@ -127,7 +127,7 @@ func livePkLogStats(db *gorm.DB) (totalNum, winNum, loseNum int64, err error) {
 	return result.TotalNum, result.WinNum, result.LoseNum, nil
 }
 
-// applyLivePkLogListQuery 构建 PK 记录列表筛选条件，ListPage 与 ListStats 共用
+// applyLivePkLogListQuery 构建 PK 记录列表筛选条件，ListPage 与 CountResultStats 共用
 func (r *gormRepo) applyLivePkLogListQuery(db *gorm.DB, query model.LivePkLogListPageQuery) *gorm.DB {
 	if v := query.RoomID; v != nil {
 		db = db.Where("room_id = ?", *v)

@@ -55,7 +55,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 	if err != nil {
 		return ListPageResp{}, 61501, err
 	}
-	totalNum, winNum, loseNum, err := s.livePkLogRepo.ListStats(ctx, nil, query)
+	totalNum, winNum, loseNum, err := s.livePkLogRepo.CountResultStats(ctx, nil, query)
 	if err != nil {
 		return ListPageResp{}, 61501, err
 	}
