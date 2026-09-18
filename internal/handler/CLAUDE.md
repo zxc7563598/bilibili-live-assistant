@@ -28,12 +28,40 @@ internal/handler/<模块名>/
   接口方法也放 `common.go`
 - **不再有 `handler.go`**
 
-方法命名：
+## 方法命名
 
-- 读单条/整体用 `Get*`，读集合用 `List*`，分页用 `ListPage`，读一条的既有写法是 `Details`
-- 写操作用动词：`Save` / `Delete` / `Update*` / `Toggle` / `Apply` / `Submit`
-- 名字尽量与它调用的 Service 方法同名
-- 只有同一包内两端方法**同名冲突**时才加 `Shop` / `Admin` 前缀（目前只有 `product` 需要）
+承接 [service/CLAUDE.md](../service/CLAUDE.md) 的词汇：接口方法名尽量与它调用的
+Service 方法一致，两边含义相同时直接沿用同一个词。
+
+**与 Service 层相同的规则**：
+
+- 分页查询叫 `ListPage`；同一模块有多个分页接口时加限定词区分
+  （`order.ListPageByUser`、`livegift.BlindBoxListPage`）
+- 读方法有动词：`Get*` 返回单条/整体，`List*` 返回集合。**不要用名词当方法名**
+  （`List()` → `GetMenuTree()`、`Buttons()` → `ListMenuButtons()`、
+  `Permissions()` → `GetPermissions()`）
+- 树形结果用 `Get*` 而非 `List*`：`GetMenuTree`
+- 名字要能看出来有副作用：会发网络请求的用 `Fetch*`（`FetchRoomGroups`）、
+  会翻转状态的用 `Toggle*`（`Toggle`）、持续推送的用 `Stream*`（`StreamMessages`）
+- 谓词用 `XxxExists`（`ExistsAccount`）；要把结果当数据下发给前端时用动词开头
+  （`CheckMenuExists` 返回 `{has: bool}`）
+
+**唯一的例外是 `Details`。** 读单条时 `admin` / `order` / `liveuser` / `feedback`
+都用 `Details`（`product` 因为两端同名而写作 `ShopDetails` / `AdminDetails`），
+按上面的规则该叫 `GetDetail`；但 Service 层用的是同一个名字，两层保持一致比
+单层内部自洽更重要，所以保留。这是全项目唯一的「名词当方法名」。
+
+**写操作**用动词：`Save` / `Delete` / `Update<对象>` / `Apply<配置>` / `Submit` /
+`Login` / `Logout`。`Save` 留给「有 id 则更新、无 id 则新增」的接口
+（`Save`、`AdminSave`、`SaveAddress`），只改一个对象的用 `Update*`
+（`UpdateRoom`、`UpdateShipStatus`、`AdminUpdateEnable`）。
+
+**双端前缀**：只有同一包内商城端与管理端方法**同名冲突**时才加 `Shop` / `Admin`
+前缀。全项目只有 `product` 一个包需要——它两端都有 list 与 details，其余双端包靠
+`ListPageByUser` ↔ `ListPage` 这类词本身就能区分，与 Service 层的做法一致。
+
+**包内小工具**：转换函数用 `toXxx` 开头（`toAdminListItems`），构造函数统一叫
+`New`（不是 `NewHandler`）。
 
 ## 标准接口处理流程
 
@@ -104,7 +132,7 @@ Repository 抛 error → Service 透传 → Handler 统一处理
 - Handler 用 `handler.ErrorLog()` 记录完整错误到日志
 - 用户只看到错误码映射后的多语言信息
 - **绝不直接将原始 error 返回给用户**（防止泄露数据库结构等内部信息）
-- 错误码设计参考 [多语言错误码设计](internal/i18n/CLAUDE.md)，遵循其**错误码设计**，优先复用符合情况的错误码，无符合情况的错误码时，根据设计规定新增错误码并同步所有语言文件
+- 错误码设计参考 [多语言错误码设计](../i18n/CLAUDE.md)，遵循其**错误码设计**，优先复用符合情况的错误码，无符合情况的错误码时，根据设计规定新增错误码并同步所有语言文件
 
 ## 统一日志
 
