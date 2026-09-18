@@ -44,5 +44,9 @@ func Run(db *gorm.DB) error {
 		return err
 	}
 	// 升级已有系统：为 live_users 回填累计弹幕数/礼物金额
-	return backfillLiveUserDanmuGift(db)
+	if err := backfillLiveUserDanmuGift(db); err != nil {
+		return err
+	}
+	// 升级已有系统：修正历史种子数据里改过含义的菜单名称与图标
+	return fixLegacyMenus(db)
 }
