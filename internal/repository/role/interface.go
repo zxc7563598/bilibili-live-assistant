@@ -31,7 +31,7 @@ type Repository interface {
 	base.Repository[model.Role]
 	// GetByCode 根据 code 获取单条数据
 	GetByCode(ctx context.Context, tx *gorm.DB, code string) (*model.Role, error)
-	// ListEnabled 获取全部启用数据
+	// ListEnabled 获取全部启用角色，按 ID 升序
 	ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Role, error)
 	// ListPage 获取分页列表数据
 	ListPage(ctx context.Context, tx *gorm.DB, query model.RoleListPageQuery) ([]model.RoleListItem, int64, error)
@@ -44,9 +44,13 @@ func (r *gormRepo) GetByCode(ctx context.Context, tx *gorm.DB, code string) (*mo
 	return r.GetByField(ctx, tx, "code", code)
 }
 
-// ListEnabled 获取全部启用数据
+// ListEnabled 获取全部启用角色，按 ID 升序
 func (r *gormRepo) ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Role, error) {
-	return r.ListByField(ctx, tx, "enable", enum.EnableEnable)
+	db := r.ResolveDB(ctx, tx)
+	var list []model.Role
+	// Role 没有专门的排序列，固定按 ID 升序，避免返回顺序由数据库决定
+	err := db.Where("enable = ?", enum.EnableEnable).Order("id asc").Find(&list).Error
+	return list, err
 }
 
 // ListPage 获取分页列表数据
@@ -68,8 +72,8 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleLi
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	// 默认与现状一致；排序参数非法/缺失时静默回退该默认
-	orderClause := "id asc"
+	// 默认按创建时间倒序（与全层其它 ListPage 一致）；排序参数非法/缺失时静默回退该默认
+	orderClause := "created_at desc"
 	if query.SortField != nil && query.SortOrder != nil {
 		// 方向先小写归一化再查白名单，非法值直接回退默认
 		if field, ok := sortColumns[*query.SortField]; ok {
