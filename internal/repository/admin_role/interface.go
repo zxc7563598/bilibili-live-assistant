@@ -17,7 +17,7 @@ type Repository interface {
 	// ListByAdminIDs 根据多个管理员ID获取全部相关角色
 	ListByAdminIDs(ctx context.Context, tx *gorm.DB, adminIDs []int64) ([]model.AdminRole, error)
 	// BindRoles 绑定管理员/角色
-	BindRoles(ctx context.Context, tx *gorm.DB, adminID []int64, roleID int64) error
+	BindRoles(ctx context.Context, tx *gorm.DB, adminIDs []int64, roleID int64) error
 	// UnbindRoles 取消绑定管理员/角色
 	UnbindRoles(ctx context.Context, tx *gorm.DB, adminIDs []int64, roleID int64) error
 }
@@ -49,9 +49,9 @@ func (r *gormRepo) ListByAdminIDs(ctx context.Context, tx *gorm.DB, adminIDs []i
 }
 
 // BindRoles 绑定管理员/角色
-func (r *gormRepo) BindRoles(ctx context.Context, tx *gorm.DB, adminID []int64, roleID int64) error {
-	entities := make([]model.AdminRole, 0, len(adminID))
-	for _, v := range adminID {
+func (r *gormRepo) BindRoles(ctx context.Context, tx *gorm.DB, adminIDs []int64, roleID int64) error {
+	entities := make([]model.AdminRole, 0, len(adminIDs))
+	for _, v := range adminIDs {
 		entities = append(entities, model.AdminRole{
 			AdminID: v,
 			RoleID:  roleID,
