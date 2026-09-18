@@ -360,11 +360,3 @@ func resolveRegionCode(src string) (regionCode, regionText string, errCode int) 
 	}
 	return string(canonical), text, 0
 }
-
-// strPtr 安全解引用字符串指针并去除首尾空格
-func strPtr(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return strings.TrimSpace(*p)
-}

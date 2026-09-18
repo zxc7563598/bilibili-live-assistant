@@ -51,6 +51,12 @@ func (c *Cache) Get(configKey string) (string, bool) {
 	return val, ok
 }
 
+// GetValue 获取指定配置键的配置值，键不存在时返回空字符串
+func (c *Cache) GetValue(configKey string) string {
+	val, _ := c.Get(configKey)
+	return val
+}
+
 // GetAll 获取全部配置（返回副本，调用方修改不影响缓存）
 func (c *Cache) GetAll() map[string]string {
 	c.mu.RLock()

@@ -1,6 +1,9 @@
 package ptr
 
-import "strconv"
+import (
+	"strconv"
+	"strings"
+)
 
 // Deref 安全地将指针解引用为值，如果指针为 nil 则返回零值
 func Deref[T any](p *T) T {
@@ -9,6 +12,14 @@ func Deref[T any](p *T) T {
 		return zero
 	}
 	return *p
+}
+
+// TrimStr 安全地解引用字符串指针并去除首尾空白，指针为 nil 时返回空字符串
+func TrimStr(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return strings.TrimSpace(*p)
 }
 
 // ParseBool 将配置字符串解析为 bool，"1" 为 true

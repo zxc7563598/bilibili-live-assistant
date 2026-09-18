@@ -47,11 +47,11 @@ func New(appConfigCache *appconfig.Cache, appConfigRepo app_config.Repository) *
 //   - 图标已配置但无法识别时返回 10901，便于定位配置问题
 func (s *Service) GetManifest() (ManifestResp, int, error) {
 	resp := ManifestResp{
-		Name:            s.configValue(keySiteName),
-		Description:     s.configValue(keySiteDescription),
-		BackgroundColor: s.configValue(keySiteBackgroundColor),
+		Name:            s.appConfigCache.GetValue(keySiteName),
+		Description:     s.appConfigCache.GetValue(keySiteDescription),
+		BackgroundColor: s.appConfigCache.GetValue(keySiteBackgroundColor),
 	}
-	icon := s.configValue(keySiteIcon)
+	icon := s.appConfigCache.GetValue(keySiteIcon)
 	if icon == "" {
 		return resp, 0, nil
 	}
@@ -66,19 +66,19 @@ func (s *Service) GetManifest() (ManifestResp, int, error) {
 
 // GetThemeColor 获取网站主题色
 func (s *Service) GetThemeColor() (string, int, error) {
-	return s.configValue(keySiteThemeColor), 0, nil
+	return s.appConfigCache.GetValue(keySiteThemeColor), 0, nil
 }
 
 // GetLoginConfig 获取登录页配置
 func (s *Service) GetLoginConfig() (LoginConfig, int, error) {
 	resp := LoginConfig{
-		Logo:     s.configValue(keyLogo),
-		LoginBg:  s.configValue(keyLoginBg),
-		Title:    s.configValue(keyTitle),
-		Slogan:   s.configValue(keySlogan),
+		Logo:     s.appConfigCache.GetValue(keyLogo),
+		LoginBg:  s.appConfigCache.GetValue(keyLoginBg),
+		Title:    s.appConfigCache.GetValue(keyTitle),
+		Slogan:   s.appConfigCache.GetValue(keySlogan),
 		Register: false,
 	}
-	register := ptr.ParseEnumInt[enum.YesNo](s.configValue(keyRegister))
+	register := ptr.ParseEnumInt[enum.YesNo](s.appConfigCache.GetValue(keyRegister))
 	if register == enum.Yes {
 		resp.Register = true
 	}

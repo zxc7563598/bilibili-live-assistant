@@ -39,12 +39,6 @@ func (s *Service) updateToken(ctx context.Context, userID int64) (TokenResp, int
 	}, 0, nil
 }
 
-// configValue 读取应用配置值，配置项缺失时返回空字符串
-func (s *Service) configValue(key string) string {
-	val, _ := s.appConfigCache.Get(key)
-	return val
-}
-
 func toListPageItems(liveUser []model.LiveUser) []ListPageItem {
 	respList := make([]ListPageItem, 0, len(liveUser))
 	for _, v := range liveUser {
