@@ -264,11 +264,11 @@ func (h *Handler) Toggle(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	errCode, err := h.menuSvc.SetMenuEnable(ctx, req.ID)
+	errCode, err := h.menuSvc.ToggleMenuEnable(ctx, req.ID)
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.MenuLogger,
-			"menuSvc.SetMenuEnable 调用失败",
+			"menuSvc.ToggleMenuEnable 调用失败",
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
