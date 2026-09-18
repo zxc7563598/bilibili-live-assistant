@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"errors"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
@@ -15,6 +16,10 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
+
+// errSaveRejected 表示保存被业务校验拒绝（errCode 非 0 但 error 为 nil）。
+// 仅用于让事务回滚，真正的错误码由调用方从 errCode 取。
+var errSaveRejected = errors.New("管理员保存被校验拒绝")
 
 type Service struct {
 	db            *gorm.DB
@@ -289,19 +294,28 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 	var err error
 	isCreate := req.ID == nil || *req.ID == 0
 
+	// 校验未通过时 add/update 返回 (0, 错误码, nil)——error 为 nil，只有 errCode 非 0。
+	// 这种「业务拒绝」同样要中断事务：若只判断 err，闭包会返回 nil 让事务照常提交，
+	// 随后 err 判空也跳过，errCode 被丢掉，最终接口对一次被拒绝的保存返回成功。
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		if isCreate {
 			adminID, errCode, err = s.add(ctx, tx, req)
 		} else {
 			adminID, errCode, err = s.update(ctx, tx, req)
 		}
-		if errCode > 0 {
+		if err != nil {
 			return err
+		}
+		if errCode > 0 {
+			return errSaveRejected
 		}
 		// 绑定角色身份（在同一个事务中）
 		errCode, err = s.bindRoles(ctx, tx, adminID, req.RoleIds)
 		if err != nil {
 			return err
+		}
+		if errCode > 0 {
+			return errSaveRejected
 		}
 		return nil
 	})
