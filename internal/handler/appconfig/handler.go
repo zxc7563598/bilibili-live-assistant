@@ -62,9 +62,9 @@ func (h *Handler) GetPublicKey(c *gin.Context) {
 func (h *Handler) GetManifest(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-	svcResp, errCode, err := h.appConfigSvc.Manifest()
+	svcResp, errCode, err := h.appConfigSvc.GetManifest()
 	if errCode != 0 {
-		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.Manifest 调用失败", errCode, err)
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.GetManifest 调用失败", errCode, err)
 		response.Error(c, lang, errCode)
 		return
 	}
@@ -99,9 +99,9 @@ func (h *Handler) GetManifest(c *gin.Context) {
 func (h *Handler) GetThemeColor(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-	svcResp, errCode, err := h.appConfigSvc.ThemeColor()
+	svcResp, errCode, err := h.appConfigSvc.GetThemeColor()
 	if errCode != 0 {
-		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.ThemeColor 调用失败", errCode, err)
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.GetThemeColor 调用失败", errCode, err)
 		response.Error(c, lang, errCode)
 		return
 	}
@@ -119,9 +119,9 @@ func (h *Handler) GetThemeColor(c *gin.Context) {
 func (h *Handler) GetLoginConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
-	svcResp, errCode, err := h.appConfigSvc.LoginConfig()
+	svcResp, errCode, err := h.appConfigSvc.GetLoginConfig()
 	if errCode != 0 {
-		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.LoginConfig 调用失败", errCode, err)
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.GetLoginConfig 调用失败", errCode, err)
 		response.Error(c, lang, errCode)
 		return
 	}
@@ -143,9 +143,9 @@ func (h *Handler) GetLoginConfig(c *gin.Context) {
 // @Router /api/admin/appconfig/data [post]
 func (h *Handler) GetConfig(c *gin.Context) {
 	lang := i18n.GetLang(c.Request.Context())
-	svcResp, errCode, err := h.appConfigSvc.ConfigData()
+	svcResp, errCode, err := h.appConfigSvc.GetConfigData()
 	if errCode != 0 {
-		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.ConfigData 调用失败", errCode, err)
+		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.GetConfigData 调用失败", errCode, err)
 		response.Error(c, lang, errCode)
 		return
 	}
