@@ -60,6 +60,10 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 		roleIDs = append(roleIDs, v.ID)
 	}
 	roleMenus, err := s.roleMenuRepo.ListByRoleIDs(ctx, nil, roleIDs)
+	if err != nil {
+		// 该读失败时 roleMenus 为 nil，若不拦住会让每个角色的权限都静默显示为空
+		return ListPageResp{}, 60201, err
+	}
 	menuIDs := make(map[int64][]int64)
 	for _, v := range roleMenus {
 		menuIDs[v.RoleID] = append(menuIDs[v.RoleID], v.MenuID)
