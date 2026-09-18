@@ -3,9 +3,9 @@ package input
 // ProductShopListPageReq 商城端获取主页商品分页列表请求
 type ProductShopListPageReq struct {
 	// 页码
-	PageNo int `json:"pageNo" binding:"required" err:"required=10101" example:"1"`
+	PageNo int `json:"pageNo" binding:"required" err:"required=11001" example:"1"`
 	// 每页展示条数
-	PageSize int `json:"pageSize" binding:"required" err:"required=10101" example:"20"`
+	PageSize int `json:"pageSize" binding:"required" err:"required=11001" example:"20"`
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
@@ -19,15 +19,15 @@ type ProductShopListPageReq struct {
 // ProductDetailReq 商城端获取商品详细信息请求
 type ProductDetailReq struct {
 	// 商品ID
-	ID int64 `json:"id" binding:"required" err:"required=10101" example:"1"`
+	ID int64 `json:"id" binding:"required" err:"required=11001" example:"1"`
 }
 
 // ProductAdminListPageReq 后台获取主页商品分页列表请求
 type ProductAdminListPageReq struct {
 	// 页码
-	PageNo int `json:"pageNo" binding:"required" err:"required=10101" example:"1"`
+	PageNo int `json:"pageNo" binding:"required" err:"required=11001" example:"1"`
 	// 每页展示条数
-	PageSize int `json:"pageSize" binding:"required" err:"required=10101" example:"20"`
+	PageSize int `json:"pageSize" binding:"required" err:"required=11001" example:"20"`
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
@@ -43,9 +43,9 @@ type ProductAdminListPageReq struct {
 // ProductUpdateEnableReq 后台变更商品是否启用请求
 type ProductUpdateEnableReq struct {
 	// 商品ID
-	ID int64 `json:"id" binding:"required" err:"required=10101" example:"1"`
+	ID int64 `json:"id" binding:"required" err:"required=11001" example:"1"`
 	// 是否启用；必传，避免调用方漏传后被当成下架
-	Enable *bool `json:"enable" binding:"required" err:"required=10101" example:"true"`
+	Enable *bool `json:"enable" binding:"required" err:"required=11001" example:"true"`
 }
 
 // ProductSaveReq 后台创建或变更商品请求
@@ -76,7 +76,7 @@ type ProductSaveReq struct {
 	// 排序，越大越靠前
 	SortOrder int `json:"sort_order" example:"100"`
 	// 是否启用；必传，避免调用方漏传后被当成下架
-	Enable *bool `json:"enable" binding:"required" err:"required=10101" example:"true"`
+	Enable *bool `json:"enable" binding:"required" err:"required=11001" example:"true"`
 	// 规格设置
 	Specs []ProductSaveSpecReq `json:"specs" binding:"max=10" err:"max=11027"`
 	// 上架 SKU，至少一个；未上架的规格组合不提交

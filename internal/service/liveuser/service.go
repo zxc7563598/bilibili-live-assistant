@@ -355,10 +355,10 @@ func (s *Service) Login(ctx context.Context, account int64, password string) (To
 func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (TokenResp, int, error) {
 	claims, err := jwt.ParseToken(refreshToken)
 	if err != nil {
-		return TokenResp{}, 10002, err
+		return TokenResp{}, 20801, err
 	}
 	if claims.Type != "refresh" {
-		return TokenResp{}, 10003, nil
+		return TokenResp{}, 20802, nil
 	}
 	// 获取用户信息
 	user, err := s.liveUserRepo.GetByID(ctx, nil, claims.ID)
@@ -370,7 +370,7 @@ func (s *Service) RefreshLogin(ctx context.Context, refreshToken string) (TokenR
 		return TokenResp{}, 50802, nil
 	}
 	if user.Token == nil || *user.Token != refreshToken {
-		return TokenResp{}, 20001, nil
+		return TokenResp{}, 20803, nil
 	}
 	// 更新token
 	return s.updateToken(ctx, claims.ID)

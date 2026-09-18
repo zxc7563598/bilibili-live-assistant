@@ -336,18 +336,18 @@ func resolveRegionCode(src string) (regionCode, regionText string, errCode int) 
 	}
 	var codes []string
 	if err := json.Unmarshal([]byte(src), &codes); err != nil {
-		return "", "", 11302
+		return "", "", 11108
 	}
 	if len(codes) == 0 {
 		return "", "", 0
 	}
 	text, ok := region.Resolve(codes)
 	if !ok {
-		return "", "", 11302
+		return "", "", 11108
 	}
 	canonical, err := json.Marshal(codes)
 	if err != nil {
-		return "", "", 11302
+		return "", "", 11108
 	}
 	return string(canonical), text, 0
 }

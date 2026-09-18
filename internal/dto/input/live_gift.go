@@ -3,9 +3,9 @@ package input
 // LiveGiftListPageReq 分页查询礼物列表请求
 type LiveGiftListPageReq struct {
 	// 页码
-	PageNo int `json:"pageNo" binding:"required" err:"required=10601" example:"1"`
+	PageNo int `json:"pageNo" binding:"required" err:"required=10701" example:"1"`
 	// 每页展示条数
-	PageSize int `json:"pageSize" binding:"required" err:"required=10601" example:"20"`
+	PageSize int `json:"pageSize" binding:"required" err:"required=10701" example:"20"`
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
@@ -29,9 +29,9 @@ type LiveGiftListPageReq struct {
 // LiveGiftBlindBoxListPageReq 分页查询盲盒礼物列表请求
 type LiveGiftBlindBoxListPageReq struct {
 	// 页码
-	PageNo int `json:"pageNo" binding:"required" err:"required=10601" example:"1"`
+	PageNo int `json:"pageNo" binding:"required" err:"required=10701" example:"1"`
 	// 每页展示条数
-	PageSize int `json:"pageSize" binding:"required" err:"required=10601" example:"20"`
+	PageSize int `json:"pageSize" binding:"required" err:"required=10701" example:"20"`
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
