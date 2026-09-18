@@ -57,7 +57,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 	if err != nil {
 		return ListPageResp{}, 60701, err
 	}
-	totalNum, totalAmount, err := s.liveGiftRepo.ListStats(ctx, nil, queue)
+	totalNum, totalAmount, err := s.liveGiftRepo.SumNumAndAmount(ctx, nil, queue)
 	if err != nil {
 		return ListPageResp{}, 60701, err
 	}
@@ -93,7 +93,7 @@ func (s *Service) BlindBoxListPage(ctx context.Context, req BlindBoxListPageReq)
 	if err != nil {
 		return BlindBoxListPageResp{}, 60701, err
 	}
-	originalPrice, currentPrice, err := s.liveGiftRepo.BlindBoxListStats(ctx, nil, queue)
+	originalPrice, currentPrice, err := s.liveGiftRepo.SumOriginalAndCurrentPrice(ctx, nil, queue)
 	if err != nil {
 		return BlindBoxListPageResp{}, 60701, err
 	}
