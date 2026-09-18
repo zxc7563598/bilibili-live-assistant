@@ -38,10 +38,8 @@ type Repository interface {
 	ListPage(ctx context.Context, tx *gorm.DB, query model.ProductListPageQuery) ([]model.Product, int64, error)
 	// ListEnabled 获取全部启用中的商品，按排序值倒序
 	ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Product, error)
-	// IncrementSold 原子增加商品销量
-	IncrementSold(ctx context.Context, tx *gorm.DB, id, delta int64) error
-	// IncrementStock 原子增加商品库存
-	IncrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) error
+	// AdjustStock 原子增减商品库存，delta 可为负
+	AdjustStock(ctx context.Context, tx *gorm.DB, id, delta int64) error
 	// DecrementStock 原子扣减商品库存；库存不足（stock < delta）时不修改数据并返回 false
 	DecrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) (bool, error)
 }
@@ -97,14 +95,9 @@ func (r *gormRepo) ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Produc
 	return list, err
 }
 
-// IncrementSold 原子增加商品销量
-func (r *gormRepo) IncrementSold(ctx context.Context, tx *gorm.DB, id, delta int64) error {
-	return r.IncrementField(ctx, tx, id, "sold", delta)
-}
-
-// IncrementStock 原子增加商品库存
-func (r *gormRepo) IncrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) error {
-	return r.IncrementField(ctx, tx, id, "stock", delta)
+// AdjustStock 原子增减商品库存，delta 可为负
+func (r *gormRepo) AdjustStock(ctx context.Context, tx *gorm.DB, id, delta int64) error {
+	return r.AdjustField(ctx, tx, id, "stock", delta)
 }
 
 // DecrementStock 原子扣减商品库存；库存不足（stock < delta）时不修改数据并返回 false

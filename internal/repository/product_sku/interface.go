@@ -12,8 +12,8 @@ type Repository interface {
 	base.Repository[model.ProductSku]
 	// ListByProductID 根据商品ID获取全部SKU，按 ID 升序
 	ListByProductID(ctx context.Context, tx *gorm.DB, productID int64) ([]model.ProductSku, error)
-	// IncrementStock 原子增加SKU库存
-	IncrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) error
+	// AdjustStock 原子增减SKU库存，delta 可为负
+	AdjustStock(ctx context.Context, tx *gorm.DB, id, delta int64) error
 	// DecrementStock 原子扣减SKU库存；库存不足（stock < delta）时不修改数据并返回 false
 	DecrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) (bool, error)
 }
@@ -26,9 +26,9 @@ func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID i
 	return list, err
 }
 
-// IncrementStock 原子增加SKU库存
-func (r *gormRepo) IncrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) error {
-	return r.IncrementField(ctx, tx, id, "stock", delta)
+// AdjustStock 原子增减SKU库存，delta 可为负
+func (r *gormRepo) AdjustStock(ctx context.Context, tx *gorm.DB, id, delta int64) error {
+	return r.AdjustField(ctx, tx, id, "stock", delta)
 }
 
 // DecrementStock 原子扣减SKU库存；库存不足（stock < delta）时不修改数据并返回 false
