@@ -229,11 +229,11 @@ func (h *Handler) Details(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.liveuserSvc.UserInfo(ctx, req.UserID)
+	svcResp, errCode, err := h.liveuserSvc.GetUserInfo(ctx, req.UserID)
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.LiveUserLogger,
-			"liveuserSvc.UserInfo 调用失败",
+			"liveuserSvc.GetUserInfo 调用失败",
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
@@ -283,7 +283,7 @@ func (h *Handler) AssetsPageByID(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.liveuserSvc.UserAssetsPage(ctx, req.UserID, liveuser.UserAssetsPageReq{
+	svcResp, errCode, err := h.liveuserSvc.ListUserAssets(ctx, req.UserID, liveuser.UserAssetsPageReq{
 		PageResp: liveuser.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
@@ -295,7 +295,7 @@ func (h *Handler) AssetsPageByID(c *gin.Context) {
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.LiveUserLogger,
-			"liveuserSvc.UserAssetsPage 调用失败",
+			"liveuserSvc.ListUserAssets 调用失败",
 			errCode,
 			err,
 			zap.Any("adminInfo", adminInfo),
@@ -653,11 +653,11 @@ func (h *Handler) GetUserInfo(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.liveuserSvc.UserInfo(ctx, userInfo.UserID)
+	svcResp, errCode, err := h.liveuserSvc.GetUserInfo(ctx, userInfo.UserID)
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.LiveUserLogger,
-			"liveuserSvc.UserInfo 调用失败",
+			"liveuserSvc.GetUserInfo 调用失败",
 			errCode,
 			err,
 			zap.Any("userInfo", userInfo),
@@ -731,7 +731,7 @@ func (h *Handler) UserAssetsPage(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.liveuserSvc.UserAssetsPage(ctx, userInfo.UserID, liveuser.UserAssetsPageReq{
+	svcResp, errCode, err := h.liveuserSvc.ListUserAssets(ctx, userInfo.UserID, liveuser.UserAssetsPageReq{
 		PageResp: liveuser.PageResp{
 			PageNo:    req.PageNo,
 			PageSize:  req.PageSize,
@@ -743,7 +743,7 @@ func (h *Handler) UserAssetsPage(c *gin.Context) {
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.LiveUserLogger,
-			"liveuserSvc.UserAssetsPage 调用失败",
+			"liveuserSvc.ListUserAssets 调用失败",
 			errCode,
 			err,
 			zap.Any("userinfo", userInfo),
