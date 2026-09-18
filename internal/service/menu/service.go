@@ -18,8 +18,8 @@ func New(menuRepo menu.Repository) *Service {
 	}
 }
 
-// MenuTree 用于获取全部菜单
-func (s *Service) MenuTree(ctx context.Context) ([]MenuItem, int, error) {
+// GetMenuTree 用于获取全部菜单
+func (s *Service) GetMenuTree(ctx context.Context) ([]MenuItem, int, error) {
 	// 获取菜单信息
 	menus, err := s.menuRepo.ListAll(ctx, nil)
 	if err != nil {
@@ -38,8 +38,8 @@ func (s *Service) MenuExists(ctx context.Context, path string) (bool, int, error
 	return has, 0, nil
 }
 
-// MenuButtons 用于获取菜单下的按钮
-func (s *Service) MenuButtons(ctx context.Context, parentID int64) ([]MenuItem, int, error) {
+// ListMenuButtons 用于获取菜单下的按钮
+func (s *Service) ListMenuButtons(ctx context.Context, parentID int64) ([]MenuItem, int, error) {
 	buttons, err := s.menuRepo.ListButtonsByParentID(ctx, nil, parentID)
 	if err != nil {
 		return nil, 60301, err
