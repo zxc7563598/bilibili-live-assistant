@@ -159,8 +159,8 @@ func (s *Service) Delete(ctx context.Context, roleID int64) (int, error) {
 	return 0, nil
 }
 
-// RoleMenuTree 用于获取管理员权限内的菜单
-func (s *Service) RoleMenuTree(ctx context.Context, roleID int64, roleCode string) ([]RoleMenuItem, int, error) {
+// GetRoleMenuTree 用于获取管理员权限内的菜单
+func (s *Service) GetRoleMenuTree(ctx context.Context, roleID int64, roleCode string) ([]RoleMenuItem, int, error) {
 	// 获取菜单信息
 	menus, err := s.getMenusByRole(ctx, roleID, roleCode)
 	if err != nil {
