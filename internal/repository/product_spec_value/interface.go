@@ -13,7 +13,7 @@ type Repository interface {
 	// ListByProductID 根据商品ID获取全部规格值，按 ID 升序
 	ListByProductID(ctx context.Context, tx *gorm.DB, productID int64) ([]model.ProductSpecValue, error)
 	// ListBySpecID 根据规格ID获取全部规格值，按 ID 升序
-	ListBySpecID(ctx context.Context, tx *gorm.DB, specID int64) ([]model.ProductSpecValue, error)
+	ListBySpecID(ctx context.Context, tx *gorm.DB, productSpecID int64) ([]model.ProductSpecValue, error)
 	// DeleteByProductID 软删除商品下的全部规格值
 	DeleteByProductID(ctx context.Context, tx *gorm.DB, productID int64) error
 }
@@ -27,10 +27,10 @@ func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID i
 }
 
 // ListBySpecID 根据规格ID获取全部规格值
-func (r *gormRepo) ListBySpecID(ctx context.Context, tx *gorm.DB, specID int64) ([]model.ProductSpecValue, error) {
+func (r *gormRepo) ListBySpecID(ctx context.Context, tx *gorm.DB, productSpecID int64) ([]model.ProductSpecValue, error) {
 	db := r.ResolveDB(ctx, tx)
 	var list []model.ProductSpecValue
-	err := db.Where("product_spec_id = ?", specID).Order("id asc").Find(&list).Error
+	err := db.Where("product_spec_id = ?", productSpecID).Order("id asc").Find(&list).Error
 	return list, err
 }
 

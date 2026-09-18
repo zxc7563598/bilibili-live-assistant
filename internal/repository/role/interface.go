@@ -36,7 +36,7 @@ type Repository interface {
 	// ListPage 获取分页列表数据
 	ListPage(ctx context.Context, tx *gorm.DB, query model.RoleListPageQuery) ([]model.RoleListItem, int64, error)
 	// UpdateByID 变更基本信息
-	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, queue model.RoleUpdateByIdForm) error
+	UpdateByID(ctx context.Context, tx *gorm.DB, id int64, form model.RoleUpdateByIdForm) error
 }
 
 // GetByCode 根据 code 获取单条数据
