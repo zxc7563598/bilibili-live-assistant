@@ -54,7 +54,7 @@ type Repository interface {
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
 func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var roomIDs []int64
 	if err := db.Model(&model.LivePkLog{}).Distinct("room_id").Pluck("room_id", &roomIDs).Error; err != nil {
 		return nil, err
@@ -64,14 +64,14 @@ func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, e
 
 // GetByPkID 按 PK ID 查询记录，不存在返回 (nil, nil)
 func (r *gormRepo) GetByPkID(ctx context.Context, tx *gorm.DB, pkID int64) (*model.LivePkLog, error) {
-	return r.FindOneByField(ctx, tx, "pk_id", pkID)
+	return r.GetByField(ctx, tx, "pk_id", pkID)
 }
 
 // ListPage 分页查询 PK 记录
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) ([]model.LivePkLog, int64, error) {
 	var list []model.LivePkLog
 	var total int64
-	db := r.getDB(ctx, tx).Model(&model.LivePkLog{})
+	db := r.ResolveDB(ctx, tx).Model(&model.LivePkLog{})
 	db = r.applyLivePkLogListQuery(db, query)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -93,7 +93,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LivePk
 
 // ListStats 与 ListPage 共用同一套筛选条件，保证统计口径与列表完全一致
 func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error) {
-	db := r.applyLivePkLogListQuery(r.getDB(ctx, tx).Model(&model.LivePkLog{}), query)
+	db := r.applyLivePkLogListQuery(r.ResolveDB(ctx, tx).Model(&model.LivePkLog{}), query)
 	return livePkLogStats(db)
 }
 
@@ -101,7 +101,7 @@ func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LiveP
 //
 // 正在进行的这一场在 PK 开始事件里已经落库，统计历史战绩时用 excludePkID 排除掉。
 func (r *gormRepo) RivalStats(ctx context.Context, tx *gorm.DB, rivalUID, excludePkID int64) (totalNum, winNum, loseNum int64, err error) {
-	db := r.getDB(ctx, tx).Model(&model.LivePkLog{}).Where("rival_uid = ?", rivalUID)
+	db := r.ResolveDB(ctx, tx).Model(&model.LivePkLog{}).Where("rival_uid = ?", rivalUID)
 	if excludePkID > 0 {
 		db = db.Where("pk_id <> ?", excludePkID)
 	}

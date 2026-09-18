@@ -21,7 +21,7 @@ type Repository interface {
 
 // ListByProductID 根据商品ID获取全部图片
 func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID int64) ([]model.ProductImage, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.ProductImage
 	err := db.Where("product_id = ?", productID).Order("sort_order desc, id asc").Find(&list).Error
 	return list, err
@@ -29,7 +29,7 @@ func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID i
 
 // ListEnabledByProductID 根据商品ID获取全部启用图片
 func (r *gormRepo) ListEnabledByProductID(ctx context.Context, tx *gorm.DB, productID int64) ([]model.ProductImage, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.ProductImage
 	err := db.Where("product_id = ?", productID).
 		Where("enable = ?", enum.EnableEnable).
@@ -39,6 +39,6 @@ func (r *gormRepo) ListEnabledByProductID(ctx context.Context, tx *gorm.DB, prod
 
 // DeleteByProductID 软删除商品下的全部图片
 func (r *gormRepo) DeleteByProductID(ctx context.Context, tx *gorm.DB, productID int64) error {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	return db.Where("product_id = ?", productID).Delete(&model.ProductImage{}).Error
 }

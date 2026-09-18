@@ -185,7 +185,7 @@ func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, 
 	prod.Describe = updated.Describe
 	prod.SortOrder = updated.SortOrder
 	prod.Enable = updated.Enable
-	if err := s.productRepo.Update(ctx, tx, prod); err != nil {
+	if err := s.productRepo.Save(ctx, tx, prod); err != nil {
 		return 0, err
 	}
 	return prod.ID, nil

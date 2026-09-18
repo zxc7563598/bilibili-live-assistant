@@ -45,7 +45,7 @@ type Repository interface {
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserCreditLogListPageQuery) ([]model.LiveUserCreditLogListItem, int64, error) {
 	var list []model.LiveUserCreditLogListItem
 	var total int64
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	// 日志流水不可变、用户可能被移除，用 LEFT JOIN 保证历史流水不丢；
 	// 用户侧只取列表需要的 uid/uname/face
 	db = db.Model(&model.LiveUserCreditLog{}).

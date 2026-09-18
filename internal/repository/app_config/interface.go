@@ -22,7 +22,7 @@ type Repository interface {
 
 // GetAll 获取全部配置
 func (r *gormRepo) GetAll(ctx context.Context, tx *gorm.DB) ([]model.AppConfig, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.AppConfig
 	err := db.Order("id asc").Find(&list).Error
 	return list, err
@@ -30,7 +30,7 @@ func (r *gormRepo) GetAll(ctx context.Context, tx *gorm.DB) ([]model.AppConfig, 
 
 // GetByKey 根据配置键获取单条配置
 func (r *gormRepo) GetByKey(ctx context.Context, tx *gorm.DB, key string) (*model.AppConfig, error) {
-	return r.FindOneByField(ctx, tx, "config_key", key)
+	return r.GetByField(ctx, tx, "config_key", key)
 }
 
 // SaveValues 按 config_key 幂等批量保存配置值
@@ -45,7 +45,7 @@ func (r *gormRepo) SaveValues(ctx context.Context, tx *gorm.DB, values map[strin
 			ConfigValue: value,
 		})
 	}
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	return db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "config_key"}},
 		DoUpdates: clause.Assignments(map[string]any{

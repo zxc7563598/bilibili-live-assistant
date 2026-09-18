@@ -21,7 +21,7 @@ func New(menuRepo menu.Repository) *Service {
 // MenuTree 用于获取全部菜单
 func (s *Service) MenuTree(ctx context.Context) ([]MenuItem, int, error) {
 	// 获取菜单信息
-	menus, err := s.menuRepo.FindAll(ctx, nil)
+	menus, err := s.menuRepo.ListAll(ctx, nil)
 	if err != nil {
 		return nil, 60301, err
 	}

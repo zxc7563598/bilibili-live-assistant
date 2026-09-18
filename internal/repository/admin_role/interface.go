@@ -24,7 +24,7 @@ type Repository interface {
 
 // ExistsByAdminIDAndRoleID 判断管理员是否拥有指定角色
 func (r *gormRepo) ExistsByAdminIDAndRoleID(ctx context.Context, tx *gorm.DB, adminID, roleID int64) (bool, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var count int64
 	if err := db.Model(&model.AdminRole{}).Where("admin_id = ? AND role_id = ?", adminID, roleID).Count(&count).Error; err != nil {
 		return false, err
@@ -34,13 +34,13 @@ func (r *gormRepo) ExistsByAdminIDAndRoleID(ctx context.Context, tx *gorm.DB, ad
 
 // DeleteByAdminID 根据管理员ID删除绑定记录
 func (r *gormRepo) DeleteByAdminID(ctx context.Context, tx *gorm.DB, adminID int64) error {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	return db.Where("admin_id = ?", adminID).Delete(&model.AdminRole{}).Error
 }
 
 // ListByAdminIDs 根据多个管理员ID获取全部相关角色
 func (r *gormRepo) ListByAdminIDs(ctx context.Context, tx *gorm.DB, adminIDs []int64) ([]model.AdminRole, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.AdminRole
 	if err := db.Where("admin_id IN ?", adminIDs).Find(&list).Error; err != nil {
 		return nil, err
@@ -65,6 +65,6 @@ func (r *gormRepo) UnbindRoles(ctx context.Context, tx *gorm.DB, adminIDs []int6
 	if len(adminIDs) == 0 {
 		return nil
 	}
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	return db.Where("admin_id IN ? AND role_id = ?", adminIDs, roleID).Delete(&model.AdminRole{}).Error
 }

@@ -80,7 +80,7 @@ type Repository[T any] interface {
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleListPageQuery) ([]model.RoleListItem, int64, error) {
     var list []model.RoleListItem
     var total int64
-    db := r.getDB(ctx, tx)
+    db := r.ResolveDB(ctx, tx)
     db = db.Model(&model.Role{})
     if v := query.Name; v != nil && *v != "" {
         db = db.Where("name LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
@@ -100,7 +100,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleLi
 ```
 
 关键点：
-- 使用 `r.getDB(ctx, tx)` 获取 DB 实例（自动处理 context 和事务）
+- 使用 `r.ResolveDB(ctx, tx)` 获取 DB 实例（自动处理 context 和事务）
 - 每个方法接受 `ctx context.Context` 和 `tx *gorm.DB`（事务支持）
 - 枚举值先校验 `IsValid()` 再使用
 - LIKE 查询注意防注入：用参数化 `?` 占位符拼接

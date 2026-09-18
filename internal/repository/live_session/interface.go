@@ -57,7 +57,7 @@ type Repository interface {
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
 func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var roomIDs []int64
 	if err := db.Model(&model.LiveSession{}).Distinct("room_id").Pluck("room_id", &roomIDs).Error; err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, e
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveSessionListPageQuery) ([]model.LiveSession, int64, error) {
 	var list []model.LiveSession
 	var total int64
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	db = db.Model(&model.LiveSession{})
 	if v := query.RoomID; v != nil {
 		db = db.Where("room_id = ?", *v)
@@ -169,7 +169,7 @@ func (r *gormRepo) UpdateStatsByID(ctx context.Context, tx *gorm.DB, id int64, f
 
 // ListActive 获取所有未下播的记录（EndAt = 0），按 StartAt 升序
 func (r *gormRepo) ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSession, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.LiveSession
 	err := db.Where("end_at = 0").Order("start_at asc").Find(&list).Error
 	return list, err
@@ -177,7 +177,7 @@ func (r *gormRepo) ListActive(ctx context.Context, tx *gorm.DB) ([]model.LiveSes
 
 // ListActiveByRoomID 获取指定房间所有未下播的记录（EndAt = 0），按 StartAt 升序
 func (r *gormRepo) ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID int64) ([]model.LiveSession, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.LiveSession
 	err := db.Where("end_at = 0 AND room_id = ?", roomID).Order("start_at asc").Find(&list).Error
 	return list, err
@@ -185,7 +185,7 @@ func (r *gormRepo) ListActiveByRoomID(ctx context.Context, tx *gorm.DB, roomID i
 
 // DistinctLiveDays 统计时间范围内每天是否有开播记录（不区分主播/房间，通常只有一个主播），map key 为「当月第几天」(1-31)，value 固定为 true 表示当天有开播
 func (r *gormRepo) DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt int64, endAt int64) (map[int64]bool, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var startAts []int64
 	if err := db.Model(&model.LiveSession{}).
 		Where("start_at >= ?", startAt).

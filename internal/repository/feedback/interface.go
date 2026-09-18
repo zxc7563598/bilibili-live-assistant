@@ -46,7 +46,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.Feedba
 	// 投诉是历史记录、用户可能被移除，用 LEFT JOIN 保证投诉不丢；
 	// JOIN 打在 live_users 主键上不放大行数，count(*) 依然精确，无需 DISTINCT。
 	// lu 侧不过滤 deleted_at 是有意为之（对齐 live_user_order 的处理）。
-	db := r.getDB(ctx, tx).Model(&model.Feedback{}).
+	db := r.ResolveDB(ctx, tx).Model(&model.Feedback{}).
 		Select("feedbacks.id, feedbacks.user_id, feedbacks.type, feedbacks.contact, feedbacks.created_at, lu.uid, lu.uname").
 		Joins("LEFT JOIN live_users lu ON lu.id = feedbacks.user_id")
 	if v := query.UID; v != nil {
@@ -76,7 +76,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.Feedba
 // GetDetailByID 按主键查询投诉详情，联查 live_users 补充 uid/uname；不存在返回 (nil, nil)
 func (r *gormRepo) GetDetailByID(ctx context.Context, tx *gorm.DB, id int64) (*model.FeedbackListItem, error) {
 	var item model.FeedbackListItem
-	err := r.getDB(ctx, tx).Model(&model.Feedback{}).
+	err := r.ResolveDB(ctx, tx).Model(&model.Feedback{}).
 		Select("feedbacks.*, lu.uid, lu.uname").
 		Joins("LEFT JOIN live_users lu ON lu.id = feedbacks.user_id").
 		Where("feedbacks.id = ?", id).

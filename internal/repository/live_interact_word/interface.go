@@ -107,7 +107,7 @@ func (r *gormRepo) ShareTotalDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB
 
 // countByType 统计指定 UID 在指定房间内指定互动类型的累计次数
 func (r *gormRepo) countByType(ctx context.Context, tx *gorm.DB, uid, roomID int64, msgType enum.InteractType) (int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var count int64
 	err := db.Model(&model.LiveInteractWord{}).
 		Where("uid = ? AND room_id = ? AND msg_type = ?", uid, roomID, msgType).
@@ -118,7 +118,7 @@ func (r *gormRepo) countByType(ctx context.Context, tx *gorm.DB, uid, roomID int
 // listDistinctDaysByType 返回指定 UID 在指定房间内指定互动类型的去重日期，按时间倒序。
 // 日期以当天零点的时间戳表示，天数在 Go 侧去重，避免依赖 MySQL/PostgreSQL 各自的日期函数。
 func (r *gormRepo) listDistinctDaysByType(ctx context.Context, tx *gorm.DB, uid, roomID int64, msgType enum.InteractType) ([]int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var timestamps []int64
 	if err := db.Model(&model.LiveInteractWord{}).
 		Where("uid = ? AND room_id = ? AND msg_type = ?", uid, roomID, msgType).

@@ -18,7 +18,7 @@ type Repository interface {
 
 // ListByProductID 根据商品ID获取全部规格
 func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID int64) ([]model.ProductSpec, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.ProductSpec
 	err := db.Where("product_id = ?", productID).Order("id asc").Find(&list).Error
 	return list, err
@@ -26,6 +26,6 @@ func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID i
 
 // DeleteByProductID 软删除商品下的全部规格
 func (r *gormRepo) DeleteByProductID(ctx context.Context, tx *gorm.DB, productID int64) error {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	return db.Where("product_id = ?", productID).Delete(&model.ProductSpec{}).Error
 }

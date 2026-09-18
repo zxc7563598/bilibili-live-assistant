@@ -51,7 +51,7 @@ type Repository interface {
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.ProductListPageQuery) ([]model.Product, int64, error) {
 	var list []model.Product
 	var total int64
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	db = db.Model(&model.Product{})
 	if v := query.Name; v != nil && *v != "" {
 		db = db.Where("name LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
@@ -91,7 +91,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.Produc
 
 // ListEnabled 获取全部启用中的商品
 func (r *gormRepo) ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Product, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.Product
 	err := db.Where("enable = ?", enum.EnableEnable).Order("sort_order desc, id desc").Find(&list).Error
 	return list, err
@@ -109,7 +109,7 @@ func (r *gormRepo) IncrementStock(ctx context.Context, tx *gorm.DB, id, delta in
 
 // DecrementStock 原子扣减商品库存；库存不足（stock < delta）时不修改数据并返回 false
 func (r *gormRepo) DecrementStock(ctx context.Context, tx *gorm.DB, id, delta int64) (bool, error) {
-	res := r.getDB(ctx, tx).Model(&model.Product{}).
+	res := r.ResolveDB(ctx, tx).Model(&model.Product{}).
 		Where("id = ? AND stock >= ?", id, delta).
 		Update("stock", gorm.Expr("stock - ?", delta))
 	if res.Error != nil {

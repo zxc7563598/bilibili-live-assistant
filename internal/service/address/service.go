@@ -119,7 +119,7 @@ func (s *Service) SaveAddress(ctx context.Context, userID int64, req AddressReq)
 			}
 			addressID = created.ID
 		} else {
-			if err := s.liveUserAddressRepo.Update(ctx, tx, &entity); err != nil {
+			if err := s.liveUserAddressRepo.Save(ctx, tx, &entity); err != nil {
 				return err
 			}
 			addressID = entity.ID

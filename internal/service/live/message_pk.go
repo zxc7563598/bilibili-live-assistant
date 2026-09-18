@@ -146,7 +146,7 @@ func (p *pkProcessor) processPkSettle(ctx context.Context, s *pkBattleSnapshot) 
 			entry.RivalResult = pkSideResult(rivalSide)
 		}
 	}
-	if err := p.pkLogRepo.Update(ctx, nil, entry); err != nil {
+	if err := p.pkLogRepo.Save(ctx, nil, entry); err != nil {
 		log.Printf("[live.PK] [%s] PK 记录回填失败 (pk_id=%d): %v", s.Cmd, s.PkID, err)
 		return
 	}

@@ -27,7 +27,7 @@ func New(robotconfigRepo robot_config.Repository, configCache *robotconfig.Cache
 // applyConfig 将 config_key -> config_value 映射写入数据库并刷新缓存
 func (s *Service) applyConfig(ctx context.Context, groupName string, data map[string]string) (int, error) {
 	// 查询该分组下所有配置记录（含 ID）
-	records, err := s.robotconfigRepo.FindByField(ctx, nil, "group_name", groupName)
+	records, err := s.robotconfigRepo.ListByField(ctx, nil, "group_name", groupName)
 	if err != nil {
 		return 60502, fmt.Errorf("查询 %s 配置失败: %w", groupName, err)
 	}
