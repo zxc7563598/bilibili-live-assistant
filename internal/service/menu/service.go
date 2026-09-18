@@ -71,8 +71,8 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 	return 0, nil
 }
 
-// SetMenuEnable 用于切换菜单启动状态
-func (s *Service) SetMenuEnable(ctx context.Context, id int64) (int, error) {
+// ToggleMenuEnable 用于切换菜单启动状态
+func (s *Service) ToggleMenuEnable(ctx context.Context, id int64) (int, error) {
 	err := s.menuRepo.ToggleEnableByID(ctx, nil, id)
 	if err != nil {
 		return 60304, err
