@@ -427,6 +427,49 @@ definitions:
         example: https://oss-cn-hangzhou.aliyuncs.com
         type: string
     type: object
+  input.FeedbackDetailsReq:
+    properties:
+      id:
+        description: 投诉ID
+        example: 1
+        minimum: 1
+        type: integer
+    required:
+    - id
+    type: object
+  input.FeedbackListPageReq:
+    properties:
+      pageNo:
+        description: 页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页展示条数
+        example: 20
+        type: integer
+      sortField:
+        description: 排序字段，取投诉表列名或 uid/uname
+        example: created_at
+        type: string
+      sortOrder:
+        description: 排序方向 ascend/descend
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+      uid:
+        description: 用户UID，精确匹配
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称，模糊搜索
+        example: 哎呀又胖啦
+        type: string
+    required:
+    - pageNo
+    - pageSize
+    type: object
   input.FeedbackSubmitReq:
     properties:
       contact:
@@ -2453,6 +2496,84 @@ definitions:
       color:
         example: '#ffffff'
         type: string
+    type: object
+  resp.FeedbackDetailsResp:
+    properties:
+      contact:
+        description: 联系方式
+        example: "18888888888"
+        type: string
+      content:
+        description: 投诉内容
+        example: 主播发布违规内容，请核查
+        type: string
+      created_at:
+        description: 投诉时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      id:
+        description: 投诉ID
+        example: 1
+        type: integer
+      type:
+        description: 问题类型
+        example: 直播问题
+        type: string
+      uid:
+        description: 用户UID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称
+        example: 哎呀又胖啦
+        type: string
+      user_id:
+        description: 用户内部ID
+        example: 1
+        type: integer
+    type: object
+  resp.FeedbackListPageItem:
+    properties:
+      contact:
+        description: 联系方式
+        example: "18888888888"
+        type: string
+      created_at:
+        description: 投诉时间
+        example: xxxx-xx-xx xx:xx:xx
+        type: string
+      id:
+        description: 投诉ID
+        example: 1
+        type: integer
+      type:
+        description: 问题类型
+        example: 直播问题
+        type: string
+      uid:
+        description: 用户UID
+        example: 54272611
+        type: integer
+      uname:
+        description: 用户昵称
+        example: 哎呀又胖啦
+        type: string
+      user_id:
+        description: 用户内部ID
+        example: 1
+        type: integer
+    type: object
+  resp.FeedbackListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.FeedbackListPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
+        type: integer
     type: object
   resp.FollowConfigResp:
     properties:
@@ -4742,6 +4863,72 @@ paths:
       summary: 切换管理员角色
       tags:
       - 认证
+  /api/admin/feedback/details:
+    post:
+      description: 根据投诉ID返回投诉全部字段（含投诉正文），以及投诉用户的 uid/uname
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.FeedbackDetailsReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.FeedbackDetailsResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台获取投诉详情
+      tags:
+      - 投诉管理
+  /api/admin/feedback/list:
+    post:
+      description: 分页查询用户提交的投诉/反馈，联查用户表返回用户 UID 与昵称；支持按 UID 精确、按昵称模糊筛选。列表不下发投诉正文，正文请调详情接口
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.FeedbackListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.FeedbackListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台分页查询投诉列表
+      tags:
+      - 投诉管理
   /api/admin/live/listener/start:
     post:
       description: 用于启动 WebSocket 监听，需要在机器人登录 & 已设置直播间房间号 & 未监听 WebSocket 的情况下使用，需要自行验证状态

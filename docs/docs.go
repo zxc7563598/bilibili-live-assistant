@@ -715,6 +715,118 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/feedback/details": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "根据投诉ID返回投诉全部字段（含投诉正文），以及投诉用户的 uid/uname",
+                "tags": [
+                    "投诉管理"
+                ],
+                "summary": "后台获取投诉详情",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.FeedbackDetailsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.FeedbackDetailsResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/feedback/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "分页查询用户提交的投诉/反馈，联查用户表返回用户 UID 与昵称；支持按 UID 精确、按昵称模糊筛选。列表不下发投诉正文，正文请调详情接口",
+                "tags": [
+                    "投诉管理"
+                ],
+                "summary": "后台分页查询投诉列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.FeedbackListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.FeedbackListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/live/listener/start": {
             "post": {
                 "security": [
@@ -5662,6 +5774,63 @@ const docTemplate = `{
                 }
             }
         },
+        "input.FeedbackDetailsReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "投诉ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                }
+            }
+        },
+        "input.FeedbackListPageReq": {
+            "type": "object",
+            "required": [
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "pageNo": {
+                    "description": "页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "description": "每页展示条数",
+                    "type": "integer",
+                    "example": 20
+                },
+                "sortField": {
+                    "description": "排序字段，取投诉表列名或 uid/uname",
+                    "type": "string",
+                    "example": "created_at"
+                },
+                "sortOrder": {
+                    "description": "排序方向 ascend/descend",
+                    "type": "string",
+                    "enum": [
+                        "ascend",
+                        "descend"
+                    ],
+                    "example": "descend"
+                },
+                "uid": {
+                    "description": "用户UID，精确匹配",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称，模糊搜索",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                }
+            }
+        },
         "input.FeedbackSubmitReq": {
             "type": "object",
             "required": [
@@ -8321,6 +8490,108 @@ const docTemplate = `{
                 "color": {
                     "type": "string",
                     "example": "#ffffff"
+                }
+            }
+        },
+        "resp.FeedbackDetailsResp": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "description": "联系方式",
+                    "type": "string",
+                    "example": "18888888888"
+                },
+                "content": {
+                    "description": "投诉内容",
+                    "type": "string",
+                    "example": "主播发布违规内容，请核查"
+                },
+                "created_at": {
+                    "description": "投诉时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "id": {
+                    "description": "投诉ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "type": {
+                    "description": "问题类型",
+                    "type": "string",
+                    "example": "直播问题"
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                },
+                "user_id": {
+                    "description": "用户内部ID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "resp.FeedbackListPageItem": {
+            "type": "object",
+            "properties": {
+                "contact": {
+                    "description": "联系方式",
+                    "type": "string",
+                    "example": "18888888888"
+                },
+                "created_at": {
+                    "description": "投诉时间",
+                    "type": "string",
+                    "example": "xxxx-xx-xx xx:xx:xx"
+                },
+                "id": {
+                    "description": "投诉ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "type": {
+                    "description": "问题类型",
+                    "type": "string",
+                    "example": "直播问题"
+                },
+                "uid": {
+                    "description": "用户UID",
+                    "type": "integer",
+                    "example": 54272611
+                },
+                "uname": {
+                    "description": "用户昵称",
+                    "type": "string",
+                    "example": "哎呀又胖啦"
+                },
+                "user_id": {
+                    "description": "用户内部ID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "resp.FeedbackListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.FeedbackListPageItem"
+                    }
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
                 }
             }
         },
