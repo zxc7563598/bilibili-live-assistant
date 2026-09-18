@@ -5,7 +5,8 @@ import { useAuthStore } from '@/store'
 import { handleAuthExpired, resolveResError } from './helpers'
 
 const SUCCESS_CODES = [0, 200]
-const EXPIRED_CODES = [10002, 10003, 10004, 10005, 10006, 10007, 10008, 20001]
+// 登录态失效：10002-10008/20001 为通用段（中间件/handler），20101-20103 为管理端 refresh 接口的模块段
+const EXPIRED_CODES = [10002, 10003, 10004, 10005, 10006, 10007, 10008, 20001, 20101, 20102, 20103]
 
 // 👉 全局 refresh promise（替代 queue）
 let refreshPromise = null

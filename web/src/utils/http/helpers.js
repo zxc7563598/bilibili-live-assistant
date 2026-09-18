@@ -34,6 +34,9 @@ export function resolveResError(code, message, needTip = true) {
     case 10007:
     case 10008:
     case 20001:
+    case 20101:
+    case 20102:
+    case 20103:
       return handleAuthExpired('登录已过期，是否重新登录？', needTip)
     default:
       message = message ?? `【${code}】: 未知异常!`

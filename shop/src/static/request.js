@@ -82,8 +82,10 @@ function fetchPublicKey() {
   return publicKeyPromise
 }
 
-// 登录态失效错误码（i18n 均表示"登录状态异常，请重新登录"）
-const AUTH_EXPIRED_CODES = new Set(['10002', '10003', '10004', '10005', '10006', '10007', '10008', '20001'])
+// 登录态失效错误码：
+//   10002-10008 / 20001 —— 通用段（MM=00）：中间件校验 access_token 失败、handler 层取不到 userID
+//   20801-20803         —— 用户模块段：refresh 接口判定 refresh_token 解析失败/类型不对/已失效
+const AUTH_EXPIRED_CODES = new Set(['10002', '10003', '10004', '10005', '10006', '10007', '10008', '20001', '20801', '20802', '20803'])
 
 // 刷新 Promise：并发请求同时鉴权失败时只发一次刷新，其余等待同一 Promise（与 fetchPublicKey 同模式）
 let refreshPromise = null
