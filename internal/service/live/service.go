@@ -35,9 +35,9 @@ import (
 //
 // 典型用法（在其他 Service 中通过 DI 获取）：
 //
-//	s.liveSvc.UpdateRoom(ctx, 22384516)
+//	s.liveSvc.SwitchRoom(ctx, 22384516)
 //	s.liveSvc.StartListener(ctx)
-//	status, _, _ := s.liveSvc.GetListenerStatus()
+//	status, _, _ := s.liveSvc.FetchListenerStatus()
 type Service struct {
 	mu        sync.Mutex
 	client    *bilibili.Client   // B站 API 客户端（长生命周期，管理 Cookie）
@@ -275,7 +275,7 @@ func (s *Service) Logout(ctx context.Context) (int, error) {
 	return 0, nil
 }
 
-// UpdateRoom 设置监听目标房间号
+// SwitchRoom 设置监听目标房间号
 //
 // 房间号的最终校验在 StartListener 中（通过 GetRealRoomID），此处仅做基本校验
 //
@@ -283,7 +283,7 @@ func (s *Service) Logout(ctx context.Context) (int, error) {
 //  1. 停止当前监听
 //  2. 更新房间号
 //  3. 启动新房间的监听
-func (s *Service) UpdateRoom(ctx context.Context, roomID int64) (int, error) {
+func (s *Service) SwitchRoom(ctx context.Context, roomID int64) (int, error) {
 	if roomID <= 0 {
 		return 40404, nil
 	}
@@ -434,8 +434,8 @@ func (s *Service) StopListener() (int, error) {
 	return 0, nil
 }
 
-// GetListenerStatus 返回监听器状态与消息统计
-func (s *Service) GetListenerStatus(ctx context.Context) (*ListenerStatusResp, int, error) {
+// FetchListenerStatus 返回监听器状态与消息统计
+func (s *Service) FetchListenerStatus(ctx context.Context) (*ListenerStatusResp, int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	isRunning := s.listener != nil && s.listener.IsRunning()
