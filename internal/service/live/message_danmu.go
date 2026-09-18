@@ -282,7 +282,7 @@ func (p *danmuProcessor) sendSignReply(ctx context.Context, templates []string, 
 
 // grantSignReward 发放签到奖励
 func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMsgInfo, userID int64, rewardType enum.CreditType, rewardAmount int64) error {
-	params := liveuser.AddCreditLogParams{
+	params := liveuser.AdjustCreditParams{
 		UserID:       userID,
 		ChangeType:   enum.ChangeTypeIncrease,
 		ChangeAmount: rewardAmount,
@@ -294,9 +294,9 @@ func (p *danmuProcessor) grantSignReward(ctx context.Context, info *live.DanmuMs
 	var err error
 	switch rewardType {
 	case enum.CreditTypePoints:
-		err = p.liveUserSvc.AddPointsLog(ctx, params)
+		err = p.liveUserSvc.AdjustPoints(ctx, params)
 	case enum.CreditTypeStars:
-		err = p.liveUserSvc.AddStarsLog(ctx, params)
+		err = p.liveUserSvc.AdjustStars(ctx, params)
 	}
 	return err
 }
