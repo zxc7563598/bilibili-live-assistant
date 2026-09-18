@@ -78,7 +78,8 @@ func (s *Service) VerifySolution(_ context.Context, captcha *string) (int, error
 		HMACSignatureSecret: s.hmacKey,
 	})
 	if err != nil {
-		return 61601, err
+		// altcha 库在校验不通过时返回 error（签名不匹配），属验证失败而非系统故障
+		return 41601, err
 	}
 	if result.Expired {
 		return 41602, nil

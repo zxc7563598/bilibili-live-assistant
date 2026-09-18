@@ -269,7 +269,7 @@ func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq)
 	}
 	// 虚拟商品没有物流环节，不接受快递信息
 	if order.ReceiverType != enum.AddressTypeActual && (req.ExpressCompany != nil || req.ExpressNo != nil) {
-		return 11101, errors.New("虚拟订单不支持快递信息")
+		return 41102, errors.New("虚拟订单不支持快递信息")
 	}
 	// 快递信息仅在传了非空值时才覆盖，避免前端提交空串把已填单号冲掉
 	if v := ptr.TrimStr(req.ExpressCompany); v != "" {
@@ -357,7 +357,7 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 	case enum.AddressTypeVirtual:
 		// 虚拟订单只改邮箱，传了收货地址字段说明调用方串错了表单
 		if req.ReceiverName != nil || req.ReceiverPhone != nil || req.ReceiverRegionCode != nil || req.ReceiverDetail != nil {
-			return 11101, errors.New("虚拟订单只支持变更邮箱")
+			return 41103, errors.New("虚拟订单只支持变更邮箱")
 		}
 		if req.ReceiverEmail != nil {
 			order.ReceiverEmail = ptr.TrimStr(req.ReceiverEmail)
@@ -368,7 +368,7 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 	case enum.AddressTypeActual:
 		// 实体订单只改收货地址
 		if req.ReceiverEmail != nil {
-			return 11101, errors.New("实体订单只支持变更收货地址")
+			return 41104, errors.New("实体订单只支持变更收货地址")
 		}
 		if req.ReceiverName != nil {
 			order.ReceiverName = ptr.TrimStr(req.ReceiverName)

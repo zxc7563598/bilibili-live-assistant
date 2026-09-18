@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
@@ -26,6 +27,9 @@ type Service struct {
 }
 
 const RoleCodeSuperAdmin = "SUPER_ADMIN"
+
+// errOnlyRoleLeft 表示移除角色会让某个管理员变成无角色——业务规则拒绝，非系统故障
+var errOnlyRoleLeft = errors.New("该管理员仅剩此角色，不可移除")
 
 func New(roleRepo role.Repository, adminRepo admin.Repository, roleMenuRepo role_menu.Repository, adminRoleRepo admin_role.Repository, menuRepo menu.Repository, db *gorm.DB, rdb *redis.Client) *Service {
 	return &Service{
@@ -117,9 +121,9 @@ func (s *Service) Save(ctx context.Context, req SaveReq) (int, error) {
 		var err error
 		isCreate := req.ID == nil || *req.ID == 0
 		if isCreate {
-			roleID, err = s.add(ctx, tx, req)
+			roleID, errCode, err = s.add(ctx, tx, req)
 		} else {
-			roleID, err = s.update(ctx, tx, req)
+			roleID, errCode, err = s.update(ctx, tx, req)
 		}
 		if err != nil {
 			return err
@@ -283,7 +287,9 @@ func (s *Service) RemoveRoleUsers(ctx context.Context, roleID int64, adminIds []
 				}
 			}
 			if remain == 0 {
-				return fmt.Errorf("admin %d only has this role, cannot remove", admin.ID)
+				// 业务规则拒绝：移除后该管理员会变成无角色。
+				// 这是确定不可为的请求，不是系统故障，故用哨兵让外层映射成业务错误码
+				return fmt.Errorf("%w: admin %d", errOnlyRoleLeft, admin.ID)
 			}
 		}
 		// 删除角色关系
@@ -312,6 +318,10 @@ func (s *Service) RemoveRoleUsers(ctx context.Context, roleID int64, adminIds []
 		return nil
 	})
 	if err != nil {
+		// 业务规则拒绝与系统故障分开：前者重试多少次都不会成功，不该提示「请稍后重试」
+		if errors.Is(err, errOnlyRoleLeft) {
+			return 40203, err
+		}
 		return 60206, err
 	}
 	// 事务外处理 Redis（避免 DB 回滚时 Redis 已清理）

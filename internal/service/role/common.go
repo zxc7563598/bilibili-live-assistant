@@ -11,16 +11,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// add 用于添加角色基本信息
-func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, error) {
+// add 用于添加角色基本信息。
+// 校验失败返回 (0, 错误码, error)——错误码非 0 且 error 非 nil，
+// 调用方据错误码区分是哪个字段不合规，不再一律报「操作失败」。
+func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, int, error) {
 	if v := req.Code; v == nil || *v == "" {
-		return 0, errors.New("code 不允许为空")
+		return 0, 10202, errors.New("code 不允许为空")
 	}
 	if v := req.Name; v == nil || *v == "" {
-		return 0, errors.New("name 不允许为空")
+		return 0, 10203, errors.New("name 不允许为空")
 	}
 	if v := req.Enable; v == nil {
-		return 0, errors.New("enable 不允许为空")
+		return 0, 10204, errors.New("enable 不允许为空")
 	}
 	// 添加数据
 	role, err := s.roleRepo.Create(ctx, tx, &model.Role{
@@ -29,24 +31,24 @@ func (s *Service) add(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, err
 		Enable: *enum.BoolToEnablePtr(req.Enable),
 	})
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	// 返回结果
-	return role.ID, nil
+	return role.ID, 0, nil
 }
 
 // update 用于变更角色基本信息
-func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, error) {
+func (s *Service) update(ctx context.Context, tx *gorm.DB, req SaveReq) (int64, int, error) {
 	// 修改数据
 	if err := s.roleRepo.UpdateByID(ctx, tx, *req.ID, model.RoleUpdateByIdForm{
 		Code:   req.Code,
 		Name:   req.Name,
 		Enable: enum.BoolToEnablePtr(req.Enable),
 	}); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	// 返回结果
-	return *req.ID, nil
+	return *req.ID, 0, nil
 }
 
 // resetRoleMenus 用于重新绑定角色对应的权限

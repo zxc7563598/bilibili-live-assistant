@@ -222,7 +222,7 @@ func (s *Service) PollQRCode(ctx context.Context, qrcodeKey string) (*PollQRCode
 		// 持久化到磁盘
 		if s.stateFile != "" {
 			if err := s.client.SaveState(s.stateFile); err != nil {
-				return nil, 60401, fmt.Errorf("save state after login: %w", err)
+				return nil, 60402, fmt.Errorf("save state after login: %w", err)
 			}
 		}
 	}
@@ -264,7 +264,7 @@ func (s *Service) Logout(ctx context.Context) (int, error) {
 	// 删除持久化文件
 	if s.stateFile != "" {
 		if err := os.Remove(s.stateFile); err != nil && !os.IsNotExist(err) {
-			return 60401, fmt.Errorf("remove state file: %w", err)
+			return 60402, fmt.Errorf("remove state file: %w", err)
 		}
 	}
 	return 0, nil

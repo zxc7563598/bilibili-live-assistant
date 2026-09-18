@@ -309,12 +309,13 @@ func (s *Service) Login(ctx context.Context, account int64, password string) (To
 		}
 	}
 	// 从B站获取主播信息（注册 / 同步名称头像 / 无密码设置密码都需要）
+	// 取不到是上游/网络问题，与「用户不存在」是两回事，不能都报 50802 未知用户
 	master, err := s.client.User.GetMasterInfo(ctx, account)
 	if err != nil {
-		return TokenResp{}, 50802, nil
+		return TokenResp{}, 60808, nil
 	}
 	if master.Name == "" && master.Face == "" {
-		return TokenResp{}, 50802, nil
+		return TokenResp{}, 60808, nil
 	}
 	// 用户不存在：自动注册后回查完整记录
 	if user == nil {
