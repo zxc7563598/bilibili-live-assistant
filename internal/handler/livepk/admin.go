@@ -10,6 +10,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livepk"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"go.uber.org/zap"
 )
 
@@ -79,14 +80,10 @@ func (h *Handler) ListPage(c *gin.Context) {
 		response.Error(c, lang, code)
 		return
 	}
-	// 处理时间
+	// 处理时间区间：起始取当天 0 点，结束推到当天最后一秒
 	var startAtStart, startAtEnd *int64
-	if req.StartAt != nil && len(*req.StartAt) >= 2 {
-		ts := *req.StartAt
-		start := ts[0] / 1000
-		end := (ts[len(ts)-1] / 1000) + secondsPerDay - 1
-		startAtStart = &start
-		startAtEnd = &end
+	if req.StartAt != nil {
+		startAtStart, startAtEnd = timeutil.SecondRange(*req.StartAt)
 	}
 	// 执行请求
 	svcResp, errCode, err := h.livepkSvc.ListPage(ctx, livepk.ListPageReq{

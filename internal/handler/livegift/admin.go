@@ -10,6 +10,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"go.uber.org/zap"
 )
 
@@ -79,14 +80,10 @@ func (h *Handler) ListPage(c *gin.Context) {
 		response.Error(c, lang, code)
 		return
 	}
-	// 处理时间
+	// 处理时间区间：起始取当天 0 点，结束推到当天最后一秒
 	var sendAtStart, sendAtEnd *int64
-	if req.SendAt != nil && len(*req.SendAt) >= 2 {
-		ts := *req.SendAt
-		start := ts[0] / 1000
-		end := (ts[len(ts)-1] / 1000) + secondsPerDay - 1
-		sendAtStart = &start
-		sendAtEnd = &end
+	if req.SendAt != nil {
+		sendAtStart, sendAtEnd = timeutil.SecondRange(*req.SendAt)
 	}
 	// 执行请求
 	svcResp, errCode, err := h.livegiftSvc.ListPage(ctx, livegift.ListPageReq{
@@ -166,14 +163,10 @@ func (h *Handler) BlindBoxListPage(c *gin.Context) {
 		response.Error(c, lang, code)
 		return
 	}
-	// 处理时间
+	// 处理时间区间：起始取当天 0 点，结束推到当天最后一秒
 	var sendAtStart, sendAtEnd *int64
-	if req.SendAt != nil && len(*req.SendAt) >= 2 {
-		ts := *req.SendAt
-		start := ts[0] / 1000
-		end := (ts[len(ts)-1] / 1000) + secondsPerDay - 1
-		sendAtStart = &start
-		sendAtEnd = &end
+	if req.SendAt != nil {
+		sendAtStart, sendAtEnd = timeutil.SecondRange(*req.SendAt)
 	}
 	// 执行请求
 	svcResp, errCode, err := h.livegiftSvc.BlindBoxListPage(ctx, livegift.BlindBoxListPageReq{
