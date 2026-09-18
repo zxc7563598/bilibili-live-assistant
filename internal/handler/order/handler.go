@@ -86,11 +86,11 @@ func (h *Handler) GetConfirm(c *gin.Context) {
 		return
 	}
 	// 执行请求
-	svcResp, errCode, err := h.orderSvc.UserOrderDraft(ctx, userInfo.UserID)
+	svcResp, errCode, err := h.orderSvc.GetUserOrderDraft(ctx, userInfo.UserID)
 	if errCode != 0 {
 		handler.ErrorLog(
 			logger.OrderLogger,
-			"orderSvc.UserOrderDraft 调用失败",
+			"orderSvc.GetUserOrderDraft 调用失败",
 			errCode,
 			err,
 			zap.Any("userInfo", userInfo),

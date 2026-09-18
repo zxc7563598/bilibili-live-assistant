@@ -63,8 +63,8 @@ func (s *Service) ReOrder(ctx context.Context, userID, draftID int64) (int64, in
 	return s.placeOrder(ctx, userID, prev.ProductSkuID, prev.Quantity)
 }
 
-// UserOrderDraft 获取用户下单数据
-func (s *Service) UserOrderDraft(ctx context.Context, userID int64) (UserOrderDraftResp, int, error) {
+// GetUserOrderDraft 获取用户下单数据
+func (s *Service) GetUserOrderDraft(ctx context.Context, userID int64) (UserOrderDraftResp, int, error) {
 	// 获取用户当前 Active 状态的草稿
 	draft, err := s.liveUserOrderDraftRepo.GetActiveByUserID(ctx, nil, userID)
 	if err != nil {
