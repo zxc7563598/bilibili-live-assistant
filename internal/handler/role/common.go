@@ -31,10 +31,10 @@ func toRoleListItems(list []role.ListPageItem) []resp.RoleListPageItem {
 	return res
 }
 
-func toRoleListAllItems(list []role.ListAllResp) []resp.RoleListAllItem {
-	res := make([]resp.RoleListAllItem, 0, len(list))
+func toRoleListAllItems(list []role.ListAllResp) []resp.RoleItem {
+	res := make([]resp.RoleItem, 0, len(list))
 	for _, v := range list {
-		res = append(res, resp.RoleListAllItem{
+		res = append(res, resp.RoleItem{
 			ID:     v.ID,
 			Code:   v.Code,
 			Name:   v.Name,
@@ -44,10 +44,13 @@ func toRoleListAllItems(list []role.ListAllResp) []resp.RoleListAllItem {
 	return res
 }
 
-func toRoleMenuItem(list []role.RoleMenuItem) []resp.RoleMenuItem {
-	res := make([]resp.RoleMenuItem, 0, len(list))
+// toRoleMenuItems 权限树转换：Service 出参 → resp.MenuItem
+//
+// 菜单树与权限树的结构完全一致，共用 resp.MenuItem。
+func toRoleMenuItems(list []role.RoleMenuItem) []resp.MenuItem {
+	res := make([]resp.MenuItem, 0, len(list))
 	for _, v := range list {
-		res = append(res, resp.RoleMenuItem{
+		res = append(res, resp.MenuItem{
 			ID:          v.ID,
 			Code:        v.Code,
 			Enable:      v.Enable,
@@ -64,7 +67,7 @@ func toRoleMenuItem(list []role.RoleMenuItem) []resp.RoleMenuItem {
 			Redirect:    v.Redirect,
 			Method:      v.Method,
 			Description: v.Description,
-			Children:    toRoleMenuItem(v.Children),
+			Children:    toRoleMenuItems(v.Children),
 		})
 	}
 	return res

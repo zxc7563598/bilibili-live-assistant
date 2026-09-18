@@ -36,16 +36,10 @@ type RoleDeleteReq struct {
 	ID int64 `json:"id" binding:"required" err:"required=10205" example:"2"`
 }
 
-// RoleAddRoleUsersReq 分配角色到管理员请求
-type RoleAddRoleUsersReq struct {
-	// 角色ID
-	RoleID int64 `json:"roleId" binding:"required" err:"required=10205" example:"2"`
-	// 管理员ID（支持多个）
-	AdminIds []int64 `json:"adminIds" binding:"required" err:"required=10207" example:"1,2,3"`
-}
-
-// RoleRemoveRoleUsersReq 解除管理员与角色的绑定请求
-type RoleRemoveRoleUsersReq struct {
+// RoleUsersReq 变更角色与管理员绑定关系请求
+//
+// 分配与解除绑定的入参完全一致，只有路由不同，因此共用这一份。
+type RoleUsersReq struct {
 	// 角色ID
 	RoleID int64 `json:"roleId" binding:"required" err:"required=10205" example:"2"`
 	// 管理员ID（支持多个）

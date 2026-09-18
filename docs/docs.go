@@ -3572,7 +3572,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/input.RoleAddRoleUsersReq"
+                            "$ref": "#/definitions/input.RoleUsersReq"
                         }
                     }
                 ],
@@ -3810,7 +3810,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/input.RoleRemoveRoleUsersReq"
+                            "$ref": "#/definitions/input.RoleUsersReq"
                         }
                     }
                 ],
@@ -7474,32 +7474,6 @@ const docTemplate = `{
                 }
             }
         },
-        "input.RoleAddRoleUsersReq": {
-            "type": "object",
-            "required": [
-                "adminIds",
-                "roleId"
-            ],
-            "properties": {
-                "adminIds": {
-                    "description": "管理员ID（支持多个）",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    },
-                    "example": [
-                        1,
-                        2,
-                        3
-                    ]
-                },
-                "roleId": {
-                    "description": "角色ID",
-                    "type": "integer",
-                    "example": 2
-                }
-            }
-        },
         "input.RoleDeleteReq": {
             "type": "object",
             "required": [
@@ -7560,32 +7534,6 @@ const docTemplate = `{
                 }
             }
         },
-        "input.RoleRemoveRoleUsersReq": {
-            "type": "object",
-            "required": [
-                "adminIds",
-                "roleId"
-            ],
-            "properties": {
-                "adminIds": {
-                    "description": "管理员ID（支持多个）",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    },
-                    "example": [
-                        1,
-                        2,
-                        3
-                    ]
-                },
-                "roleId": {
-                    "description": "角色ID",
-                    "type": "integer",
-                    "example": 2
-                }
-            }
-        },
         "input.RoleSaveReq": {
             "type": "object",
             "properties": {
@@ -7620,6 +7568,32 @@ const docTemplate = `{
                         2,
                         3
                     ]
+                }
+            }
+        },
+        "input.RoleUsersReq": {
+            "type": "object",
+            "required": [
+                "adminIds",
+                "roleId"
+            ],
+            "properties": {
+                "adminIds": {
+                    "description": "管理员ID（支持多个）",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1,
+                        2,
+                        3
+                    ]
+                },
+                "roleId": {
+                    "description": "角色ID",
+                    "type": "integer",
+                    "example": 2
                 }
             }
         },
@@ -8106,7 +8080,7 @@ const docTemplate = `{
                     "description": "当前角色信息",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/resp.AdminDetailsRoleItem"
+                            "$ref": "#/definitions/resp.RoleItem"
                         }
                     ]
                 },
@@ -8132,7 +8106,7 @@ const docTemplate = `{
                     "description": "拥有角色列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/resp.AdminDetailsRoleItem"
+                        "$ref": "#/definitions/resp.RoleItem"
                     }
                 },
                 "updatedAt": {
@@ -8144,31 +8118,6 @@ const docTemplate = `{
                     "description": "账号",
                     "type": "string",
                     "example": "admin"
-                }
-            }
-        },
-        "resp.AdminDetailsRoleItem": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "角色标识",
-                    "type": "string",
-                    "example": "SUPER_ADMIN"
-                },
-                "enable": {
-                    "description": "状态",
-                    "type": "boolean",
-                    "example": true
-                },
-                "id": {
-                    "description": "角色ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
-                    "description": "角色名称",
-                    "type": "string",
-                    "example": "超级管理员"
                 }
             }
         },
@@ -8218,7 +8167,7 @@ const docTemplate = `{
                     "description": "拥有角色列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/resp.AdminDetailsRoleItem"
+                        "$ref": "#/definitions/resp.RoleItem"
                     }
                 },
                 "updatedAt": {
@@ -10552,7 +10501,7 @@ const docTemplate = `{
                 }
             }
         },
-        "resp.RoleListAllItem": {
+        "resp.RoleItem": {
             "type": "object",
             "properties": {
                 "code": {
@@ -10584,7 +10533,7 @@ const docTemplate = `{
                     "description": "角色列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/resp.RoleListAllItem"
+                        "$ref": "#/definitions/resp.RoleItem"
                     }
                 }
             }
@@ -10638,107 +10587,14 @@ const docTemplate = `{
                 }
             }
         },
-        "resp.RoleMenuItem": {
-            "type": "object",
-            "properties": {
-                "children": {
-                    "description": "子菜单",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/resp.RoleMenuItem"
-                    }
-                },
-                "code": {
-                    "description": "菜单标识",
-                    "type": "string",
-                    "example": "Base"
-                },
-                "component": {
-                    "description": "组件路径",
-                    "type": "string",
-                    "example": "/src/list/list.vue"
-                },
-                "description": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "enable": {
-                    "description": "状态",
-                    "type": "boolean",
-                    "example": true
-                },
-                "icon": {
-                    "description": "菜单图标",
-                    "type": "string",
-                    "example": "i-fe:list"
-                },
-                "id": {
-                    "description": "菜单ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "keepAlive": {
-                    "description": "保持活跃",
-                    "type": "boolean",
-                    "example": false
-                },
-                "layout": {
-                    "description": "布局",
-                    "type": "string",
-                    "example": "full"
-                },
-                "method": {
-                    "description": "方法",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "菜单名称",
-                    "type": "string",
-                    "example": "基础菜单"
-                },
-                "order": {
-                    "description": "排序（从小到大）",
-                    "type": "integer",
-                    "example": 0
-                },
-                "parentId": {
-                    "description": "父级ID",
-                    "type": "integer",
-                    "example": 0
-                },
-                "path": {
-                    "description": "菜单路径",
-                    "type": "string",
-                    "example": "/path/url"
-                },
-                "redirect": {
-                    "description": "重定向",
-                    "type": "string"
-                },
-                "show": {
-                    "description": "显示状态",
-                    "type": "boolean",
-                    "example": true
-                },
-                "type": {
-                    "description": "菜单类型",
-                    "type": "string",
-                    "enum": [
-                        "BUTTON",
-                        "MENU"
-                    ],
-                    "example": "MENU"
-                }
-            }
-        },
         "resp.RolePermissionsResp": {
             "type": "object",
             "properties": {
                 "menu": {
-                    "description": "菜单权限树（含按钮类型节点）",
+                    "description": "菜单权限树（含按钮类型节点），结构同 MenuListResp.Menu",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/resp.RoleMenuItem"
+                        "$ref": "#/definitions/resp.MenuItem"
                     }
                 }
             }

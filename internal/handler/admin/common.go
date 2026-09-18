@@ -31,7 +31,7 @@ func toAdminListItems(list []admin.ListPageItem) []resp.AdminListPageItem {
 			Avatar:    v.Avatar,
 			Address:   v.Address,
 			Email:     v.Email,
-			Roles:     toAdminDetailsRoleItem(v.Roles),
+			Roles:     toRoleItems(v.Roles),
 			CreatedAt: v.CreatedAt,
 			UpdatedAt: v.UpdatedAt,
 		})
@@ -39,10 +39,11 @@ func toAdminListItems(list []admin.ListPageItem) []resp.AdminListPageItem {
 	return res
 }
 
-func toAdminDetailsRoleItem(list []admin.RoleItem) []resp.AdminDetailsRoleItem {
-	res := make([]resp.AdminDetailsRoleItem, 0, len(list))
+// toRoleItems 管理员角色转换：Service 出参 → resp.RoleItem
+func toRoleItems(list []admin.RoleItem) []resp.RoleItem {
+	res := make([]resp.RoleItem, 0, len(list))
 	for _, v := range list {
-		res = append(res, resp.AdminDetailsRoleItem{
+		res = append(res, resp.RoleItem{
 			ID:     v.ID,
 			Code:   v.Code,
 			Name:   v.Name,

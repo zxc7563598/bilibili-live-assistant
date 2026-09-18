@@ -223,7 +223,7 @@ func (h *Handler) Delete(c *gin.Context) {
 // @Tags 角色
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Param data body input.RoleAddRoleUsersReq true "分配参数（角色ID + 管理员ID列表）"
+// @Param data body input.RoleUsersReq true "分配参数（角色ID + 管理员ID列表）"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/roles/add-role-users [post]
 func (h *Handler) AddRoleUsers(c *gin.Context) {
@@ -237,7 +237,7 @@ func (h *Handler) AddRoleUsers(c *gin.Context) {
 		return
 	}
 	// 获取请求参数
-	var req input.RoleAddRoleUsersReq
+	var req input.RoleUsersReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(
 			logger.RoleLogger,
@@ -272,7 +272,7 @@ func (h *Handler) AddRoleUsers(c *gin.Context) {
 // @Tags 角色
 // @Security BearerAuth
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
-// @Param data body input.RoleRemoveRoleUsersReq true "移除参数（角色ID + 管理员ID列表）"
+// @Param data body input.RoleUsersReq true "移除参数（角色ID + 管理员ID列表）"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/roles/remove-role-users [post]
 func (h *Handler) RemoveRoleUsers(c *gin.Context) {
@@ -286,7 +286,7 @@ func (h *Handler) RemoveRoleUsers(c *gin.Context) {
 		return
 	}
 	// 获取请求参数
-	var req input.RoleRemoveRoleUsersReq
+	var req input.RoleUsersReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(
 			logger.RoleLogger,
@@ -348,6 +348,6 @@ func (h *Handler) GetPermissions(c *gin.Context) {
 	}
 	// 返回结果
 	response.Success(c, lang, resp.RolePermissionsResp{
-		Menu: toRoleMenuItem(menus),
+		Menu: toRoleMenuItems(menus),
 	})
 }

@@ -1708,25 +1708,6 @@ definitions:
         example: "0"
         type: string
     type: object
-  input.RoleAddRoleUsersReq:
-    properties:
-      adminIds:
-        description: 管理员ID（支持多个）
-        example:
-        - 1
-        - 2
-        - 3
-        items:
-          type: integer
-        type: array
-      roleId:
-        description: 角色ID
-        example: 2
-        type: integer
-    required:
-    - adminIds
-    - roleId
-    type: object
   input.RoleDeleteReq:
     properties:
       id:
@@ -1772,25 +1753,6 @@ definitions:
     - pageNo
     - pageSize
     type: object
-  input.RoleRemoveRoleUsersReq:
-    properties:
-      adminIds:
-        description: 管理员ID（支持多个）
-        example:
-        - 1
-        - 2
-        - 3
-        items:
-          type: integer
-        type: array
-      roleId:
-        description: 角色ID
-        example: 2
-        type: integer
-    required:
-    - adminIds
-    - roleId
-    type: object
   input.RoleSaveReq:
     properties:
       code:
@@ -1818,6 +1780,25 @@ definitions:
         items:
           type: integer
         type: array
+    type: object
+  input.RoleUsersReq:
+    properties:
+      adminIds:
+        description: 管理员ID（支持多个）
+        example:
+        - 1
+        - 2
+        - 3
+        items:
+          type: integer
+        type: array
+      roleId:
+        description: 角色ID
+        example: 2
+        type: integer
+    required:
+    - adminIds
+    - roleId
     type: object
   input.RoomConfigReq:
     properties:
@@ -2189,7 +2170,7 @@ definitions:
         type: string
       currentRole:
         allOf:
-        - $ref: '#/definitions/resp.AdminDetailsRoleItem'
+        - $ref: '#/definitions/resp.RoleItem'
         description: 当前角色信息
       enable:
         description: 状态
@@ -2206,7 +2187,7 @@ definitions:
       roles:
         description: 拥有角色列表
         items:
-          $ref: '#/definitions/resp.AdminDetailsRoleItem'
+          $ref: '#/definitions/resp.RoleItem'
         type: array
       updatedAt:
         description: 更新时间
@@ -2215,25 +2196,6 @@ definitions:
       username:
         description: 账号
         example: admin
-        type: string
-    type: object
-  resp.AdminDetailsRoleItem:
-    properties:
-      code:
-        description: 角色标识
-        example: SUPER_ADMIN
-        type: string
-      enable:
-        description: 状态
-        example: true
-        type: boolean
-      id:
-        description: 角色ID
-        example: 1
-        type: integer
-      name:
-        description: 角色名称
-        example: 超级管理员
         type: string
     type: object
   resp.AdminListPageItem:
@@ -2272,7 +2234,7 @@ definitions:
       roles:
         description: 拥有角色列表
         items:
-          $ref: '#/definitions/resp.AdminDetailsRoleItem'
+          $ref: '#/definitions/resp.RoleItem'
         type: array
       updatedAt:
         description: 更新时间
@@ -4008,7 +3970,7 @@ definitions:
         description: 安全词匹配策略
         type: string
     type: object
-  resp.RoleListAllItem:
+  resp.RoleItem:
     properties:
       code:
         description: 角色标识
@@ -4032,7 +3994,7 @@ definitions:
       list:
         description: 角色列表
         items:
-          $ref: '#/definitions/resp.RoleListAllItem'
+          $ref: '#/definitions/resp.RoleItem'
         type: array
     type: object
   resp.RoleListPageItem:
@@ -4071,84 +4033,12 @@ definitions:
         example: 100
         type: integer
     type: object
-  resp.RoleMenuItem:
-    properties:
-      children:
-        description: 子菜单
-        items:
-          $ref: '#/definitions/resp.RoleMenuItem'
-        type: array
-      code:
-        description: 菜单标识
-        example: Base
-        type: string
-      component:
-        description: 组件路径
-        example: /src/list/list.vue
-        type: string
-      description:
-        description: 描述
-        type: string
-      enable:
-        description: 状态
-        example: true
-        type: boolean
-      icon:
-        description: 菜单图标
-        example: i-fe:list
-        type: string
-      id:
-        description: 菜单ID
-        example: 1
-        type: integer
-      keepAlive:
-        description: 保持活跃
-        example: false
-        type: boolean
-      layout:
-        description: 布局
-        example: full
-        type: string
-      method:
-        description: 方法
-        type: string
-      name:
-        description: 菜单名称
-        example: 基础菜单
-        type: string
-      order:
-        description: 排序（从小到大）
-        example: 0
-        type: integer
-      parentId:
-        description: 父级ID
-        example: 0
-        type: integer
-      path:
-        description: 菜单路径
-        example: /path/url
-        type: string
-      redirect:
-        description: 重定向
-        type: string
-      show:
-        description: 显示状态
-        example: true
-        type: boolean
-      type:
-        description: 菜单类型
-        enum:
-        - BUTTON
-        - MENU
-        example: MENU
-        type: string
-    type: object
   resp.RolePermissionsResp:
     properties:
       menu:
-        description: 菜单权限树（含按钮类型节点）
+        description: 菜单权限树（含按钮类型节点），结构同 MenuListResp.Menu
         items:
-          $ref: '#/definitions/resp.RoleMenuItem'
+          $ref: '#/definitions/resp.MenuItem'
         type: array
     type: object
   resp.RoomConfigResp:
@@ -6507,7 +6397,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/input.RoleAddRoleUsersReq'
+          $ref: '#/definitions/input.RoleUsersReq'
       responses:
         "200":
           description: 统一响应（code=0成功，其它失败）
@@ -6650,7 +6540,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/input.RoleRemoveRoleUsersReq'
+          $ref: '#/definitions/input.RoleUsersReq'
       responses:
         "200":
           description: 统一响应（code=0成功，其它失败）

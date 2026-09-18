@@ -39,7 +39,7 @@ type AdminListPageItem struct {
 	// email
 	Email string `json:"email" example:"xxxxx@xxx.com"`
 	// 拥有角色列表
-	Roles []AdminDetailsRoleItem `json:"roles"`
+	Roles []RoleItem `json:"roles"`
 	// 创建时间
 	CreatedAt string `json:"createdAt"`
 	// 更新时间
@@ -61,21 +61,9 @@ type AdminDetailsResp struct {
 	// 个人资料
 	Profile AdminDetailsProfileItem `json:"profile"`
 	// 拥有角色列表
-	Roles []AdminDetailsRoleItem `json:"roles"`
+	Roles []RoleItem `json:"roles"`
 	// 当前角色信息
-	CurrentRole AdminDetailsRoleItem `json:"currentRole"`
-}
-
-// AdminDetailsRoleItem 管理员拥有的角色项
-type AdminDetailsRoleItem struct {
-	// 角色ID
-	ID int64 `json:"id" example:"1"`
-	// 角色标识
-	Code string `json:"code" example:"SUPER_ADMIN"`
-	// 角色名称
-	Name string `json:"name" example:"超级管理员"`
-	// 状态
-	Enable bool `json:"enable" example:"true"`
+	CurrentRole RoleItem `json:"currentRole"`
 }
 
 // AdminDetailsProfileItem 管理员的个人资料

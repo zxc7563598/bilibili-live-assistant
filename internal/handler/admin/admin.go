@@ -297,8 +297,8 @@ func (h *Handler) Details(c *gin.Context) {
 			Address:  svcResp.Profile.Address,
 			Email:    svcResp.Profile.Email,
 		},
-		Roles: toAdminDetailsRoleItem(svcResp.Roles),
-		CurrentRole: resp.AdminDetailsRoleItem{
+		Roles: toRoleItems(svcResp.Roles),
+		CurrentRole: resp.RoleItem{
 			ID:     svcResp.CurrentRole.ID,
 			Code:   svcResp.CurrentRole.Code,
 			Name:   svcResp.CurrentRole.Name,
