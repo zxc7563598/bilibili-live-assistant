@@ -458,6 +458,21 @@ func seedMenus(db *gorm.DB) error {
 			Component: "/src/views/analyze/pk/index.vue",
 			Order:     4,
 		},
+		{
+			ID:        28,
+			Code:      "Complaint",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "MENU",
+			ParentID:  17,
+			Name:      "投诉管理",
+			Icon:      "i-fe:file-text",
+			Path:      "/shop/complaint",
+			Component: "/src/views/shop/complaint/index.vue",
+			Order:     2,
+		},
 	}
 	return db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "code"}},
