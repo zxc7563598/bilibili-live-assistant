@@ -12,16 +12,16 @@ import (
 
 type Repository interface {
 	base.Repository[model.AppConfig]
-	// GetAll 获取全部配置，按 ID 升序
-	GetAll(ctx context.Context, tx *gorm.DB) ([]model.AppConfig, error)
+	// ListAll 获取全部配置，按 ID 升序
+	ListAll(ctx context.Context, tx *gorm.DB) ([]model.AppConfig, error)
 	// GetByKey 根据配置键获取单条配置，不存在返回 nil
 	GetByKey(ctx context.Context, tx *gorm.DB, key string) (*model.AppConfig, error)
 	// SaveValues 按 config_key 幂等批量保存配置值：已存在则更新 config_value，不存在则插入
 	SaveValues(ctx context.Context, tx *gorm.DB, values map[string]string) error
 }
 
-// GetAll 获取全部配置
-func (r *gormRepo) GetAll(ctx context.Context, tx *gorm.DB) ([]model.AppConfig, error) {
+// ListAll 获取全部配置
+func (r *gormRepo) ListAll(ctx context.Context, tx *gorm.DB) ([]model.AppConfig, error) {
 	db := r.ResolveDB(ctx, tx)
 	var list []model.AppConfig
 	err := db.Order("id asc").Find(&list).Error
