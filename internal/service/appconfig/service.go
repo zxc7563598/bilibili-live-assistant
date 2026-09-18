@@ -39,13 +39,13 @@ func New(appConfigCache *appconfig.Cache, appConfigRepo app_config.Repository) *
 	}
 }
 
-// Manifest 组装 PWA manifest 配置
+// GetManifest 组装 PWA manifest 配置
 //
 // 配置缺失时不强校验、直接返回空值：
 //   - 文本字段（站点名、描述、颜色）允许为空，由前端自行兜底
 //   - 站点图标未配置时跳过 MIME 检测，避免整份 manifest 因缺图标而失败
 //   - 图标已配置但无法识别时返回 10901，便于定位配置问题
-func (s *Service) Manifest() (ManifestResp, int, error) {
+func (s *Service) GetManifest() (ManifestResp, int, error) {
 	resp := ManifestResp{
 		Name:            s.configValue(keySiteName),
 		Description:     s.configValue(keySiteDescription),
@@ -64,13 +64,13 @@ func (s *Service) Manifest() (ManifestResp, int, error) {
 	return resp, 0, nil
 }
 
-// ThemeColor 获取网站主题色
-func (s *Service) ThemeColor() (string, int, error) {
+// GetThemeColor 获取网站主题色
+func (s *Service) GetThemeColor() (string, int, error) {
 	return s.configValue(keySiteThemeColor), 0, nil
 }
 
-// LoginConfig 获取登录页配置
-func (s *Service) LoginConfig() (LoginConfig, int, error) {
+// GetLoginConfig 获取登录页配置
+func (s *Service) GetLoginConfig() (LoginConfig, int, error) {
 	resp := LoginConfig{
 		Logo:     s.configValue(keyLogo),
 		LoginBg:  s.configValue(keyLoginBg),
@@ -85,8 +85,8 @@ func (s *Service) LoginConfig() (LoginConfig, int, error) {
 	return resp, 0, nil
 }
 
-// ConfigData 获取全部配置信息
-func (s *Service) ConfigData() (ConfigDataResp, int, error) {
+// GetConfigData 获取全部配置信息
+func (s *Service) GetConfigData() (ConfigDataResp, int, error) {
 	data := s.appConfigCache.GetAll()
 	return ConfigDataResp{
 		SiteName:            data[keySiteName],
