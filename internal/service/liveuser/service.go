@@ -120,7 +120,7 @@ func (s *Service) GetUserMonthlyAnalysis(ctx context.Context, UID, year, month i
 
 // GetUserDanmuAnalysis 获取用户弹幕分析数据
 func (s *Service) GetUserDanmuAnalysis(ctx context.Context, UID int64) (GetUserDanmuAnalysisResp, int, error) {
-	danmu, err := s.liveDanmuRepo.GetMessagesByUID(ctx, nil, UID)
+	danmu, err := s.liveDanmuRepo.ListMessagesByUID(ctx, nil, UID)
 	if err != nil {
 		return GetUserDanmuAnalysisResp{}, 60801, err
 	}
