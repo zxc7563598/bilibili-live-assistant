@@ -106,9 +106,14 @@ func (s *Service) GetUserMonthlyAnalysis(ctx context.Context, UID, year, month i
 		giftAmount[int64(day)] = item.Amount
 	}
 	// 本月开播记录（不区分房间ID/主播，按开播时间 start_at 落在当月统计）
-	liveDays, err := s.liveSessionRepo.DistinctLiveDays(ctx, nil, startTimestamp, endTimestamp)
+	liveDaySet, err := s.liveSessionRepo.DistinctLiveDays(ctx, nil, startTimestamp, endTimestamp)
 	if err != nil {
 		return GetUserMonthlyAnalysisResp{}, 60801, err
+	}
+	// 仓库层返回的是日号集合，响应结构需要 map[日号]bool，这里转换一次
+	liveDays := make(map[int64]bool, len(liveDaySet))
+	for day := range liveDaySet {
+		liveDays[day] = true
 	}
 	return GetUserMonthlyAnalysisResp{
 		DanmuCount: danmu,
