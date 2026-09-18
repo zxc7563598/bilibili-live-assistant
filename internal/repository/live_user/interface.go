@@ -72,7 +72,7 @@ type Repository interface {
 
 // GetByUID 根据 B站 UID 查询单条用户记录
 func (r *gormRepo) GetByUID(ctx context.Context, tx *gorm.DB, uid int64) (*model.LiveUser, error) {
-	return r.FindOneByField(ctx, tx, "uid", uid)
+	return r.GetByField(ctx, tx, "uid", uid)
 }
 
 // ExistsByUID 根据 B站 UID 获取用户是否存在
@@ -84,7 +84,7 @@ func (r *gormRepo) ExistsByUID(ctx context.Context, tx *gorm.DB, uid int64) (boo
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery) ([]model.LiveUser, int64, error) {
 	var list []model.LiveUser
 	var total int64
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	db = db.Model(&model.LiveUser{})
 	if v := query.UID; v != nil {
 		db = db.Where("uid = ?", *v)
@@ -127,7 +127,7 @@ func (r *gormRepo) UpdatePassword(ctx context.Context, tx *gorm.DB, id int64, pa
 
 // CreateIfNotExist 若 uid 已存在则忽略创建并返回已有记录，否则创建新记录
 func (r *gormRepo) CreateIfNotExist(ctx context.Context, tx *gorm.DB, entity *model.LiveUser) (*model.LiveUser, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	res := db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "uid"}},
 		DoNothing: true,
@@ -152,7 +152,7 @@ func (r *gormRepo) AddCredit(ctx context.Context, tx *gorm.DB, id int64, field s
 	if field != CreditFieldPoints && field != CreditFieldStars {
 		return 0, 0, fmt.Errorf("%w: %s", ErrInvalidCreditField, field)
 	}
-	db := r.getDB(ctx, tx).Model(&model.LiveUser{}).Where("id = ?", id)
+	db := r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).Where("id = ?", id)
 	if delta < 0 {
 		// 余额不足时条件不成立，RowsAffected 为 0，从而拒绝本次扣减
 		db = db.Where(field+" >= ?", -delta)
@@ -174,7 +174,7 @@ func (r *gormRepo) AddCredit(ctx context.Context, tx *gorm.DB, id int64, field s
 	}
 	// 同事务内回读变更后的数值，变更前的值由 after - delta 反推
 	var after int64
-	if err := r.getDB(ctx, tx).Model(&model.LiveUser{}).Where("id = ?", id).Pluck(field, &after).Error; err != nil {
+	if err := r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).Where("id = ?", id).Pluck(field, &after).Error; err != nil {
 		return 0, 0, err
 	}
 	return after - delta, after, nil

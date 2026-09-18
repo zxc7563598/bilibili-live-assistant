@@ -85,7 +85,7 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 // ListAll 用于获取角色全部信息
 func (s *Service) ListAll(ctx context.Context) ([]ListAllResp, int, error) {
 	// 获取角色
-	roles, err := s.roleRepo.FindAll(ctx, nil)
+	roles, err := s.roleRepo.ListAll(ctx, nil)
 	if err != nil {
 		return nil, 60201, err
 	}

@@ -301,7 +301,7 @@ func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq)
 	}
 	order.ShipStatus = req.ShipStatus
 	// 落库
-	if err := s.liveUserOrderRepo.Update(ctx, nil, order); err != nil {
+	if err := s.liveUserOrderRepo.Save(ctx, nil, order); err != nil {
 		return 61101, err
 	}
 	return 0, nil
@@ -331,7 +331,7 @@ func (s *Service) UpdateOrderStatus(ctx context.Context, req UpdateOrderStatusRe
 		order.CancelAt = 0
 	}
 	// 落库
-	if err := s.liveUserOrderRepo.Update(ctx, nil, order); err != nil {
+	if err := s.liveUserOrderRepo.Save(ctx, nil, order); err != nil {
 		return 61101, err
 	}
 	return 0, nil
@@ -405,7 +405,7 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 		return 11303, errors.New("收货人地址类型不合法")
 	}
 	// 落库
-	if err := s.liveUserOrderRepo.Update(ctx, nil, order); err != nil {
+	if err := s.liveUserOrderRepo.Save(ctx, nil, order); err != nil {
 		return 61101, err
 	}
 	return 0, nil

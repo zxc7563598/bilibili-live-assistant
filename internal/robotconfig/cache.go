@@ -30,7 +30,7 @@ func New(repo robot_config.Repository) *Cache {
 
 // Init 从数据库全量加载配置到内存
 func (c *Cache) Init(ctx context.Context) error {
-	configs, err := c.repo.FindAll(ctx, nil)
+	configs, err := c.repo.ListAll(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("加载机器人配置失败: %w", err)
 	}

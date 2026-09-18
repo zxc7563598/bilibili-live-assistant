@@ -64,7 +64,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 	// 订单是历史快照、用户可能被移除，用 LEFT JOIN 保证订单不丢；
 	// JOIN 打在 live_users 主键上不放大行数，count(*) 依然精确，无需 DISTINCT。
 	// lu 侧不过滤 deleted_at 是有意为之（对齐 live_user_credit_log 的处理）。
-	db := r.getDB(ctx, tx).Model(&model.LiveUserOrder{}).
+	db := r.ResolveDB(ctx, tx).Model(&model.LiveUserOrder{}).
 		Select("live_user_orders.*, lu.uid, lu.uname").
 		Joins("LEFT JOIN live_users lu ON lu.id = live_user_orders.user_id")
 	if v := query.UserID; v != nil {
@@ -118,7 +118,7 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 // GetDetailByID 按主键查询订单详情，联查 live_users 补充 uid/uname；不存在返回 (nil, nil)
 func (r *gormRepo) GetDetailByID(ctx context.Context, tx *gorm.DB, id int64) (*model.LiveUserOrderListItem, error) {
 	var item model.LiveUserOrderListItem
-	err := r.getDB(ctx, tx).Model(&model.LiveUserOrder{}).
+	err := r.ResolveDB(ctx, tx).Model(&model.LiveUserOrder{}).
 		Select("live_user_orders.*, lu.uid, lu.uname").
 		Joins("LEFT JOIN live_users lu ON lu.id = live_user_orders.user_id").
 		Where("live_user_orders.id = ?", id).
@@ -134,5 +134,5 @@ func (r *gormRepo) GetDetailByID(ctx context.Context, tx *gorm.DB, id int64) (*m
 
 // GetByOrderSn 根据订单号获取单条订单
 func (r *gormRepo) GetByOrderSn(ctx context.Context, tx *gorm.DB, orderSn string) (*model.LiveUserOrder, error) {
-	return r.FindOneByField(ctx, tx, "order_sn", orderSn)
+	return r.GetByField(ctx, tx, "order_sn", orderSn)
 }

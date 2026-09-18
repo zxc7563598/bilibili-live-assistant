@@ -85,7 +85,7 @@ type Repository interface {
 
 // DistinctRoomIDs 获取全表中所有不重复的 RoomID
 func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var roomIDs []int64
 	if err := db.Model(&model.LiveGift{}).Distinct("room_id").Pluck("room_id", &roomIDs).Error; err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, e
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) ([]model.LiveGift, int64, error) {
 	var list []model.LiveGift
 	var total int64
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	db = db.Model(&model.LiveGift{})
 	db = r.applyLiveGiftListQuery(db, query)
 	if err := db.Count(&total).Error; err != nil {
@@ -124,7 +124,7 @@ func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LiveG
 		TotalNum    int64
 		TotalAmount int64
 	}
-	db := r.getDB(ctx, tx).Model(&model.LiveGift{})
+	db := r.ResolveDB(ctx, tx).Model(&model.LiveGift{})
 	db = r.applyLiveGiftListQuery(db, query)
 	err := db.Select(`
 		COALESCE(SUM(num), 0) AS total_num,
@@ -140,7 +140,7 @@ func (r *gormRepo) ListStats(ctx context.Context, tx *gorm.DB, query model.LiveG
 func (r *gormRepo) BlindBoxListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) ([]model.LiveGift, int64, error) {
 	var list []model.LiveGift
 	var total int64
-	db := r.getDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
+	db := r.ResolveDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
 	db = r.applyLiveGiftBlindBoxListQuery(db, query)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -166,7 +166,7 @@ func (r *gormRepo) BlindBoxListStats(ctx context.Context, tx *gorm.DB, query mod
 		OriginalPrice int64
 		CurrentPrice  int64
 	}
-	db := r.getDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
+	db := r.ResolveDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
 	db = r.applyLiveGiftBlindBoxListQuery(db, query)
 	err := db.Select(`
 		COALESCE(SUM(num * original_gift_price), 0) AS original_price,
@@ -181,7 +181,7 @@ func (r *gormRepo) BlindBoxListStats(ctx context.Context, tx *gorm.DB, query mod
 // SumTotalGiftAmountByUID 获取指定uid赠送总金额
 func (r *gormRepo) SumTotalGiftAmountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error) {
 	var amount int64
-	err := r.getDB(ctx, tx).
+	err := r.ResolveDB(ctx, tx).
 		Model(&model.LiveGift{}).
 		Where("uid = ?", uid).
 		Select(`COALESCE(SUM(num * price), 0)`).
@@ -192,7 +192,7 @@ func (r *gormRepo) SumTotalGiftAmountByUID(ctx context.Context, tx *gorm.DB, uid
 
 // ListByUID 根据 UID 查询礼物
 func (r *gormRepo) ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveGift, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.LiveGift
 	err := db.Where("uid = ?", uid).Order("send_at desc").Limit(limit).Find(&list).Error
 	return list, err
@@ -200,7 +200,7 @@ func (r *gormRepo) ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit 
 
 // ListByLiveID 根据 LiveID 查询礼物
 func (r *gormRepo) ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, limit int) ([]model.LiveGift, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.LiveGift
 	err := db.Where("live_id = ?", liveID).Order("send_at desc").Limit(limit).Find(&list).Error
 	return list, err
@@ -208,7 +208,7 @@ func (r *gormRepo) ListByLiveID(ctx context.Context, tx *gorm.DB, liveID int64, 
 
 // UpdateLiveIDByRoomIDAndTimeRange 将指定房间在时间范围内的礼物关联到直播记录
 func (r *gormRepo) UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID, liveID int64) error {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	return db.Model(&model.LiveGift{}).
 		Where("room_id = ? AND send_at >= ? AND send_at <= ?", roomID, startTime, endTime).
 		Update("live_id", liveID).Error
@@ -216,7 +216,7 @@ func (r *gormRepo) UpdateLiveIDByRoomIDAndTimeRange(ctx context.Context, tx *gor
 
 // CountAndRevenueByRoomIDAndTimeRange 统计指定房间在时间范围内的礼物数量与收益（price * num）
 func (r *gormRepo) CountAndRevenueByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (count int64, revenue int64, err error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var result struct {
 		Count   int64 `gorm:"column:count"`
 		Revenue int64 `gorm:"column:revenue"`
@@ -230,7 +230,7 @@ func (r *gormRepo) CountAndRevenueByRoomIDAndTimeRange(ctx context.Context, tx *
 
 // CountGuardByRoomIDAndTimeRange 统计指定房间在时间范围内的大航海数量
 func (r *gormRepo) CountGuardByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var count int64
 	err := db.Model(&model.LiveGift{}).
 		Where("room_id = ? AND send_at >= ? AND send_at <= ? AND gift_type = ?", roomID, startTime, endTime, enum.GiftTypeGuard).
@@ -240,7 +240,7 @@ func (r *gormRepo) CountGuardByRoomIDAndTimeRange(ctx context.Context, tx *gorm.
 
 // CountSuperChatByRoomIDAndTimeRange 统计指定房间在时间范围内的醒目留言数量
 func (r *gormRepo) CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var count int64
 	err := db.Model(&model.LiveGift{}).
 		Where("room_id = ? AND send_at >= ? AND send_at <= ? AND gift_type = ?", roomID, startTime, endTime, enum.GiftTypeSuperChat).
@@ -250,7 +250,7 @@ func (r *gormRepo) CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *g
 
 // SumBlindBoxProfit 统计盲盒盈利
 func (r *gormRepo) SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxProfit, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	db = db.Model(&model.LiveGift{}).Where("original = ?", enum.No)
 	// 筛选用户或房间
 	if uid > 0 {
@@ -275,7 +275,7 @@ func (r *gormRepo) SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, room
 // CountDailyByUID 根据uid统计用户在时间范围内的每日消费数量与金额，
 // map key 为「当月第几天」(1-31)，value 为该日的礼物数量与金额(分)
 func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, startAt int64, endAt int64) (map[int64]model.LiveGiftDailyGiftStatistics, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	type row struct {
 		SendAt int64
 		Num    int64

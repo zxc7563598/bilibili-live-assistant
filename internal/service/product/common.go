@@ -395,7 +395,7 @@ func (s *Service) syncSkus(ctx context.Context, tx *gorm.DB, productID int64, sp
 			old.Stock = *sku.Stock
 		}
 		old.SpecProperties = specProperties
-		if err := s.productSkuRepo.Update(ctx, tx, old); err != nil {
+		if err := s.productSkuRepo.Save(ctx, tx, old); err != nil {
 			return err
 		}
 	}

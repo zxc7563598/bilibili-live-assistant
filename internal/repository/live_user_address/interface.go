@@ -22,7 +22,7 @@ type Repository interface {
 
 // ListByUserID 根据用户ID获取收货地址（可按类型过滤）
 func (r *gormRepo) ListByUserID(ctx context.Context, tx *gorm.DB, userID int64, addressType *enum.AddressType) ([]model.LiveUserAddress, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	query := db.Where("user_id = ?", userID)
 	if addressType != nil {
 		query = query.Where("type = ?", *addressType)
@@ -34,7 +34,7 @@ func (r *gormRepo) ListByUserID(ctx context.Context, tx *gorm.DB, userID int64, 
 
 // GetDefaultByUserID 根据用户ID + 类型获取默认收货地址
 func (r *gormRepo) GetDefaultByUserID(ctx context.Context, tx *gorm.DB, userID int64, addressType enum.AddressType) (*model.LiveUserAddress, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var entity model.LiveUserAddress
 	err := db.Where("user_id = ? AND type = ?", userID, addressType).Where("is_default = ?", enum.Yes).First(&entity).Error
 	if err != nil {
@@ -64,11 +64,8 @@ func (r *gormRepo) SetDefault(ctx context.Context, tx *gorm.DB, id, userID int64
 		return db.Model(&model.LiveUserAddress{}).Where("id = ? AND user_id = ?", id, userID).Update("is_default", enum.Yes).Error
 	}
 	if tx != nil {
-		return apply(r.getDB(ctx, tx))
+		return apply(r.ResolveDB(ctx, tx))
 	}
-	db := r.db
-	if ctx != nil {
-		db = db.WithContext(ctx)
-	}
-	return db.Transaction(apply)
+	// 未传入事务：自行开启一个事务执行 apply
+	return r.ResolveDB(ctx, nil).Transaction(apply)
 }

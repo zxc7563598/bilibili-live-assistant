@@ -20,7 +20,7 @@ type Repository interface {
 
 // ListByProductSkuID 根据SKU ID获取库存流水
 func (r *gormRepo) ListByProductSkuID(ctx context.Context, tx *gorm.DB, skuID int64, limit int) ([]model.ProductSkuStockLog, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.ProductSkuStockLog
 	err := db.Where("product_sku_id = ?", skuID).Order("created_at desc").Limit(limit).Find(&list).Error
 	return list, err
@@ -28,7 +28,7 @@ func (r *gormRepo) ListByProductSkuID(ctx context.Context, tx *gorm.DB, skuID in
 
 // ListByProductID 根据商品ID获取库存流水
 func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID int64, limit int) ([]model.ProductSkuStockLog, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.ProductSkuStockLog
 	err := db.Where("product_id = ?", productID).Order("created_at desc").Limit(limit).Find(&list).Error
 	return list, err
@@ -36,7 +36,7 @@ func (r *gormRepo) ListByProductID(ctx context.Context, tx *gorm.DB, productID i
 
 // UpdateByDraftID 按草稿ID回填扣减流水的订单关联信息
 func (r *gormRepo) UpdateByDraftID(ctx context.Context, tx *gorm.DB, draftID, orderID int64, orderSn string) error {
-	return r.getDB(ctx, tx).Model(&model.ProductSkuStockLog{}).
+	return r.ResolveDB(ctx, tx).Model(&model.ProductSkuStockLog{}).
 		Where("draft_id = ?", draftID).
 		Updates(map[string]any{"order_id": orderID, "order_sn": orderSn}).Error
 }

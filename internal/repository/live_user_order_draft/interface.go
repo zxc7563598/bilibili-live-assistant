@@ -27,7 +27,7 @@ type Repository interface {
 
 // ListByUserID 根据用户ID获取全部订单草稿
 func (r *gormRepo) ListByUserID(ctx context.Context, tx *gorm.DB, userID int64) ([]model.LiveUserOrderDraft, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.LiveUserOrderDraft
 	err := db.Where("user_id = ?", userID).Order("created_at desc, id desc").Find(&list).Error
 	return list, err
@@ -35,7 +35,7 @@ func (r *gormRepo) ListByUserID(ctx context.Context, tx *gorm.DB, userID int64) 
 
 // GetActiveByUserID 获取用户当前 Active 状态的草稿
 func (r *gormRepo) GetActiveByUserID(ctx context.Context, tx *gorm.DB, userID int64) (*model.LiveUserOrderDraft, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var draft model.LiveUserOrderDraft
 	err := db.Where("user_id = ? AND status = ?", userID, enum.DraftStatusActive).First(&draft).Error
 	if err == gorm.ErrRecordNotFound {
@@ -49,7 +49,7 @@ func (r *gormRepo) GetActiveByUserID(ctx context.Context, tx *gorm.DB, userID in
 
 // GetLatestCancelledByUserID 获取用户最近一条 Cancelled 状态的草稿（无则返回 nil）
 func (r *gormRepo) GetLatestCancelledByUserID(ctx context.Context, tx *gorm.DB, userID int64) (*model.LiveUserOrderDraft, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var draft model.LiveUserOrderDraft
 	err := db.Where("user_id = ? AND status = ?", userID, enum.DraftStatusCancelled).
 		Order("created_at desc, id desc").
@@ -65,7 +65,7 @@ func (r *gormRepo) GetLatestCancelledByUserID(ctx context.Context, tx *gorm.DB, 
 
 // CancelActiveByID 将 Active 草稿置为 Cancelled，返回是否发生变更
 func (r *gormRepo) CancelActiveByID(ctx context.Context, tx *gorm.DB, id int64) (bool, error) {
-	res := r.getDB(ctx, tx).Model(&model.LiveUserOrderDraft{}).
+	res := r.ResolveDB(ctx, tx).Model(&model.LiveUserOrderDraft{}).
 		Where("id = ? AND status = ?", id, enum.DraftStatusActive).
 		Update("status", enum.DraftStatusCancelled)
 	if res.Error != nil {
@@ -76,7 +76,7 @@ func (r *gormRepo) CancelActiveByID(ctx context.Context, tx *gorm.DB, id int64) 
 
 // RedeemActiveByID 将 Active 草稿置为 Redeemed，返回是否发生变更
 func (r *gormRepo) RedeemActiveByID(ctx context.Context, tx *gorm.DB, id int64) (bool, error) {
-	res := r.getDB(ctx, tx).Model(&model.LiveUserOrderDraft{}).
+	res := r.ResolveDB(ctx, tx).Model(&model.LiveUserOrderDraft{}).
 		Where("id = ? AND status = ?", id, enum.DraftStatusActive).
 		Update("status", enum.DraftStatusRedeemed)
 	if res.Error != nil {
@@ -87,7 +87,7 @@ func (r *gormRepo) RedeemActiveByID(ctx context.Context, tx *gorm.DB, id int64) 
 
 // ListActiveExpired 查询已过期但仍为 Active 的草稿
 func (r *gormRepo) ListActiveExpired(ctx context.Context, tx *gorm.DB, now int64) ([]model.LiveUserOrderDraft, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var list []model.LiveUserOrderDraft
 	err := db.Where("status = ?", enum.DraftStatusActive).
 		Where("expire_at <= ?", now).

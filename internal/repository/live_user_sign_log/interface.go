@@ -23,7 +23,7 @@ type Repository interface {
 //
 // (uid, sign_date) 上有唯一索引，一天至多一条，所以行数即总签到天数
 func (r *gormRepo) CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var count int64
 	err := db.Model(&model.LiveUserSignLog{}).Where("uid = ?", uid).Count(&count).Error
 	return count, err
@@ -33,7 +33,7 @@ func (r *gormRepo) CountByUID(ctx context.Context, tx *gorm.DB, uid int64) (int6
 //
 // 以 sign_date 为准逐日回溯。sign_date 是写入时按服务器本地时区生成的 YYYY-MM-DD
 func (r *gormRepo) StreakByUID(ctx context.Context, tx *gorm.DB, uid int64) (int64, error) {
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	var dates []string
 	if err := db.Model(&model.LiveUserSignLog{}).
 		Where("uid = ? AND sign_date <> ''", uid).

@@ -41,19 +41,19 @@ type Repository interface {
 
 // GetByCode 根据 code 获取单条数据
 func (r *gormRepo) GetByCode(ctx context.Context, tx *gorm.DB, code string) (*model.Role, error) {
-	return r.FindOneByField(ctx, tx, "code", code)
+	return r.GetByField(ctx, tx, "code", code)
 }
 
 // ListEnabled 获取全部启用数据
 func (r *gormRepo) ListEnabled(ctx context.Context, tx *gorm.DB) ([]model.Role, error) {
-	return r.FindByField(ctx, tx, "enable", enum.EnableEnable)
+	return r.ListByField(ctx, tx, "enable", enum.EnableEnable)
 }
 
 // ListPage 获取分页列表数据
 func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.RoleListPageQuery) ([]model.RoleListItem, int64, error) {
 	var list []model.RoleListItem
 	var total int64
-	db := r.getDB(ctx, tx)
+	db := r.ResolveDB(ctx, tx)
 	db = db.Model(&model.Role{})
 	if v := query.Name; v != nil && *v != "" {
 		escaped := sqlutil.EscapeLike(*v)
