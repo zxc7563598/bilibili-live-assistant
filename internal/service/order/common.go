@@ -158,7 +158,7 @@ func (s *Service) returnStock(ctx context.Context, tx *gorm.DB, productID, skuID
 }
 
 // deductBalance 扣减用户余额并写资产流水，需在调用方事务内执行
-// 余额扣减交给 live_user.AddCredit 原子条件更新，余额不足由数据库拦截并返回 ErrInsufficientBalance。
+// 余额扣减交给 live_user.AdjustCredit 原子条件更新，余额不足由数据库拦截并返回 ErrInsufficientBalance。
 func (s *Service) deductBalance(ctx context.Context, tx *gorm.DB, userID int64, creditType enum.CreditType, amount int64, productName string, quantity int64) error {
 	if amount <= 0 {
 		return nil // 免费商品不扣减
@@ -167,7 +167,7 @@ func (s *Service) deductBalance(ctx context.Context, tx *gorm.DB, userID int64, 
 	if creditType == enum.CreditTypePoints {
 		field = live_user.CreditFieldPoints
 	}
-	beforeValue, afterValue, err := s.liveUserRepo.AddCredit(ctx, tx, userID, field, -amount)
+	beforeValue, afterValue, err := s.liveUserRepo.AdjustCredit(ctx, tx, userID, field, -amount)
 	if err != nil {
 		return err
 	}
