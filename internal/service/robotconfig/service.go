@@ -43,7 +43,7 @@ func (s *Service) applyConfig(ctx context.Context, groupName string, data map[st
 			if !ok {
 				continue
 			}
-			if err := s.robotconfigRepo.UpdateByID(ctx, tx, id, configValue); err != nil {
+			if err := s.robotconfigRepo.UpdateValueByID(ctx, tx, id, configValue); err != nil {
 				return fmt.Errorf("更新 %s.%s 失败: %w", groupName, configKey, err)
 			}
 		}
