@@ -121,6 +121,7 @@ definitions:
   input.AddressGetAddressListReq:
     properties:
       type:
+        description: 地址类型 0 虚拟 / 1 实体
         enum:
         - 0
         - 1
@@ -130,6 +131,7 @@ definitions:
   input.AddressGetDefaultAddressReq:
     properties:
       type:
+        description: 地址类型 0 虚拟 / 1 实体
         enum:
         - 0
         - 1
@@ -148,6 +150,7 @@ definitions:
         example: 2
         type: integer
       is_default:
+        description: 是否默认地址 0 否 / 1 是
         enum:
         - 0
         - 1
@@ -166,6 +169,7 @@ definitions:
         example: '[''370000'', ''370100'', ''370116'']'
         type: string
       type:
+        description: 地址类型 0 虚拟 / 1 实体
         enum:
         - 0
         - 1
@@ -301,6 +305,8 @@ definitions:
       password:
         description: 密码
         example: "123456"
+        maxLength: 32
+        minLength: 6
         type: string
       roleIds:
         description: 角色ID组
@@ -365,18 +371,22 @@ definitions:
       login_bg:
         description: 登录页背景图路径（留空则根据主题色生成背景）
         example: ""
+        maxLength: 255
         type: string
       login_slogan:
         description: 登录页副标题 / Slogan
         example: ""
+        maxLength: 255
         type: string
       login_title:
         description: 登录页主标题
         example: 积分商城
+        maxLength: 100
         type: string
       logo:
         description: 网站 Logo 路径（登录页等场景展示）
         example: ""
+        maxLength: 255
         type: string
       register:
         description: 是否允许用户自助注册, 0-禁止, 1-允许
@@ -388,22 +398,27 @@ definitions:
       site_background_color:
         description: PWA 启动页背景色
         example: '#f5f6f8'
+        maxLength: 32
         type: string
       site_description:
         description: 站点说明（PWA 应用描述）
         example: 这是xxxxx的积分商城
+        maxLength: 255
         type: string
       site_icon:
         description: 网站图标路径（标签页 / 桌面应用图标）
         example: ""
+        maxLength: 255
         type: string
       site_name:
         description: 站点名称（浏览器标签栏 / PWA 安装后名称）
         example: 积分商城
+        maxLength: 100
         type: string
       site_theme_color:
         description: 网站主题色
         example: '#965bff'
+        maxLength: 32
         type: string
     required:
     - register
@@ -413,18 +428,22 @@ definitions:
       oss_access_key_id:
         description: 阿里云 AccessKey ID
         example: xxxxxxxxxxxxx
+        maxLength: 255
         type: string
       oss_access_key_secret:
         description: 阿里云 AccessKey Secret
         example: xxxxxxxxxxxxx
+        maxLength: 255
         type: string
       oss_bucket:
         description: 目标 bucket 名
         example: xxxxx
+        maxLength: 255
         type: string
       oss_endpoint:
         description: 完整 OSS 地址
         example: https://oss-cn-hangzhou.aliyuncs.com
+        maxLength: 255
         type: string
     type: object
   input.FeedbackDetailsReq:
@@ -549,7 +568,7 @@ definitions:
         example: "1"
         type: string
       show_count:
-        description: 展示数量, 0-禁用, 1-启用
+        description: 是否在感谢内容中展示礼物数量, 0-禁用, 1-启用
         example: "1"
         type: string
     required:
@@ -866,6 +885,7 @@ definitions:
       new_password:
         description: 新密码
         example: "654321"
+        maxLength: 32
         minLength: 6
         type: string
       old_password:
@@ -957,6 +977,7 @@ definitions:
       password:
         description: 密码
         example: "654321"
+        maxLength: 32
         minLength: 6
         type: string
       user_id:
@@ -1013,16 +1034,20 @@ definitions:
   input.LiveUserUserMonthlyAnalysisReq:
     properties:
       month:
-        description: 月份
+        description: 月份，1-12
         example: 2
+        maximum: 12
+        minimum: 1
         type: integer
       uid:
         description: 用户UID
         example: 1
         type: integer
       year:
-        description: 年份
+        description: 年份，1970-2100
         example: 2025
+        maximum: 2100
+        minimum: 1970
         type: integer
     required:
     - month
@@ -1032,8 +1057,8 @@ definitions:
   input.MenuButtonsReq:
     properties:
       parentId:
-        description: 菜单ID（作为父级ID进行查询）
-        example: 0
+        description: 父级菜单ID（按钮挂在菜单下，必须是已存在的菜单主键，不能为 0）
+        example: 1
         type: integer
     required:
     - parentId
@@ -1100,12 +1125,11 @@ definitions:
         example: true
         type: boolean
       type:
-        description: 菜单类型
+        description: 菜单类型 BUTTON/MENU
         enum:
         - BUTTON
         - MENU
         example: MENU
-        minLength: 1
         type: string
     required:
     - code
@@ -1160,7 +1184,7 @@ definitions:
   input.OrderListPageByUserReq:
     properties:
       order_status:
-        description: 订单状态
+        description: 订单状态 0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中
         enum:
         - 0
         - 1
@@ -1200,7 +1224,7 @@ definitions:
         example: SOdleu2legnzxs13hal3
         type: string
       order_status:
-        description: 订单状态
+        description: 订单状态 0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中
         enum:
         - 0
         - 1
@@ -1219,7 +1243,7 @@ definitions:
         example: 20
         type: integer
       pay_status:
-        description: 支付状态
+        description: 支付状态 0 未支付 / 1 已支付 / 2 已退款
         enum:
         - 0
         - 1
@@ -1227,7 +1251,7 @@ definitions:
         example: 1
         type: integer
       ship_status:
-        description: 发货状态
+        description: 发货状态 0 未发货 / 1 已发货 / 2 已送达
         enum:
         - 0
         - 1
@@ -1387,14 +1411,14 @@ definitions:
   input.ProductAdminListPageReq:
     properties:
       credit_type:
-        description: 货币类型
+        description: 货币类型，0 星光 / 1 积分
         enum:
         - 0
         - 1
         example: 1
         type: integer
       enable:
-        description: 是否启用
+        description: 是否启用，0 禁用 / 1 启用
         enum:
         - 0
         - 1
@@ -1546,10 +1570,12 @@ definitions:
       cost_price:
         description: SKU 成本价，单位分，仅后台核算使用
         example: 50
+        minimum: 0
         type: integer
       price:
         description: SKU 价格，单位分
         example: 100
+        minimum: 0
         type: integer
       spec_properties:
         description: 规格快照，形如 [{"类型":"镭射款"},{"形象":"wink小蓝"}]
@@ -1563,6 +1589,7 @@ definitions:
           SKU 库存；不传表示本次不改动库存，后端保留库里的最新值，
           避免把保存期间被订单扣减的库存覆盖回去
         example: 500
+        minimum: 0
         type: integer
     type: object
   input.ProductSaveSpecReq:
@@ -1587,7 +1614,7 @@ definitions:
   input.ProductShopListPageReq:
     properties:
       credit_type:
-        description: 货币类型
+        description: 货币类型，0 星光 / 1 积分
         enum:
         - 0
         - 1
@@ -1869,6 +1896,7 @@ definitions:
   input.SendDanmuReq:
     properties:
       message:
+        description: 弹幕内容，长度 1-40 个字符
         example: 发送弹幕信息
         maxLength: 40
         minLength: 1

@@ -39,7 +39,7 @@ type GiftConfig struct {
 	Enabled         string   `config:"enabled"`          // 是否启用
 	Scene           string   `config:"scene"`            // 场景
 	Requirement     string   `config:"requirement"`      // 签到条件
-	ShowCount       string   `config:"show_count"`       // 展示数量
+	ShowCount       string   `config:"show_count"`       // 是否在感谢内容中展示礼物数量
 	MergeGift       string   `config:"merge_gift"`       // 礼物合并
 	IncludeBlindbox string   `config:"include_blindbox"` // 盲盒统计
 	MinBattery      string   `config:"min_battery"`      // 起始感谢电池

@@ -22,6 +22,7 @@ type OrderConfirmPaymentReq struct {
 	AddressID int64 `json:"address_id" binding:"required,min=1" err:"required=11101,min=11101" example:"0"`
 }
 
+// OrderListPageByUserReq 用户分页查询自己的订单请求
 type OrderListPageByUserReq struct {
 	// 页码
 	PageNo int `json:"pageNo" binding:"required" err:"required=11101" example:"1"`
@@ -30,9 +31,9 @@ type OrderListPageByUserReq struct {
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
-	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
-	// 订单状态
-	OrderStatus *int `json:"order_status" example:"0" enums:"0,1,2,3,4,5"`
+	SortOrder *string `json:"sortOrder" binding:"omitempty,oneof=ascend descend" err:"oneof=11101" example:"descend" enums:"ascend,descend"`
+	// 订单状态 0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中
+	OrderStatus *int `json:"order_status" binding:"omitempty,oneof=0 1 2 3 4 5" err:"oneof=11101" example:"0" enums:"0,1,2,3,4,5"`
 }
 
 // OrderListPageReq 后台分页查询订单请求。
@@ -45,19 +46,19 @@ type OrderListPageReq struct {
 	// 排序字段，取订单表列名或 uid/uname
 	SortField *string `json:"sortField" example:"created_at"`
 	// 排序方向 ascend/descend
-	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
+	SortOrder *string `json:"sortOrder" binding:"omitempty,oneof=ascend descend" err:"oneof=11101" example:"descend" enums:"ascend,descend"`
 	// 用户UID，精确匹配
 	UID *int64 `json:"uid" example:"54272611"`
 	// 用户昵称，模糊搜索
 	Uname *string `json:"uname" example:"哎呀又胖啦"`
 	// 订单号，模糊匹配
 	OrderSn *string `json:"order_sn" example:"SOdleu2legnzxs13hal3"`
-	// 订单状态
-	OrderStatus *int `json:"order_status" example:"1" enums:"0,1,2,3,4,5"`
-	// 支付状态
-	PayStatus *int `json:"pay_status" example:"1" enums:"0,1,2"`
-	// 发货状态
-	ShipStatus *int `json:"ship_status" example:"0" enums:"0,1,2"`
+	// 订单状态 0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中
+	OrderStatus *int `json:"order_status" binding:"omitempty,oneof=0 1 2 3 4 5" err:"oneof=11101" example:"1" enums:"0,1,2,3,4,5"`
+	// 支付状态 0 未支付 / 1 已支付 / 2 已退款
+	PayStatus *int `json:"pay_status" binding:"omitempty,oneof=0 1 2" err:"oneof=11101" example:"1" enums:"0,1,2"`
+	// 发货状态 0 未发货 / 1 已发货 / 2 已送达
+	ShipStatus *int `json:"ship_status" binding:"omitempty,oneof=0 1 2" err:"oneof=11101" example:"0" enums:"0,1,2"`
 }
 
 // OrderDetailsReq 后台获取订单详情请求

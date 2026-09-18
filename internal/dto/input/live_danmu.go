@@ -9,7 +9,7 @@ type LiveDanmuListPageReq struct {
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
-	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
+	SortOrder *string `json:"sortOrder" binding:"omitempty,oneof=ascend descend" err:"oneof=10601" example:"descend" enums:"ascend,descend"`
 	// 房间ID
 	RoomID *int64 `json:"room_id" example:"22384516"`
 	// 用户ID

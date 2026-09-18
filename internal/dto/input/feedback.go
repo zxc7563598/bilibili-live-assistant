@@ -19,7 +19,7 @@ type FeedbackListPageReq struct {
 	// 排序字段，取投诉表列名或 uid/uname
 	SortField *string `json:"sortField" example:"created_at"`
 	// 排序方向 ascend/descend
-	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
+	SortOrder *string `json:"sortOrder" binding:"omitempty,oneof=ascend descend" err:"oneof=11207" example:"descend" enums:"ascend,descend"`
 	// 用户UID，精确匹配
 	UID *int64 `json:"uid" example:"54272611"`
 	// 用户昵称，模糊搜索

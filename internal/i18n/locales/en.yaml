@@ -122,6 +122,7 @@ error:
   10801: Invalid request parameters # Parameter validation failed
   10802: Password cannot be less than six digits # Password cannot be less than six digits
   10901: Illegal image information # Image MIME type retrieval failed
+  10902: Request parameter is invalid # Parameter validation failed (AppConfig module)
   11001: Request parameter is invalid # Parameter validation failed (Product module)
   11002: Please enter the product name # Product name is empty
   11003: Product name cannot exceed 255 characters # Product name too long

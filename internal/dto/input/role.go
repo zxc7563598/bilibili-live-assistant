@@ -9,11 +9,11 @@ type RoleListPageReq struct {
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
-	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
+	SortOrder *string `json:"sortOrder" binding:"omitempty,oneof=ascend descend" err:"oneof=10201" example:"descend" enums:"ascend,descend"`
 	// 名称，支持模糊搜索
 	Name *string `json:"name" example:"超级"`
 	// 状态
-	Enable *int `json:"enable" example:"1" enums:"0,1"`
+	Enable *int `json:"enable" binding:"omitempty,oneof=0 1" err:"oneof=10201" example:"1" enums:"0,1"`
 }
 
 // RoleSaveReq 处理创建或变更角色请求
@@ -44,7 +44,7 @@ type RoleAddRoleUsersReq struct {
 	AdminIds []int64 `json:"adminIds" binding:"required" err:"required=10207" example:"1,2,3"`
 }
 
-// RoleRemoveRoleUsersReq 分配角色到管理员请求
+// RoleRemoveRoleUsersReq 解除管理员与角色的绑定请求
 type RoleRemoveRoleUsersReq struct {
 	// 角色ID
 	RoleID int64 `json:"roleId" binding:"required" err:"required=10205" example:"2"`

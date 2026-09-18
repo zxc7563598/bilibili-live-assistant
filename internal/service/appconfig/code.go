@@ -11,6 +11,7 @@ package appconfig
 
 const (
 	CodeImageInvalid      = 10901 // 图片信息不合法（图片 MIME 类型获取失败）
+	CodeParamInvalid      = 10902 // 请求参数不合法（参数校验失败（App 配置模块））
 	CodeSaveFailed        = 60902 // 保存配置失败，请稍后重试（数据库更新异常（App 配置模块））
 	CodeCacheReloadFailed = 60903 // 配置缓存刷新失败，请稍后重试（缓存更新异常（App 配置模块））
 	CodeOSSInitFailed     = 60905 // 阿里云OSS初始化失败（阿里云OSS初始化失败）

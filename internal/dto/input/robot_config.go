@@ -70,7 +70,7 @@ type GiftConfigReq struct {
 	Scene string `json:"scene" binding:"required" err:"required=10501" example:"1"`
 	// 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
 	Requirement string `json:"requirement" binding:"required" err:"required=10501" example:"0"`
-	// 展示数量, 0-禁用, 1-启用
+	// 是否在感谢内容中展示礼物数量, 0-禁用, 1-启用
 	ShowCount string `json:"show_count" binding:"required" err:"required=10501" example:"1"`
 	// 礼物合并, 0-禁用, 1-启用
 	MergeGift string `json:"merge_gift" binding:"required" err:"required=10501" example:"1"`

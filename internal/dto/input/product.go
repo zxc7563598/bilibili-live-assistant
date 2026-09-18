@@ -9,11 +9,11 @@ type ProductShopListPageReq struct {
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
-	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
+	SortOrder *string `json:"sortOrder" binding:"omitempty,oneof=ascend descend" err:"oneof=11001" example:"descend" enums:"ascend,descend"`
 	// 商品名称，支持模糊搜索
 	Name *string `json:"name" example:"测试"`
-	// 货币类型
-	CreditType *int `json:"credit_type" example:"1" enums:"0,1"`
+	// 货币类型，0 星光 / 1 积分
+	CreditType *int `json:"credit_type" binding:"omitempty,oneof=0 1" err:"oneof=11001" example:"1" enums:"0,1"`
 }
 
 // ProductDetailReq 商城端获取商品详细信息请求
@@ -31,13 +31,13 @@ type ProductAdminListPageReq struct {
 	// 排序字段
 	SortField *string `json:"sortField" example:"points"`
 	// 排序方向 ascend/descend
-	SortOrder *string `json:"sortOrder" example:"descend" enums:"ascend,descend"`
+	SortOrder *string `json:"sortOrder" binding:"omitempty,oneof=ascend descend" err:"oneof=11001" example:"descend" enums:"ascend,descend"`
 	// 商品名称，支持模糊搜索
 	Name *string `json:"name" example:"测试"`
-	// 货币类型
-	CreditType *int `json:"credit_type" example:"1" enums:"0,1"`
-	// 是否启用
-	Enable *int `json:"enable" example:"1" enums:"0,1"`
+	// 货币类型，0 星光 / 1 积分
+	CreditType *int `json:"credit_type" binding:"omitempty,oneof=0 1" err:"oneof=11001" example:"1" enums:"0,1"`
+	// 是否启用，0 禁用 / 1 启用
+	Enable *int `json:"enable" binding:"omitempty,oneof=0 1" err:"oneof=11001" example:"1" enums:"0,1"`
 }
 
 // ProductUpdateEnableReq 后台变更商品是否启用请求
@@ -102,12 +102,12 @@ type ProductSaveSpecValueReq struct {
 // ProductSaveSkuReq 商品 SKU
 type ProductSaveSkuReq struct {
 	// SKU 价格，单位分
-	Price int64 `json:"price" example:"100"`
+	Price int64 `json:"price" binding:"gte=0" err:"gte=11022" example:"100"`
 	// SKU 成本价，单位分，仅后台核算使用
-	CostPrice int64 `json:"cost_price" example:"50"`
+	CostPrice int64 `json:"cost_price" binding:"gte=0" err:"gte=11028" example:"50"`
 	// SKU 库存；不传表示本次不改动库存，后端保留库里的最新值，
 	// 避免把保存期间被订单扣减的库存覆盖回去
-	Stock *int64 `json:"stock" example:"500"`
+	Stock *int64 `json:"stock" binding:"omitempty,gte=0" err:"gte=11023" example:"500"`
 	// 规格快照，形如 [{"类型":"镭射款"},{"形象":"wink小蓝"}]
 	SpecProperties []map[string]string `json:"spec_properties"`
 }
@@ -119,7 +119,7 @@ type ProductSaveImageReq struct {
 	// 排序，越大越靠前
 	SortOrder int `json:"sort_order" example:"100"`
 	// 图片类型，0 轮播图 / 1 详情图
-	Type int `json:"type" example:"0" enums:"0,1"`
+	Type int `json:"type" binding:"omitempty,oneof=0 1" err:"oneof=11026" example:"0" enums:"0,1"`
 	// 是否启用
 	Enable bool `json:"enable" example:"true"`
 }

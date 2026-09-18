@@ -1,18 +1,20 @@
 package input
 
-// 验证菜单是否存在请求
+// MenuValidateReq 校验菜单路径是否已被占用请求
+//
+// 用于前端新增菜单前判断路径冲突，只读不改。
 type MenuValidateReq struct {
 	// 菜单路径
 	Path string `json:"path" binding:"required,min=1" err:"required=10301,min=10302" example:"/path/url"`
 }
 
-// 获取菜单下的按钮请求
+// MenuButtonsReq 获取指定菜单下的按钮权限请求
 type MenuButtonsReq struct {
-	// 菜单ID（作为父级ID进行查询）
-	ParentID int64 `json:"parentId" binding:"required" err:"required=10301" example:"0"`
+	// 父级菜单ID（按钮挂在菜单下，必须是已存在的菜单主键，不能为 0）
+	ParentID int64 `json:"parentId" binding:"required" err:"required=10301" example:"1"`
 }
 
-// 添加或变更菜单信息请求
+// MenuSaveReq 新增或变更菜单信息请求
 type MenuSaveReq struct {
 	// 菜单ID
 	ID *int64 `json:"id" example:"1"`
@@ -26,8 +28,8 @@ type MenuSaveReq struct {
 	KeepAlive bool `json:"keepAlive" example:"false"`
 	// 布局
 	Layout string `json:"layout" example:"full"`
-	// 菜单类型
-	Type string `json:"type" binding:"required,min=1" err:"required=10301,min=10304" example:"MENU" enums:"BUTTON,MENU"`
+	// 菜单类型 BUTTON/MENU
+	Type string `json:"type" binding:"required,oneof=BUTTON MENU" err:"required=10301,oneof=10304" example:"MENU" enums:"BUTTON,MENU"`
 	// 父级ID
 	ParentID int64 `json:"parentId" example:"0"`
 	// 菜单名称
@@ -42,13 +44,13 @@ type MenuSaveReq struct {
 	Order int `json:"order" example:"0"`
 }
 
-// 快速切换菜单的启用状态请求
+// MenuToggleReq 切换菜单启用状态请求
 type MenuToggleReq struct {
 	// 菜单ID
 	ID int64 `json:"id" binding:"required" err:"required=10301" example:"1"`
 }
 
-// 删除菜单请求
+// MenuDeleteReq 删除菜单请求
 type MenuDeleteReq struct {
 	// 菜单ID
 	ID int64 `json:"id" binding:"required" err:"required=10301" example:"1"`

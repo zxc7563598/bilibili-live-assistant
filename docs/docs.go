@@ -5397,6 +5397,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "type": {
+                    "description": "地址类型 0 虚拟 / 1 实体",
                     "type": "integer",
                     "enum": [
                         0,
@@ -5410,6 +5411,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "type": {
+                    "description": "地址类型 0 虚拟 / 1 实体",
                     "type": "integer",
                     "enum": [
                         0,
@@ -5435,6 +5437,7 @@ const docTemplate = `{
                     "example": 2
                 },
                 "is_default": {
+                    "description": "是否默认地址 0 否 / 1 是",
                     "type": "integer",
                     "enum": [
                         0,
@@ -5459,6 +5462,7 @@ const docTemplate = `{
                     "example": "['370000', '370100', '370116']"
                 },
                 "type": {
+                    "description": "地址类型 0 虚拟 / 1 实体",
                     "type": "integer",
                     "enum": [
                         0,
@@ -5640,6 +5644,8 @@ const docTemplate = `{
                 "password": {
                     "description": "密码",
                     "type": "string",
+                    "maxLength": 32,
+                    "minLength": 6,
                     "example": "123456"
                 },
                 "roleIds": {
@@ -5726,21 +5732,25 @@ const docTemplate = `{
                 "login_bg": {
                     "description": "登录页背景图路径（留空则根据主题色生成背景）",
                     "type": "string",
+                    "maxLength": 255,
                     "example": ""
                 },
                 "login_slogan": {
                     "description": "登录页副标题 / Slogan",
                     "type": "string",
+                    "maxLength": 255,
                     "example": ""
                 },
                 "login_title": {
                     "description": "登录页主标题",
                     "type": "string",
+                    "maxLength": 100,
                     "example": "积分商城"
                 },
                 "logo": {
                     "description": "网站 Logo 路径（登录页等场景展示）",
                     "type": "string",
+                    "maxLength": 255,
                     "example": ""
                 },
                 "register": {
@@ -5755,26 +5765,31 @@ const docTemplate = `{
                 "site_background_color": {
                     "description": "PWA 启动页背景色",
                     "type": "string",
+                    "maxLength": 32,
                     "example": "#f5f6f8"
                 },
                 "site_description": {
                     "description": "站点说明（PWA 应用描述）",
                     "type": "string",
+                    "maxLength": 255,
                     "example": "这是xxxxx的积分商城"
                 },
                 "site_icon": {
                     "description": "网站图标路径（标签页 / 桌面应用图标）",
                     "type": "string",
+                    "maxLength": 255,
                     "example": ""
                 },
                 "site_name": {
                     "description": "站点名称（浏览器标签栏 / PWA 安装后名称）",
                     "type": "string",
+                    "maxLength": 100,
                     "example": "积分商城"
                 },
                 "site_theme_color": {
                     "description": "网站主题色",
                     "type": "string",
+                    "maxLength": 32,
                     "example": "#965bff"
                 }
             }
@@ -5785,21 +5800,25 @@ const docTemplate = `{
                 "oss_access_key_id": {
                     "description": "阿里云 AccessKey ID",
                     "type": "string",
+                    "maxLength": 255,
                     "example": "xxxxxxxxxxxxx"
                 },
                 "oss_access_key_secret": {
                     "description": "阿里云 AccessKey Secret",
                     "type": "string",
+                    "maxLength": 255,
                     "example": "xxxxxxxxxxxxx"
                 },
                 "oss_bucket": {
                     "description": "目标 bucket 名",
                     "type": "string",
+                    "maxLength": 255,
                     "example": "xxxxx"
                 },
                 "oss_endpoint": {
                     "description": "完整 OSS 地址",
                     "type": "string",
+                    "maxLength": 255,
                     "example": "https://oss-cn-hangzhou.aliyuncs.com"
                 }
             }
@@ -5973,7 +5992,7 @@ const docTemplate = `{
                     "example": "1"
                 },
                 "show_count": {
-                    "description": "展示数量, 0-禁用, 1-启用",
+                    "description": "是否在感谢内容中展示礼物数量, 0-禁用, 1-启用",
                     "type": "string",
                     "example": "1"
                 }
@@ -6381,6 +6400,7 @@ const docTemplate = `{
                 "new_password": {
                     "description": "新密码",
                     "type": "string",
+                    "maxLength": 32,
                     "minLength": 6,
                     "example": "654321"
                 },
@@ -6504,6 +6524,7 @@ const docTemplate = `{
                 "password": {
                     "description": "密码",
                     "type": "string",
+                    "maxLength": 32,
                     "minLength": 6,
                     "example": "654321"
                 },
@@ -6580,8 +6601,10 @@ const docTemplate = `{
             ],
             "properties": {
                 "month": {
-                    "description": "月份",
+                    "description": "月份，1-12",
                     "type": "integer",
+                    "maximum": 12,
+                    "minimum": 1,
                     "example": 2
                 },
                 "uid": {
@@ -6590,8 +6613,10 @@ const docTemplate = `{
                     "example": 1
                 },
                 "year": {
-                    "description": "年份",
+                    "description": "年份，1970-2100",
                     "type": "integer",
+                    "maximum": 2100,
+                    "minimum": 1970,
                     "example": 2025
                 }
             }
@@ -6603,9 +6628,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "parentId": {
-                    "description": "菜单ID（作为父级ID进行查询）",
+                    "description": "父级菜单ID（按钮挂在菜单下，必须是已存在的菜单主键，不能为 0）",
                     "type": "integer",
-                    "example": 0
+                    "example": 1
                 }
             }
         },
@@ -6693,9 +6718,8 @@ const docTemplate = `{
                     "example": true
                 },
                 "type": {
-                    "description": "菜单类型",
+                    "description": "菜单类型 BUTTON/MENU",
                     "type": "string",
-                    "minLength": 1,
                     "enum": [
                         "BUTTON",
                         "MENU"
@@ -6774,7 +6798,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "order_status": {
-                    "description": "订单状态",
+                    "description": "订单状态 0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中",
                     "type": "integer",
                     "enum": [
                         0,
@@ -6825,7 +6849,7 @@ const docTemplate = `{
                     "example": "SOdleu2legnzxs13hal3"
                 },
                 "order_status": {
-                    "description": "订单状态",
+                    "description": "订单状态 0 待付款 / 1 待发货 / 2 待收货 / 3 已完成 / 4 已取消 / 5 售后中",
                     "type": "integer",
                     "enum": [
                         0,
@@ -6848,7 +6872,7 @@ const docTemplate = `{
                     "example": 20
                 },
                 "pay_status": {
-                    "description": "支付状态",
+                    "description": "支付状态 0 未支付 / 1 已支付 / 2 已退款",
                     "type": "integer",
                     "enum": [
                         0,
@@ -6858,7 +6882,7 @@ const docTemplate = `{
                     "example": 1
                 },
                 "ship_status": {
-                    "description": "发货状态",
+                    "description": "发货状态 0 未发货 / 1 已发货 / 2 已送达",
                     "type": "integer",
                     "enum": [
                         0,
@@ -7066,7 +7090,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "credit_type": {
-                    "description": "货币类型",
+                    "description": "货币类型，0 星光 / 1 积分",
                     "type": "integer",
                     "enum": [
                         0,
@@ -7075,7 +7099,7 @@ const docTemplate = `{
                     "example": 1
                 },
                 "enable": {
-                    "description": "是否启用",
+                    "description": "是否启用，0 禁用 / 1 启用",
                     "type": "integer",
                     "enum": [
                         0,
@@ -7267,11 +7291,13 @@ const docTemplate = `{
                 "cost_price": {
                     "description": "SKU 成本价，单位分，仅后台核算使用",
                     "type": "integer",
+                    "minimum": 0,
                     "example": 50
                 },
                 "price": {
                     "description": "SKU 价格，单位分",
                     "type": "integer",
+                    "minimum": 0,
                     "example": 100
                 },
                 "spec_properties": {
@@ -7287,6 +7313,7 @@ const docTemplate = `{
                 "stock": {
                     "description": "SKU 库存；不传表示本次不改动库存，后端保留库里的最新值，\n避免把保存期间被订单扣减的库存覆盖回去",
                     "type": "integer",
+                    "minimum": 0,
                     "example": 500
                 }
             }
@@ -7326,7 +7353,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "credit_type": {
-                    "description": "货币类型",
+                    "description": "货币类型，0 星光 / 1 积分",
                     "type": "integer",
                     "enum": [
                         0,
@@ -7697,6 +7724,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "message": {
+                    "description": "弹幕内容，长度 1-40 个字符",
                     "type": "string",
                     "maxLength": 40,
                     "minLength": 1,
