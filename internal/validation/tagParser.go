@@ -1,13 +1,12 @@
 package validation
 
-import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
-
 import (
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 )
 
 // parseFieldError 将验证错误映射为自定义的错误码

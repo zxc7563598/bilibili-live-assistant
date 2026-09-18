@@ -1,13 +1,11 @@
 package middleware
 
-import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
-
 import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 )

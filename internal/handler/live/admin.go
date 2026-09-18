@@ -5,8 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"github.com/redis/go-redis/v9"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler"
@@ -16,17 +14,6 @@ import (
 	liveSvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 )
-
-// Handler 直播控制 HTTP 接口处理器
-type Handler struct {
-	liveSvc *liveSvc.Service
-	rdb     *redis.Client
-}
-
-// New 创建 Handler 实例
-func New(liveSvc *liveSvc.Service, rdb *redis.Client) *Handler {
-	return &Handler{liveSvc: liveSvc, rdb: rdb}
-}
 
 // @Summary 获取 B站 扫码登录二维码
 // @Description 获取 B站 扫码登录二维码，返回的链接需要在前端转换为二维码由用户使用 B 站客户端进行扫码登陆
@@ -248,15 +235,6 @@ func (h *Handler) SendDanmu(c *gin.Context) {
 	response.Success(c, lang, nil)
 }
 
-// wsUpgrader 是 HTTP 到 WebSocket 的升级器
-//
-// CheckOrigin 允许所有来源，因为开发环境前后端运行在不同端口
-var wsUpgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
 // @Summary 直播间实时消息推送
 // @Description 建立 WebSocket 连接，实时推送直播间收到的消息（弹幕、礼物等）。连接时需通过 query 参数传递 token：?token=xxx
 // @Tags 直播控制
@@ -264,7 +242,7 @@ var wsUpgrader = websocket.Upgrader{
 // @Success 101 "Switching Protocols - WebSocket 连接建立成功"
 // @Failure 401 "未授权 — token 无效或缺失"
 // @Router /api/admin/live/messages/stream [get]
-func (h *Handler) MessageStream(c *gin.Context) {
+func (h *Handler) StreamMessages(c *gin.Context) {
 	// 从 query string 获取 token 并校验
 	token := c.Query("token")
 	if token == "" {

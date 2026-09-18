@@ -5,6 +5,18 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/feedback"
 )
 
+// Handler 用户投诉/反馈 HTTP 接口处理器
+type Handler struct {
+	feedbackSvc *feedback.Service
+}
+
+// New 创建 Handler 实例
+func New(feedbackSvc *feedback.Service) *Handler {
+	return &Handler{
+		feedbackSvc: feedbackSvc,
+	}
+}
+
 // toFeedbackListPageItem 后台投诉列表转换：联查得到的 uid/uname + 投诉表字段，不含投诉正文
 func toFeedbackListPageItem(list []feedback.ListPageItem) []resp.FeedbackListPageItem {
 	res := make([]resp.FeedbackListPageItem, 0, len(list))

@@ -6,6 +6,16 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/product"
 )
 
+// Handler 商品 HTTP 接口处理器
+type Handler struct {
+	productSvc *product.Service
+}
+
+// New 创建 Handler 实例
+func New(productSvc *product.Service) *Handler {
+	return &Handler{productSvc: productSvc}
+}
+
 // toProductListItems 将 Service 层商品列表转换为响应结构
 func toProductListItems(list []product.ListPageItem) []resp.ProductListPageItem {
 	res := make([]resp.ProductListPageItem, 0, len(list))

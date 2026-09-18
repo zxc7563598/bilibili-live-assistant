@@ -3,8 +3,20 @@ package robotconfig
 import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
+	livesvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 )
+
+// Handler 机器人配置 HTTP 接口处理器
+type Handler struct {
+	robotConfigSvc *robotconfigsvc.Service
+	liveSvc        *livesvc.Service
+}
+
+// New 创建 Handler 实例
+func New(robotConfigSvc *robotconfigsvc.Service, liveSvc *livesvc.Service) *Handler {
+	return &Handler{robotConfigSvc: robotConfigSvc, liveSvc: liveSvc}
+}
 
 func toRoomConfigResp(svcResp robotconfigsvc.RoomConfigResp) resp.RoomConfigResp {
 	return resp.RoomConfigResp{

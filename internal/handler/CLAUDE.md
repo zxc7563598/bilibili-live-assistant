@@ -15,9 +15,25 @@ Handler **只依赖 Service**，不直接依赖 Repository 或数据库。
 
 ```
 internal/handler/<模块名>/
-├── common.go    # 数据转换方法（Service 返回结构 → resp 响应结构）
-└── handler.go   # HTTP 接口处理逻辑
+├── common.go    # Handler 结构体、New、包级常量/变量、数据转换方法
+├── shop.go      # /api/shop 接口方法（该端有接口时才存在）
+└── admin.go     # /api/admin 接口方法（该端有接口时才存在）
 ```
+
+**按端分文件**，一眼能看出某个方法是给商城端还是管理端用的。约定：
+
+- `Handler` 结构体与 `New()` 一律放 `common.go`，`shop.go` / `admin.go` 只放接口方法
+- 一个包若两端都有接口，两个文件都在；只有一端就只有一个
+- 路由既不属于 `/api/shop` 也不属于 `/api/admin` 的包（如 `altcha` 的公开验证码接口），
+  接口方法也放 `common.go`
+- **不再有 `handler.go`**
+
+方法命名：
+
+- 读单条/整体用 `Get*`，读集合用 `List*`，分页用 `ListPage`，读一条的既有写法是 `Details`
+- 写操作用动词：`Save` / `Delete` / `Update*` / `Toggle` / `Apply` / `Submit`
+- 名字尽量与它调用的 Service 方法同名
+- 只有同一包内两端方法**同名冲突**时才加 `Shop` / `Admin` 前缀（目前只有 `product` 需要）
 
 ## 标准接口处理流程
 

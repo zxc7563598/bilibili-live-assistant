@@ -1,7 +1,5 @@
 package admin
 
-import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
-
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -11,21 +9,9 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
-	altchaSvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
 	"go.uber.org/zap"
 )
-
-type Handler struct {
-	adminSvc  *admin.Service
-	altchaSvc *altchaSvc.Service
-}
-
-func New(adminSvc *admin.Service, altchaSvc *altchaSvc.Service) *Handler {
-	return &Handler{
-		adminSvc:  adminSvc,
-		altchaSvc: altchaSvc,
-	}
-}
 
 // @Summary 管理员登录
 // @Description 管理员通过账号和密码登录系统，登录成功后返回 access_token 和 refresh_token，用于后续接口鉴权
@@ -86,7 +72,7 @@ func (h *Handler) Login(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.AdminCaptchaResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/auth/captcha [post]
-func (h *Handler) CaptchaStatus(c *gin.Context) {
+func (h *Handler) GetCaptchaStatus(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	response.Success(c, lang, resp.AdminCaptchaResp{Enabled: h.altchaSvc.IsEnabled()})
@@ -99,7 +85,7 @@ func (h *Handler) CaptchaStatus(c *gin.Context) {
 // @Param data body input.AdminRefreshReq true "刷新凭证参数"
 // @Success 200 {object} response.Response{data=resp.AdminLoginResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/auth/refresh [post]
-func (h *Handler) Refresh(c *gin.Context) {
+func (h *Handler) RefreshLogin(c *gin.Context) {
 	// 获取上下文/语言配置
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
@@ -108,7 +94,7 @@ func (h *Handler) Refresh(c *gin.Context) {
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(
 			logger.AdminLogger,
-			"Refresh 参数异常",
+			"RefreshLogin 参数异常",
 			code,
 			err,
 		)

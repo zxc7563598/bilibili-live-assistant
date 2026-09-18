@@ -1,7 +1,5 @@
 package middleware
 
-import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
-
 import (
 	"bytes"
 	"encoding/json"
@@ -9,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
 )

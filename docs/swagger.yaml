@@ -3557,7 +3557,7 @@ definitions:
         example: 1
         type: integer
     type: object
-  resp.OrderGetConfirmResp:
+  resp.OrderGetDraftResp:
     properties:
       expire_at:
         description: 到期时间(毫秒级时间戳)
@@ -7364,7 +7364,7 @@ paths:
             - $ref: '#/definitions/response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/resp.OrderGetConfirmResp'
+                  $ref: '#/definitions/resp.OrderGetDraftResp'
               type: object
       security:
       - BearerAuth: []
@@ -7576,6 +7576,26 @@ paths:
       summary: 获取 App 主题色
       tags:
       - 移动端
+  /auth/altcha/challenge:
+    get:
+      description: 生成 altcha 工作量证明挑战，供前端验证码组件使用。未配置 hmacKey（即未启用验证码）或生成失败时返回空对象 {}
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: altcha 挑战对象；未启用验证码或生成失败时为空对象 {}
+          schema:
+            type: object
+      summary: 获取 altcha 验证码挑战
+      tags:
+      - 通用
 securityDefinitions:
   BearerAuth:
     in: header

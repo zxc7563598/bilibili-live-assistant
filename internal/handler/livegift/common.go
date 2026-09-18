@@ -5,6 +5,19 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
 )
 
+// secondsPerDay 一天的秒数，用于将日期范围结束时间戳推到当天最后一秒（23:59:59）
+const secondsPerDay = 24 * 60 * 60
+
+// Handler 礼物列表 HTTP 接口处理器
+type Handler struct {
+	livegiftSvc *livegift.Service
+}
+
+// New 创建 Handler 实例
+func New(livegiftSvc *livegift.Service) *Handler {
+	return &Handler{livegiftSvc: livegiftSvc}
+}
+
 func toLiveGiftListItems(list []livegift.ListPageItem) []resp.LiveGiftListPageItem {
 	res := make([]resp.LiveGiftListPageItem, 0, len(list))
 	for _, v := range list {

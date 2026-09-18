@@ -14,18 +14,6 @@ import (
 	uploadSvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/upload"
 )
 
-// Handler 图片上传 / OSS 同步 HTTP 接口处理器
-type Handler struct {
-	uploadSvc *uploadSvc.Service
-}
-
-// New 创建 Handler 实例
-func New(uploadSvc *uploadSvc.Service) *Handler {
-	return &Handler{
-		uploadSvc: uploadSvc,
-	}
-}
-
 // @Summary 上传图片
 // @Description 接收图片文件，按 scene 白名单落盘到 uploads/ 目录，返回可直接访问的图片路径
 // @Tags 上传

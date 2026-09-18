@@ -3,7 +3,22 @@ package admin
 import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/resp"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
+	altchaSvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
 )
+
+// Handler 管理员认证与账号管理 HTTP 接口处理器
+type Handler struct {
+	adminSvc  *admin.Service
+	altchaSvc *altchaSvc.Service
+}
+
+// New 创建 Handler 实例
+func New(adminSvc *admin.Service, altchaSvc *altchaSvc.Service) *Handler {
+	return &Handler{
+		adminSvc:  adminSvc,
+		altchaSvc: altchaSvc,
+	}
+}
 
 func toAdminListItems(list []admin.ListPageItem) []resp.AdminListPageItem {
 	res := make([]resp.AdminListPageItem, 0, len(list))

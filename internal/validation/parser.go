@@ -1,11 +1,10 @@
 package validation
 
-import "github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
-
 import (
 	"errors"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 )
 
 // Parse 将 validator 的验证错误解析为对应的错误码

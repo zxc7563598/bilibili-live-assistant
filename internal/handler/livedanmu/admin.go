@@ -1,7 +1,5 @@
 package livedanmu
 
-import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
-
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -11,18 +9,9 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livedanmu"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
 	"go.uber.org/zap"
 )
-
-// Handler 直播控制 HTTP 接口处理器
-type Handler struct {
-	livedanmuSvc *livedanmu.Service
-}
-
-// New 创建 Handler 实例
-func New(livedanmuSvc *livedanmu.Service) *Handler {
-	return &Handler{livedanmuSvc: livedanmuSvc}
-}
 
 // @Summary 获取全部房间ID
 // @Description 获取弹幕记录的所有房间ID，用于列表选定房间搜索

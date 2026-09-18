@@ -7,18 +7,8 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
-	livesvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 )
-
-type Handler struct {
-	robotConfigSvc *robotconfigsvc.Service
-	liveSvc        *livesvc.Service
-}
-
-func New(robotConfigSvc *robotconfigsvc.Service, liveSvc *livesvc.Service) *Handler {
-	return &Handler{robotConfigSvc: robotConfigSvc, liveSvc: liveSvc}
-}
 
 // @Summary 获取房间模块配置
 // @Description 获取房间模块的监听、用户名裁剪等配置信息
@@ -27,7 +17,7 @@ func New(robotConfigSvc *robotconfigsvc.Service, liveSvc *livesvc.Service) *Hand
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.RoomConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/room/get [post]
-func (h *Handler) GetRoom(c *gin.Context) {
+func (h *Handler) GetRoomConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetRoomConfig(ctx)
@@ -47,13 +37,13 @@ func (h *Handler) GetRoom(c *gin.Context) {
 // @Param data body input.RoomConfigReq true "房间配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/room/apply [post]
-func (h *Handler) ApplyRoom(c *gin.Context) {
+func (h *Handler) ApplyRoomConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 
 	var req input.RoomConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyRoom 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyRoomConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -83,7 +73,7 @@ func (h *Handler) ApplyRoom(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.SignConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/sign/get [post]
-func (h *Handler) GetSign(c *gin.Context) {
+func (h *Handler) GetSignConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetSignConfig(ctx)
@@ -103,12 +93,12 @@ func (h *Handler) GetSign(c *gin.Context) {
 // @Param data body input.SignConfigReq true "签到配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/sign/apply [post]
-func (h *Handler) ApplySign(c *gin.Context) {
+func (h *Handler) ApplySignConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	var req input.SignConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplySign 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplySignConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -140,7 +130,7 @@ func (h *Handler) ApplySign(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.AdConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/ad/get [post]
-func (h *Handler) GetAd(c *gin.Context) {
+func (h *Handler) GetAdConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetAdConfig(ctx)
@@ -160,12 +150,12 @@ func (h *Handler) GetAd(c *gin.Context) {
 // @Param data body input.AdConfigReq true "定时广告配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/ad/apply [post]
-func (h *Handler) ApplyAd(c *gin.Context) {
+func (h *Handler) ApplyAdConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	var req input.AdConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyAd 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyAdConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -193,7 +183,7 @@ func (h *Handler) ApplyAd(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.GiftConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/gift/get [post]
-func (h *Handler) GetGift(c *gin.Context) {
+func (h *Handler) GetGiftConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetGiftConfig(ctx)
@@ -213,12 +203,12 @@ func (h *Handler) GetGift(c *gin.Context) {
 // @Param data body input.GiftConfigReq true "礼物答谢配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/gift/apply [post]
-func (h *Handler) ApplyGift(c *gin.Context) {
+func (h *Handler) ApplyGiftConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	var req input.GiftConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyGift 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyGiftConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -247,7 +237,7 @@ func (h *Handler) ApplyGift(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.PkConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/pk/get [post]
-func (h *Handler) GetPk(c *gin.Context) {
+func (h *Handler) GetPkConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetPkConfig(ctx)
@@ -267,13 +257,13 @@ func (h *Handler) GetPk(c *gin.Context) {
 // @Param data body input.PkConfigReq true "PK播报配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/pk/apply [post]
-func (h *Handler) ApplyPk(c *gin.Context) {
+func (h *Handler) ApplyPkConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 
 	var req input.PkConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyPk 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyPkConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -296,7 +286,7 @@ func (h *Handler) ApplyPk(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.WelcomeConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/welcome/get [post]
-func (h *Handler) GetWelcome(c *gin.Context) {
+func (h *Handler) GetWelcomeConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetWelcomeConfig(ctx)
@@ -316,12 +306,12 @@ func (h *Handler) GetWelcome(c *gin.Context) {
 // @Param data body input.WelcomeConfigReq true "进房欢迎配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/welcome/apply [post]
-func (h *Handler) ApplyWelcome(c *gin.Context) {
+func (h *Handler) ApplyWelcomeConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	var req input.WelcomeConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyWelcome 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyWelcomeConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -346,7 +336,7 @@ func (h *Handler) ApplyWelcome(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.FollowConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/follow/get [post]
-func (h *Handler) GetFollow(c *gin.Context) {
+func (h *Handler) GetFollowConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetFollowConfig(ctx)
@@ -366,12 +356,12 @@ func (h *Handler) GetFollow(c *gin.Context) {
 // @Param data body input.FollowConfigReq true "感谢关注配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/follow/apply [post]
-func (h *Handler) ApplyFollow(c *gin.Context) {
+func (h *Handler) ApplyFollowConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	var req input.FollowConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyFollow 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyFollowConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -396,7 +386,7 @@ func (h *Handler) ApplyFollow(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.ShareConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/share/get [post]
-func (h *Handler) GetShare(c *gin.Context) {
+func (h *Handler) GetShareConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetShareConfig(ctx)
@@ -416,12 +406,12 @@ func (h *Handler) GetShare(c *gin.Context) {
 // @Param data body input.ShareConfigReq true "感谢分享配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/share/apply [post]
-func (h *Handler) ApplyShare(c *gin.Context) {
+func (h *Handler) ApplyShareConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	var req input.ShareConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyShare 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyShareConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}
@@ -446,7 +436,7 @@ func (h *Handler) ApplyShare(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.ReplyConfigResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/reply/get [post]
-func (h *Handler) GetReply(c *gin.Context) {
+func (h *Handler) GetReplyConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	svcResp, errCode, err := h.robotConfigSvc.GetReplyConfig(ctx)
@@ -466,12 +456,12 @@ func (h *Handler) GetReply(c *gin.Context) {
 // @Param data body input.ReplyConfigReq true "自动回复配置参数"
 // @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/robot/reply/apply [post]
-func (h *Handler) ApplyReply(c *gin.Context) {
+func (h *Handler) ApplyReplyConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
 	var req input.ReplyConfigReq
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
-		handler.ErrorLog(logger.RobotConfigLogger, "ApplyReply 参数异常", code, err)
+		handler.ErrorLog(logger.RobotConfigLogger, "ApplyReplyConfig 参数异常", code, err)
 		response.Error(c, lang, code)
 		return
 	}

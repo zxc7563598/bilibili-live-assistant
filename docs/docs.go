@@ -4855,7 +4855,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/resp.OrderGetConfirmResp"
+                                            "$ref": "#/definitions/resp.OrderGetDraftResp"
                                         }
                                     }
                                 }
@@ -5200,6 +5200,36 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/altcha/challenge": {
+            "get": {
+                "description": "生成 altcha 工作量证明挑战，供前端验证码组件使用。未配置 hmacKey（即未启用验证码）或生成失败时返回空对象 {}",
+                "tags": [
+                    "通用"
+                ],
+                "summary": "获取 altcha 验证码挑战",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "altcha 挑战对象；未启用验证码或生成失败时为空对象 {}",
+                        "schema": {
+                            "type": "object"
                         }
                     }
                 }
@@ -9932,7 +9962,7 @@ const docTemplate = `{
                 }
             }
         },
-        "resp.OrderGetConfirmResp": {
+        "resp.OrderGetDraftResp": {
             "type": "object",
             "properties": {
                 "expire_at": {

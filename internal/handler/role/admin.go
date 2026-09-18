@@ -1,7 +1,5 @@
 package role
 
-import "github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
-
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/dto/input"
@@ -11,18 +9,9 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/response"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/pagination"
 	"go.uber.org/zap"
 )
-
-type Handler struct {
-	roleSvc *role.Service
-}
-
-func New(roleSvc *role.Service) *Handler {
-	return &Handler{
-		roleSvc: roleSvc,
-	}
-}
 
 // @Summary 获取角色列表（分页）
 // @Description 获取角色分页列表，支持按角色名称模糊搜索及状态筛选，用于后台角色管理与权限分配
@@ -334,7 +323,7 @@ func (h *Handler) RemoveRoleUsers(c *gin.Context) {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.RolePermissionsResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/roles/permissions [post]
-func (h *Handler) Permissions(c *gin.Context) {
+func (h *Handler) GetPermissions(c *gin.Context) {
 	// 获取上下文/语言配置
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)

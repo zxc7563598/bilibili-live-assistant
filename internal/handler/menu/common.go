@@ -5,6 +5,18 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/menu"
 )
 
+// Handler 菜单 HTTP 接口处理器
+type Handler struct {
+	menuSvc *menu.Service
+}
+
+// New 创建 Handler 实例
+func New(menuSvc *menu.Service) *Handler {
+	return &Handler{
+		menuSvc: menuSvc,
+	}
+}
+
 func toMenuItem(list []menu.MenuItem) []resp.MenuItem {
 	res := make([]resp.MenuItem, 0, len(list))
 	for _, v := range list {

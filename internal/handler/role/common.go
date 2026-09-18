@@ -5,6 +5,18 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
 )
 
+// Handler 角色 HTTP 接口处理器
+type Handler struct {
+	roleSvc *role.Service
+}
+
+// New 创建 Handler 实例
+func New(roleSvc *role.Service) *Handler {
+	return &Handler{
+		roleSvc: roleSvc,
+	}
+}
+
 func toRoleListItems(list []role.ListPageItem) []resp.RoleListPageItem {
 	res := make([]resp.RoleListPageItem, 0, len(list))
 	for _, v := range list {

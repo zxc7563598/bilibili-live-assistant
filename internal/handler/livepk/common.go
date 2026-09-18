@@ -5,6 +5,19 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livepk"
 )
 
+// secondsPerDay 一天的秒数，用于将日期范围结束时间戳推到当天最后一秒（23:59:59）
+const secondsPerDay = 24 * 60 * 60
+
+// Handler PK 对战记录 HTTP 接口处理器
+type Handler struct {
+	livepkSvc *livepk.Service
+}
+
+// New 创建 Handler 实例
+func New(livepkSvc *livepk.Service) *Handler {
+	return &Handler{livepkSvc: livepkSvc}
+}
+
 // toLivePkLogListItems PK 对战记录转换：Service 出参 → 响应结构
 func toLivePkLogListItems(list []livepk.ListPageItem) []resp.LivePkLogListPageItem {
 	res := make([]resp.LivePkLogListPageItem, 0, len(list))

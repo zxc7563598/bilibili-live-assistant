@@ -5,6 +5,18 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/order"
 )
 
+// Handler 订单 HTTP 接口处理器
+type Handler struct {
+	orderSvc *order.Service
+}
+
+// New 创建 Handler 实例
+func New(orderSvc *order.Service) *Handler {
+	return &Handler{
+		orderSvc: orderSvc,
+	}
+}
+
 // toOrderAdminListPageItem 后台订单列表转换：在商城端字段基础上额外下发 user_id（内部ID）与 uid/uname
 func toOrderAdminListPageItem(list []order.ListPageItem) []resp.OrderListPageItem {
 	res := make([]resp.OrderListPageItem, 0, len(list))

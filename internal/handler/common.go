@@ -89,12 +89,6 @@ func BindAndValidate(c *gin.Context, req any) (int, bool, error) {
 	return bindAndValidate(c, req, false)
 }
 
-// BindAndValidateAllowEmpty 绑定请求参数并进行验证；请求体为空（不含任何 JSON）时视为未传参直接放行。
-// 适用于所有字段均可选的接口（如 Type *int 可选）。非空请求体仍走完整解码与校验。
-func BindAndValidateAllowEmpty(c *gin.Context, req any) (int, bool, error) {
-	return bindAndValidate(c, req, true)
-}
-
 // UserRequest 移动端认证接口统一前置的结果：上下文、语言与当前用户
 type UserRequest struct {
 	Ctx  context.Context

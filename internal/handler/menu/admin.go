@@ -12,16 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Handler struct {
-	menuSvc *menu.Service
-}
-
-func New(menuSvc *menu.Service) *Handler {
-	return &Handler{
-		menuSvc: menuSvc,
-	}
-}
-
 // @Summary 获取菜单列表
 // @Description 获取系统完整菜单树结构（包含菜单及按钮权限），用于前端动态路由生成和权限控制
 // @Tags 菜单
@@ -29,7 +19,7 @@ func New(menuSvc *menu.Service) *Handler {
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.MenuListResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/menu/list [post]
-func (h *Handler) List(c *gin.Context) {
+func (h *Handler) GetMenuTree(c *gin.Context) {
 	// 获取上下文/语言配置
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
@@ -66,7 +56,7 @@ func (h *Handler) List(c *gin.Context) {
 // @Param data body input.MenuValidateReq true "校验参数（菜单路径）"
 // @Success 200 {object} response.Response{data=resp.MenuValidateResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/menu/validate [post]
-func (h *Handler) Validate(c *gin.Context) {
+func (h *Handler) CheckMenuExists(c *gin.Context) {
 	// 获取上下文/语言配置
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
@@ -81,7 +71,7 @@ func (h *Handler) Validate(c *gin.Context) {
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(
 			logger.MenuLogger,
-			"Validate 参数异常",
+			"CheckMenuExists 参数异常",
 			code,
 			err,
 		)
@@ -116,7 +106,7 @@ func (h *Handler) Validate(c *gin.Context) {
 // @Param data body input.MenuButtonsReq true "查询参数（父级菜单 ID）"
 // @Success 200 {object} response.Response{data=resp.MenuButtonsResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/admin/menu/buttons [post]
-func (h *Handler) Buttons(c *gin.Context) {
+func (h *Handler) ListMenuButtons(c *gin.Context) {
 	// 获取上下文/语言配置
 	ctx := c.Request.Context()
 	lang := i18n.GetLang(ctx)
@@ -131,7 +121,7 @@ func (h *Handler) Buttons(c *gin.Context) {
 	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
 		handler.ErrorLog(
 			logger.MenuLogger,
-			"Buttons 参数异常",
+			"ListMenuButtons 参数异常",
 			code,
 			err,
 		)

@@ -11,16 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Handler struct {
-	addressSvc *address.Service
-}
-
-func New(addressSvc *address.Service) *Handler {
-	return &Handler{
-		addressSvc: addressSvc,
-	}
-}
-
 // @Summary 获取指定收货地址类型的默认地址
 // @Description 返回当前用户在指定收货地址类型（0 虚拟，1 实体）下的默认收货地址，供下单确认等页面默认回填使用；该类型下暂无默认地址时返回空对象。
 // @Tags 移动端
@@ -63,7 +53,7 @@ func (h *Handler) GetDefaultAddress(c *gin.Context) {
 // @Param data body input.AddressGetAddressListReq false "请求参数（可省略；省略或未传 type 时返回全部类型）"
 // @Success 200 {object} response.Response{data=resp.AddressGetAddressListResp} "统一响应（code=0成功，其它失败）"
 // @Router /api/shop/address/list [post]
-func (h *Handler) GetAddressList(c *gin.Context) {
+func (h *Handler) ListAddresses(c *gin.Context) {
 	var req input.AddressGetAddressListReq
 	ur, ok := handler.BindUserRequestAllowEmpty(c, logger.AddressLogger, "GetAddressList", &req)
 	if !ok {

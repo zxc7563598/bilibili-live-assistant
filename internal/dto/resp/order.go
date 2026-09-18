@@ -2,8 +2,8 @@ package resp
 
 import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 
-// OrderGetConfirmResp 获取用户下单数据请求返回
-type OrderGetConfirmResp struct {
+// OrderGetDraftResp 获取用户下单数据请求返回
+type OrderGetDraftResp struct {
 	// id
 	ID int64 `json:"id" example:"1"`
 	// 到期时间(毫秒级时间戳)
