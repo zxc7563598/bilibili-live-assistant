@@ -285,7 +285,7 @@ func (s *Service) Login(ctx context.Context, account int64, password string) (To
 		return TokenResp{}, 60801, err
 	}
 	// 用户不存在且不允许注册，直接结束
-	register := ptr.ParseEnumInt[enum.YesNo](s.configValue(keyRegister))
+	register := ptr.ParseEnumInt[enum.YesNo](s.appConfigCache.GetValue(keyRegister))
 	if user == nil && register == enum.No {
 		return TokenResp{}, 50802, nil
 	}

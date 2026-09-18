@@ -40,19 +40,13 @@ func sniffImage(file *multipart.FileHeader) bool {
 	return strings.HasPrefix(http.DetectContentType(buf[:n]), "image/")
 }
 
-// configValue 读取应用配置值，配置项缺失时返回空字符串
-func (s *Service) configValue(key string) string {
-	val, _ := s.appConfigCache.Get(key)
-	return val
-}
-
 // ossConfigFromCache 从配置缓存读取 OSS 四项配置，任一缺失视为尚未完整配置
 func (s *Service) ossConfigFromCache() (oss.Config, bool) {
 	cfg := oss.Config{
-		Endpoint:        s.configValue(appconfig.KeyOssEndpoint),
-		AccessKeyID:     s.configValue(appconfig.KeyOssAccessKeyId),
-		AccessKeySecret: s.configValue(appconfig.KeyOssAccessKeySecret),
-		Bucket:          s.configValue(appconfig.KeyOssBucket),
+		Endpoint:        s.appConfigCache.GetValue(appconfig.KeyOssEndpoint),
+		AccessKeyID:     s.appConfigCache.GetValue(appconfig.KeyOssAccessKeyId),
+		AccessKeySecret: s.appConfigCache.GetValue(appconfig.KeyOssAccessKeySecret),
+		Bucket:          s.appConfigCache.GetValue(appconfig.KeyOssBucket),
 	}
 	complete := cfg.Endpoint != "" && cfg.AccessKeyID != "" && cfg.AccessKeySecret != "" && cfg.Bucket != ""
 	return cfg, complete

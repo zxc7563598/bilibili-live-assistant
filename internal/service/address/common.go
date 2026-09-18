@@ -8,6 +8,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/region"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 )
 
 // toAddressItem 将数据模型转换为对外返回的地址项
@@ -25,22 +26,14 @@ func toAddressItem(m model.LiveUserAddress) AddressItem {
 	}
 }
 
-// strPtr 安全解引用字符串指针并去除首尾空格
-func strPtr(p *string) string {
-	if p == nil {
-		return ""
-	}
-	return strings.TrimSpace(*p)
-}
-
 // buildCreateEntity 校验新增地址的必填项并组装实体（事务外调用）
 func (s *Service) buildCreateEntity(userID int64, req AddressReq, t enum.AddressType, isDefault enum.YesNo) (*model.LiveUserAddress, int, error) {
 	entity := &model.LiveUserAddress{
 		UserID:    userID,
-		Name:      strPtr(req.Name),
-		Phone:     strPtr(req.Phone),
-		Detail:    strPtr(req.Detail),
-		Email:     strPtr(req.Email),
+		Name:      ptr.TrimStr(req.Name),
+		Phone:     ptr.TrimStr(req.Phone),
+		Detail:    ptr.TrimStr(req.Detail),
+		Email:     ptr.TrimStr(req.Email),
 		Type:      t,
 		IsDefault: isDefault,
 	}
@@ -70,16 +63,16 @@ func (s *Service) buildUpdateEntity(ctx context.Context, userID int64, req Addre
 
 	// 仅覆盖请求中提供的字段，未提供字段保留原值
 	if req.Name != nil {
-		entity.Name = strPtr(req.Name)
+		entity.Name = ptr.TrimStr(req.Name)
 	}
 	if req.Phone != nil {
-		entity.Phone = strPtr(req.Phone)
+		entity.Phone = ptr.TrimStr(req.Phone)
 	}
 	if req.Detail != nil {
-		entity.Detail = strPtr(req.Detail)
+		entity.Detail = ptr.TrimStr(req.Detail)
 	}
 	if req.Email != nil {
-		entity.Email = strPtr(req.Email)
+		entity.Email = ptr.TrimStr(req.Email)
 	}
 	if req.Type != nil {
 		entity.Type = enum.AddressType(*req.Type)
@@ -98,7 +91,7 @@ func (s *Service) buildUpdateEntity(ctx context.Context, userID int64, req Addre
 			return nil, code, err
 		}
 	} else if req.Region != nil {
-		entity.Region = strPtr(req.Region)
+		entity.Region = ptr.TrimStr(req.Region)
 	}
 	// 合并后按该类型校验必填项（含 region_code 已清空的实体地址）
 	if code := validateEntityFields(entity); code != 0 {

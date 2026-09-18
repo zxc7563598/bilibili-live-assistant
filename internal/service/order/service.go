@@ -15,6 +15,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_sku"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/product_sku_stock_log"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 	"gorm.io/gorm"
 )
 
@@ -273,10 +274,10 @@ func (s *Service) UpdateShipStatus(ctx context.Context, req UpdateShipStatusReq)
 		return 11101, errors.New("虚拟订单不支持快递信息")
 	}
 	// 快递信息仅在传了非空值时才覆盖，避免前端提交空串把已填单号冲掉
-	if v := strPtr(req.ExpressCompany); v != "" {
+	if v := ptr.TrimStr(req.ExpressCompany); v != "" {
 		order.ExpressCompany = v
 	}
-	if v := strPtr(req.ExpressNo); v != "" {
+	if v := ptr.TrimStr(req.ExpressNo); v != "" {
 		order.ExpressNo = v
 	}
 	// 发货状态没变就只落快递信息：此时订单状态与发货时间都不该被动
@@ -361,7 +362,7 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 			return 11101, errors.New("虚拟订单只支持变更邮箱")
 		}
 		if req.ReceiverEmail != nil {
-			order.ReceiverEmail = strPtr(req.ReceiverEmail)
+			order.ReceiverEmail = ptr.TrimStr(req.ReceiverEmail)
 		}
 		if order.ReceiverEmail == "" {
 			return 11308, nil
@@ -372,13 +373,13 @@ func (s *Service) UpdateReceiverInfo(ctx context.Context, req UpdateReceiverInfo
 			return 11101, errors.New("实体订单只支持变更收货地址")
 		}
 		if req.ReceiverName != nil {
-			order.ReceiverName = strPtr(req.ReceiverName)
+			order.ReceiverName = ptr.TrimStr(req.ReceiverName)
 		}
 		if req.ReceiverPhone != nil {
-			order.ReceiverPhone = strPtr(req.ReceiverPhone)
+			order.ReceiverPhone = ptr.TrimStr(req.ReceiverPhone)
 		}
 		if req.ReceiverDetail != nil {
-			order.ReceiverDetail = strPtr(req.ReceiverDetail)
+			order.ReceiverDetail = ptr.TrimStr(req.ReceiverDetail)
 		}
 		// 地区以后端从 region_code 派生的文案为准，不接受前端自由文本
 		if req.ReceiverRegionCode != nil {
