@@ -206,6 +206,7 @@ error:
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
+  50301: The menu does not exist or has been deleted # Failed to query menu information
   50801: Tokenizer initialization failed # Tokenizer initialization failed
   50802: Unknown User # Failed to query user information
   51401: Local image not found or has been cleaned, please re-upload # Local file to sync does not exist (Upload)
