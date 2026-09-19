@@ -151,6 +151,9 @@ service.interceptors.request.use(
         if (!isDev && !canEncrypt)
           console.warn('[request] 当前为纯 HTTP 环境，无法使用 Web Crypto 加密，请求以明文发送')
       }
+      else if (import.meta.env.VITE_SIGN_SECRET === '') {
+        console.warn('[request] 当前未配置 sign_secret 无法使用加密请求')
+      }
       else {
         const rsaPublicKey = await fetchPublicKey()
         config.data = await encryptRequest({ data: config.data, rsaPublicKey, signSecret: import.meta.env.VITE_SIGN_SECRET }, ENCRYPT_VERSION)
