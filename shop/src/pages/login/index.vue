@@ -42,7 +42,7 @@
         </p>
         <label class="block">
           <span class="mb-1.5 block text-sm font-medium text-fg-2">{{ needSetup ? '设置密码' : '密码' }}</span>
-          <input v-model="password" type="password" :placeholder="needSetup ? '请设置 6 位以上密码' : '请输入密码'" class="h-12 w-full rounded-2xl border border-line bg-surface px-4 text-[15px] outline-none transition placeholder:text-fg-3 focus:border-primary">
+          <input v-model="password" type="password" :placeholder="needSetup ? '请设置 6 位以上密码' : '请输入密码 · 首次输入即代表设置密码'" class="h-12 w-full rounded-2xl border border-line bg-surface px-4 text-[15px] outline-none transition placeholder:text-fg-3 focus:border-primary">
         </label>
         <label v-if="needSetup" class="block">
           <span class="mb-1.5 block text-sm font-medium text-fg-2">确认密码</span>
