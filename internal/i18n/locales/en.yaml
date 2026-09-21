@@ -447,6 +447,7 @@ export:
     livegift: Gift Records
     livegiftblindbox: Blind Box Records
     livepk: PK Records
+    order: Order Records
   column:
     room_id: Room ID
     live_id: Live ID
@@ -478,6 +479,14 @@ export:
     rival_votes: Rival Votes
     start_at: Started At
     settle_at: Settled At
+    order_sn: Order No.
+    product_info: Product
+    pay_status: Pay Status
+    ship_status: Ship Status
+    order_status: Order Status
+    receiver_type: Product Type
+    receiver_info: Receiver
+    created_at: Created At
   msg:
     aborted: "#Export interrupted, please export again"
 

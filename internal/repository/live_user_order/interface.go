@@ -51,22 +51,35 @@ type Repository interface {
 	// ListPage 分页查询订单，联查 live_users 补充 uid/uname，
 	// 支持 UserID/UID/Uname/OrderSn/OrderStatus/PayStatus/ShipStatus 筛选与白名单字段排序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery) ([]model.LiveUserOrderListItem, int64, error)
+	// CountFiltered 统计命中行数。limit > 0 时只保证「不超过 limit」的语义，
+	// 实现上用「子查询 + LIMIT limit」早停，避免在大表上做全量 COUNT。
+	// 口径与 ListPage 一致（含 live_users 的 LEFT JOIN）
+	CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery, limit int) (int64, error)
+	// ExportChunk 导出用的分块读取：主键 < afterID（afterID 为 0 表示不限）且满足筛选条件，
+	// 按主键倒序取至多 limit 行；口径与 ListPage 一致（含 live_users 的 LEFT JOIN）
+	ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery, afterID int64, limit int) ([]model.LiveUserOrderListItem, error)
 	// GetByOrderSn 根据订单号获取单条订单
 	GetByOrderSn(ctx context.Context, tx *gorm.DB, orderSn string) (*model.LiveUserOrder, error)
 	// GetDetailByID 按主键查询订单详情，联查 live_users 补充 uid/uname；不存在返回 (nil, nil)
 	GetDetailByID(ctx context.Context, tx *gorm.DB, id int64) (*model.LiveUserOrderListItem, error)
 }
 
-// ListPage 分页查询订单，联查 live_users 补充 uid/uname
-func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery) ([]model.LiveUserOrderListItem, int64, error) {
-	var list []model.LiveUserOrderListItem
-	var total int64
-	// 订单是历史快照、用户可能被移除，用 LEFT JOIN 保证订单不丢；
-	// JOIN 打在 live_users 主键上不放大行数，count(*) 依然精确，无需 DISTINCT。
-	// lu 侧不过滤 deleted_at 是有意为之（对齐 live_user_credit_log 的处理）。
-	db := r.ResolveDB(ctx, tx).Model(&model.LiveUserOrder{}).
+// orderBase 订单查询的基准：联查 live_users 补充 uid/uname。
+//
+// 订单是历史快照、用户可能被移除，用 LEFT JOIN 保证订单不丢；
+// JOIN 打在 live_users 主键上不放大行数，count(*) 依然精确，无需 DISTINCT。
+// lu 侧不过滤 deleted_at 是有意为之（对齐 live_user_credit_log 的处理）。
+//
+// 列表 / 计数 / 导出三个入口都必须用这一份：漏掉 Select + Joins 会让 uid/uname 全为
+// 零值，而过滤条件里的 lu.uid 还会引用到未声明的别名，直接报 SQL 错。
+func (r *gormRepo) orderBase(ctx context.Context, tx *gorm.DB) *gorm.DB {
+	return r.ResolveDB(ctx, tx).Model(&model.LiveUserOrder{}).
 		Select("live_user_orders.*, lu.uid, lu.uname").
 		Joins("LEFT JOIN live_users lu ON lu.id = live_user_orders.user_id")
+}
+
+// applyOrderFilters 应用筛选条件，与 ListPage 共用同一份拼装
+func (r *gormRepo) applyOrderFilters(db *gorm.DB, query model.LiveUserOrderListPageQuery) *gorm.DB {
 	if v := query.UserID; v != nil {
 		db = db.Where("live_user_orders.user_id = ?", *v)
 	}
@@ -97,6 +110,14 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 			db = db.Where("live_user_orders.ship_status = ?", s)
 		}
 	}
+	return db
+}
+
+// ListPage 分页查询订单，联查 live_users 补充 uid/uname
+func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery) ([]model.LiveUserOrderListItem, int64, error) {
+	var list []model.LiveUserOrderListItem
+	var total int64
+	db := r.applyOrderFilters(r.orderBase(ctx, tx), query)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -113,6 +134,33 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 	}
 	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
+}
+
+// CountFiltered 统计命中行数，limit > 0 时提前停止
+func (r *gormRepo) CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery, limit int) (int64, error) {
+	db := r.ResolveDB(ctx, tx)
+	sub := r.applyOrderFilters(r.orderBase(ctx, tx), query)
+	if limit > 0 {
+		sub = sub.Limit(limit)
+	}
+	var total int64
+	// 子查询包一层再 count：GORM 的 Count 会剥掉外层 Limit，必须用派生表把早停固定下来
+	err := db.Table("(?) AS t", sub).Count(&total).Error
+	return total, err
+}
+
+// ExportChunk 导出用的分块读取。
+//
+// 游标走 live_user_orders.id：JOIN 打在 live_users 主键上是一对一、不放大行数，
+// 所以按主键递减分块不会跳行也不会重复。
+func (r *gormRepo) ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveUserOrderListPageQuery, afterID int64, limit int) ([]model.LiveUserOrderListItem, error) {
+	var list []model.LiveUserOrderListItem
+	db := r.applyOrderFilters(r.orderBase(ctx, tx), query)
+	if afterID > 0 {
+		db = db.Where("live_user_orders.id < ?", afterID)
+	}
+	err := db.Order("live_user_orders.id desc").Limit(limit).Find(&list).Error
+	return list, err
 }
 
 // GetDetailByID 按主键查询订单详情，联查 live_users 补充 uid/uname；不存在返回 (nil, nil)

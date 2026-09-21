@@ -30,6 +30,7 @@ func initExportService(cfg *config.Config, svc *Services) *export.Service {
 		livegift.NewGiftExporter(svc.LiveGift),
 		livegift.NewBlindBoxExporter(svc.LiveGift),
 		svc.LivePk,
+		svc.Order,
 	)
 	// 启动时列出已注册的模块
 	log.Printf("已注册导出模块: %v（单次上限 %d 行，并发上限 %d）", exportSvc.Modules(), cfg.Export.MaxRows, cfg.Export.MaxConcurrent)

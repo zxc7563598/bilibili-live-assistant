@@ -1,6 +1,13 @@
 <template>
   <CommonPage>
-    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="1250">
+    <MeCrud
+      ref="$table"
+      v-model:query-items="query"
+      :columns="columns"
+      :get-data="api.getList"
+      :scroll-x="1250"
+      export-module="order"
+    >
       <MeQueryItem label="用户UID">
         <n-input-number v-model:value="query.uid" :show-button="false" :precision="0" placeholder="用户完整UID" clearable />
       </MeQueryItem>
@@ -85,7 +92,15 @@ function renderProduct(row) {
 const columns = [
   { title: '订单编号', key: 'order_sn', width: 200, sorter: true },
   { title: '用户昵称', key: 'uname', minWidth: 80, sorter: true },
-  { title: '商品信息', key: 'product_name', minWidth: 260, sorter: true, render: renderProduct },
+  {
+    title: '商品信息',
+    key: 'product_name',
+    // 该单元格摊了商品名、数量、规格三项，导出取后端拼好的同名文案
+    exportKey: 'product_info',
+    minWidth: 260,
+    sorter: true,
+    render: renderProduct,
+  },
   { title: '支付状态', key: 'pay_status', width: 100, sorter: true, render(row) {
     return h(
       NTag,

@@ -447,6 +447,7 @@ export:
     livegift: 礼物记录
     livegiftblindbox: 盲盒记录
     livepk: PK对战记录
+    order: 订单记录
   column:
     room_id: 房间ID
     live_id: 直播ID
@@ -478,6 +479,14 @@ export:
     rival_votes: 对方PK值
     start_at: 开始时间
     settle_at: 结束时间
+    order_sn: 订单编号
+    product_info: 商品信息
+    pay_status: 支付状态
+    ship_status: 发货状态
+    order_status: 订单状态
+    receiver_type: 商品类型
+    receiver_info: 收货信息
+    created_at: 下单时间
   msg:
     aborted: "#导出中断，请重新导出"
 

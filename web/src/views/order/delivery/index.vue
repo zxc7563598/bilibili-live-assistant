@@ -1,6 +1,13 @@
 <template>
   <CommonPage>
-    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="1320">
+    <MeCrud
+      ref="$table"
+      v-model:query-items="query"
+      :columns="columns"
+      :get-data="api.getList"
+      :scroll-x="1320"
+      export-module="order"
+    >
       <MeQueryItem label="用户UID">
         <n-input-number v-model:value="query.uid" :show-button="false" :precision="0" placeholder="用户完整UID" clearable />
       </MeQueryItem>
@@ -85,7 +92,14 @@ function renderReceiver(row) {
 const columns = [
   { title: '订单编号', key: 'order_sn', width: 200, sorter: true },
   { title: '用户昵称', key: 'uname', minWidth: 100, sorter: true },
-  { title: '商品信息', key: 'product_name', minWidth: 260, render: renderProduct },
+  {
+    title: '商品信息',
+    key: 'product_name',
+    // 该单元格摊了商品名、数量、规格三项，导出取后端拼好的同名文案
+    exportKey: 'product_info',
+    minWidth: 260,
+    render: renderProduct,
+  },
   { title: '商品类型', key: 'receiver_type', width: 100, render(row) {
     const isActual = Number(row.receiver_type) === 1
     return h(
@@ -94,7 +108,14 @@ const columns = [
       { default: () => getOptionsLabel(productTypeOptions, row.receiver_type) },
     )
   } },
-  { title: '收货信息', key: 'receiver_name', minWidth: 260, render: renderReceiver },
+  {
+    title: '收货信息',
+    key: 'receiver_name',
+    // 实体单的姓名/电话/地址与虚拟单的邮箱在后端拼成同一列文案
+    exportKey: 'receiver_info',
+    minWidth: 260,
+    render: renderReceiver,
+  },
   { title: '下单时间', key: 'created_at', width: 180, sorter: true },
   {
     title: '操作',
