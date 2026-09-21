@@ -3,19 +3,38 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/glebarez/sqlite"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 // sqlStateDuplicateDatabase PostgreSQL「数据库已存在」的 SQLSTATE
 const sqlStateDuplicateDatabase = "42P04"
+
+// gormLogger 返回写入 <日志根目录>/gorm/ 的 GORM logger
+//
+// GORM 的默认 logger 自建 log.New(os.Stdout, "\r\n", log.LstdFlags) 输出，绕过 log.SetOutput，
+// 宝塔部署时慢 SQL 会漏进面板日志，并且带着 Colorful 打开时的一串 ANSI 颜色码。
+// 阈值与级别沿用 GORM 默认值：只记慢 SQL（≥200ms）与执行报错。
+func gormLogger() gormlogger.Interface {
+	return gormlogger.New(
+		log.New(logger.GormWriter(), "", log.LstdFlags),
+		gormlogger.Config{
+			SlowThreshold: 200 * time.Millisecond,
+			LogLevel:      gormlogger.Warn,
+			Colorful:      false, // 写文件不需要 ANSI 颜色码
+		},
+	)
+}
 
 // InitDB 根据配置初始化数据库，并返回 *gorm.DB
 func InitDB(cfg *Config) (*gorm.DB, error) {
@@ -68,7 +87,7 @@ func initMySQL(cfg *Config) (*gorm.DB, error) {
 		m.Host,
 		m.Port,
 	)
-	serverDB, err := gorm.Open(mysql.Open(serverDSN), &gorm.Config{})
+	serverDB, err := gorm.Open(mysql.Open(serverDSN), &gorm.Config{Logger: gormLogger()})
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
@@ -89,7 +108,7 @@ func initMySQL(cfg *Config) (*gorm.DB, error) {
 		m.Port,
 		m.DBName,
 	)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{TranslateError: true})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{TranslateError: true, Logger: gormLogger()})
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
@@ -106,7 +125,7 @@ func initSQLite(cfg *Config) (*gorm.DB, error) {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, fmt.Errorf("创建 SQLite 数据库目录失败: %w", err)
 	}
-	db, err := gorm.Open(sqlite.Open(filePath), &gorm.Config{TranslateError: true})
+	db, err := gorm.Open(sqlite.Open(filePath), &gorm.Config{TranslateError: true, Logger: gormLogger()})
 	if err != nil {
 		return nil, fmt.Errorf("SQLite 数据库连接失败: %w", err)
 	}
@@ -127,7 +146,7 @@ func initPostgres(cfg *Config) (*gorm.DB, error) {
 		p.Password,
 		p.Port,
 	)
-	serverDB, err := gorm.Open(postgres.Open(serverDSN), &gorm.Config{})
+	serverDB, err := gorm.Open(postgres.Open(serverDSN), &gorm.Config{Logger: gormLogger()})
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
@@ -149,7 +168,7 @@ func initPostgres(cfg *Config) (*gorm.DB, error) {
 		p.DBName,
 		p.Port,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true, Logger: gormLogger()})
 	if err != nil {
 		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}

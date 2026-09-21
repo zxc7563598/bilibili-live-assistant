@@ -9,16 +9,18 @@ import (
 
 // 输出分流用到的子目录名，同时也是文件名中的模块名
 const (
-	ginLogName = "gin"    // Gin 访问日志与 panic 堆栈
-	stdLogName = "stdlog" // 标准库 log（log.Printf / log.Println / log.Fatalf 等）
+	ginLogName  = "gin"    // Gin 访问日志与 panic 堆栈
+	stdLogName  = "stdlog" // 标准库 log（log.Printf / log.Println / log.Fatalf 等）
+	gormLogName = "gorm"   // GORM 的慢 SQL 与执行报错
 )
 
 var (
 	redirectOnce sync.Once
 	ginSink      io.Writer
+	gormSink     io.Writer
 )
 
-// InitRedirect 把标准库 log 与 Gin 的输出分别重定向到日志根目录下的独立子目录
+// InitRedirect 把标准库 log、Gin、GORM 的输出分别重定向到日志根目录下的独立子目录
 //
 // 必须在 InitAll 之后调用：两者都依赖 logDir，且 InitAll 自身用 log.Fatalf 报错，
 // 那条报错必须落在 stderr（宝塔面板日志）——日志目录建不出来时，也没有文件可写。
@@ -29,6 +31,7 @@ func InitRedirect(mirrorConsole bool) {
 		// 先建 sink、最后再 SetOutput：构建过程中的告警仍走 stderr
 		stdSink := newSink(stdLogName, mirrorConsole)
 		ginSink = newSink(ginLogName, mirrorConsole)
+		gormSink = newSink(gormLogName, mirrorConsole)
 		log.SetOutput(stdSink)
 	})
 }
@@ -40,6 +43,14 @@ func InitRedirect(mirrorConsole bool) {
 func GinWriter() io.Writer {
 	if ginSink != nil {
 		return ginSink
+	}
+	return os.Stderr
+}
+
+// GormWriter 返回 GORM SQL 日志的写入目标，未初始化时同样退回 stderr
+func GormWriter() io.Writer {
+	if gormSink != nil {
+		return gormSink
 	}
 	return os.Stderr
 }

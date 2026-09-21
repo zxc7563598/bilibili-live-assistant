@@ -73,7 +73,7 @@ file: # 文件存储配置
   upload_dir: uploads # 上传图片落盘目录（对外访问前缀固定为 /uploads）
 
 log: # 日志配置
-  dir: logs # 日志根目录，业务模块日志按模块名在其下建子目录，Gin 访问日志与标准库输出分别落在 gin/ 和 stdlog/
+  dir: logs # 日志根目录，业务模块日志按模块名在其下建子目录，Gin 访问日志、标准库输出、GORM 慢 SQL 分别落在 gin/、stdlog/、gorm/
 
 # 说明：以上相对路径均以本配置文件所在目录为基准解析，不受启动时工作目录影响
 `
