@@ -440,6 +440,29 @@ definitions:
         maxLength: 255
         type: string
     type: object
+  input.ExportTicketReq:
+    properties:
+      columns:
+        description: 期望导出的列 key，顺序即 CSV 列顺序，须为模块声明过的列
+        example:
+        - uid
+        - uname
+        - msg
+        items:
+          type: string
+        minItems: 1
+        type: array
+      filters:
+        description: 筛选条件，字段与各模块列表接口同口径；为空表示不筛
+        type: object
+      module:
+        description: 导出模块标识，与前端 MeCrud 的 export-module 一致
+        example: livedanmu
+        type: string
+    required:
+    - columns
+    - module
+    type: object
   input.FeedbackDetailsReq:
     properties:
       id:
@@ -2435,6 +2458,25 @@ definitions:
       color:
         description: 主题色（十六进制）
         example: '#ffffff'
+        type: string
+    type: object
+  resp.ExportTicketResp:
+    properties:
+      expires_at:
+        description: 凭证过期时间（unix 秒）
+        example: 1790000000
+        type: integer
+      filename:
+        description: 建议的文件名
+        example: 弹幕记录_20260921_1530.csv
+        type: string
+      total:
+        description: 本次导出的命中行数
+        example: 1024
+        type: integer
+      url:
+        description: 下载地址（含凭证），前端据此触发浏览器原生下载
+        example: /api/admin/export/download?ticket=xxx
         type: string
     type: object
   resp.FeedbackDetailsResp:
@@ -4670,6 +4712,69 @@ paths:
       summary: 切换管理员角色
       tags:
       - 认证
+  /api/admin/export/download:
+    get:
+      description: |-
+        凭凭证下载。浏览器原生下载无法携带 Authorization 头，因此凭证即鉴权，
+        与 /api/admin/live/messages/stream 用 query 传 token 是同一类做法。
+        响应为流式 CSV，不是统一 JSON 信封；失败时返回纯文本与对应状态码。
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 下载凭证
+        in: query
+        name: ticket
+        required: true
+        type: string
+      responses:
+        "200":
+          description: CSV 文件流
+          schema:
+            type: file
+      summary: 下载导出的 CSV
+      tags:
+      - 数据导出
+  /api/admin/export/ticket:
+    post:
+      description: |-
+        按当前筛选条件校验导出请求（模块、列、行数上限、并发数），通过后返回一次性下载地址。
+        所有校验都在这步完成：后续的下载接口走浏览器原生下载，失败信息无法展示给用户。
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ExportTicketReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.ExportTicketResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 领取数据导出下载凭证
+      tags:
+      - 数据导出
   /api/admin/feedback/details:
     post:
       description: 根据投诉ID返回投诉全部字段（含投诉正文），以及投诉用户的 uid/uname

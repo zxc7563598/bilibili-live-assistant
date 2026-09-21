@@ -197,6 +197,13 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// 投诉管理路由
 	adminApi.POST("/feedback/list", middleware.AdminAuth(rdb), handlers.Feedback.ListPage)
 	adminApi.POST("/feedback/details", middleware.AdminAuth(rdb), handlers.Feedback.Details)
+	// 数据导出路由
+	// 获取凭证走正常鉴权与 JSON 信封，所有校验（模块/列/行数上限/并发）都在这一步完成
+	adminApi.POST("/export/ticket", middleware.AdminAuth(rdb), handlers.Export.CreateTicket)
+	// 下载接口的鉴权在 Handler 内部通过 query param（?ticket=xxx）处理，
+	// 因为浏览器原生下载不支持自定义请求头，无法使用 AdminAuth 中间件；
+	// 凭证为短时效（默认 120 秒）的签名串，与 /live/messages/stream 用 ?token= 是同一类做法
+	adminApi.GET("/export/download", handlers.Export.Download)
 	return r
 }
 

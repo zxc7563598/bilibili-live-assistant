@@ -75,6 +75,14 @@ file: # 文件存储配置
 log: # 日志配置
   dir: logs # 日志根目录，业务模块日志按模块名在其下建子目录，Gin 访问日志、标准库输出、GORM 慢 SQL 分别落在 gin/、stdlog/、gorm/
 
+export: # 数据导出配置
+  max_rows: 5000000 # 单次导出行数上限，超出直接拒绝
+  max_concurrent: 2 # 同时进行的导出数上限
+  batch_size: 10000 # 分块扫描的每块行数
+  ticket_ttl: 120 # 下载凭证有效期（秒）
+  max_duration: 600 # 单次导出墙钟上限（秒）
+  write_idle_timeout: 30 # 客户端写空闲上限（秒），每块续期
+
 # 说明：以上相对路径均以本配置文件所在目录为基准解析，不受启动时工作目录影响
 `
 

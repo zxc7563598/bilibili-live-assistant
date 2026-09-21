@@ -149,7 +149,8 @@ T MM XX
 | 14 | 上传模块（Upload） | `internal/service/upload/code.go` |
 | 15 | PK 对战记录模块（LivePk） | `internal/service/livepk/code.go` |
 | 16 | 验证码模块（Altcha） | `internal/service/altcha/code.go` |
-| 17–99 | 未分配 | — |
+| 17 | 导出模块（Export） | `internal/service/export/code.go` |
+| 18–99 | 未分配 | — |
 
 新增业务模块时，分配新的 MM 编号并在此文档更新。
 

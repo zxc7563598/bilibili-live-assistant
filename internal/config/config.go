@@ -94,6 +94,22 @@ type LogConfig struct {
 	Dir string `yaml:"dir"`
 }
 
+// ExportConfig 数据导出配置
+type ExportConfig struct {
+	// MaxRows 单次导出行数上限，超出直接拒绝
+	MaxRows int `yaml:"max_rows"`
+	// MaxConcurrent 同时进行的导出数上限
+	MaxConcurrent int `yaml:"max_concurrent"`
+	// BatchSize 分块扫描的每块行数
+	BatchSize int `yaml:"batch_size"`
+	// TicketTTL 下载凭证有效期（秒）
+	TicketTTL int `yaml:"ticket_ttl"`
+	// MaxDuration 单次导出墙钟上限（秒）
+	MaxDuration int `yaml:"max_duration"`
+	// WriteIdleTimeout 客户端写空闲上限（秒），每块续期
+	WriteIdleTimeout int `yaml:"write_idle_timeout"`
+}
+
 type Config struct {
 	Server   ServerConfig       `yaml:"server"`
 	Database DatabaseConfig     `yaml:"database"`
@@ -106,6 +122,7 @@ type Config struct {
 	Live     LiveConfig         `yaml:"live"`
 	File     FileConfig         `yaml:"file"`
 	Log      LogConfig          `yaml:"log"`
+	Export   ExportConfig       `yaml:"export"`
 
 	// ConfigDir 配置文件所在目录（绝对路径），由 LoadConfig 填充，不从 YAML 读取。
 	// 供需要与配置同目录存放的运行时文件定位使用（如 RSA 密钥对）。
@@ -222,9 +239,28 @@ func ValidateConfig(cfg *Config) error {
 	if cfg.JWT.RefreshTTL <= 0 {
 		return fmt.Errorf("refresh ttl 必须大于 0")
 	}
-	// 请求时间偏差窗口默认值（未配置时与 pkg/crypto 内置默认一致）
+	// 请求时间偏差窗口默认值
 	if cfg.Crypto.Timestamp == 0 {
 		cfg.Crypto.Timestamp = 60
+	}
+	// 数据导出默认值
+	if cfg.Export.MaxRows <= 0 {
+		cfg.Export.MaxRows = 5000000
+	}
+	if cfg.Export.MaxConcurrent <= 0 {
+		cfg.Export.MaxConcurrent = 2
+	}
+	if cfg.Export.BatchSize <= 0 {
+		cfg.Export.BatchSize = 10000
+	}
+	if cfg.Export.TicketTTL <= 0 {
+		cfg.Export.TicketTTL = 120
+	}
+	if cfg.Export.MaxDuration <= 0 {
+		cfg.Export.MaxDuration = 600
+	}
+	if cfg.Export.WriteIdleTimeout <= 0 {
+		cfg.Export.WriteIdleTimeout = 30
 	}
 	return nil
 }

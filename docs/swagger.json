@@ -708,6 +708,99 @@
                 }
             }
         },
+        "/api/admin/export/download": {
+            "get": {
+                "description": "凭凭证下载。浏览器原生下载无法携带 Authorization 头，因此凭证即鉴权，\n与 /api/admin/live/messages/stream 用 query 传 token 是同一类做法。\n响应为流式 CSV，不是统一 JSON 信封；失败时返回纯文本与对应状态码。",
+                "tags": [
+                    "数据导出"
+                ],
+                "summary": "下载导出的 CSV",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "下载凭证",
+                        "name": "ticket",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV 文件流",
+                        "schema": {
+                            "type": "file"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/export/ticket": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按当前筛选条件校验导出请求（模块、列、行数上限、并发数），通过后返回一次性下载地址。\n所有校验都在这步完成：后续的下载接口走浏览器原生下载，失败信息无法展示给用户。",
+                "tags": [
+                    "数据导出"
+                ],
+                "summary": "领取数据导出下载凭证",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.ExportTicketReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.ExportTicketResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/feedback/details": {
             "post": {
                 "security": [
@@ -5808,6 +5901,37 @@
                 }
             }
         },
+        "input.ExportTicketReq": {
+            "type": "object",
+            "required": [
+                "columns",
+                "module"
+            ],
+            "properties": {
+                "columns": {
+                    "description": "期望导出的列 key，顺序即 CSV 列顺序，须为模块声明过的列",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "uid",
+                        "uname",
+                        "msg"
+                    ]
+                },
+                "filters": {
+                    "description": "筛选条件，字段与各模块列表接口同口径；为空表示不筛",
+                    "type": "object"
+                },
+                "module": {
+                    "description": "导出模块标识，与前端 MeCrud 的 export-module 一致",
+                    "type": "string",
+                    "example": "livedanmu"
+                }
+            }
+        },
         "input.FeedbackDetailsReq": {
             "type": "object",
             "required": [
@@ -8422,6 +8546,31 @@
                     "description": "主题色（十六进制）",
                     "type": "string",
                     "example": "#ffffff"
+                }
+            }
+        },
+        "resp.ExportTicketResp": {
+            "type": "object",
+            "properties": {
+                "expires_at": {
+                    "description": "凭证过期时间（unix 秒）",
+                    "type": "integer",
+                    "example": 1790000000
+                },
+                "filename": {
+                    "description": "建议的文件名",
+                    "type": "string",
+                    "example": "弹幕记录_20260921_1530.csv"
+                },
+                "total": {
+                    "description": "本次导出的命中行数",
+                    "type": "integer",
+                    "example": 1024
+                },
+                "url": {
+                    "description": "下载地址（含凭证），前端据此触发浏览器原生下载",
+                    "type": "string",
+                    "example": "/api/admin/export/download?ticket=xxx"
                 }
             }
         },

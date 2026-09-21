@@ -103,6 +103,7 @@ r = RouteRegister(r, rdb, handlers)
 | 数据模型 | [model/CLAUDE.md](model/CLAUDE.md) | GORM 映射、BaseModel、查询结构体 |
 | 数据访问 | [repository/CLAUDE.md](repository/CLAUDE.md) | 接口定义、Base Repository、事务支持 |
 | 业务逻辑 | [service/CLAUDE.md](service/CLAUDE.md) | 流程编排、DTO 定义、依赖注入 |
+| 数据导出 | [service/export/CLAUDE.md](service/export/CLAUDE.md) | 下载凭证、CSV 流式写出、新增可导出模块 |
 | 接口层 | [handler/CLAUDE.md](handler/CLAUDE.md) | 参数绑定、响应封装、Swagger、错误处理 |
 | 数据传输 | [dto/CLAUDE.md](dto/CLAUDE.md) | input/resp 结构规范、校验标签 |
 | 枚举 | [enum/CLAUDE.md](enum/CLAUDE.md) | Key/Text/IsValid 方法、避免硬编码 |

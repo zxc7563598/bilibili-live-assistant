@@ -6,6 +6,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/altcha"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/appconfig"
+	exportHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/export"
 	feedbackHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/feedback"
 	liveHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/livedanmu"
@@ -37,6 +38,7 @@ type Handlers struct {
 	Address     *address.Handler
 	Feedback    *feedbackHdlr.Handler
 	Upload      *uploadHdlr.Handler
+	Export      *exportHdlr.Handler
 }
 
 func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
@@ -57,5 +59,6 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		Address:     address.New(svc.Address),
 		Feedback:    feedbackHdlr.New(svc.Feedback),
 		Upload:      uploadHdlr.New(svc.Upload),
+		Export:      exportHdlr.New(svc.Export),
 	}
 }

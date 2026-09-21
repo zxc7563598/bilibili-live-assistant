@@ -57,6 +57,8 @@
 # 13 Address Module
 # 14 Upload Module
 # 15 LivePK Module
+# 16 Altcha Module
+# 17 Export Module
 
 # (Can be extended according to actual business needs, recommended to divide by functionality and keep stable)
 #
@@ -186,6 +188,9 @@ error:
   11501: Invalid request parameters # Parameter validation failed (PK battle records)
   11601: Invalid request parameters
   11602: Please complete the captcha verification
+  11701: Invalid export column # Contains a column not declared by the module
+  11702: Select at least one column to export
+  11703: Invalid export parameters
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   20101: Login status is abnormal, please log in again
@@ -194,6 +199,7 @@ error:
   20801: Login status is abnormal, please log in again
   20802: Login status is abnormal, please log in again
   20803: Login expired, please log in again
+  21701: Export link has expired, please export again # Download ticket invalid or expired
   30001: Unauthorized operation # The current account does not have access permission
   30101: Unable to switch to this role # Current account lacks permission to switch to this role
   40101: Incorrect account or password # Password error (avoid being too specific)
@@ -218,6 +224,9 @@ error:
   41105: Insufficient balance
   41601: Captcha verification failed
   41602: Captcha expired, please refresh and try again
+  41701: Too many exports in progress, please try again later # Exceeds export.max_concurrent
+  41702: Too many rows to export, please narrow the filters # Exceeds export.max_rows
+  41703: No data to export # Zero rows matched
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
@@ -234,6 +243,7 @@ error:
   51106: Address not found
   51201: Feedback record does not exist # Feedback record not found (Feedback admin)
   51301: Address not found # Address does not exist or does not belong to the user
+  51701: Export module not found # Module name not in the export registry
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception
   60102: System busy, please try again later # accessToken generation failed
@@ -292,6 +302,7 @@ error:
   61404: Failed to sync image to OSS, please try again later # Image upload to OSS error (Upload)
   61501: System busy, please try again later # Database query exception (PK battle records)
   61601: System busy, please try again later
+  61701: System busy, please try again later # Internal export failure (count/read/sign)
 
 
 
@@ -427,6 +438,24 @@ draft_status:
   active: active
   redeemed: redeemed
   cancelled: cancelled
+
+# Data export: module labels the download filename, column entries are CSV headers
+export:
+  module:
+    livedanmu: Danmu Records
+  column:
+    room_id: Room ID
+    live_id: Live ID
+    uid: User UID
+    uname: Username
+    msg: Danmu Content
+    badge_room_id: Badge Room ID
+    badge_name: Badge Name
+    badge_level: Badge Level
+    badge_type: Badge Type
+    send_at: Sent At
+  msg:
+    aborted: "#Export interrupted, please export again"
 
 no: no
 yes: yes

@@ -9,6 +9,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/admin"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/altcha"
 	appconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/appconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/export"
 	feedbacksvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/feedback"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livedanmu"
@@ -45,12 +46,13 @@ type Services struct {
 	Order       *order.Service
 	Feedback    *feedbacksvc.Service
 	Upload      *uploadsvc.Service
+	Export      *export.Service
 }
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache, appConfigCache *appconfig.Cache) *Services {
 	robotConfigSvc := robotconfigsvc.New(repo.RobotConfig, configCache, db)
 	liveUserSvc := liveuser.New(db, rdb, appConfigCache, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveDanmu, repo.LiveGift, repo.LiveSession)
-	return &Services{
+	services := &Services{
 		Address:     address.New(db, repo.LiveUserAddress),
 		Admin:       admin.New(repo.Admin, repo.AdminRole, repo.Role, db, rdb),
 		Role:        role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),
@@ -68,4 +70,7 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		Feedback:    feedbacksvc.New(repo.Feedback),
 		Upload:      uploadsvc.New(appConfigCache),
 	}
+	// 导出服务需要消费各业务模块的导出数据源，因此在服务组装完之后再装配
+	services.Export = initExportService(cfg, services)
+	return services
 }
