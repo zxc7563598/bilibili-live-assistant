@@ -446,6 +446,7 @@ export:
     liveuser: User List
     livegift: Gift Records
     livegiftblindbox: Blind Box Records
+    livepk: PK Records
   column:
     room_id: Room ID
     live_id: Live ID
@@ -468,6 +469,15 @@ export:
     original_gift_name: Blind Box Gift
     original_gift_price: Blind Box Price
     profit: Profit
+    pk_id: PK ID
+    pk_status: PK Status
+    battle_type: Battle Type
+    rival_uid: Rival UID
+    rival_uname: Rival Name
+    self_votes: Our Votes
+    rival_votes: Rival Votes
+    start_at: Started At
+    settle_at: Settled At
   msg:
     aborted: "#Export interrupted, please export again"
 

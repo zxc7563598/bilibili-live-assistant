@@ -46,6 +46,12 @@ type Repository interface {
 	GetByPkID(ctx context.Context, tx *gorm.DB, pkID int64) (*model.LivePkLog, error)
 	// ListPage 分页查询 PK 记录，支持房间号/对方UID/对方名称/我方胜负/开始时间筛选与白名单排序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) ([]model.LivePkLog, int64, error)
+	// CountFiltered 统计命中行数。limit > 0 时只保证「不超过 limit」的语义，
+	// 实现上用「子查询 + LIMIT limit」早停，避免在大表上做全量 COUNT
+	CountFiltered(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery, limit int) (int64, error)
+	// ExportChunk 导出用的分块读取：主键 < afterID（afterID 为 0 表示不限）且满足筛选条件，
+	// 按主键倒序取至多 limit 行
+	ExportChunk(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery, afterID int64, limit int) ([]model.LivePkLog, error)
 	// CountResultStats 按与 ListPage 相同的筛选条件聚合出场次、我方胜利数与失败数
 	CountResultStats(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery) (totalNum, winNum, loseNum int64, err error)
 	// CountRivalResults 聚合与指定对手的历史战绩，excludePkID > 0 时排除该场
@@ -89,6 +95,30 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LivePk
 	}
 	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
+}
+
+// CountFiltered 统计命中行数，limit > 0 时提前停止
+func (r *gormRepo) CountFiltered(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery, limit int) (int64, error) {
+	db := r.ResolveDB(ctx, tx)
+	sub := r.applyLivePkLogListQuery(db.Model(&model.LivePkLog{}).Select("1"), query)
+	if limit > 0 {
+		sub = sub.Limit(limit)
+	}
+	var total int64
+	// 子查询包一层再 count：GORM 的 Count 会剥掉外层 Limit，必须用派生表把早停固定下来
+	err := db.Table("(?) AS t", sub).Count(&total).Error
+	return total, err
+}
+
+// ExportChunk 导出用的分块读取
+func (r *gormRepo) ExportChunk(ctx context.Context, tx *gorm.DB, query model.LivePkLogListPageQuery, afterID int64, limit int) ([]model.LivePkLog, error) {
+	var list []model.LivePkLog
+	db := r.applyLivePkLogListQuery(r.ResolveDB(ctx, tx).Model(&model.LivePkLog{}), query)
+	if afterID > 0 {
+		db = db.Where("id < ?", afterID)
+	}
+	err := db.Order("id desc").Limit(limit).Find(&list).Error
+	return list, err
 }
 
 // CountResultStats 与 ListPage 共用同一套筛选条件，保证统计口径与列表完全一致

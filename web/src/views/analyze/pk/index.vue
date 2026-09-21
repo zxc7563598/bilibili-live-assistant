@@ -1,6 +1,13 @@
 <template>
   <CommonPage>
-    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="getData" :scroll-x="800">
+    <MeCrud
+      ref="$table"
+      v-model:query-items="query"
+      :columns="columns"
+      :get-data="getData"
+      :scroll-x="800"
+      export-module="livepk"
+    >
       <MeQueryItem label="房间ID">
         <n-select v-model:value="query.room_id" :options="roomOptions" placeholder="请指定房间" />
       </MeQueryItem>
