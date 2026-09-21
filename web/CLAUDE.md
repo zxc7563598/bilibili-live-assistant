@@ -135,8 +135,19 @@ web/src
 | `getData` (必传) | 数据请求方法，自动传 `{ ...queryItems, pageNo, pageSize }`，排序激活时额外带 `sortField`/`sortOrder`，需返回 `{ data: { pageData, total } }` |
 | `queryItems`     | 查询参数（v-model）                                                                                |
 | `remote`         | 是否后端分页（默认 true）                                                                          |
+| `exportModule`   | 后端注册过的导出模块名（如 `'livedanmu'`）；传了才出现「导出」按钮，不传行为与改造前一致。详见下方「数据导出」 |
 
 暴露方法（通过 ref）：`handleSearch()`、`handleReset()`、`handleExport()`
+
+### 数据导出（`exportModule`）
+
+给 `MeCrud` 传 `export-module="<模块名>"` 即在该页启用「导出」按钮，导出**当前筛选条件下的全部数据**（不是当前页）。
+
+- **后端生成 CSV**，流式输出：全量数据不进浏览器内存，不受 axios 12 秒超时与 xlsx 百万行上限（104 万行）限制。
+- **所有校验在「获取凭证」时完成**（模块、列、行数上限、并发数），因此失败能正常弹提示；下载走浏览器原生下载，出错信息无法展示给用户。
+- **列 = 表格列中带 `title` 且未标 `hideInExcel` 的列**，顺序一致。展示 key 与后端字段不一致时可给列加 `exportKey` 覆盖（用法同 `sortField`）。**列头文案由后端按语言生成**，前端只传 key。
+- **行序固定按主键倒序**，不跟随页面排序（跟随排序要按无索引列排序，百万行下每块都要全表扫描）。
+- 接入一个新模块需要后端先实现并注册 `export.Source`，见 [internal/service/export/CLAUDE.md](../internal/service/export/CLAUDE.md)。
 
 ### MeModal
 

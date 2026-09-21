@@ -18,6 +18,10 @@
             <i class="i-fe:search mr-4" />
             搜索
           </n-button>
+          <n-button v-if="exportModule" class="ml-20" ghost type="primary" :loading="exporting" @click="handleExport">
+            <i class="i-fe:download mr-4" />
+            导出
+          </n-button>
           <template v-if="expand">
             <n-button v-if="!isExpanded" type="primary" text @click="toggleExpand">
               <i class="i-fe:chevrons-down ml-4" />
@@ -56,7 +60,8 @@
 
 <script setup>
 import { NDataTable } from 'naive-ui'
-import { utils, writeFile } from 'xlsx'
+import exportApi from '@/api/export'
+import { downloadByUrl } from '@/utils'
 
 const props = defineProps({
   /**
@@ -108,12 +113,27 @@ const props = defineProps({
     type: Function,
     required: true,
   },
+  /**
+   * ! 数据导出
+   * 传入后端注册过的导出模块名（如 'livedanmu'）后，工具栏会出现「导出」按钮，
+   * 导出**当前筛选条件下的全部数据**（不是当前页），后端流式产出 CSV。
+   * 不传则完全不出现导出按钮 —— 未接入导出的页面行为与改造前一致。
+   *
+   * 导出的列 = 表格列中带 title 且未标 hideInExcel 的列（顺序一致）；
+   * 展示 key 与后端字段不一致的列可用列上的 exportKey 覆盖（对齐 sortField 的用法）。
+   */
+  exportModule: {
+    type: String,
+    default: '',
+  },
   /** 是否支持展开 */
   expand: Boolean,
 })
 
 const emit = defineEmits(['update:queryItems', 'onChecked', 'onDataChange'])
 const loading = ref(false)
+// 导出按钮的 loading：覆盖「获取凭证（含后端统计行数）」这段等待
+const exporting = ref(false)
 const initQuery = { ...props.queryItems }
 const tableData = ref([])
 const pagination = reactive({
@@ -239,17 +259,39 @@ function onSorterChange(sorterState) {
     handleQuery()
   }
 }
-function handleExport(columns = props.columns, data = tableData.value) {
-  if (!data?.length)
-    return $message.warning('没有数据')
-  const columnsData = columns.filter(item => !!item.title && !item.hideInExcel)
-  const thKeys = columnsData.map(item => item.key)
-  const thData = columnsData.map(item => typeof item.title === 'function' ? item.key : item.title)
-  const trData = data.map(item => thKeys.map(key => item[key]))
-  const sheet = utils.aoa_to_sheet([thData, ...trData])
-  const workBook = utils.book_new()
-  utils.book_append_sheet(workBook, sheet, '数据报表')
-  writeFile(workBook, '数据报表.xlsx')
+
+/**
+ * 导出当前筛选条件下的全部数据（不是当前页）。
+ *
+ * 后端流式产出 CSV，前端只负责获取凭证 + 触发浏览器原生下载 ——
+ * 全量数据不进浏览器内存，也不受 axios 12 秒超时与 xlsx 百万行上限的限制。
+ * 列头文案由后端按语言生成，这里只传列的 key 与顺序。
+ */
+async function handleExport() {
+  if (!props.exportModule || exporting.value)
+    return
+  // 与表格列同一套可见性规则：hideInExcel 的列（通常是操作列）不参与导出
+  const keys = props.columns.filter(item => !!item.title && !item.hideInExcel).map(item => item.exportKey ?? item.key)
+  if (!keys.length)
+    return $message.warning('没有可导出的列')
+  // 按钮自身转圈即可覆盖「统计行数」这段等待：百万行表上的统计可能耗时数秒
+  exporting.value = true
+  try {
+    const { data } = await exportApi.createTicket({
+      module: props.exportModule,
+      columns: keys,
+      filters: { ...props.queryItems },
+    })
+    $message.success(`已开始导出，共 ${data.total} 条，请在浏览器下载栏查看进度`)
+    downloadByUrl(data.url)
+  }
+  catch (error) {
+    // 失败提示由响应拦截器统一弹出（模块不存在、列不合法、超行数上限、并发超限等）
+    console.error('导出失败', error)
+  }
+  finally {
+    exporting.value = false
+  }
 }
 
 defineExpose({
