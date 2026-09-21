@@ -13,6 +13,11 @@ func Run(db *gorm.DB) error {
 	if err := dedupeLiveUserSignLogSignDate(db); err != nil {
 		return err
 	}
+	// 升级早期版本：为 live_users 补齐 v2.0.0 新增的 password / face 列。
+	// 必须赶在 AutoMigrate 之前，否则 ADD COLUMN 会带上 NOT NULL 而被 SQLite / PostgreSQL 拒绝
+	if err := addLiveUserPasswordFaceColumns(db); err != nil {
+		return err
+	}
 	if err := db.AutoMigrate(
 		&model.Admin{},
 		&model.Role{},

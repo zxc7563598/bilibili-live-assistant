@@ -10,6 +10,49 @@ import (
 // liveUserBackfillBatchSize 回填时每批读取的待处理行数，避免大表一次性载入内存
 const liveUserBackfillBatchSize = 500
 
+// addLiveUserPasswordFaceColumns 升级早期版本：为 live_users 补齐 v2.0.0 新增的 password / face 列
+//
+// 必须在 Run() 的 AutoMigrate 之前执行。这两列在模型里是 NOT NULL 且没写默认值，
+// 而 v2.0.0 之前的库里没有它们，AutoMigrate 对已存在的表只会走
+//
+//	ALTER TABLE live_users ADD COLUMN password varchar(255) NOT NULL
+//
+// SQLite 与 PostgreSQL 都拒绝这句（SQLite 报 Cannot add a NOT NULL column with
+// default value NULL），迁移失败会让进程起不来。
+//
+// 所以这里自己补列，且刻意不带 NOT NULL、不带 DEFAULT：
+//   - 三种驱动都接受这种写法
+//   - 可空列不会触发 GORM 的 AlterColumn。MigrateColumn 里 nullable 与 NotNull 的比较
+//     只在「库可空、模型非空」时才动手，方向是把 NOT NULL 放松成可空，不会反过来收紧，
+//     因此 AutoMigrate 看到列已存在就不会重建表（glebarez/sqlite 的 AlterColumn 是整表重建）。
+//
+// 补完立刻回填空串：ADD COLUMN 后存量行是 NULL，而 Password 为空串正好是
+// Login 里「首次登录即设置密码」所判定的状态，与监听器自动注册的观众行一致。
+func addLiveUserPasswordFaceColumns(db *gorm.DB) error {
+	m := db.Migrator()
+	if !m.HasTable(&model.LiveUser{}) {
+		// 全新库：交给 AutoMigrate 建表，列会按模型定义建好
+		return nil
+	}
+	table := model.LiveUser{}.TableName()
+	// 字段名给 HasColumn（与同包其它调用保持一致），真实列名给裸 SQL
+	for _, col := range []struct{ field, column string }{
+		{"Password", "password"},
+		{"Face", "face"},
+	} {
+		if m.HasColumn(&model.LiveUser{}, col.field) {
+			continue
+		}
+		if err := db.Exec("ALTER TABLE " + table + " ADD COLUMN " + col.column + " varchar(255)").Error; err != nil {
+			return err
+		}
+		if err := db.Exec("UPDATE " + table + " SET " + col.column + " = '' WHERE " + col.column + " IS NULL").Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // backfillLiveUserDanmuGift 兼容历史数据：为已存在的 live_users 表回填 total_danmu_count / total_gift_amount
 //
 // 依赖 Run() 中先执行的 AutoMigrate 创建这两列（不在此手动写 ALTER DDL）。
