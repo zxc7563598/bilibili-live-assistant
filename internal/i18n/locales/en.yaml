@@ -443,6 +443,7 @@ draft_status:
 export:
   module:
     livedanmu: Danmu Records
+    liveuser: User List
   column:
     room_id: Room ID
     live_id: Live ID
@@ -454,6 +455,10 @@ export:
     badge_level: Badge Level
     badge_type: Badge Type
     send_at: Sent At
+    points: Points
+    stars: Stars
+    total_danmu_count: Danmu Count
+    total_gift_amount: Gift Amount
   msg:
     aborted: "#Export interrupted, please export again"
 

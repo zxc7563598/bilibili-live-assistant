@@ -443,6 +443,7 @@ draft_status:
 export:
   module:
     livedanmu: 弹幕记录
+    liveuser: 用户列表
   column:
     room_id: 房间ID
     live_id: 直播ID
@@ -454,6 +455,10 @@ export:
     badge_level: 牌子等级
     badge_type: 牌子类型
     send_at: 发送时间
+    points: 积分
+    stars: 星光
+    total_danmu_count: 发送弹幕
+    total_gift_amount: 礼物金额
   msg:
     aborted: "#导出中断，请重新导出"
 

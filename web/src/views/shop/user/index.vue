@@ -1,6 +1,13 @@
 <template>
   <CommonPage>
-    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="1250">
+    <MeCrud
+      ref="$table"
+      v-model:query-items="query"
+      :columns="columns"
+      :get-data="api.getList"
+      :scroll-x="1250"
+      export-module="liveuser"
+    >
       <MeQueryItem label="用户UID">
         <n-input-number v-model:value="query.uid" :show-button="false" :precision="0" placeholder="用户完整UID" />
       </MeQueryItem>

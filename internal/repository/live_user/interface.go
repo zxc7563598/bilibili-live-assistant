@@ -64,6 +64,14 @@ type Repository interface {
 	// ListPage 分页查询用户，UID 精确匹配，Uname 模糊匹配；
 	// 支持按白名单字段排序，非法/空排序参数回退按 created_at desc
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery) ([]model.LiveUser, int64, error)
+	// CountFiltered 统计命中行数。limit > 0 时只保证「不超过 limit」的语义，
+	// 实现上用「子查询 + LIMIT limit」早停，避免在大表上做全量 COUNT
+	CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery, limit int) (int64, error)
+	// ExportChunk 导出用的分块读取：主键 < afterID（afterID 为 0 表示不限）且满足筛选条件，
+	// 按主键倒序取至多 limit 行。
+	//
+	// 按主键而非 created_at 分块：主键有索引且唯一，天然满足「已取过的行不会再出现、不会漏」。
+	ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery, afterID int64, limit int) ([]model.LiveUser, error)
 	// AdjustCredit 原子增减用户资产（积分/星光），返回变更前、变更后的数值
 	AdjustCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (before, after int64, err error)
 	// UpdateTokenByID 根据 id 更换用户 refreshToken
@@ -80,18 +88,24 @@ func (r *gormRepo) ExistsByUID(ctx context.Context, tx *gorm.DB, uid int64) (boo
 	return r.Exists(ctx, tx, "uid", uid)
 }
 
-// ListPage 分页查询用户
-func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery) ([]model.LiveUser, int64, error) {
-	var list []model.LiveUser
-	var total int64
-	db := r.ResolveDB(ctx, tx)
-	db = db.Model(&model.LiveUser{})
+// applyFilters 应用筛选条件。
+//
+// ListPage 与导出共用同一份条件拼装 —— 两边口径必须一致，否则导出结果与页面上看到的对不上。
+func applyFilters(db *gorm.DB, query model.LiveUserListPageQuery) *gorm.DB {
 	if v := query.UID; v != nil {
 		db = db.Where("uid = ?", *v)
 	}
 	if v := query.Uname; v != nil && *v != "" {
 		db = db.Where("uname LIKE ? ESCAPE '!'", "%"+sqlutil.EscapeLike(*v)+"%")
 	}
+	return db
+}
+
+// ListPage 分页查询用户
+func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery) ([]model.LiveUser, int64, error) {
+	var list []model.LiveUser
+	var total int64
+	db := applyFilters(r.ResolveDB(ctx, tx).Model(&model.LiveUser{}), query)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -108,6 +122,30 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveUs
 	}
 	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
+}
+
+// CountFiltered 统计命中行数，limit > 0 时提前停止
+func (r *gormRepo) CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery, limit int) (int64, error) {
+	db := r.ResolveDB(ctx, tx)
+	sub := applyFilters(db.Model(&model.LiveUser{}).Select("1"), query)
+	if limit > 0 {
+		sub = sub.Limit(limit)
+	}
+	var total int64
+	// 子查询包一层再 count：GORM 的 Count 会剥掉外层 Limit，必须用派生表把早停固定下来
+	err := db.Table("(?) AS t", sub).Count(&total).Error
+	return total, err
+}
+
+// ExportChunk 导出用的分块读取
+func (r *gormRepo) ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveUserListPageQuery, afterID int64, limit int) ([]model.LiveUser, error) {
+	var list []model.LiveUser
+	db := applyFilters(r.ResolveDB(ctx, tx).Model(&model.LiveUser{}), query)
+	if afterID > 0 {
+		db = db.Where("id < ?", afterID)
+	}
+	err := db.Order("id desc").Limit(limit).Find(&list).Error
+	return list, err
 }
 
 // UpdateNameByID 根据 ID 变更用户昵称

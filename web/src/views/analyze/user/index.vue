@@ -1,6 +1,13 @@
 <template>
   <CommonPage>
-    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="800">
+    <MeCrud
+      ref="$table"
+      v-model:query-items="query"
+      :columns="columns"
+      :get-data="api.getList"
+      :scroll-x="800"
+      export-module="liveuser"
+    >
       <MeQueryItem label="用户UID">
         <n-input-number v-model:value="query.uid" :show-button="false" :precision="0" placeholder="用户完整UID" />
       </MeQueryItem>
@@ -104,6 +111,8 @@ const columns = [
     width: 240,
     align: 'right',
     fixed: 'right',
+    // 动作列不是数据列，不参与导出（否则 'actions' 会进导出列被后端白名单拒绝）
+    hideInExcel: true,
     render(row) {
       return [
         h(
