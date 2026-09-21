@@ -1,6 +1,6 @@
 <template>
   <CommonPage>
-    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="800">
+    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="800" export-module="livedanmu">
       <MeQueryItem label="房间ID">
         <n-select v-model:value="query.room_id" :options="roomOptions" placeholder="请指定房间" />
       </MeQueryItem>
@@ -38,6 +38,7 @@ const columns = [
   {
     title: '牌子',
     key: 'badge_room_id',
+    exportKey: 'badge_name',
     width: 140,
     render(row) {
       return row.badge_room_id

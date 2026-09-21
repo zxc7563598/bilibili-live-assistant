@@ -35,6 +35,10 @@ type Repository interface {
 	DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error)
 	// ListPage 分页查询弹幕，Uname/Msg 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery) ([]model.LiveDanmu, int64, error)
+	// CountFiltered 统计命中行数。limit > 0 时只保证「不超过 limit」的语义，实现上用「子查询 + LIMIT limit」早停，避免在大表上做全量 COUNT
+	CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery, limit int) (int64, error)
+	// ExportChunk 导出用的分块读取：主键 < afterID（afterID 为 0 表示不限）且满足筛选条件，按主键倒序取至多 limit 行。
+	ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery, afterID int64, limit int) ([]model.LiveDanmu, error)
 	// ListByUID 根据 UID 查询弹幕，按 SendAt 倒序，limit 控制最大条数
 	ListByUID(ctx context.Context, tx *gorm.DB, uid int64, limit int) ([]model.LiveDanmu, error)
 	// ListByLiveID 根据 LiveID 查询弹幕，按 SendAt 倒序，limit 控制最大条数
@@ -65,12 +69,10 @@ func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, e
 	return roomIDs, nil
 }
 
-// ListPage 分页查询弹幕
-func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery) ([]model.LiveDanmu, int64, error) {
-	var list []model.LiveDanmu
-	var total int64
-	db := r.ResolveDB(ctx, tx)
-	db = db.Model(&model.LiveDanmu{})
+// applyFilters 应用筛选条件。
+//
+// ListPage 与导出共用同一份条件拼装 —— 两边口径必须一致，否则导出结果与页面上看到的对不上。
+func applyFilters(db *gorm.DB, query model.LiveDanmuListPageQuery) *gorm.DB {
 	if v := query.RoomID; v != nil {
 		db = db.Where("room_id = ?", *v)
 	}
@@ -89,6 +91,14 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveDa
 	if v := query.SendAtEnd; v != nil {
 		db = db.Where("send_at <= ?", *v)
 	}
+	return db
+}
+
+// ListPage 分页查询弹幕
+func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery) ([]model.LiveDanmu, int64, error) {
+	var list []model.LiveDanmu
+	var total int64
+	db := applyFilters(r.ResolveDB(ctx, tx).Model(&model.LiveDanmu{}), query)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -105,6 +115,30 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveDa
 	}
 	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
+}
+
+// CountFiltered 统计命中行数，limit > 0 时提前停止
+func (r *gormRepo) CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery, limit int) (int64, error) {
+	db := r.ResolveDB(ctx, tx)
+	sub := applyFilters(db.Model(&model.LiveDanmu{}).Select("1"), query)
+	if limit > 0 {
+		sub = sub.Limit(limit)
+	}
+	var total int64
+	// 子查询包一层再 count：GORM 的 Count 会剥掉外层 Limit，必须用派生表把早停固定下来
+	err := db.Table("(?) AS t", sub).Count(&total).Error
+	return total, err
+}
+
+// ExportChunk 导出用的分块读取
+func (r *gormRepo) ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery, afterID int64, limit int) ([]model.LiveDanmu, error) {
+	var list []model.LiveDanmu
+	db := applyFilters(r.ResolveDB(ctx, tx).Model(&model.LiveDanmu{}), query)
+	if afterID > 0 {
+		db = db.Where("id < ?", afterID)
+	}
+	err := db.Order("id desc").Limit(limit).Find(&list).Error
+	return list, err
 }
 
 // ListByUID 根据 UID 查询弹幕

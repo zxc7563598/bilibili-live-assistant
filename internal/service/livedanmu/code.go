@@ -10,5 +10,6 @@ package livedanmu
 // 无法引用常量，那里仍会写数字。本文件只覆盖 Go 表达式中的引用。
 
 const (
-	CodeQueryFailed = 60601 // 系统繁忙，请稍后重试（数据库查询异常）
+	CodeParamInvalid = 10601 // 请求参数不合法（参数校验失败）
+	CodeQueryFailed  = 60601 // 系统繁忙，请稍后重试（数据库查询异常）
 )

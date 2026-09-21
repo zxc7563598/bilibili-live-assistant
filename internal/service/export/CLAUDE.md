@@ -68,13 +68,21 @@ GET  /api/admin/export/download?ticket=xxx    (无 AdminAuth，凭证即鉴权)
    | 方法 | 说明 |
    |------|------|
    | `Module()` | 模块名，与前端 `MeCrud` 的 `export-module` 一致 |
-   | `Columns()` | 允许导出的列（`Key` + i18n 的 `TitleKey`）。**不含裸 `id`** |
+   | `Columns()` | 允许导出的列，直接用 `export.ColumnsOf(exportColumns)` 映射下面的字面量 |
    | `Normalize()` | 解析校验前端筛选条件，回写规范化 JSON；失败返回**本模块**的错误码 |
    | `Count()` | 命中行数，必须用有界的子查询（`LIMIT limit`）早停，不要全表 `COUNT(*)` |
-   | `FetchChunk()` | 按主键倒序取一块，游标用上一块最后一行的主键 |
+   | `FetchChunk()` | 按主键倒序取一块，游标用上一块最后一行的主键；取值查 `export.ValueMapOf(exportColumns)` |
+
+   **列声明与取值写在同一个 `[]export.ColumnSpec[行类型]` 字面量里**，不要拆成
+   「列清单 + 取值 switch」两份手工对齐的表 —— 后者加一列忘了加分支不会编译失败，
+   要等点导出才暴露，还得为每个模块补一个同步单测。合成一份后这类漂移结构上不会发生。
+   列里**不含裸 `id`**（内部主键，各模块含义不一致）。
 
 2. 仓储加两个方法：有界计数 + 分块读取，写法与 `ListPage` 一致（`ResolveDB` + 白名单排序）。
    筛选条件务必与 `ListPage` **共用同一份拼装函数**，否则导出结果与页面对不上。
+   注意 `ListPage` 里那些**不在共享构建器内**的额外条件也要一并复现
+   （例如盲盒列表额外带的 `original = 0`、订单列表的 `LEFT JOIN` 与 `Select` 投影）——
+   漏掉会静默导出范围不对的数据。
 
 3. `internal/bootstrap/export.go` 的注册列表里加一行。
 
@@ -82,9 +90,13 @@ GET  /api/admin/export/download?ticket=xxx    (无 AdminAuth，凭证即鉴权)
    `export.column.<key>`（表头）。**中英两份都要加**，漏加不会编译失败，只会渲染成 key。
 
 5. 前端给对应页面的 `<MeCrud>` 加 `export-module="<模块>"`。
+   页面上**每个带 `title` 且未标 `hideInExcel` 的列**的 key 都必须在白名单里，否则领票会被
+   `11701` 拒绝（动作列尤其容易漏标 `hideInExcel`）；列的 key 与后端字段不一致时用列上的
+   `exportKey` 覆盖。
 
-6. 配一个单测遍历 `Columns()`，对零值 model 逐个调取值函数 —— 列声明与取值 switch 是两份
-   手工对齐的字面量，漂移了要等线上点导出才会暴露，让它变成一次 `go test` 就能发现的事。
+6. 若单元格显示的内容**多于该列 key 对应的那一个字段**（如订单的「商品信息」一格里有名称、数量、
+   规格），在模块里声明一个拼接列（如 `product_info`）并在前端用 `exportKey` 指过去，
+   文案对齐前端单元格。这是唯一会把前端展示逻辑复制到后端的地方，两处注释都要互相指认。
 
 ## 取值与格式化
 
