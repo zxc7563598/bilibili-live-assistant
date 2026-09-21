@@ -444,6 +444,8 @@ export:
   module:
     livedanmu: 弹幕记录
     liveuser: 用户列表
+    livegift: 礼物记录
+    livegiftblindbox: 盲盒记录
   column:
     room_id: 房间ID
     live_id: 直播ID
@@ -459,6 +461,13 @@ export:
     stars: 星光
     total_danmu_count: 发送弹幕
     total_gift_amount: 礼物金额
+    gift_name: 礼物名称
+    price: 单价
+    num: 数量
+    total: 总价
+    original_gift_name: 对应盲盒
+    original_gift_price: 盲盒价格
+    profit: 盈利金额
   msg:
     aborted: "#导出中断，请重新导出"
 

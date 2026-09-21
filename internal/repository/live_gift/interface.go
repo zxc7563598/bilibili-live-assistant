@@ -56,10 +56,21 @@ type Repository interface {
 	DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error)
 	// ListPage 分页查询礼物，Uname/GiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) ([]model.LiveGift, int64, error)
+	// CountFiltered 统计命中行数。limit > 0 时只保证「不超过 limit」的语义，
+	// 实现上用「子查询 + LIMIT limit」早停，避免在大表上做全量 COUNT
+	CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery, limit int) (int64, error)
+	// ExportChunk 导出用的分块读取：主键 < afterID（afterID 为 0 表示不限）且满足筛选条件，
+	// 按主键倒序取至多 limit 行
+	ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery, afterID int64, limit int) ([]model.LiveGift, error)
 	// SumNumAndAmount 按列表查询条件聚合礼物总数与总金额（price * num）
 	SumNumAndAmount(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (totalNum, totalAmount int64, err error)
 	// BlindBoxListPage 分页查询盲盒礼物，Uname/GiftName/OriginalGiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	BlindBoxListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) ([]model.LiveGift, int64, error)
+	// BlindBoxCountFiltered 统计盲盒命中行数，limit > 0 时提前停止。与 BlindBoxListPage 同口径
+	// （含「只算盲盒」的 original = 0 条件，见下方实现）
+	BlindBoxCountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery, limit int) (int64, error)
+	// BlindBoxExportChunk 盲盒导出用的分块读取，口径同 BlindBoxCountFiltered
+	BlindBoxExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery, afterID int64, limit int) ([]model.LiveGift, error)
 	// SumOriginalAndCurrentPrice 按盲盒列表查询条件聚合原价总额与现价总额
 	SumOriginalAndCurrentPrice(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) (originalPrice, currentPrice int64, err error)
 	// SumTotalGiftAmountByUID 获取指定uid赠送总金额
@@ -119,6 +130,30 @@ func (r *gormRepo) ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGi
 	return list, total, err
 }
 
+// CountFiltered 统计命中行数，limit > 0 时提前停止
+func (r *gormRepo) CountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery, limit int) (int64, error) {
+	db := r.ResolveDB(ctx, tx)
+	sub := r.applyLiveGiftListQuery(db.Model(&model.LiveGift{}).Select("1"), query)
+	if limit > 0 {
+		sub = sub.Limit(limit)
+	}
+	var total int64
+	// 子查询包一层再 count：GORM 的 Count 会剥掉外层 Limit，必须用派生表把早停固定下来
+	err := db.Table("(?) AS t", sub).Count(&total).Error
+	return total, err
+}
+
+// ExportChunk 导出用的分块读取
+func (r *gormRepo) ExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery, afterID int64, limit int) ([]model.LiveGift, error) {
+	var list []model.LiveGift
+	db := r.applyLiveGiftListQuery(r.ResolveDB(ctx, tx).Model(&model.LiveGift{}), query)
+	if afterID > 0 {
+		db = db.Where("id < ?", afterID)
+	}
+	err := db.Order("id desc").Limit(limit).Find(&list).Error
+	return list, err
+}
+
 // SumNumAndAmount 按列表查询条件聚合礼物总数与总金额
 func (r *gormRepo) SumNumAndAmount(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) (totalNum, totalAmount int64, err error) {
 	var result struct {
@@ -137,12 +172,20 @@ func (r *gormRepo) SumNumAndAmount(ctx context.Context, tx *gorm.DB, query model
 	return result.TotalNum, result.TotalAmount, nil
 }
 
+// blindBoxBase 盲盒列表的基准查询。
+//
+// 「是不是盲盒」的判据是 original = 0（盲盒是别人原礼物的转赠），这条不在
+// applyLiveGiftBlindBoxListQuery 里。列表 / 计数 / 导出三个入口都必须带上它，
+// 漏掉会让盲盒导出**静默混进普通礼物**，所以收在这里只写一份。
+func (r *gormRepo) blindBoxBase(ctx context.Context, tx *gorm.DB) *gorm.DB {
+	return r.ResolveDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
+}
+
 // BlindBoxListPage 分页查询盲盒礼物，Uname/GiftName/OriginalGiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 func (r *gormRepo) BlindBoxListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery) ([]model.LiveGift, int64, error) {
 	var list []model.LiveGift
 	var total int64
-	db := r.ResolveDB(ctx, tx).Model(&model.LiveGift{}).Where("original = ?", enum.No)
-	db = r.applyLiveGiftBlindBoxListQuery(db, query)
+	db := r.applyLiveGiftBlindBoxListQuery(r.blindBoxBase(ctx, tx), query)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -159,6 +202,29 @@ func (r *gormRepo) BlindBoxListPage(ctx context.Context, tx *gorm.DB, query mode
 	}
 	err := db.Order(orderClause).Offset(query.Offset).Limit(query.Limit).Find(&list).Error
 	return list, total, err
+}
+
+// BlindBoxCountFiltered 统计盲盒命中行数，limit > 0 时提前停止
+func (r *gormRepo) BlindBoxCountFiltered(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery, limit int) (int64, error) {
+	db := r.ResolveDB(ctx, tx)
+	sub := r.applyLiveGiftBlindBoxListQuery(r.blindBoxBase(ctx, tx).Select("1"), query)
+	if limit > 0 {
+		sub = sub.Limit(limit)
+	}
+	var total int64
+	err := db.Table("(?) AS t", sub).Count(&total).Error
+	return total, err
+}
+
+// BlindBoxExportChunk 盲盒导出用的分块读取
+func (r *gormRepo) BlindBoxExportChunk(ctx context.Context, tx *gorm.DB, query model.LiveGiftBlindBoxListPageQuery, afterID int64, limit int) ([]model.LiveGift, error) {
+	var list []model.LiveGift
+	db := r.applyLiveGiftBlindBoxListQuery(r.blindBoxBase(ctx, tx), query)
+	if afterID > 0 {
+		db = db.Where("id < ?", afterID)
+	}
+	err := db.Order("id desc").Limit(limit).Find(&list).Error
+	return list, err
 }
 
 // SumOriginalAndCurrentPrice 按盲盒列表查询条件聚合原价总额与现价总额

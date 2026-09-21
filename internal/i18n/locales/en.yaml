@@ -444,6 +444,8 @@ export:
   module:
     livedanmu: Danmu Records
     liveuser: User List
+    livegift: Gift Records
+    livegiftblindbox: Blind Box Records
   column:
     room_id: Room ID
     live_id: Live ID
@@ -459,6 +461,13 @@ export:
     stars: Stars
     total_danmu_count: Danmu Count
     total_gift_amount: Gift Amount
+    gift_name: Gift Name
+    price: Unit Price
+    num: Quantity
+    total: Total
+    original_gift_name: Blind Box Gift
+    original_gift_price: Blind Box Price
+    profit: Profit
   msg:
     aborted: "#Export interrupted, please export again"
 
