@@ -16,6 +16,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/docs"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/bootstrap"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/migrate"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/version"
 )
@@ -70,6 +71,10 @@ func main() {
 		log.Println("测试数据填充完成，服务未启动")
 		return
 	}
+	// 日志初始化放在这里：分流必须早于 Redis/数据库/迁移等启动期日志产生，
+	// 开发模式（GIN_MODE=debug）下文件与终端双写，生产模式只写文件
+	logger.InitAll(cfg.Log.Dir)
+	logger.InitRedirect(gin.Mode() != gin.ReleaseMode)
 	// 初始化应用
 	app := bootstrap.NewApp(cfg)
 	// 确保资源在服务退出时关闭

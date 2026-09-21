@@ -14,6 +14,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/middleware"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/webui"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/fileutil"
@@ -28,9 +29,18 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 		registerPprof(r)
 	}
 	// 中间件注册
-	r.Use(gin.Logger(), gin.Recovery(), middleware.CORSMiddleware(middleware.CORSConfig{
-		AllowedOrigins: corsCfg.AllowedOrigins,
-	}), middleware.LocaleMiddleware())
+	// Gin 的访问日志与 panic 堆栈统一写 <日志根目录>/gin/<日期>_gin.log
+	r.Use(
+		gin.LoggerWithConfig(gin.LoggerConfig{
+			Output:    logger.GinWriter(),
+			SkipPaths: []string{"/health"}, // 健康检查会被监控高频轮询，不记录
+		}),
+		gin.RecoveryWithWriter(logger.GinWriter()),
+		middleware.CORSMiddleware(middleware.CORSConfig{
+			AllowedOrigins: corsCfg.AllowedOrigins,
+		}),
+		middleware.LocaleMiddleware(),
+	)
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})

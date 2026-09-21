@@ -1,15 +1,11 @@
 package logger
 
 import (
-	"fmt"
 	"log"
-	"os"
-	"path/filepath"
-	"time"
+	"sync"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // 可以定义多个 *zap.Logger 类型的 logger
@@ -35,10 +31,22 @@ var (
 // logDir 日志根目录，由 InitAll 按配置注入；未注入时使用工作目录下的 logs
 var logDir = "logs"
 
-// InitAll 初始化所有模块 logger，dir 为日志根目录（由 bootstrap 传入配置中已解析的路径）
+var (
+	initedMu  sync.Mutex
+	initedDir string // 已初始化过的日志根目录，空表示尚未初始化
+)
+
+// InitAll 初始化所有模块 logger，dir 为日志根目录（由 cmd/server 传入配置中已解析的路径）
 func InitAll(dir string) {
 	if dir != "" {
 		logDir = dir
+	}
+	initedMu.Lock()
+	defer initedMu.Unlock()
+	// 同一目录重复初始化直接复用：否则会产生两组 lumberjack 实例轮转同一批文件，
+	// 互相 rename 对方正在写的文件，日志会莫名丢失
+	if initedDir == logDir {
+		return
 	}
 	AdminLogger = InitLogger("admin", zapcore.InfoLevel)
 	AppConfigLogger = InitLogger("appconfig", zapcore.InfoLevel)
@@ -56,23 +64,15 @@ func InitAll(dir string) {
 	AddressLogger = InitLogger("address", zapcore.InfoLevel)
 	FeedbackLogger = InitLogger("feedback", zapcore.InfoLevel)
 	UploadLogger = InitLogger("upload", zapcore.InfoLevel)
+	initedDir = logDir
 }
 
 // InitLogger 初始化指定模块的 logger
 func InitLogger(module string, level zapcore.Level) *zap.Logger {
-	// 确保日志目录存在
-	moduleDir := filepath.Join(logDir, module)
-	if err := os.MkdirAll(moduleDir, os.ModePerm); err != nil {
+	// 模块日志目录不可用视为致命：业务日志缺失时继续运行没有意义
+	w, err := newRotatingWriter(module, module)
+	if err != nil {
 		log.Fatalf("无法创建日志目录: %v", err)
-	}
-	// 按天分割日志文件
-	filename := filepath.Join(moduleDir, fmt.Sprintf("%s_%s.log", time.Now().Format(time.DateOnly), module))
-	lumberjackLogger := &lumberjack.Logger{
-		Filename:   filename,
-		MaxSize:    100, // MB
-		MaxBackups: 30,  // 保留最近30个日志文件
-		MaxAge:     7,   // 天
-		Compress:   true,
 	}
 	// zap encoder 配置
 	encoderConfig := zap.NewProductionEncoderConfig()
@@ -83,7 +83,7 @@ func InitLogger(module string, level zapcore.Level) *zap.Logger {
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	core := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig), // JSON格式
-		zapcore.AddSync(lumberjackLogger),
+		zapcore.AddSync(w),
 		level,
 	)
 	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))

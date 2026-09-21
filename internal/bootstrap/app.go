@@ -10,7 +10,6 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/i18n"
-	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/migrate"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
@@ -33,8 +32,8 @@ type App struct {
 }
 
 func NewApp(cfg *config.Config) *App {
-	// 初始化日志（日志根目录来自配置，相对路径已按配置文件所在目录解析为绝对路径）
-	logger.InitAll(cfg.Log.Dir)
+	// 日志已在 cmd/server/main.go 中初始化（logger.InitAll + logger.InitRedirect），
+	// 这里不再重复初始化，保持 NewApp 无副作用。
 	// 上传文件落盘根目录（同样来自配置，对外访问前缀固定为 /uploads）
 	fileutil.SetUploadRoot(cfg.File.UploadDir)
 	log.Printf("日志目录: %s", cfg.Log.Dir)
