@@ -111,22 +111,20 @@ func main() {
 	// 启动服务
 	go func() {
 		remoteVersion, needUpdate, err := version.CheckUpdate()
-		fmt.Printf("服务在 %s 启动 (版本: %s, 提交: %s)", addr, version.Version, version.Commit)
-		fmt.Printf("\n打开浏览器，前往：http://127.0.0.1%s/admin 访问后台\n", addr)
-		fmt.Printf("默认账号：admin\n")
-		fmt.Printf("默认密码：123456\n")
-		fmt.Printf("关闭该窗口后软件会自行退出，下次启动重新打开软件即可\n")
-		fmt.Println(strings.Repeat("-", 50))
+		banner("服务在 %s 启动 (版本: %s, 提交: %s)", addr, version.Version, version.Commit)
+		banner("打开浏览器，前往：http://127.0.0.1%s/admin 访问后台", addr)
+		banner("默认账号：admin")
+		banner("默认密码：123456")
+		banner("关闭该窗口后软件会自行退出，下次启动重新打开软件即可")
+		banner("%s", strings.Repeat("-", 50))
 		if err != nil {
-			fmt.Printf("[警告] 检查更新失败: %s (请检查网络连接)\n", err)
+			banner("[警告] 检查更新失败: %s (请检查网络连接)", err)
+		} else if needUpdate {
+			banner("[提示] 发现新版本！当前版本: %s，最新版本: %s，建议前往下载更新", version.Version, remoteVersion)
 		} else {
-			if needUpdate {
-				fmt.Printf("[提示] 发现新版本！当前版本: %s，最新版本: %s，建议前往下载更新\n", version.Version, remoteVersion)
-			} else {
-				fmt.Printf("\n[提示] 当前已是最新版本 (%s)\n", version.Version)
-			}
+			banner("[提示] 当前已是最新版本 (%s)", version.Version)
 		}
-		fmt.Println(strings.Repeat("-", 50))
+		banner("%s", strings.Repeat("-", 50))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("监听错误: %v", err)
 		}
@@ -153,4 +151,14 @@ func main() {
 		log.Printf("服务被迫关闭: %v", err)
 	}
 	log.Println("服务已退出")
+}
+
+// banner 输出一行启动横幅：直写 stdout 给人看，同时经 log 落进日志文件留档
+//
+// 直接跑二进制的人要靠终端知道访问地址与默认账号，而不是每次都去翻日志文件；
+// 日志文件那边也需要留下当次运行的版本号与地址，出问题时才对得上。
+func banner(format string, args ...any) {
+	line := fmt.Sprintf(format, args...)
+	fmt.Println(line)
+	log.Println(line)
 }
