@@ -9,9 +9,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/export"
 )
 
-// exportColumns 允许导出的列。
-//
-// 不含 password / token：model 里有这两列，它们是用户凭证，不能出现在导出文件里。
+// exportColumns 允许导出的列
 var exportColumns = []export.ColumnSpec[model.LiveUser]{
 	{Key: "uid", TitleKey: "export.column.uid", Value: func(r model.LiveUser) any { return r.UID }},
 	{Key: "uname", TitleKey: "export.column.uname", Value: func(r model.LiveUser) any { return r.Uname }},

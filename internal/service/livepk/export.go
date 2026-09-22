@@ -10,10 +10,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
 
-// exportColumns 允许导出的列。
-//
-// pk_status / battle_type 在库里是裸 int64，值来自 B 站协议、后端没有对应枚举，
-// 页面上的中文标签也来自前端本地的选项数组，所以这里直接出原始数值。
+// exportColumns 允许导出的列
 var exportColumns = []export.ColumnSpec[model.LivePkLog]{
 	{Key: "pk_id", TitleKey: "export.column.pk_id", Value: func(r model.LivePkLog) any { return r.PkID }},
 	{Key: "pk_status", TitleKey: "export.column.pk_status", Value: func(r model.LivePkLog) any { return r.PkStatus }},
@@ -28,9 +25,7 @@ var exportColumns = []export.ColumnSpec[model.LivePkLog]{
 
 var columnValue = export.ValueMapOf(exportColumns)
 
-// exportFilterInput 前端传来的筛选条件，字段与列表接口同口径。
-//
-// 时间字段在前端叫 start_at（不是 send_at），值是毫秒级区间。
+// exportFilterInput 前端传来的筛选条件，字段与列表接口同口径
 type exportFilterInput struct {
 	RoomID     *int64   `json:"room_id"`
 	RivalUID   *int64   `json:"rival_uid"`

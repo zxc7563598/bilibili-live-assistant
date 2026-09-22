@@ -12,9 +12,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/export"
 )
 
-// exportColumns 允许导出的列，是订单列表与发货页两个页面列的并集（各页只发自己显示的列）。
-//
-// product_info / receiver_info 是拼接列：页面上这两格里各摊了多个字段，后端拼成同一条文案。
+// exportColumns 允许导出的列，是订单列表与发货页两个页面列的并集
 var exportColumns = []export.ColumnSpec[model.LiveUserOrderListItem]{
 	{Key: "order_sn", TitleKey: "export.column.order_sn", Value: func(r model.LiveUserOrderListItem) any { return r.OrderSn }},
 	{Key: "uname", TitleKey: "export.column.uname", Value: func(r model.LiveUserOrderListItem) any { return r.Uname }},
@@ -29,10 +27,7 @@ var exportColumns = []export.ColumnSpec[model.LiveUserOrderListItem]{
 
 var columnValue = export.ValueMapOf(exportColumns)
 
-// exportFilterInput 前端传来的筛选条件，字段与列表接口同口径。
-//
-// 状态字段用指针：裸 int 分不清「没传」与「传 0」，而 0 是合法筛选值
-// （未支付、未发货）—— 发货页的默认筛选就是 order_status=1 & ship_status=0。
+// exportFilterInput 前端传来的筛选条件，字段与列表接口同口径
 type exportFilterInput struct {
 	UID         *int64  `json:"uid"`
 	Uname       *string `json:"uname"`
@@ -113,16 +108,10 @@ func parseExportQuery(filters json.RawMessage) (model.LiveUserOrderListPageQuery
 	}, nil
 }
 
-// ---------- 拼接列与辅助 ----------
-
-// emptyCell 前端的 dash() 把空值显示成破折号，导出保留同样观感：整格都没内容时给一个破折号，
-// 而不是留一格空白让人分不清「没填」和「没这一列」。
+// emptyCell 前端的 dash() 把空值显示成破折号，导出保留同样观感
 const emptyCell = "—"
 
-// productInfo 拼出「商品信息」列的文案：`商品名 ×2 规格：颜色:红 / 尺码:L`。
-//
-// 对齐 web/src/views/order/{list,delivery}/index.vue 的 renderProduct（单元格里还有封面图，
-// 导出带不上）。改前端那处展示时这里要一起改。
+// productInfo 拼出「商品信息」列的文案：`商品名 ×2 规格：颜色:红 / 尺码:L`
 func productInfo(row model.LiveUserOrderListItem) string {
 	specs := formatSpecProperties(row.ProductSpecProperties)
 	if specs == "" {
@@ -132,9 +121,7 @@ func productInfo(row model.LiveUserOrderListItem) string {
 	return fmt.Sprintf("%s ×%d 规格：%s", row.ProductName, row.Quantity, specs)
 }
 
-// receiverInfo 拼出「收货信息」列的文案：实体单要姓名、电话、完整地址，虚拟单只要邮箱。
-//
-// 对齐 web/src/views/order/delivery/index.vue 的 renderReceiver（前端分两行排版，导出拼成一行）。
+// receiverInfo 拼出「收货信息」列的文案：实体单要姓名、电话、完整地址，虚拟单只要邮箱
 func receiverInfo(row model.LiveUserOrderListItem) string {
 	if row.ReceiverType == enum.AddressTypeActual {
 		parts := make([]string, 0, 4)
@@ -154,12 +141,7 @@ func receiverInfo(row model.LiveUserOrderListItem) string {
 	return row.ReceiverEmail
 }
 
-// formatSpecProperties 把规格快照渲染成 `颜色:红 尺码:L`，多条规格用 ` / ` 分隔。
-//
-// 复刻 web/src/utils/common.js 的 formatProductSpecs。落库形状是**按规格定义顺序**序列化的
-// [{"规格名":"规格值"},…]，且每个元素恰好一对（见 internal/service/product/common.go 的
-// marshalSpecProperties），所以按元素顺序遍历即可与页面同序；元素内排序只是为了
-// 万一出现多对时结果稳定。解析失败按前端的做法返回空串（外层会显示成「无」）。
+// formatSpecProperties 把规格快照渲染成 `颜色:红 尺码:L`，多条规格用 ` / ` 分隔
 func formatSpecProperties(raw string) string {
 	if raw == "" {
 		return ""

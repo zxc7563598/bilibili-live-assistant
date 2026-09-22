@@ -11,12 +11,6 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
 
-// 礼物列表与盲盒列表是两个不同的接口（/livegift/list 与 /livegift/blindbox），列与筛选条件
-// 都不一样，因此注册成两个模块名；Service 只有一个，用两个薄包装类型各自挂上 Source 方法。
-//
-// 本文件的声明名以 gift / blindBox 开头替代其它模块的 export 前缀
-// （giftExportColumns 对应 exportColumns），两块各自成组，共用函数放最后。
-
 // giftExporter 礼物列表的导出数据源
 type giftExporter struct{ svc *Service }
 
@@ -29,11 +23,48 @@ func NewGiftExporter(svc *Service) export.Source { return giftExporter{svc: svc}
 // NewBlindBoxExporter 构造盲盒列表的导出数据源
 func NewBlindBoxExporter(svc *Service) export.Source { return blindBoxExporter{svc: svc} }
 
+// parseGiftExportQuery 把规范化的筛选条件还原为礼物列表的仓储查询结构
+func parseGiftExportQuery(filters json.RawMessage) (model.LiveGiftListPageQuery, error) {
+	var q giftExportFilterQuery
+	if len(filters) > 0 {
+		if err := json.Unmarshal(filters, &q); err != nil {
+			return model.LiveGiftListPageQuery{}, fmt.Errorf("解析导出筛选条件失败: %w", err)
+		}
+	}
+	return model.LiveGiftListPageQuery{
+		RoomID:      q.RoomID,
+		UID:         q.UID,
+		Uname:       q.Uname,
+		GiftName:    q.GiftName,
+		GiftType:    q.GiftType,
+		Original:    q.Original,
+		SendAtStart: q.SendAtStart,
+		SendAtEnd:   q.SendAtEnd,
+	}, nil
+}
+
+// parseBlindBoxExportQuery 把规范化的筛选条件还原为盲盒列表的仓储查询结构
+func parseBlindBoxExportQuery(filters json.RawMessage) (model.LiveGiftBlindBoxListPageQuery, error) {
+	var q blindBoxExportFilterQuery
+	if len(filters) > 0 {
+		if err := json.Unmarshal(filters, &q); err != nil {
+			return model.LiveGiftBlindBoxListPageQuery{}, fmt.Errorf("解析导出筛选条件失败: %w", err)
+		}
+	}
+	return model.LiveGiftBlindBoxListPageQuery{
+		RoomID:           q.RoomID,
+		UID:              q.UID,
+		Uname:            q.Uname,
+		GiftName:         q.GiftName,
+		OriginalGiftName: q.OriginalGiftName,
+		SendAtStart:      q.SendAtStart,
+		SendAtEnd:        q.SendAtEnd,
+	}, nil
+}
+
 // ---------- 礼物列表 ----------
 
-// giftExportColumns 允许导出的列，顺序与页面列一致。
-//
-// total 是页面上按 (price/100)*num 算出来的展示值，后端没有对应字段，这里同样算一遍。
+// giftExportColumns 允许导出的列，顺序与页面列一致
 var giftExportColumns = []export.ColumnSpec[model.LiveGift]{
 	{Key: "uid", TitleKey: "export.column.uid", Value: func(r model.LiveGift) any { return r.UID }},
 	{Key: "badge_name", TitleKey: "export.column.badge_name", Value: func(r model.LiveGift) any { return r.BadgeName }},
@@ -135,10 +166,7 @@ func (e giftExporter) FetchChunk(ctx context.Context, filters json.RawMessage, a
 
 // ---------- 盲盒列表 ----------
 
-// blindBoxExportColumns 允许导出的列，顺序与页面列一致。
-//
-// total 与 profit 是页面上算出来的展示值（后端没有对应字段），这里按同样的算式算一遍；
-// 「是不是盲盒」的过滤条件在仓储的 blindBoxBase 里，与本文件无关。
+// blindBoxExportColumns 允许导出的列，顺序与页面列一致
 var blindBoxExportColumns = []export.ColumnSpec[model.LiveGift]{
 	{Key: "uid", TitleKey: "export.column.uid", Value: func(r model.LiveGift) any { return r.UID }},
 	{Key: "badge_name", TitleKey: "export.column.badge_name", Value: func(r model.LiveGift) any { return r.BadgeName }},
@@ -149,7 +177,6 @@ var blindBoxExportColumns = []export.ColumnSpec[model.LiveGift]{
 	{Key: "total", TitleKey: "export.column.total", Value: func(r model.LiveGift) any { return export.Money(r.Price * r.Num) }},
 	{Key: "original_gift_name", TitleKey: "export.column.original_gift_name", Value: func(r model.LiveGift) any { return r.OriginalGiftName }},
 	{Key: "original_gift_price", TitleKey: "export.column.original_gift_price", Value: func(r model.LiveGift) any { return export.Money(r.OriginalGiftPrice) }},
-	// 可为负：收到的礼物比转赠出去的便宜就是亏
 	{Key: "profit", TitleKey: "export.column.profit", Value: func(r model.LiveGift) any { return export.Money((r.Price - r.OriginalGiftPrice) * r.Num) }},
 	{Key: "send_at", TitleKey: "export.column.send_at", Value: func(r model.LiveGift) any { return export.UnixTime(r.SendAt) }},
 }
@@ -228,45 +255,4 @@ func (e blindBoxExporter) FetchChunk(ctx context.Context, filters json.RawMessag
 		return nil, 0, err
 	}
 	return export.BuildRecords(rows, keys, blindBoxColumnValue, func(r model.LiveGift) int64 { return r.ID })
-}
-
-// ---------- 共用 ----------
-
-// parseGiftExportQuery 把规范化的筛选条件还原为礼物列表的仓储查询结构
-func parseGiftExportQuery(filters json.RawMessage) (model.LiveGiftListPageQuery, error) {
-	var q giftExportFilterQuery
-	if len(filters) > 0 {
-		if err := json.Unmarshal(filters, &q); err != nil {
-			return model.LiveGiftListPageQuery{}, fmt.Errorf("解析导出筛选条件失败: %w", err)
-		}
-	}
-	return model.LiveGiftListPageQuery{
-		RoomID:      q.RoomID,
-		UID:         q.UID,
-		Uname:       q.Uname,
-		GiftName:    q.GiftName,
-		GiftType:    q.GiftType,
-		Original:    q.Original,
-		SendAtStart: q.SendAtStart,
-		SendAtEnd:   q.SendAtEnd,
-	}, nil
-}
-
-// parseBlindBoxExportQuery 把规范化的筛选条件还原为盲盒列表的仓储查询结构
-func parseBlindBoxExportQuery(filters json.RawMessage) (model.LiveGiftBlindBoxListPageQuery, error) {
-	var q blindBoxExportFilterQuery
-	if len(filters) > 0 {
-		if err := json.Unmarshal(filters, &q); err != nil {
-			return model.LiveGiftBlindBoxListPageQuery{}, fmt.Errorf("解析导出筛选条件失败: %w", err)
-		}
-	}
-	return model.LiveGiftBlindBoxListPageQuery{
-		RoomID:           q.RoomID,
-		UID:              q.UID,
-		Uname:            q.Uname,
-		GiftName:         q.GiftName,
-		OriginalGiftName: q.OriginalGiftName,
-		SendAtStart:      q.SendAtStart,
-		SendAtEnd:        q.SendAtEnd,
-	}, nil
 }
