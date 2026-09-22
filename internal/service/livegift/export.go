@@ -11,91 +11,11 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
 
-// 礼物列表与盲盒列表的导出数据源。
+// 礼物列表与盲盒列表是两个不同的接口（/livegift/list 与 /livegift/blindbox），列与筛选条件
+// 都不一样，因此注册成两个模块名；Service 只有一个，用两个薄包装类型各自挂上 Source 方法。
 //
-// 两者是两个不同的接口（/livegift/list 与 /livegift/blindbox），列与筛选条件都不一样，
-// 因此注册成两个模块名；Service 只有一个，用两个薄包装类型各自挂上 Source 方法。
-
-// giftColumns 礼物列表允许导出的列，顺序与页面列一致
-var giftColumns = []export.ColumnSpec[model.LiveGift]{
-	{Key: "uid", TitleKey: "export.column.uid", Value: func(r model.LiveGift) any { return r.UID }},
-	// 枚举实现了 Text(lang)，由 export 包渲染成当前语言的文案
-	{Key: "badge_name", TitleKey: "export.column.badge_name", Value: func(r model.LiveGift) any { return r.BadgeName }},
-	{Key: "uname", TitleKey: "export.column.uname", Value: func(r model.LiveGift) any { return r.Uname }},
-	{Key: "gift_name", TitleKey: "export.column.gift_name", Value: func(r model.LiveGift) any { return r.GiftName }},
-	{Key: "price", TitleKey: "export.column.price", Value: func(r model.LiveGift) any { return export.Money(r.Price) }},
-	{Key: "num", TitleKey: "export.column.num", Value: func(r model.LiveGift) any { return r.Num }},
-	// 页面上没有这个字段，是按 (price/100)*num 算出来的展示值，导出侧同样算一遍
-	{Key: "total", TitleKey: "export.column.total", Value: func(r model.LiveGift) any { return export.Money(r.Price * r.Num) }},
-	{Key: "badge_level", TitleKey: "export.column.badge_level", Value: func(r model.LiveGift) any { return r.BadgeLevel }},
-	{Key: "badge_type", TitleKey: "export.column.badge_type", Value: func(r model.LiveGift) any { return r.BadgeType }},
-	{Key: "send_at", TitleKey: "export.column.send_at", Value: func(r model.LiveGift) any { return export.UnixTime(r.SendAt) }},
-}
-
-// blindBoxColumns 盲盒列表允许导出的列，顺序与页面列一致
-var blindBoxColumns = []export.ColumnSpec[model.LiveGift]{
-	{Key: "uid", TitleKey: "export.column.uid", Value: func(r model.LiveGift) any { return r.UID }},
-	{Key: "badge_name", TitleKey: "export.column.badge_name", Value: func(r model.LiveGift) any { return r.BadgeName }},
-	{Key: "uname", TitleKey: "export.column.uname", Value: func(r model.LiveGift) any { return r.Uname }},
-	{Key: "gift_name", TitleKey: "export.column.gift_name", Value: func(r model.LiveGift) any { return r.GiftName }},
-	{Key: "price", TitleKey: "export.column.price", Value: func(r model.LiveGift) any { return export.Money(r.Price) }},
-	{Key: "num", TitleKey: "export.column.num", Value: func(r model.LiveGift) any { return r.Num }},
-	{Key: "total", TitleKey: "export.column.total", Value: func(r model.LiveGift) any { return export.Money(r.Price * r.Num) }},
-	{Key: "original_gift_name", TitleKey: "export.column.original_gift_name", Value: func(r model.LiveGift) any { return r.OriginalGiftName }},
-	{Key: "original_gift_price", TitleKey: "export.column.original_gift_price", Value: func(r model.LiveGift) any { return export.Money(r.OriginalGiftPrice) }},
-	// 页面按 ((price - original_gift_price) * num) / 100 展示，可为负
-	{Key: "profit", TitleKey: "export.column.profit", Value: func(r model.LiveGift) any { return export.Money((r.Price - r.OriginalGiftPrice) * r.Num) }},
-	{Key: "send_at", TitleKey: "export.column.send_at", Value: func(r model.LiveGift) any { return export.UnixTime(r.SendAt) }},
-}
-
-var (
-	giftValue     = export.ValueMapOf(giftColumns)
-	blindBoxValue = export.ValueMapOf(blindBoxColumns)
-)
-
-// giftFilterInput 礼物列表的前端筛选条件，字段与列表接口同口径
-type giftFilterInput struct {
-	RoomID   *int64   `json:"room_id"`
-	UID      *int64   `json:"uid"`
-	Uname    *string  `json:"uname"`
-	GiftName *string  `json:"gift_name"`
-	GiftType *int     `json:"gift_type"`
-	Original *int     `json:"original"`
-	SendAt   *[]int64 `json:"send_at"`
-}
-
-// giftFilterQuery 规范化后的礼物筛选条件：时间区间已换算成秒级闭区间
-type giftFilterQuery struct {
-	RoomID      *int64  `json:"room_id"`
-	UID         *int64  `json:"uid"`
-	Uname       *string `json:"uname"`
-	GiftName    *string `json:"gift_name"`
-	GiftType    *int    `json:"gift_type"`
-	Original    *int    `json:"original"`
-	SendAtStart *int64  `json:"send_at_start"`
-	SendAtEnd   *int64  `json:"send_at_end"`
-}
-
-// blindBoxFilterInput 盲盒列表的前端筛选条件
-type blindBoxFilterInput struct {
-	RoomID           *int64   `json:"room_id"`
-	UID              *int64   `json:"uid"`
-	Uname            *string  `json:"uname"`
-	GiftName         *string  `json:"gift_name"`
-	OriginalGiftName *string  `json:"original_gift_name"`
-	SendAt           *[]int64 `json:"send_at"`
-}
-
-// blindBoxFilterQuery 规范化后的盲盒筛选条件
-type blindBoxFilterQuery struct {
-	RoomID           *int64  `json:"room_id"`
-	UID              *int64  `json:"uid"`
-	Uname            *string `json:"uname"`
-	GiftName         *string `json:"gift_name"`
-	OriginalGiftName *string `json:"original_gift_name"`
-	SendAtStart      *int64  `json:"send_at_start"`
-	SendAtEnd        *int64  `json:"send_at_end"`
-}
+// 本文件的声明名以 gift / blindBox 开头替代其它模块的 export 前缀
+// （giftExportColumns 对应 exportColumns），两块各自成组，共用函数放最后。
 
 // giftExporter 礼物列表的导出数据源
 type giftExporter struct{ svc *Service }
@@ -111,15 +31,56 @@ func NewBlindBoxExporter(svc *Service) export.Source { return blindBoxExporter{s
 
 // ---------- 礼物列表 ----------
 
+// giftExportColumns 允许导出的列，顺序与页面列一致。
+//
+// total 是页面上按 (price/100)*num 算出来的展示值，后端没有对应字段，这里同样算一遍。
+var giftExportColumns = []export.ColumnSpec[model.LiveGift]{
+	{Key: "uid", TitleKey: "export.column.uid", Value: func(r model.LiveGift) any { return r.UID }},
+	{Key: "badge_name", TitleKey: "export.column.badge_name", Value: func(r model.LiveGift) any { return r.BadgeName }},
+	{Key: "uname", TitleKey: "export.column.uname", Value: func(r model.LiveGift) any { return r.Uname }},
+	{Key: "gift_name", TitleKey: "export.column.gift_name", Value: func(r model.LiveGift) any { return r.GiftName }},
+	{Key: "price", TitleKey: "export.column.price", Value: func(r model.LiveGift) any { return export.Money(r.Price) }},
+	{Key: "num", TitleKey: "export.column.num", Value: func(r model.LiveGift) any { return r.Num }},
+	{Key: "total", TitleKey: "export.column.total", Value: func(r model.LiveGift) any { return export.Money(r.Price * r.Num) }},
+	{Key: "badge_level", TitleKey: "export.column.badge_level", Value: func(r model.LiveGift) any { return r.BadgeLevel }},
+	{Key: "badge_type", TitleKey: "export.column.badge_type", Value: func(r model.LiveGift) any { return r.BadgeType }},
+	{Key: "send_at", TitleKey: "export.column.send_at", Value: func(r model.LiveGift) any { return export.UnixTime(r.SendAt) }},
+}
+
+var giftColumnValue = export.ValueMapOf(giftExportColumns)
+
+// giftExportFilterInput 前端传来的筛选条件，字段与列表接口同口径
+type giftExportFilterInput struct {
+	RoomID   *int64   `json:"room_id"`
+	UID      *int64   `json:"uid"`
+	Uname    *string  `json:"uname"`
+	GiftName *string  `json:"gift_name"`
+	GiftType *int     `json:"gift_type"`
+	Original *int     `json:"original"`
+	SendAt   *[]int64 `json:"send_at"`
+}
+
+// giftExportFilterQuery 规范化后的筛选条件：时间区间已换算成秒级的闭区间
+type giftExportFilterQuery struct {
+	RoomID      *int64  `json:"room_id"`
+	UID         *int64  `json:"uid"`
+	Uname       *string `json:"uname"`
+	GiftName    *string `json:"gift_name"`
+	GiftType    *int    `json:"gift_type"`
+	Original    *int    `json:"original"`
+	SendAtStart *int64  `json:"send_at_start"`
+	SendAtEnd   *int64  `json:"send_at_end"`
+}
+
 // Module 导出模块标识
 func (e giftExporter) Module() string { return "livegift" }
 
 // Columns 本模块允许导出的列
-func (e giftExporter) Columns() []export.Column { return export.ColumnsOf(giftColumns) }
+func (e giftExporter) Columns() []export.Column { return export.ColumnsOf(giftExportColumns) }
 
-// Normalize 解析并校验前端筛选条件
+// Normalize 解析并校验前端筛选条件，把时间区间换算成秒级闭区间后回写为规范 JSON
 func (e giftExporter) Normalize(filters json.RawMessage) (json.RawMessage, int, error) {
-	var in giftFilterInput
+	var in giftExportFilterInput
 	if len(filters) > 0 {
 		if err := json.Unmarshal(filters, &in); err != nil {
 			return nil, CodeParamInvalid, fmt.Errorf("解析导出筛选条件失败: %w", err)
@@ -132,7 +93,7 @@ func (e giftExporter) Normalize(filters json.RawMessage) (json.RawMessage, int, 
 	if in.Original != nil && !enum.YesNo(*in.Original).IsValid() {
 		return nil, CodeParamInvalid, fmt.Errorf("original 内容非法: %d", *in.Original)
 	}
-	q := giftFilterQuery{
+	q := giftExportFilterQuery{
 		RoomID:   in.RoomID,
 		UID:      in.UID,
 		Uname:    in.Uname,
@@ -152,7 +113,7 @@ func (e giftExporter) Normalize(filters json.RawMessage) (json.RawMessage, int, 
 
 // Count 统计命中行数，limit > 0 时提前停止
 func (e giftExporter) Count(ctx context.Context, filters json.RawMessage, limit int) (int64, error) {
-	q, err := parseGiftQuery(filters)
+	q, err := parseGiftExportQuery(filters)
 	if err != nil {
 		return 0, err
 	}
@@ -161,7 +122,7 @@ func (e giftExporter) Count(ctx context.Context, filters json.RawMessage, limit 
 
 // FetchChunk 取一块数据，按主键倒序
 func (e giftExporter) FetchChunk(ctx context.Context, filters json.RawMessage, afterID int64, keys []string, limit int) ([][]any, int64, error) {
-	q, err := parseGiftQuery(filters)
+	q, err := parseGiftExportQuery(filters)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -169,26 +130,68 @@ func (e giftExporter) FetchChunk(ctx context.Context, filters json.RawMessage, a
 	if err != nil {
 		return nil, 0, err
 	}
-	return buildRecords(rows, keys, giftValue)
+	return export.BuildRecords(rows, keys, giftColumnValue, func(r model.LiveGift) int64 { return r.ID })
 }
 
 // ---------- 盲盒列表 ----------
+
+// blindBoxExportColumns 允许导出的列，顺序与页面列一致。
+//
+// total 与 profit 是页面上算出来的展示值（后端没有对应字段），这里按同样的算式算一遍；
+// 「是不是盲盒」的过滤条件在仓储的 blindBoxBase 里，与本文件无关。
+var blindBoxExportColumns = []export.ColumnSpec[model.LiveGift]{
+	{Key: "uid", TitleKey: "export.column.uid", Value: func(r model.LiveGift) any { return r.UID }},
+	{Key: "badge_name", TitleKey: "export.column.badge_name", Value: func(r model.LiveGift) any { return r.BadgeName }},
+	{Key: "uname", TitleKey: "export.column.uname", Value: func(r model.LiveGift) any { return r.Uname }},
+	{Key: "gift_name", TitleKey: "export.column.gift_name", Value: func(r model.LiveGift) any { return r.GiftName }},
+	{Key: "price", TitleKey: "export.column.price", Value: func(r model.LiveGift) any { return export.Money(r.Price) }},
+	{Key: "num", TitleKey: "export.column.num", Value: func(r model.LiveGift) any { return r.Num }},
+	{Key: "total", TitleKey: "export.column.total", Value: func(r model.LiveGift) any { return export.Money(r.Price * r.Num) }},
+	{Key: "original_gift_name", TitleKey: "export.column.original_gift_name", Value: func(r model.LiveGift) any { return r.OriginalGiftName }},
+	{Key: "original_gift_price", TitleKey: "export.column.original_gift_price", Value: func(r model.LiveGift) any { return export.Money(r.OriginalGiftPrice) }},
+	// 可为负：收到的礼物比转赠出去的便宜就是亏
+	{Key: "profit", TitleKey: "export.column.profit", Value: func(r model.LiveGift) any { return export.Money((r.Price - r.OriginalGiftPrice) * r.Num) }},
+	{Key: "send_at", TitleKey: "export.column.send_at", Value: func(r model.LiveGift) any { return export.UnixTime(r.SendAt) }},
+}
+
+var blindBoxColumnValue = export.ValueMapOf(blindBoxExportColumns)
+
+// blindBoxExportFilterInput 前端传来的筛选条件，字段与列表接口同口径
+type blindBoxExportFilterInput struct {
+	RoomID           *int64   `json:"room_id"`
+	UID              *int64   `json:"uid"`
+	Uname            *string  `json:"uname"`
+	GiftName         *string  `json:"gift_name"`
+	OriginalGiftName *string  `json:"original_gift_name"`
+	SendAt           *[]int64 `json:"send_at"`
+}
+
+// blindBoxExportFilterQuery 规范化后的筛选条件：时间区间已换算成秒级的闭区间
+type blindBoxExportFilterQuery struct {
+	RoomID           *int64  `json:"room_id"`
+	UID              *int64  `json:"uid"`
+	Uname            *string `json:"uname"`
+	GiftName         *string `json:"gift_name"`
+	OriginalGiftName *string `json:"original_gift_name"`
+	SendAtStart      *int64  `json:"send_at_start"`
+	SendAtEnd        *int64  `json:"send_at_end"`
+}
 
 // Module 导出模块标识
 func (e blindBoxExporter) Module() string { return "livegiftblindbox" }
 
 // Columns 本模块允许导出的列
-func (e blindBoxExporter) Columns() []export.Column { return export.ColumnsOf(blindBoxColumns) }
+func (e blindBoxExporter) Columns() []export.Column { return export.ColumnsOf(blindBoxExportColumns) }
 
-// Normalize 解析并校验前端筛选条件
+// Normalize 解析并校验前端筛选条件，把时间区间换算成秒级闭区间后回写为规范 JSON
 func (e blindBoxExporter) Normalize(filters json.RawMessage) (json.RawMessage, int, error) {
-	var in blindBoxFilterInput
+	var in blindBoxExportFilterInput
 	if len(filters) > 0 {
 		if err := json.Unmarshal(filters, &in); err != nil {
 			return nil, CodeParamInvalid, fmt.Errorf("解析导出筛选条件失败: %w", err)
 		}
 	}
-	q := blindBoxFilterQuery{
+	q := blindBoxExportFilterQuery{
 		RoomID:           in.RoomID,
 		UID:              in.UID,
 		Uname:            in.Uname,
@@ -207,7 +210,7 @@ func (e blindBoxExporter) Normalize(filters json.RawMessage) (json.RawMessage, i
 
 // Count 统计命中行数，limit > 0 时提前停止
 func (e blindBoxExporter) Count(ctx context.Context, filters json.RawMessage, limit int) (int64, error) {
-	q, err := parseBlindBoxQuery(filters)
+	q, err := parseBlindBoxExportQuery(filters)
 	if err != nil {
 		return 0, err
 	}
@@ -216,7 +219,7 @@ func (e blindBoxExporter) Count(ctx context.Context, filters json.RawMessage, li
 
 // FetchChunk 取一块数据，按主键倒序
 func (e blindBoxExporter) FetchChunk(ctx context.Context, filters json.RawMessage, afterID int64, keys []string, limit int) ([][]any, int64, error) {
-	q, err := parseBlindBoxQuery(filters)
+	q, err := parseBlindBoxExportQuery(filters)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -224,36 +227,14 @@ func (e blindBoxExporter) FetchChunk(ctx context.Context, filters json.RawMessag
 	if err != nil {
 		return nil, 0, err
 	}
-	return buildRecords(rows, keys, blindBoxValue)
+	return export.BuildRecords(rows, keys, blindBoxColumnValue, func(r model.LiveGift) int64 { return r.ID })
 }
 
 // ---------- 共用 ----------
 
-// buildRecords 按调用方给的列序取值并组装成一块导出数据，游标取本块最后一行的主键
-func buildRecords(rows []model.LiveGift, keys []string, values map[string]func(model.LiveGift) any) ([][]any, int64, error) {
-	out := make([][]any, 0, len(rows))
-	for _, row := range rows {
-		rec := make([]any, 0, len(keys))
-		for _, key := range keys {
-			// keys 已由 export 包按 Columns() 校验过，这里的兜底只为防两处声明分叉
-			value, ok := values[key]
-			if !ok {
-				return nil, 0, fmt.Errorf("未支持的导出列: %q", key)
-			}
-			rec = append(rec, value(row))
-		}
-		out = append(out, rec)
-	}
-	var nextID int64
-	if len(rows) > 0 {
-		nextID = rows[len(rows)-1].ID
-	}
-	return out, nextID, nil
-}
-
-// parseGiftQuery 把规范化的筛选条件还原为礼物列表的仓储查询结构
-func parseGiftQuery(filters json.RawMessage) (model.LiveGiftListPageQuery, error) {
-	var q giftFilterQuery
+// parseGiftExportQuery 把规范化的筛选条件还原为礼物列表的仓储查询结构
+func parseGiftExportQuery(filters json.RawMessage) (model.LiveGiftListPageQuery, error) {
+	var q giftExportFilterQuery
 	if len(filters) > 0 {
 		if err := json.Unmarshal(filters, &q); err != nil {
 			return model.LiveGiftListPageQuery{}, fmt.Errorf("解析导出筛选条件失败: %w", err)
@@ -271,9 +252,9 @@ func parseGiftQuery(filters json.RawMessage) (model.LiveGiftListPageQuery, error
 	}, nil
 }
 
-// parseBlindBoxQuery 把规范化的筛选条件还原为盲盒列表的仓储查询结构
-func parseBlindBoxQuery(filters json.RawMessage) (model.LiveGiftBlindBoxListPageQuery, error) {
-	var q blindBoxFilterQuery
+// parseBlindBoxExportQuery 把规范化的筛选条件还原为盲盒列表的仓储查询结构
+func parseBlindBoxExportQuery(filters json.RawMessage) (model.LiveGiftBlindBoxListPageQuery, error) {
+	var q blindBoxExportFilterQuery
 	if len(filters) > 0 {
 		if err := json.Unmarshal(filters, &q); err != nil {
 			return model.LiveGiftBlindBoxListPageQuery{}, fmt.Errorf("解析导出筛选条件失败: %w", err)

@@ -10,13 +10,10 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
 
-// PK 对战记录的导出数据源。
-
-// exportColumns 允许导出的列，顺序与页面列一致。
+// exportColumns 允许导出的列。
 //
-// pk_status / battle_type / match_type 在库里是裸 int64（值来自 B 站协议，后端没有对应枚举），
-// 页面上的中文标签来自前端本地的选项数组，所以这里直接出原始数值 —— 不在后端凭空造一份
-// 与前端并存的文案，那会多出一个需要两边同步的维护点。
+// pk_status / battle_type 在库里是裸 int64，值来自 B 站协议、后端没有对应枚举，
+// 页面上的中文标签也来自前端本地的选项数组，所以这里直接出原始数值。
 var exportColumns = []export.ColumnSpec[model.LivePkLog]{
 	{Key: "pk_id", TitleKey: "export.column.pk_id", Value: func(r model.LivePkLog) any { return r.PkID }},
 	{Key: "pk_status", TitleKey: "export.column.pk_status", Value: func(r model.LivePkLog) any { return r.PkStatus }},
@@ -29,12 +26,11 @@ var exportColumns = []export.ColumnSpec[model.LivePkLog]{
 	{Key: "settle_at", TitleKey: "export.column.settle_at", Value: func(r model.LivePkLog) any { return export.UnixTime(r.SettleAt) }},
 }
 
-// columnValue 列 key → 取值函数，与上面的声明同源
 var columnValue = export.ValueMapOf(exportColumns)
 
 // exportFilterInput 前端传来的筛选条件，字段与列表接口同口径。
 //
-// 注意时间字段在前端叫 start_at（不是 send_at），值是毫秒级区间。
+// 时间字段在前端叫 start_at（不是 send_at），值是毫秒级区间。
 type exportFilterInput struct {
 	RoomID     *int64   `json:"room_id"`
 	RivalUID   *int64   `json:"rival_uid"`
@@ -43,7 +39,7 @@ type exportFilterInput struct {
 	StartAt    *[]int64 `json:"start_at"`
 }
 
-// exportFilterQuery 规范化后的筛选条件：时间区间已换算成秒级闭区间
+// exportFilterQuery 规范化后的筛选条件：时间区间已换算成秒级的闭区间
 type exportFilterQuery struct {
 	RoomID       *int64  `json:"room_id"`
 	RivalUID     *int64  `json:"rival_uid"`
@@ -67,7 +63,7 @@ func (s *Service) Normalize(filters json.RawMessage) (json.RawMessage, int, erro
 			return nil, CodeParamInvalid, fmt.Errorf("解析导出筛选条件失败: %w", err)
 		}
 	}
-	// 仓储的构建器对 result 不做校验就直接拼进 SQL，非法值在这里拦下来
+	// 仓储的构建器不校验 result 就直接拼进 SQL，非法值会静默变成「命中 0 行」而不是报错
 	if in.Result != nil {
 		switch *in.Result {
 		case resultLose, resultWin:
@@ -110,25 +106,7 @@ func (s *Service) FetchChunk(ctx context.Context, filters json.RawMessage, after
 	if err != nil {
 		return nil, 0, err
 	}
-	out := make([][]any, 0, len(rows))
-	for _, row := range rows {
-		rec := make([]any, 0, len(keys))
-		for _, key := range keys {
-			// keys 已由 export 包按 Columns() 校验过，这里的兜底只为防两处声明分叉
-			value, ok := columnValue[key]
-			if !ok {
-				return nil, 0, fmt.Errorf("未支持的导出列: %q", key)
-			}
-			rec = append(rec, value(row))
-		}
-		out = append(out, rec)
-	}
-	// 游标取本块最后一行的主键；空块时由调用方按「不足一块」结束循环，不会再用到
-	var nextID int64
-	if len(rows) > 0 {
-		nextID = rows[len(rows)-1].ID
-	}
-	return out, nextID, nil
+	return export.BuildRecords(rows, keys, columnValue, func(r model.LivePkLog) int64 { return r.ID })
 }
 
 // parseExportQuery 把规范化的筛选条件还原为仓储查询结构

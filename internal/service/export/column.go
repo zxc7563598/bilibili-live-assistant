@@ -1,5 +1,7 @@
 package export
 
+import "fmt"
+
 // ColumnSpec 一列的完整声明：表头文案 + 从行里取值的函数。
 //
 // 刻意把「声明」和「取值」写在一起，而不是像早期那样分成 exportColumns 与取数 switch
@@ -35,4 +37,30 @@ func ValueMapOf[T any](specs []ColumnSpec[T]) map[string]func(T) any {
 		m[s.Key] = s.Value
 	}
 	return m
+}
+
+// BuildRecords 按调用方给的列序从每行取值，组装成一块导出数据。
+//
+// 返回的第二个值是下一块的游标（本块最后一行的主键，由 idOf 取出）；
+// 各模块的 FetchChunk 因此可以一行收尾，取数与游标的写法不会有出入。
+func BuildRecords[T any](rows []T, keys []string, values map[string]func(T) any, idOf func(T) int64) ([][]any, int64, error) {
+	out := make([][]any, 0, len(rows))
+	for _, row := range rows {
+		rec := make([]any, 0, len(keys))
+		for _, key := range keys {
+			// keys 已由 resolveColumns 按 Columns() 校验过，这里的兜底只为防两处声明分叉
+			value, ok := values[key]
+			if !ok {
+				return nil, 0, fmt.Errorf("未支持的导出列: %q", key)
+			}
+			rec = append(rec, value(row))
+		}
+		out = append(out, rec)
+	}
+	// 空块时游标用不到，由调用方按「不足一块」结束循环
+	var nextID int64
+	if len(rows) > 0 {
+		nextID = idOf(rows[len(rows)-1])
+	}
+	return out, nextID, nil
 }

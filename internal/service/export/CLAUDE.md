@@ -98,6 +98,41 @@ GET  /api/admin/export/download?ticket=xxx    (无 AdminAuth，凭证即鉴权)
    规格），在模块里声明一个拼接列（如 `product_info`）并在前端用 `exportKey` 指过去，
    文案对齐前端单元格。这是唯一会把前端展示逻辑复制到后端的地方，两处注释都要互相指认。
 
+## 命名与文件结构
+
+各模块的 `export.go` 逐字对齐，照着最接近的一个改即可（单模块看 `livedanmu`，
+一个 service 挂两个模块看 `livegift`）。文件内固定按这个顺序：
+
+```go
+// exportColumns 允许导出的列[。本模块的特定说明]
+var exportColumns = []export.ColumnSpec[行类型]{...}
+
+var columnValue = export.ValueMapOf(exportColumns)
+
+// exportFilterInput 前端传来的筛选条件，字段与列表接口同口径
+type exportFilterInput struct{...}
+
+// exportFilterQuery 规范化后的筛选条件：时间区间已换算成秒级的闭区间
+type exportFilterQuery struct{...}   // 只做透传的模块不需要这个类型
+
+// Module / Columns / Normalize / Count / FetchChunk —— 注释与其它模块逐字相同
+// parseExportQuery 把规范化的筛选条件还原为仓储查询结构
+// 模块私有的辅助函数（如拼接列）放最后
+```
+
+几条约定：
+
+- 名字一律用 `exportColumns` / `columnValue` / `exportFilterInput` / `exportFilterQuery` /
+  `parseExportQuery`。一个 service 挂两个导出模块时（目前只有 `livegift`）加列表名前缀、
+  基名不变：`giftExportColumns`、`blindBoxExportFilterInput`、`parseGiftExportQuery`。
+- `FetchChunk` 结尾统一走
+  `export.BuildRecords(rows, keys, columnValue, func(r 行类型) int64 { return r.ID })`，
+  不要各写一遍取值循环。
+- `exportColumns` 上方用一两行注释交代**本模块特有的决定**（哪些列不能导、哪些列是页面算出来的、
+  为什么状态列出数值而不是文案）；其余声明只在确有必要时加注释，不写「与上面同源」这类复述。
+- 只在文件内有多个分组时才用 `// ---------- 分组名 ----------` 分隔
+  （`livegift` 的两个模块、`order` 的辅助块）。
+
 ## 取值与格式化
 
 模块的 `FetchChunk` 返回 `[][]any`，渲染由本包的 `formatCell` 统一处理，
