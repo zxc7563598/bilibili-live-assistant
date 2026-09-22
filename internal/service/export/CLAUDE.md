@@ -167,9 +167,10 @@ type exportFilterQuery struct{...}   // 只做透传的模块不需要这个类�
 
 ### livepk
 
-- `pk_status` / `battle_type` 在库里是裸 `int64`，值来自 B 站协议、后端没有对应枚举，
-  页面上的中文标签也来自前端本地的选项数组，所以导出**直接出原始数值**，不在后端造第二份文案。
-- 前端的 `pkStatusOptions` 里 404 = 异常结束（这个值曾与「即将开始」的 101 重复，已修）。
+- `pk_status` / `battle_type` 在库里是裸 `int64`，值来自 B 站协议，取值不连续
+  （101/401/404、2/6），因此对应 `internal/enum/pkStatus.go` 与 `pkBattleType.go` 两个枚举。
+- 这两列的文案因此同时存在于前端本地的选项数组与后端枚举里，是「页面与导出都要出中文标签」
+  的必然代价；变动 B 站协议取值时两边都要改。
 
 ### order（管理端「订单列表」+「发货」，同一个接口）
 
@@ -198,6 +199,12 @@ type exportFilterQuery struct{...}   // 只做透传的模块不需要这个类�
 | `bool` | yes/no 文案 |
 | `string` | 过一遍公式注入防护 |
 | 其它 | `fmt.Sprint` 兜底，并往 CSV 追加一条未支持类型提示 |
+
+**要出中文标签的列，去 `internal/enum/` 加枚举，不要在 `formatCell` 里加分支。**
+枚举实现 `Text(lang)` 后上面那一行就自动生效，本包因此不必知道任何业务语义 ——
+`export.UnixTime` / `export.Money` 是通用标量包装，而「PK 状态 101 是即将开始」
+这种是业务知识，归 `internal/enum/`（见其 CLAUDE.md 的「需要与多语言展示结合」）。
+订单的四个状态列就是这么做的，框架一行没改。
 
 CSV 细节：首字节写 UTF-8 BOM（Windows Excel 中文不乱码）、`UseCRLF`、
 **公式注入防护**（`= + - @` 开头加单引号；加引号不能替代这层防护）。

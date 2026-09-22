@@ -439,6 +439,15 @@ draft_status:
   redeemed: 已兑换
   cancelled: 已取消
 
+pk_status:
+  starting_soon: 即将开始
+  completed: 正常结束
+  aborted: 异常结束
+
+pk_battle_type:
+  classic_pk: 经典PK
+  battle_royale: 大乱斗
+
 # 数据导出：module 用于拼下载文件名，column 为 CSV 表头（键名与前端列 key 对应）
 export:
   module:

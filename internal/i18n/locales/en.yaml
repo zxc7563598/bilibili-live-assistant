@@ -439,6 +439,15 @@ draft_status:
   redeemed: redeemed
   cancelled: cancelled
 
+pk_status:
+  starting_soon: starting_soon
+  completed: completed
+  aborted: aborted
+
+pk_battle_type:
+  classic_pk: classic_pk
+  battle_royale: battle_royale
+
 # Data export: module labels the download filename, column entries are CSV headers
 export:
   module:

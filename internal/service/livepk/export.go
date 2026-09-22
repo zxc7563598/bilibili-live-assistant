@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/export"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
@@ -13,8 +14,8 @@ import (
 // exportColumns 允许导出的列
 var exportColumns = []export.ColumnSpec[model.LivePkLog]{
 	{Key: "pk_id", TitleKey: "export.column.pk_id", Value: func(r model.LivePkLog) any { return r.PkID }},
-	{Key: "pk_status", TitleKey: "export.column.pk_status", Value: func(r model.LivePkLog) any { return r.PkStatus }},
-	{Key: "battle_type", TitleKey: "export.column.battle_type", Value: func(r model.LivePkLog) any { return r.BattleType }},
+	{Key: "pk_status", TitleKey: "export.column.pk_status", Value: func(r model.LivePkLog) any { return enum.PkStatus(r.PkStatus) }},
+	{Key: "battle_type", TitleKey: "export.column.battle_type", Value: func(r model.LivePkLog) any { return enum.PkBattleType(r.BattleType) }},
 	{Key: "rival_uid", TitleKey: "export.column.rival_uid", Value: func(r model.LivePkLog) any { return r.RivalUID }},
 	{Key: "rival_uname", TitleKey: "export.column.rival_uname", Value: func(r model.LivePkLog) any { return r.RivalUname }},
 	{Key: "self_votes", TitleKey: "export.column.self_votes", Value: func(r model.LivePkLog) any { return r.SelfVotes }},
