@@ -62,7 +62,7 @@ const pkStatusOptions = ref([
   },
   {
     label: '异常结束',
-    value: 101,
+    value: 404,
   },
 ])
 
