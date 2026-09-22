@@ -147,6 +147,11 @@ web/src
 - **所有校验在「获取凭证」时完成**（模块、列、行数上限、并发数），因此失败能正常弹提示；下载走浏览器原生下载，出错信息无法展示给用户。
 - **列 = 表格列中带 `title` 且未标 `hideInExcel` 的列**，顺序一致。展示 key 与后端字段不一致时可给列加 `exportKey` 覆盖（用法同 `sortField`）。**列头文案由后端按语言生成**，前端只传 key。
 - **行序固定按主键倒序**，不跟随页面排序（跟随排序要按无索引列排序，百万行下每块都要全表扫描）。
+- **单元格里摊了多个字段的列**（如订单页的「商品信息」「收货信息」），导出文案由后端拼好，
+  前端用 `exportKey` 指过去（`product_info` / `receiver_info`）。改这类单元格的
+  `renderProduct` / `renderReceiver` 时**必须同步改后端的拼接函数**，否则页面与导出文件
+  说的不是一回事 —— 对应关系记在 [internal/service/export/CLAUDE.md](../internal/service/export/CLAUDE.md)
+  的「各模块的设计取舍」一节。
 - 接入一个新模块需要后端先实现并注册 `export.Source`，见 [internal/service/export/CLAUDE.md](../internal/service/export/CLAUDE.md)。
 
 ### MeModal

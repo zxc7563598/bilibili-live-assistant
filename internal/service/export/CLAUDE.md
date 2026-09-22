@@ -104,7 +104,7 @@ GET  /api/admin/export/download?ticket=xxx    (无 AdminAuth，凭证即鉴权)
 一个 service 挂两个模块看 `livegift`）。文件内固定按这个顺序：
 
 ```go
-// exportColumns 允许导出的列[。本模块的特定说明]
+// exportColumns 允许导出的列
 var exportColumns = []export.ColumnSpec[行类型]{...}
 
 var columnValue = export.ValueMapOf(exportColumns)
@@ -125,13 +125,65 @@ type exportFilterQuery struct{...}   // 只做透传的模块不需要这个类�
 - 名字一律用 `exportColumns` / `columnValue` / `exportFilterInput` / `exportFilterQuery` /
   `parseExportQuery`。一个 service 挂两个导出模块时（目前只有 `livegift`）加列表名前缀、
   基名不变：`giftExportColumns`、`blindBoxExportFilterInput`、`parseGiftExportQuery`。
+- 注释只写一行结论，**不写「为什么」**：`// exportColumns 允许导出的列`、
+  `// exportFilterInput 前端传来的筛选条件，字段与列表接口同口径` 就是完整形态。
+  取舍与背景写进本文件的「各模块的设计取舍」一节，不要写回代码里 —— 代码上看不出来
+  为什么这么写的地方，都在那一节有交代。
+- 文件内只有一个模块时不加分组标记，用不上分隔线；`livegift` 因为一个文件放了两个模块，
+  才用 `// ---------- 礼物列表 ----------` 这类标记隔开。
 - `FetchChunk` 结尾统一走
   `export.BuildRecords(rows, keys, columnValue, func(r 行类型) int64 { return r.ID })`，
   不要各写一遍取值循环。
-- `exportColumns` 上方用一两行注释交代**本模块特有的决定**（哪些列不能导、哪些列是页面算出来的、
-  为什么状态列出数值而不是文案）；其余声明只在确有必要时加注释，不写「与上面同源」这类复述。
-- 只在文件内有多个分组时才用 `// ---------- 分组名 ----------` 分隔
-  （`livegift` 的两个模块、`order` 的辅助块）。
+
+## 各模块的设计取舍
+
+代码里只剩一行注释，为什么这么做都记在这里。加新模块或改这些模块前先扫一眼。
+
+### 框架层（本包）
+
+- **列声明与取值写在同一个 `ColumnSpec` 里**：早期是「列清单 + 取值 switch」两份手工对齐的
+  字面量，加一列忘了加分支不会编译失败，要等点导出才暴露，每个模块还得配一个同步单测兜着。
+  合成一份后这类漂移在结构上不可能出现。
+- `ValueMapOf` 的结果在包级初始化一次即可；导出是只读操作，之后并发调用安全。
+- `BuildRecords` 的第二个返回值是下一块的游标（本块最后一行的主键，由 `idOf` 取出）。
+  各模块的 `FetchChunk` 因此一行收尾，取数与游标的写法不会有出入。
+
+### liveuser（管理端「用户列表」+ 商城端「用户管理」，同一个接口）
+
+- 白名单**不含 `password` / `token`**：model 里有这两列，它们是用户凭证，不能出现在导出文件里。
+- `total_gift_amount` 落库单位是分，用 `export.Money` 渲染成两位小数的元，
+  与页面 `row.total_gift_amount / 100` 的展示口径一致。
+
+### livegift / livegiftblindbox（一个 service，两个接口）
+
+- 两个接口的列与筛选条件都不一样，所以注册成两个模块名；Service 只有一个，
+  用两个薄包装类型各自挂 `Source` 方法。
+- `total`、`profit` 是页面上算出来的展示值（后端没有对应字段），导出侧按同样的算式算一遍；
+  `profit` 可为负（收到的礼物比转赠出去的便宜就是亏）。
+- 「是不是盲盒」的判据 `original = 0` 在仓储的 `blindBoxBase` 里，不在本文件 —— 因为它是
+  列表的身份条件，列表 / 计数 / 导出三个入口都要带，收在仓储只写一份。
+- `gift_type` / `original` 在 `Normalize` 里显式校验：仓储构建器对非法枚举是**静默忽略**的，
+  不拦下来就会导出一份筛选条件没生效的全量数据。
+
+### livepk
+
+- `pk_status` / `battle_type` 在库里是裸 `int64`，值来自 B 站协议、后端没有对应枚举，
+  页面上的中文标签也来自前端本地的选项数组，所以导出**直接出原始数值**，不在后端造第二份文案。
+- 前端的 `pkStatusOptions` 里 404 = 异常结束（这个值曾与「即将开始」的 101 重复，已修）。
+
+### order（管理端「订单列表」+「发货」，同一个接口）
+
+- 白名单是**两个页面列的并集**：各页只发自己显示的那几列。
+- `product_info` / `receiver_info` 是拼接列，文案对齐前端单元格。**这是唯一把前端展示逻辑
+  复制到后端的地方**：改前端 `renderProduct`（`order/list` 与 `order/delivery` 各一份）、
+  `renderReceiver`（`order/delivery`）时，要同步改本模块的 `productInfo` / `receiverInfo`，
+  以及复刻 `web/src/utils/common.js` 的 `formatProductSpecs` 的那份 `formatSpecProperties`。
+  落库的规格快照是按规格定义顺序序列化的 `[{"规格名":"规格值"},…]`，且每个元素恰好一对
+  （见 `internal/service/product/common.go` 的 `marshalSpecProperties`），所以按元素顺序
+  遍历即与页面同序。
+- 状态筛选字段用 `*int`：裸 `int` 分不清「没传」与「传 0」，而 0 是合法筛选值
+  （发货页的默认筛选就是 `order_status=1 & ship_status=0`）。
+- `emptyCell`（`—`）对齐前端 `dash()` 的空值占位。
 
 ## 取值与格式化
 
