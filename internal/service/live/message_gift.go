@@ -141,6 +141,7 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			BadgeType: enum.BadgeType(info.GuardLevel),
 		}
 		thankInfo.OriginalGiftPrice = info.Price
+		p.recordGuardExpire(ctx, info)
 		p.processGifts(ctx, roomID, []giftPush{{gift: gift, thank: thankInfo}})
 	case live.CmdSuperDanmuMsg:
 		info, ok := data.(*live.SuperChatMessage)
@@ -235,6 +236,13 @@ func buildSendGift(roomID int64, info *live.SendGiftInfo, item live.GiftItemInfo
 type giftPush struct {
 	gift  *model.LiveGift
 	thank *giftThankInfo
+}
+
+// recordGuardExpire 延长用户的大航海到期时间，写入 live_users 对应的列
+func (p *giftProcessor) recordGuardExpire(ctx context.Context, info *live.GuardBuyInfo) {
+	if errCode, err := p.liveUserSvc.ExtendGuardExpire(ctx, info.UID, info.Uname, enum.BadgeType(info.GuardLevel), time.Now()); errCode != 0 {
+		log.Printf("[live.Gift] 记录大航海到期时间失败: uid=%d guardLevel=%d code=%d err=%v", info.UID, info.GuardLevel, errCode, err)
+	}
 }
 
 // processGifts 处理一次礼物推送（普通送礼只有 1 份，盲盒爆出时可达数十份）

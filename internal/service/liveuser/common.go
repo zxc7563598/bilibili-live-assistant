@@ -2,11 +2,44 @@ package liveuser
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
+
+// guardValidDays 一次大航海购买的有效天数
+const guardValidDays = 30
+
+// guardExpireField 大航海等级 → 到期时间列名
+func guardExpireField(level enum.BadgeType) (string, error) {
+	switch level {
+	case enum.BadgeTypeL1:
+		return "captain_expire_at", nil
+	case enum.BadgeTypeL2:
+		return "admiral_expire_at", nil
+	case enum.BadgeTypeL3:
+		return "governor_expire_at", nil
+	default:
+		return "", fmt.Errorf("非大航海等级: %d", level)
+	}
+}
+
+// guardExpireValue 用户当前该档的到期时间，未记录返回 nil
+func guardExpireValue(level enum.BadgeType, user *model.LiveUser) *int64 {
+	switch level {
+	case enum.BadgeTypeL1:
+		return user.CaptainExpireAt
+	case enum.BadgeTypeL2:
+		return user.AdmiralExpireAt
+	case enum.BadgeTypeL3:
+		return user.GovernorExpireAt
+	default:
+		return nil
+	}
+}
 
 // updateToken 用于更新用户token
 //

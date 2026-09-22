@@ -257,6 +257,34 @@ func (s *Service) AddTotalGiftAmount(ctx context.Context, userID int64, amount i
 	return s.liveUserRepo.AdjustField(ctx, nil, userID, "total_gift_amount", amount)
 }
 
+// ExtendGuardExpire 延长用户某档大航海的到期时间
+func (s *Service) ExtendGuardExpire(ctx context.Context, uid int64, uname string, level enum.BadgeType, recvAt time.Time) (int, error) {
+	field, err := guardExpireField(level)
+	if err != nil {
+		return CodeParamInvalid, err
+	}
+	userID, err := s.EnsureUser(ctx, uid, uname)
+	if err != nil {
+		return CodeQueryFailed, err
+	}
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return CodeQueryFailed, fmt.Errorf("获取用户信息失败：%w", err)
+	}
+	if user == nil {
+		return CodeUserNotFound, fmt.Errorf("用户记录缺失: id=%d", userID)
+	}
+	base := time.Date(recvAt.Year(), recvAt.Month(), recvAt.Day(), 0, 0, 0, 0, recvAt.Location())
+	// 仍在有效期内则接着原到期时间算
+	if current := guardExpireValue(level, user); current != nil && *current > base.Unix() {
+		base = time.Unix(*current, 0).In(recvAt.Location())
+	}
+	if err := s.liveUserRepo.UpdateField(ctx, nil, userID, field, base.AddDate(0, 0, guardValidDays).Unix()); err != nil {
+		return CodeQueryFailed, fmt.Errorf("记录大航海到期时间失败：%w", err)
+	}
+	return 0, nil
+}
+
 // AdjustPoints 增减用户积分并写资产流水。tx 为 nil 时自开事务
 func (s *Service) AdjustPoints(ctx context.Context, tx *gorm.DB, params AdjustCreditParams) error {
 	return s.addCreditLog(ctx, tx, params, enum.CreditTypePoints, live_user.CreditFieldPoints)
