@@ -7,6 +7,7 @@ package cron
 import (
 	"context"
 	"log"
+	"runtime/debug"
 	"sync"
 	"time"
 )
@@ -52,10 +53,20 @@ func (s *Scheduler) run(ctx context.Context, job Job) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if err := job.Run(ctx); err != nil {
-				log.Printf("[cron] 任务 %s 执行失败: %v", job.Name, err)
-			}
+			s.runJob(ctx, job)
 		}
+	}
+}
+
+// runJob 执行一次任务，并把任务内的 panic 挡在这里：单个后台任务崩溃不应该带走整个进程
+func (s *Scheduler) runJob(ctx context.Context, job Job) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[cron] 任务 %s panic: %v\n%s", job.Name, r, debug.Stack())
+		}
+	}()
+	if err := job.Run(ctx); err != nil {
+		log.Printf("[cron] 任务 %s 执行失败: %v", job.Name, err)
 	}
 }
 
