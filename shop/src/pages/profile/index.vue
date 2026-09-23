@@ -24,8 +24,17 @@
               </button>
             </template>
           </div>
-          <Tag color="primary">
+          <Tag v-if="user.vip_type === 0" color="primary">
             普通用户
+          </Tag>
+          <Tag v-if="user.vip_type === 1" color="primary">
+            总督主人
+          </Tag>
+          <Tag v-if="user.vip_type === 2" color="primary">
+            提督大人
+          </Tag>
+          <Tag v-if="user.vip_type === 3" color="primary">
+            舰长宝宝
           </Tag>
         </div>
       </div>
@@ -116,6 +125,7 @@ const user = ref({
   avatar: '',
   points: 0, // 积分余额
   stars: 0, // 星光余额
+  vip_type: 0,
 })
 
 const roomID = ref(0)
