@@ -65,7 +65,9 @@
                 <AppIcon :name="p.credit_type === 0 ? 'star' : 'points'" :size="15" />
                 <span class="text-base font-bold leading-none tabular-nums">{{ p.price }}</span>
               </span>
-              <span class="text-xs text-fg-3 tabular-nums" />
+              <span v-if="p.min_member_level === 1" class="text-xs text-fg-3 tabular-nums">舰长限定</span>
+              <span v-if="p.min_member_level === 2" class="text-xs text-fg-3 tabular-nums">提督限定</span>
+              <span v-if="p.min_member_level === 3" class="text-xs text-fg-3 tabular-nums">总督限定</span>
             </div>
           </div>
         </router-link>

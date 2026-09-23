@@ -34,14 +34,21 @@
           <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="返回" @click="onBack">
             <AppIcon name="chevron-left" :size="22" />
           </button>
-          <!-- <div class="flex items-center gap-2">
+          <div v-if="product.min_member_level === 1" class="flex items-center gap-2">
             <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="收藏">
-              <AppIcon name="heart" :size="20" />
+              <AppImage :src="jianIcon" class="w-9 h-9 rounded-full" />
             </button>
-            <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="分享">
-              <AppIcon name="share" :size="20" />
+          </div>
+          <div v-if="product.min_member_level === 2" class="flex items-center gap-2">
+            <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="收藏">
+              <AppImage :src="tiIcon" class="w-9 h-9 rounded-full" />
             </button>
-          </div> -->
+          </div>
+          <div v-if="product.min_member_level === 3" class="flex items-center gap-2">
+            <button class="flex h-9 w-9 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur press" aria-label="收藏">
+              <AppImage :src="zongIcon" class="w-9 h-9 rounded-full" />
+            </button>
+          </div>
         </div>
       </div>
       <section class="card mx-auto mt-4 w-[calc(100%-2rem)] max-w-5xl p-4">
@@ -128,6 +135,9 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import jianIcon from '@/assets/jian.png'
+import tiIcon from '@/assets/ti.png'
+import zongIcon from '@/assets/zong.png'
 import toast from '@/utils/toast'
 import api from './api'
 
