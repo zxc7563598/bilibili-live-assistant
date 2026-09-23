@@ -27,6 +27,17 @@ type AdjustCreditParams struct {
 	OperatorID   int64             // 操作人标识ID
 }
 
+// GuardExpire 用户三个档位的大航海到期时间（Unix 秒），nil 表示该档位未设置
+//
+// 读写共用同一个结构：GetGuardExpire 原样返回，UpdateGuardExpire 整体覆盖，
+// 三个字段的存取口径完全对称，没必要拆成两份逐字相同的类型。
+// 用结构体而不是三个相邻的 *int64 参数，避免调用处按位置传参传错档位。
+type GuardExpire struct {
+	Captain  *int64
+	Admiral  *int64
+	Governor *int64
+}
+
 // GetUserMonthlyAnalysis 请求返回
 type GetUserMonthlyAnalysisResp struct {
 	DanmuCount map[int64]int64 // 每日弹幕数量

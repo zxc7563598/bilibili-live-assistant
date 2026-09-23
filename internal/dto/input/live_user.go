@@ -34,7 +34,7 @@ type LiveUserUserDanmuAnalysisReq struct {
 	UID int64 `json:"uid" binding:"required" err:"required=10801" example:"1"`
 }
 
-// LiveUserDetailsReq 获取用户详细信息请求
+// LiveUserDetailsReq 按主键获取单个用户的请求
 type LiveUserDetailsReq struct {
 	// user_id（用户表主键，非 B站 UID）
 	UserID int64 `json:"user_id" binding:"required" err:"required=10801" example:"1"`
@@ -109,6 +109,21 @@ type LiveUserAssetsPageByIdReq struct {
 	UserID int64 `json:"user_id" binding:"required" err:"required=10801" example:"1"`
 	// 余额类型 0-星光，1-积分
 	CreditType *int `json:"credit_type" binding:"omitempty,oneof=0 1" err:"oneof=10801" example:"1" enums:"0,1"`
+}
+
+// LiveUserUpdateGuardExpireReq 变更用户大航海身份请求
+//
+// 三个到期时间都是 Unix 秒（取本地当天 0 点），允许为空，传 null 表示清空该档位。
+// 身份不落库，由到期时间实时推导，所以这里不限制时间必须晚于当前时间。
+type LiveUserUpdateGuardExpireReq struct {
+	// user_id（用户表主键，非 B站 UID）
+	UserID int64 `json:"user_id" binding:"required" err:"required=10801" example:"1"`
+	// 舰长到期时间（Unix 秒），不设置传 null
+	CaptainExpireAt *int64 `json:"captain_expire_at" example:"1767225600"`
+	// 提督到期时间（Unix 秒），不设置传 null
+	AdmiralExpireAt *int64 `json:"admiral_expire_at" example:"1767225600"`
+	// 总督到期时间（Unix 秒），不设置传 null
+	GovernorExpireAt *int64 `json:"governor_expire_at" example:"1767225600"`
 }
 
 // LiveUserSaveBalanceReq 保存用户余额变更记录请求

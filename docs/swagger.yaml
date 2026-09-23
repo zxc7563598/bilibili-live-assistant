@@ -1014,6 +1014,27 @@ definitions:
     - credit_type
     - user_id
     type: object
+  input.LiveUserUpdateGuardExpireReq:
+    properties:
+      admiral_expire_at:
+        description: 提督到期时间（Unix 秒），不设置传 null
+        example: 1767225600
+        type: integer
+      captain_expire_at:
+        description: 舰长到期时间（Unix 秒），不设置传 null
+        example: 1767225600
+        type: integer
+      governor_expire_at:
+        description: 总督到期时间（Unix 秒），不设置传 null
+        example: 1767225600
+        type: integer
+      user_id:
+        description: user_id（用户表主键，非 B站 UID）
+        example: 1
+        type: integer
+    required:
+    - user_id
+    type: object
   input.LiveUserUserDanmuAnalysisReq:
     properties:
       uid:
@@ -3089,6 +3110,21 @@ definitions:
         example: 22384516
         type: integer
     type: object
+  resp.LiveUserGuardExpireResp:
+    properties:
+      admiral_expire_at:
+        description: 提督到期时间（Unix 秒）
+        example: 1767225600
+        type: integer
+      captain_expire_at:
+        description: 舰长到期时间（Unix 秒）
+        example: 1767225600
+        type: integer
+      governor_expire_at:
+        description: 总督到期时间（Unix 秒）
+        example: 1767225600
+        type: integer
+    type: object
   resp.LiveUserListPageItem:
     properties:
       id:
@@ -3119,6 +3155,11 @@ definitions:
         description: 用户名称
         example: 哎呀又胖啦
         type: string
+      vip_type:
+        allOf:
+        - $ref: '#/definitions/enum.BadgeType'
+        description: 会员类型
+        example: 0
     type: object
   resp.LiveUserListPageResp:
     properties:
@@ -3188,6 +3229,11 @@ definitions:
         description: 用户uid
         example: 4325051
         type: integer
+      vip_type:
+        allOf:
+        - $ref: '#/definitions/enum.BadgeType'
+        description: 会员类型
+        example: 0
     type: object
   resp.LiveUserUserMonthlyAnalysisResp:
     properties:
@@ -5346,6 +5392,40 @@ paths:
       summary: 获取用户详细信息
       tags:
       - 用户管理
+  /api/admin/liveuser/guard-expire:
+    post:
+      description: 按用户表主键（user_id，非 B站 UID）查询用户三个档位（舰长/提督/总督）的大航海到期时间，返回值为 Unix 秒，未设置的档位返回
+        null；不判断是否已过期，过期的档位也照原值返回，供变更弹窗回填
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserDetailsReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveUserGuardExpireResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取用户大航海到期时间
+      tags:
+      - 用户管理
   /api/admin/liveuser/list:
     post:
       description: 分页查询后台用户列表，支持按 UID 精确匹配、昵称模糊匹配筛选，并可按指定字段排序
@@ -5468,6 +5548,36 @@ paths:
       security:
       - BearerAuth: []
       summary: 手动调整用户余额
+      tags:
+      - 用户管理
+  /api/admin/liveuser/update-guard-expire:
+    post:
+      description: 按用户表主键（user_id，非 B站 UID）整体覆盖指定用户的大航海到期时间，三个字段分别是舰长、提督、总督，值为 Unix
+        秒（本地当天 0 点），均可传 null 表示清空该档位；身份不落库，由到期时间实时推导——某档到期时间大于当前时间即获得该档身份，多档同时有效时高等级覆盖低等级（总督
+        > 提督 > 舰长）
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveUserUpdateGuardExpireReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 变更用户大航海身份
       tags:
       - 用户管理
   /api/admin/menu/buttons:

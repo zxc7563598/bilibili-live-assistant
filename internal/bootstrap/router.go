@@ -183,6 +183,8 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/liveuser/assets", middleware.AdminAuth(rdb), handlers.LiveUser.ListAssetsPageByID)
 	adminApi.POST("/liveuser/save-assets", middleware.AdminAuth(rdb), handlers.LiveUser.SaveBalance)
 	adminApi.POST("/liveuser/reset-password", middleware.AdminAuth(rdb), handlers.LiveUser.ResetPassword)
+	adminApi.POST("/liveuser/guard-expire", middleware.AdminAuth(rdb), handlers.LiveUser.GetGuardExpire)
+	adminApi.POST("/liveuser/update-guard-expire", middleware.AdminAuth(rdb), handlers.LiveUser.UpdateGuardExpire)
 	// 商品管理路由
 	adminApi.POST("/product/list", middleware.AdminAuth(rdb), handlers.Product.AdminListPage)
 	adminApi.POST("/product/enable", middleware.AdminAuth(rdb), handlers.Product.AdminUpdateEnable)

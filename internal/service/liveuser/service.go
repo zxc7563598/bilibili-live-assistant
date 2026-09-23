@@ -285,6 +285,41 @@ func (s *Service) ExtendGuardExpire(ctx context.Context, uid int64, uname string
 	return 0, nil
 }
 
+// GetGuardExpire 获取用户三个档位的大航海到期时间
+//
+// 返回的是原始记录值，不做过期判断：已过期的档位照样返回，
+// 变更弹窗要按原值回填，管理员才好在这个时间上继续改。
+func (s *Service) GetGuardExpire(ctx context.Context, userID int64) (GuardExpire, int, error) {
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return GuardExpire{}, CodeQueryFailed, fmt.Errorf("获取用户信息失败：%w", err)
+	}
+	if user == nil {
+		return GuardExpire{}, CodeUserNotFound, nil
+	}
+	return GuardExpire{
+		Captain:  user.CaptainExpireAt,
+		Admiral:  user.AdmiralExpireAt,
+		Governor: user.GovernorExpireAt,
+	}, 0, nil
+}
+
+// UpdateGuardExpire 管理员直接设置用户三个档位的大航海到期时间
+func (s *Service) UpdateGuardExpire(ctx context.Context, userID int64, expire GuardExpire) (int, error) {
+	// 先确认用户存在，避免更新到 0 行却返回成功
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return CodeQueryFailed, fmt.Errorf("获取用户信息失败：%w", err)
+	}
+	if user == nil {
+		return CodeUserNotFound, nil
+	}
+	if err := s.liveUserRepo.UpdateGuardExpireByID(ctx, nil, user.ID, expire.Captain, expire.Admiral, expire.Governor); err != nil {
+		return CodeQueryFailed, fmt.Errorf("更新大航海到期时间失败：%w", err)
+	}
+	return 0, nil
+}
+
 // AdjustPoints 增减用户积分并写资产流水。tx 为 nil 时自开事务
 func (s *Service) AdjustPoints(ctx context.Context, tx *gorm.DB, params AdjustCreditParams) error {
 	return s.addCreditLog(ctx, tx, params, enum.CreditTypePoints, live_user.CreditFieldPoints)

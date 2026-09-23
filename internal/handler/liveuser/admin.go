@@ -353,6 +353,113 @@ func (h *Handler) SaveBalance(c *gin.Context) {
 	response.Success(c, lang, nil)
 }
 
+// @Summary 获取用户大航海到期时间
+// @Description 按用户表主键（user_id，非 B站 UID）查询用户三个档位（舰长/提督/总督）的大航海到期时间，返回值为 Unix 秒，未设置的档位返回 null；不判断是否已过期，过期的档位也照原值返回，供变更弹窗回填
+// @Tags 用户管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserDetailsReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.LiveUserGuardExpireResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/liveuser/guard-expire [post]
+func (h *Handler) GetGuardExpire(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, i18n.CodeTokenExpired)
+		return
+	}
+	// 获取请求参数
+	var req input.LiveUserDetailsReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"GetGuardExpire 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.liveuserSvc.GetGuardExpire(ctx, req.UserID)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.GetGuardExpire 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Any("req.user_id", req.UserID),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.LiveUserGuardExpireResp{
+		CaptainExpireAt:  svcResp.Captain,
+		AdmiralExpireAt:  svcResp.Admiral,
+		GovernorExpireAt: svcResp.Governor,
+	})
+}
+
+// @Summary 变更用户大航海身份
+// @Description 按用户表主键（user_id，非 B站 UID）整体覆盖指定用户的大航海到期时间，三个字段分别是舰长、提督、总督，值为 Unix 秒（本地当天 0 点），均可传 null 表示清空该档位；身份不落库，由到期时间实时推导——某档到期时间大于当前时间即获得该档身份，多档同时有效时高等级覆盖低等级（总督 > 提督 > 舰长）
+// @Tags 用户管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.LiveUserUpdateGuardExpireReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/liveuser/update-guard-expire [post]
+func (h *Handler) UpdateGuardExpire(c *gin.Context) {
+	// 获取上下文/语言配置
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, i18n.CodeTokenExpired)
+		return
+	}
+	// 获取请求参数
+	var req input.LiveUserUpdateGuardExpireReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"UpdateGuardExpire 参数异常",
+			code,
+			err,
+		)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	errCode, err := h.liveuserSvc.UpdateGuardExpire(ctx, req.UserID, liveuser.GuardExpire{
+		Captain:  req.CaptainExpireAt,
+		Admiral:  req.AdmiralExpireAt,
+		Governor: req.GovernorExpireAt,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.LiveUserLogger,
+			"liveuserSvc.UpdateGuardExpire 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Any("req.user_id", req.UserID),
+			zap.Any("req.captain_expire_at", req.CaptainExpireAt),
+			zap.Any("req.admiral_expire_at", req.AdmiralExpireAt),
+			zap.Any("req.governor_expire_at", req.GovernorExpireAt),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}
+
 // @Summary 重置用户密码
 // @Description 按用户表主键（user_id，非 B站 UID）直接重置指定用户的登录密码，无需校验旧密码；重置成功后服务端会同时清除该用户的登录态（未启用 Redis 时 access_token 在有效期届满前仍可用），用户需重新登录
 // @Tags 用户管理

@@ -1766,6 +1766,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/liveuser/guard-expire": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按用户表主键（user_id，非 B站 UID）查询用户三个档位（舰长/提督/总督）的大航海到期时间，返回值为 Unix 秒，未设置的档位返回 null；不判断是否已过期，过期的档位也照原值返回，供变更弹窗回填",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "获取用户大航海到期时间",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserDetailsReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveUserGuardExpireResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/liveuser/list": {
             "post": {
                 "security": [
@@ -1953,6 +2009,50 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/input.LiveUserSaveBalanceReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/liveuser/update-guard-expire": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按用户表主键（user_id，非 B站 UID）整体覆盖指定用户的大航海到期时间，三个字段分别是舰长、提督、总督，值为 Unix 秒（本地当天 0 点），均可传 null 表示清空该档位；身份不落库，由到期时间实时推导——某档到期时间大于当前时间即获得该档身份，多档同时有效时高等级覆盖低等级（总督 \u003e 提督 \u003e 舰长）",
+                "tags": [
+                    "用户管理"
+                ],
+                "summary": "变更用户大航海身份",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveUserUpdateGuardExpireReq"
                         }
                     }
                 ],
@@ -6662,6 +6762,34 @@ const docTemplate = `{
                 }
             }
         },
+        "input.LiveUserUpdateGuardExpireReq": {
+            "type": "object",
+            "required": [
+                "user_id"
+            ],
+            "properties": {
+                "admiral_expire_at": {
+                    "description": "提督到期时间（Unix 秒），不设置传 null",
+                    "type": "integer",
+                    "example": 1767225600
+                },
+                "captain_expire_at": {
+                    "description": "舰长到期时间（Unix 秒），不设置传 null",
+                    "type": "integer",
+                    "example": 1767225600
+                },
+                "governor_expire_at": {
+                    "description": "总督到期时间（Unix 秒），不设置传 null",
+                    "type": "integer",
+                    "example": 1767225600
+                },
+                "user_id": {
+                    "description": "user_id（用户表主键，非 B站 UID）",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "input.LiveUserUserDanmuAnalysisReq": {
             "type": "object",
             "required": [
@@ -9404,6 +9532,26 @@ const docTemplate = `{
                 }
             }
         },
+        "resp.LiveUserGuardExpireResp": {
+            "type": "object",
+            "properties": {
+                "admiral_expire_at": {
+                    "description": "提督到期时间（Unix 秒）",
+                    "type": "integer",
+                    "example": 1767225600
+                },
+                "captain_expire_at": {
+                    "description": "舰长到期时间（Unix 秒）",
+                    "type": "integer",
+                    "example": 1767225600
+                },
+                "governor_expire_at": {
+                    "description": "总督到期时间（Unix 秒）",
+                    "type": "integer",
+                    "example": 1767225600
+                }
+            }
+        },
         "resp.LiveUserListPageItem": {
             "type": "object",
             "properties": {
@@ -9441,6 +9589,15 @@ const docTemplate = `{
                     "description": "用户名称",
                     "type": "string",
                     "example": "哎呀又胖啦"
+                },
+                "vip_type": {
+                    "description": "会员类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.BadgeType"
+                        }
+                    ],
+                    "example": 0
                 }
             }
         },
@@ -9536,6 +9693,15 @@ const docTemplate = `{
                     "description": "用户uid",
                     "type": "integer",
                     "example": 4325051
+                },
+                "vip_type": {
+                    "description": "会员类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.BadgeType"
+                        }
+                    ],
+                    "example": 0
                 }
             }
         },

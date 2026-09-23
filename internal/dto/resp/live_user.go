@@ -92,6 +92,16 @@ type LiveUserUserInfoResp struct {
 	VipType enum.BadgeType `json:"vip_type" example:"0"`
 }
 
+// LiveUserGuardExpireResp 获取用户大航海到期时间返回
+type LiveUserGuardExpireResp struct {
+	// 舰长到期时间（Unix 秒）
+	CaptainExpireAt *int64 `json:"captain_expire_at" example:"1767225600"`
+	// 提督到期时间（Unix 秒）
+	AdmiralExpireAt *int64 `json:"admiral_expire_at" example:"1767225600"`
+	// 总督到期时间（Unix 秒）
+	GovernorExpireAt *int64 `json:"governor_expire_at" example:"1767225600"`
+}
+
 // LiveUserGetRoomIDResp 获取当前用户绑定的直播间房间号返回
 type LiveUserGetRoomIDResp struct {
 	// 直播间真实房间号

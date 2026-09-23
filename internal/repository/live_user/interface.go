@@ -76,6 +76,9 @@ type Repository interface {
 	AdjustCredit(ctx context.Context, tx *gorm.DB, id int64, field string, delta int64) (before, after int64, err error)
 	// UpdateTokenByID 根据 id 更换用户 refreshToken
 	UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error
+	// UpdateGuardExpireByID 根据 ID 一次性设置三个档位的大航海到期时间，
+	// 参数顺序固定为舰长、提督、总督；传 nil 表示清空该档位
+	UpdateGuardExpireByID(ctx context.Context, tx *gorm.DB, id int64, captainExpireAt, admiralExpireAt, governorExpireAt *int64) error
 }
 
 // GetByUID 根据 B站 UID 查询单条用户记录
@@ -220,4 +223,13 @@ func (r *gormRepo) AdjustCredit(ctx context.Context, tx *gorm.DB, id int64, fiel
 // UpdateTokenByID 根据 id 更换用户 refreshToken
 func (r *gormRepo) UpdateTokenByID(ctx context.Context, tx *gorm.DB, id int64, token *string) error {
 	return r.UpdateField(ctx, tx, id, "token", token)
+}
+
+// UpdateGuardExpireByID 根据 ID 一次性设置三个档位的大航海到期时间
+func (r *gormRepo) UpdateGuardExpireByID(ctx context.Context, tx *gorm.DB, id int64, captainExpireAt, admiralExpireAt, governorExpireAt *int64) error {
+	return r.UpdateMap(ctx, tx, "id", id, map[string]any{
+		"captain_expire_at":  captainExpireAt,
+		"admiral_expire_at":  admiralExpireAt,
+		"governor_expire_at": governorExpireAt,
+	})
 }
