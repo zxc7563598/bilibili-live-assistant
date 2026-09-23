@@ -77,6 +77,8 @@ type ProductSaveReq struct {
 	SortOrder int `json:"sort_order" example:"100"`
 	// 是否启用；必传，避免调用方漏传后被当成下架
 	Enable *bool `json:"enable" binding:"required" err:"required=11001" example:"true"`
+	// 购买限制
+	MinMemberLevel int `json:"min_member_level" binding:"oneof=0 1 2 3" err:"oneof=11031" example:"1" enums:"0,1,2,3"`
 	// 规格设置
 	Specs []ProductSaveSpecReq `json:"specs" binding:"max=10" err:"max=11027"`
 	// 上架 SKU，至少一个；未上架的规格组合不提交

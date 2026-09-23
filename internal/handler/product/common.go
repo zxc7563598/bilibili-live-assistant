@@ -42,21 +42,22 @@ func toProductListItems(list []product.ListPageItem) []resp.ProductListPageItem 
 // withCostPrice 为 false 时不下发成本价（商城端场景），避免后台成本泄露给终端用户。
 func toProductDetailResp(detail product.DetailsResp, withCostPrice bool) resp.ProductDetailResp {
 	return resp.ProductDetailResp{
-		ID:          detail.ID,
-		Name:        detail.Name,
-		Cover:       detail.Cover,
-		Price:       detail.Price,
-		CreditType:  detail.CreditType,
-		Sold:        detail.Sold,
-		Stock:       detail.Stock,
-		Tags:        detail.Tags,
-		Describe:    detail.Describe,
-		SortOrder:   detail.SortOrder,
-		Enable:      detail.Enable,
-		ProductType: detail.ProductType,
-		Skus:        toSkuItems(detail.Skus, withCostPrice),
-		Specs:       toSpecItems(detail.Specs),
-		Images:      toImageItems(detail.Images),
+		ID:             detail.ID,
+		Name:           detail.Name,
+		Cover:          detail.Cover,
+		Price:          detail.Price,
+		CreditType:     detail.CreditType,
+		Sold:           detail.Sold,
+		Stock:          detail.Stock,
+		Tags:           detail.Tags,
+		Describe:       detail.Describe,
+		SortOrder:      detail.SortOrder,
+		Enable:         detail.Enable,
+		ProductType:    detail.ProductType,
+		MinMemberLevel: detail.MinMemberLevel,
+		Skus:           toSkuItems(detail.Skus, withCostPrice),
+		Specs:          toSpecItems(detail.Specs),
+		Images:         toImageItems(detail.Images),
 	}
 }
 
@@ -118,20 +119,21 @@ func toImageItems(list []product.ImageItem) []resp.ImageItem {
 // toSaveReq 将保存请求转换为 Service 入参
 func toSaveReq(req input.ProductSaveReq) product.SaveReq {
 	return product.SaveReq{
-		ID:          req.ID,
-		Name:        req.Name,
-		Cover:       req.Cover,
-		Price:       req.Price,
-		CreditType:  req.CreditType,
-		ProductType: req.ProductType,
-		Sold:        req.Sold,
-		Tags:        req.Tags,
-		Describe:    req.Describe,
-		SortOrder:   req.SortOrder,
-		Enable:      req.Enable != nil && *req.Enable,
-		Specs:       toSaveSpecs(req.Specs),
-		Skus:        toSaveSkus(req.Skus),
-		Images:      toSaveImages(req.Images),
+		ID:             req.ID,
+		Name:           req.Name,
+		Cover:          req.Cover,
+		Price:          req.Price,
+		CreditType:     req.CreditType,
+		ProductType:    req.ProductType,
+		Sold:           req.Sold,
+		Tags:           req.Tags,
+		Describe:       req.Describe,
+		SortOrder:      req.SortOrder,
+		Enable:         req.Enable != nil && *req.Enable,
+		MinMemberLevel: req.MinMemberLevel,
+		Specs:          toSaveSpecs(req.Specs),
+		Skus:           toSaveSkus(req.Skus),
+		Images:         toSaveImages(req.Images),
 	}
 }
 

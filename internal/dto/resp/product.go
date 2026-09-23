@@ -60,6 +60,8 @@ type ProductDetailResp struct {
 	Enable bool `json:"enable" example:"true"`
 	// 商品类型
 	ProductType int `json:"product_type" example:"1" enums:"0,1"`
+	// 购买限制
+	MinMemberLevel int `json:"min_member_level" example:"1" enums:"0,1,2,3"`
 	// 商品SKU信息
 	Skus []SkuItem `json:"skus"`
 	// 商品规格

@@ -204,6 +204,21 @@
               <b>实体商品</b>：有实际的物品赠予用户，用户下单时需要填写自己的收货地址<br>
               <b>虚拟商品</b>：无实际物品，用户下单时需要填写自己的邮箱地址以便接受虚拟商品
             </div>
+            <div class="flex items-center justify-between gap-5">
+              <div class="shrink-0 text-13 text-gray-500 dark:text-gray-400">
+                限购
+              </div>
+              <div class="inline-flex overflow-hidden border border-gray-200 rounded-6 dark:border-gray-700">
+                <div v-for="item in minMemberLevelOptions" :key="item.value" class="cursor-pointer px-4 py-1.5 text-13 transition" :class="form.min_member_level === item.value ? 'bg-primary text-white' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'" @click="form.min_member_level = item.value">
+                  {{ item.label }}
+                </div>
+              </div>
+            </div>
+            <div class="text-12 text-gray-400 dark:text-gray-500">
+              限购商品依然会正常展示，但需要用户持有限制类型及以上身份才允许下单<br>
+              <b>不限制</b>：任何用户均可购买<br>
+              <b>限制提督</b>：当前身份为提督或总督才允许购买，普通用户与舰长无法下单
+            </div>
             <div class="flex items-center gap-5">
               <n-tooltip>
                 <template #trigger>
@@ -300,6 +315,12 @@ const productTypeOptions = [
   { label: '虚拟', value: 0 },
   { label: '实体', value: 1 },
 ]
+const minMemberLevelOptions = [
+  { label: '不限制', value: 0 },
+  { label: '舰长', value: 1 },
+  { label: '提督', value: 2 },
+  { label: '总督', value: 3 },
+]
 
 const form = ref({
   id: 0,
@@ -312,6 +333,7 @@ const form = ref({
   sort_order: 0,
   enable: true,
   product_type: 0,
+  min_member_level: 0,
 })
 const tagList = ref([])
 const specs = ref([])
@@ -360,6 +382,7 @@ async function load() {
     sort_order: data.sort_order ?? 0,
     enable: data.enable ?? true,
     product_type: data.product_type ?? 0,
+    min_member_level: data.min_member_level ?? 0,
   })
   tagList.value = String(data.tags ?? '').split(',').map(t => t.trim()).filter(Boolean)
 
@@ -462,6 +485,8 @@ function validate() {
     return '请选择积分类型'
   if (![0, 1].includes(f.product_type))
     return '请选择商品类型'
+  if (![0, 1, 2, 3].includes(f.min_member_level))
+    return '请选择限购类型'
   if (f.describe.length > 1000)
     return '商品描述不能超过 1000 个字符'
   if (tagList.value.join(',').length > 255)
@@ -546,6 +571,7 @@ function buildPayload() {
     sort_order: Number(f.sort_order) || 0,
     enable: !!f.enable,
     product_type: f.product_type,
+    min_member_level: f.min_member_level,
     tags: tagList.value.join(','),
     describe: f.describe,
     specs: specs.value.map(s => ({

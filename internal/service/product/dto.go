@@ -32,21 +32,22 @@ type ListPageItem struct {
 
 // DetailsResp 商品详情返回，含商品基础信息、SKU、规格、图片
 type DetailsResp struct {
-	ID          int64       `json:"id"`
-	Name        string      `json:"name"`
-	Cover       string      `json:"cover"`
-	Price       int64       `json:"price"`
-	CreditType  int         `json:"credit_type"`
-	Sold        int64       `json:"sold"`
-	Stock       int64       `json:"stock"`
-	Tags        string      `json:"tags"`
-	Describe    string      `json:"describe"`
-	SortOrder   int         `json:"sort_order"`
-	Enable      bool        `json:"enable"`
-	ProductType int         `json:"product_type"`
-	Skus        []SkuItem   `json:"skus"`
-	Specs       []SpecItem  `json:"specs"`
-	Images      []ImageItem `json:"images"`
+	ID             int64       `json:"id"`
+	Name           string      `json:"name"`
+	Cover          string      `json:"cover"`
+	Price          int64       `json:"price"`
+	CreditType     int         `json:"credit_type"`
+	Sold           int64       `json:"sold"`
+	Stock          int64       `json:"stock"`
+	Tags           string      `json:"tags"`
+	Describe       string      `json:"describe"`
+	SortOrder      int         `json:"sort_order"`
+	Enable         bool        `json:"enable"`
+	ProductType    int         `json:"product_type"`
+	MinMemberLevel int         `json:"min_member_level"`
+	Skus           []SkuItem   `json:"skus"`
+	Specs          []SpecItem  `json:"specs"`
+	Images         []ImageItem `json:"images"`
 }
 
 // SkuItem 商品 SKU
@@ -82,20 +83,21 @@ type ImageItem struct {
 
 // SaveReq 创建或变更商品入参
 type SaveReq struct {
-	ID          int64
-	Name        string
-	Cover       string
-	Price       int64
-	CreditType  int
-	ProductType int
-	Sold        int64
-	Tags        string
-	Describe    string
-	SortOrder   int
-	Enable      bool
-	Specs       []SaveSpec
-	Skus        []SaveSku
-	Images      []SaveImage
+	ID             int64
+	Name           string
+	Cover          string
+	Price          int64
+	CreditType     int
+	ProductType    int
+	Sold           int64
+	Tags           string
+	Describe       string
+	SortOrder      int
+	Enable         bool
+	MinMemberLevel int
+	Specs          []SaveSpec
+	Skus           []SaveSku
+	Images         []SaveImage
 }
 
 // SaveSpec 商品规格及规格值

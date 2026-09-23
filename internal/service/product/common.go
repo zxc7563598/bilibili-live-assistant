@@ -65,21 +65,22 @@ func toDetailsResp(p *model.Product, skus []model.ProductSku, specs []model.Prod
 		})
 	}
 	resp := DetailsResp{
-		ID:          p.ID,
-		Name:        p.Name,
-		Cover:       p.Cover,
-		Price:       p.Price,
-		CreditType:  int(p.CreditType),
-		Sold:        p.Sold,
-		Stock:       p.Stock,
-		Tags:        p.Tags,
-		Describe:    p.Describe,
-		SortOrder:   p.SortOrder,
-		Enable:      p.Enable == enum.EnableEnable,
-		ProductType: int(p.ProductType),
-		Skus:        make([]SkuItem, 0, len(skus)),
-		Specs:       make([]SpecItem, 0, len(specs)),
-		Images:      make([]ImageItem, 0, len(images)),
+		ID:             p.ID,
+		Name:           p.Name,
+		Cover:          p.Cover,
+		Price:          p.Price,
+		CreditType:     int(p.CreditType),
+		Sold:           p.Sold,
+		Stock:          p.Stock,
+		Tags:           p.Tags,
+		Describe:       p.Describe,
+		SortOrder:      p.SortOrder,
+		Enable:         p.Enable == enum.EnableEnable,
+		ProductType:    int(p.ProductType),
+		MinMemberLevel: int(p.MinMemberLevel),
+		Skus:           make([]SkuItem, 0, len(skus)),
+		Specs:          make([]SpecItem, 0, len(specs)),
+		Images:         make([]ImageItem, 0, len(images)),
 	}
 	for _, s := range skus {
 		resp.Skus = append(resp.Skus, SkuItem{
@@ -289,16 +290,17 @@ func canonicalSpecProperties(specProperties string) string {
 // toProductEntity 用请求数据填充商品实体，新增与变更共用
 func toProductEntity(req SaveReq) model.Product {
 	return model.Product{
-		Name:        req.Name,
-		Cover:       req.Cover,
-		Price:       req.Price,
-		CreditType:  enum.CreditType(req.CreditType),
-		ProductType: enum.ProductType(req.ProductType),
-		Sold:        req.Sold,
-		Tags:        req.Tags,
-		Describe:    req.Describe,
-		SortOrder:   req.SortOrder,
-		Enable:      enum.BoolToEnable(req.Enable),
+		Name:           req.Name,
+		Cover:          req.Cover,
+		Price:          req.Price,
+		CreditType:     enum.CreditType(req.CreditType),
+		ProductType:    enum.ProductType(req.ProductType),
+		Sold:           req.Sold,
+		Tags:           req.Tags,
+		Describe:       req.Describe,
+		SortOrder:      req.SortOrder,
+		Enable:         enum.BoolToEnable(req.Enable),
+		MinMemberLevel: enum.MinMemberLevel(req.MinMemberLevel),
 	}
 }
 

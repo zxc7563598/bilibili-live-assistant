@@ -155,6 +155,7 @@ error:
   11028: Spec combination cost price must be an integer not less than 0 # Invalid SKU cost price
   11029: Spec combination details are too long # Serialized SKU spec snapshot exceeds the column width
   11030: Duplicate spec combination # Duplicate spec combination under the same product
+  11031: Please select a purchase restriction # Restriction level is not 0/1/2/3
   11101: Request parameter is invalid # Order parameter is invalid
   11102: Invalid address type # Invalid address type
   11103: Please enter recipient name # Recipient name is empty
