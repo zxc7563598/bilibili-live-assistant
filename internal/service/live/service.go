@@ -144,6 +144,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUser
 		roomSvc:               room.NewService(client),
 		hub:                   hub,
 		dispatcher:            dispatcher,
+		liveUserSvc:           liveUserSvc,
 		liveDanmuRepo:         liveDanmuRepo,
 		liveGiftRepo:          liveGiftRepo,
 		liveSessionRepo:       liveSessionRepo,
