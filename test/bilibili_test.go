@@ -239,6 +239,28 @@ func TestGetVipNumbers(t *testing.T) {
 	fmt.Println()
 }
 
+// TestGetGuardTopListPage 获取大航海名单第 1 页
+// go test -v -run TestGetGuardTopListPage ./test/
+func TestGetGuardTopListPage(t *testing.T) {
+	client := newClient()
+	ctx, cancel := ctx()
+	defer cancel()
+	// 请求接口
+	page, err := client.Room.GetGuardTopListPage(ctx, 617459493, 22384516, 1)
+	if err != nil {
+		t.Fatalf("GetGuardTopListPage 失败: %v", err)
+	}
+	fmt.Println()
+	fmt.Println("========== 返回数据 ==========")
+	fmt.Printf("总人数: %d | 总页数: %d | 当前页: %d\n", page.Total, page.TotalPage, page.Now)
+	fmt.Printf("top3 条数: %d | list 条数: %d\n", len(page.Top3), len(page.Items))
+	for _, item := range append(append([]room.GuardTopListItem{}, page.Top3...), page.Items[:min(3, len(page.Items))]...) {
+		fmt.Printf("uid=%d name=%s guard_level=%d\n", item.UID, item.Name, item.GuardLevel)
+	}
+	fmt.Println("================================")
+	fmt.Println()
+}
+
 // TestAddSilentUser 禁言用户
 // go test -v -run TestAddSilentUser ./test/
 func TestAddSilentUser(t *testing.T) {

@@ -68,6 +68,8 @@ type Service struct {
 	hub *Hub // 前端消息推送中心
 	// 消息业务处理器分发器
 	dispatcher *messageDispatcher
+	// 大航海名单校对（每日一次）的执行闸门
+	guardReconcile guardReconcileState
 	// 数据访问
 	liveDanmuRepo         live_danmu.Repository
 	liveGiftRepo          live_gift.Repository

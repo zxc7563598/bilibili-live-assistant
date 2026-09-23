@@ -45,8 +45,8 @@ const (
 	// EndpointOnlineGoldRank 在线金瓜子榜，查询参数 ruid=%d&roomId=%d
 	EndpointOnlineGoldRank = "https://api.live.bilibili.com/xlive/general-interface/v1/rank/getOnlineGoldRank?ruid=%d&roomId=%d&page=1&pageSize=5000"
 
-	// EndpointGuardTopList 大航海（舰长/提督/总督）列表，查询参数 ruid=%d&roomid=%d
-	EndpointGuardTopList = "https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topListNew?ruid=%d&roomid=%d&page=1&page_size=20&typ=5&platform=web"
+	// EndpointGuardTopList 大航海（舰长/提督/总督）列表，查询参数 ruid=%d&roomid=%d&page=%d
+	EndpointGuardTopList = "https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topListNew?ruid=%d&roomid=%d&page=%d&page_size=30&typ=5&platform=web"
 )
 
 // --- 禁言管理 ---

@@ -19,6 +19,24 @@ const (
 	CreditFieldStars  = "stars"
 )
 
+// uidQueryChunk 按 uid 批量查询的分块大小
+const uidQueryChunk = 500
+
+// guardExpireColumns 允许写入的大航海档位列白名单
+var guardExpireColumns = map[string]struct{}{
+	"captain_expire_at":  {},
+	"admiral_expire_at":  {},
+	"governor_expire_at": {},
+}
+
+// checkGuardColumn 校验列名是否属于大航海档位列
+func checkGuardColumn(column string) error {
+	if _, ok := guardExpireColumns[column]; !ok {
+		return fmt.Errorf("%w: %s", ErrInvalidGuardColumn, column)
+	}
+	return nil
+}
+
 // sortColumns 允许参与 ListPage 排序的 DB 列
 var sortColumns = map[string]string{
 	"id":                "id",
@@ -45,6 +63,8 @@ var (
 	ErrUserNotFound = errors.New("用户不存在")
 	// ErrInvalidCreditField 资产字段名非法
 	ErrInvalidCreditField = errors.New("非法的用户资产字段")
+	// ErrInvalidGuardColumn 非大航海档位列名
+	ErrInvalidGuardColumn = errors.New("非法的用户大航海字段")
 )
 
 type Repository interface {
@@ -79,6 +99,14 @@ type Repository interface {
 	// UpdateGuardExpireByID 根据 ID 一次性设置三个档位的大航海到期时间，
 	// 参数顺序固定为舰长、提督、总督；传 nil 表示清空该档位
 	UpdateGuardExpireByID(ctx context.Context, tx *gorm.DB, id int64, captainExpireAt, admiralExpireAt, governorExpireAt *int64) error
+	// ListByUIDs 根据 B站 UID 批量查询用户，内部按 uidQueryChunk 分块拼 IN；无匹配返回空切片
+	ListByUIDs(ctx context.Context, tx *gorm.DB, uids []int64) ([]model.LiveUser, error)
+	// ListActiveGuard 查询任一档位到期时间 >= from 的用户；三列为 NULL 的行不会命中，不排序，供每日大航海名单校对定位「库里仍认为有效」的用户
+	ListActiveGuard(ctx context.Context, tx *gorm.DB, from int64) ([]model.LiveUser, error)
+	// UpdateGuardExpireIfBelow 仅当该档位到期时间当前 < threshold（列为 NULL 同样满足）时写入 value，返回是否真的发生变更。语义是「抬升」，不会把已有的更晚到期时间改早
+	UpdateGuardExpireIfBelow(ctx context.Context, tx *gorm.DB, id int64, column string, threshold, value int64) (bool, error)
+	// UpdateGuardExpireIfEqual 仅当该档位到期时间恰好等于 expect 时写入 value，返回是否真的发生变更。语义是「失效」：读完到写入之间值被改过（例如用户刚续费）就放弃，避免误伤
+	UpdateGuardExpireIfEqual(ctx context.Context, tx *gorm.DB, id int64, column string, expect, value int64) (bool, error)
 }
 
 // GetByUID 根据 B站 UID 查询单条用户记录
@@ -232,4 +260,56 @@ func (r *gormRepo) UpdateGuardExpireByID(ctx context.Context, tx *gorm.DB, id in
 		"admiral_expire_at":  admiralExpireAt,
 		"governor_expire_at": governorExpireAt,
 	})
+}
+
+// ListByUIDs 根据 B站 UID 批量查询用户
+func (r *gormRepo) ListByUIDs(ctx context.Context, tx *gorm.DB, uids []int64) ([]model.LiveUser, error) {
+	if len(uids) == 0 {
+		return nil, nil
+	}
+	out := make([]model.LiveUser, 0, len(uids))
+	for start := 0; start < len(uids); start += uidQueryChunk {
+		end := min(start+uidQueryChunk, len(uids))
+		var chunk []model.LiveUser
+		if err := r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).
+			Where("uid IN ?", uids[start:end]).Find(&chunk).Error; err != nil {
+			return nil, err
+		}
+		out = append(out, chunk...)
+	}
+	return out, nil
+}
+
+// ListActiveGuard 查询任一档位到期时间 >= from 的用户
+func (r *gormRepo) ListActiveGuard(ctx context.Context, tx *gorm.DB, from int64) ([]model.LiveUser, error) {
+	var list []model.LiveUser
+	err := r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).
+		Where("captain_expire_at >= ? OR admiral_expire_at >= ? OR governor_expire_at >= ?", from, from, from).
+		Find(&list).Error
+	return list, err
+}
+
+// UpdateGuardExpireIfBelow 仅当该档位到期时间当前 < threshold 时写入 value
+func (r *gormRepo) UpdateGuardExpireIfBelow(ctx context.Context, tx *gorm.DB, id int64, column string, threshold, value int64) (bool, error) {
+	if err := checkGuardColumn(column); err != nil {
+		return false, err
+	}
+	// COALESCE 把 NULL 折成 0：含 OR 的原始条件 GORM 不补括号
+	res := r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).
+		Where("id = ?", id).
+		Where("COALESCE("+column+", 0) < ?", threshold).
+		Update(column, value)
+	return res.RowsAffected > 0, res.Error
+}
+
+// UpdateGuardExpireIfEqual 仅当该档位到期时间恰好等于 expect 时写入 value
+func (r *gormRepo) UpdateGuardExpireIfEqual(ctx context.Context, tx *gorm.DB, id int64, column string, expect, value int64) (bool, error) {
+	if err := checkGuardColumn(column); err != nil {
+		return false, err
+	}
+	res := r.ResolveDB(ctx, tx).Model(&model.LiveUser{}).
+		Where("id = ?", id).
+		Where(column+" = ?", expect).
+		Update(column, value)
+	return res.RowsAffected > 0, res.Error
 }

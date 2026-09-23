@@ -88,6 +88,7 @@ func NewApp(cfg *config.Config) *App {
 	scheduler := cron.New(
 		cron.Job{Name: "live-unmute", Interval: time.Minute, Run: services.Live.UnmuteDueUsers},
 		cron.Job{Name: "order-draft-expire", Interval: time.Minute, Run: services.Order.ExpireDrafts},
+		cron.Job{Name: "live-guard-reconcile", Interval: time.Minute, Run: services.Live.ReconcileGuardExpire},
 	)
 	scheduler.Start()
 	// handler

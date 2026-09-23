@@ -324,16 +324,66 @@ func (s *Service) GetOnlineGoldRank(ctx context.Context, anchorUID, roomID int64
 // 大航海（舰长数）
 // =========================================================================
 
-type vipNumbersResponse struct {
-	api.Response
-	Data struct {
-		Info struct {
-			Num int `json:"num"` // 大航海总人数（舰长+提督+总督）
-		} `json:"info"`
-	} `json:"data"`
+// GetVipNumbers 获取直播间大航海（舰长/提督/总督）总人数
+//
+// 与 GetGuardTopListPage 是同一个接口，总人数不随页码变化，取第 1 页即可
+//
+// 参数：
+//   - anchorUID: 主播 UID
+//   - roomID: 直播间真实房间号
+func (s *Service) GetVipNumbers(ctx context.Context, anchorUID, roomID int64) (int, error) {
+	page, err := s.GetGuardTopListPage(ctx, anchorUID, roomID, 1)
+	if err != nil {
+		return -1, err
+	}
+	return page.Total, nil
 }
 
-// GetVipNumbers 获取直播间大航海（舰长/提督/总督）总人数
+// GuardTopListItem 大航海名单中的一条（只解析会用到的字段）
+type GuardTopListItem struct {
+	UID        int64  // uinfo.uid
+	Name       string // uinfo.base.name
+	GuardLevel int    // uinfo.medal.guard_level，1=总督 2=提督 3=舰长
+}
+
+// GuardTopListPage 大航海名单的一页
+type GuardTopListPage struct {
+	Total     int                // data.info.num：大航海总人数
+	TotalPage int                // data.info.page：总页数，字段名与语义不符，不是当前页
+	Now       int                // data.info.now：当前页
+	Top3      []GuardTopListItem // data.top3：固定 3 条，其 uid 不出现在 Items 里
+	Items     []GuardTopListItem // data.list：每页至多 page_size 条，rank 从 4 开始
+}
+
+type guardTopListItemJSON struct {
+	Uinfo struct {
+		UID  int64 `json:"uid"`
+		Base struct {
+			Name string `json:"name"`
+		} `json:"base"`
+		Medal struct {
+			GuardLevel int `json:"guard_level"`
+		} `json:"medal"`
+	} `json:"uinfo"`
+}
+
+type guardTopListPageData struct {
+	Info struct {
+		Num  int `json:"num"`
+		Page int `json:"page"`
+		Now  int `json:"now"`
+	} `json:"info"`
+	List []guardTopListItemJSON `json:"list"`
+	Top3 []guardTopListItemJSON `json:"top3"`
+}
+
+// Data 用指针：字段缺失或解析失败时为 nil，与「名单确实为空」区分开
+type guardTopListPageResponse struct {
+	api.Response
+	Data *guardTopListPageData `json:"data"`
+}
+
+// GetGuardTopListPage 获取大航海名单的指定页（从 1 开始）
 //
 // 调用 B站 /xlive/app-room/v2/guardTab/topListNew 接口
 // 无需 Cookie 登录态
@@ -341,19 +391,41 @@ type vipNumbersResponse struct {
 // 参数：
 //   - anchorUID: 主播 UID
 //   - roomID: 直播间真实房间号
-func (s *Service) GetVipNumbers(ctx context.Context, anchorUID, roomID int64) (int, error) {
+//   - page: 页码
+func (s *Service) GetGuardTopListPage(ctx context.Context, anchorUID, roomID int64, page int) (*GuardTopListPage, error) {
 	path := fmt.Sprintf(
 		api.EndpointGuardTopList,
-		anchorUID, roomID,
+		anchorUID, roomID, page,
 	)
-	var resp vipNumbersResponse
+	var resp guardTopListPageResponse
 	if err := s.client.Get(ctx, path, &resp); err != nil {
-		return -1, err
+		return nil, err
 	}
 	if err := api.CheckError(resp.Code, resp.Message); err != nil {
-		return -1, err
+		return nil, err
 	}
-	return resp.Data.Info.Num, nil
+	// 解析不到 data 时报错，避免调用方把解析失败当成「大航海名单为空」
+	if resp.Data == nil {
+		return nil, fmt.Errorf("room: 大航海名单响应缺少 data")
+	}
+	toItems := func(list []guardTopListItemJSON) []GuardTopListItem {
+		items := make([]GuardTopListItem, 0, len(list))
+		for _, v := range list {
+			items = append(items, GuardTopListItem{
+				UID:        v.Uinfo.UID,
+				Name:       v.Uinfo.Base.Name,
+				GuardLevel: v.Uinfo.Medal.GuardLevel,
+			})
+		}
+		return items
+	}
+	return &GuardTopListPage{
+		Total:     resp.Data.Info.Num,
+		TotalPage: resp.Data.Info.Page,
+		Now:       resp.Data.Info.Now,
+		Top3:      toItems(resp.Data.Top3),
+		Items:     toItems(resp.Data.List),
+	}, nil
 }
 
 // =========================================================================

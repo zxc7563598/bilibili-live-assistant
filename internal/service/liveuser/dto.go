@@ -38,6 +38,25 @@ type GuardExpire struct {
 	Governor *int64
 }
 
+// GuardEntry 大航海名单中的一条，Level 为 BadgeTypeL0 表示 B站 返回的档位非法
+type GuardEntry struct {
+	UID   int64
+	Uname string
+	Level enum.BadgeType
+}
+
+// GuardReconcileResult 一次大航海名单校对的结果，各项均为实际写库条数
+type GuardReconcileResult struct {
+	Inspected  int // 名单人数（去重后）
+	Registered int // 新注册用户数
+	Raised     int // 到期时间被抬到明日的档位数
+	Downgraded int // 名单档位以外被失效的档位数
+	Expired    int // 不在名单里、被失效的档位数
+	Skipped    int // 读到的值与规则一致、未变更的档位数
+	Unknown    int // 档位未知被跳过的条目数
+	Failed     int // 单条注册/写库失败的次数
+}
+
 // GetUserMonthlyAnalysis 请求返回
 type GetUserMonthlyAnalysisResp struct {
 	DanmuCount map[int64]int64 // 每日弹幕数量
