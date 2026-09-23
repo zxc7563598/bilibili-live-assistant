@@ -448,6 +448,11 @@ pk_battle_type:
   classic_pk: classic_pk
   battle_royale: battle_royale
 
+min_member_level:
+  l1: captain
+  l2: admiral
+  l3: governor
+
 # Data export: module labels the download filename, column entries are CSV headers
 export:
   module:

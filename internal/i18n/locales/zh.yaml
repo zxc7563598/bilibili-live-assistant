@@ -448,6 +448,11 @@ pk_battle_type:
   classic_pk: 经典PK
   battle_royale: 大乱斗
 
+min_member_level:
+  l1: 舰长
+  l2: 提督
+  l3: 总督
+
 # 数据导出：module 用于拼下载文件名，column 为 CSV 表头（键名与前端列 key 对应）
 export:
   module:
