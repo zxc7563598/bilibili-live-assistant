@@ -31,10 +31,6 @@ type LiveUserListPageItem struct {
 }
 
 // LiveUserUserMonthlyAnalysisResp 获取用户某月分析数据返回
-//
-// 四个字段都是以「当月第几天」(1-31) 为 key 的稀疏映射：
-// 当天没有数据的键不会出现，前端按月历渲染时需要自己按缺失处理。
-// 注意 JSON 序列化后 map 的 key 会变成字符串。
 type LiveUserUserMonthlyAnalysisResp struct {
 	// 每天的弹幕条数
 	DanmuCount map[int64]int64 `json:"danmu_count"`
@@ -47,8 +43,6 @@ type LiveUserUserMonthlyAnalysisResp struct {
 }
 
 // LiveUserUserDanmuAnalysisResp 获取用户弹幕词频分析返回
-//
-// 对同一批弹幕内容做不同粒度的切分，四种粒度各自独立统计、互不叠加。
 type LiveUserUserDanmuAnalysisResp struct {
 	// 单词数据
 	Words []LiveUserWordFrequency `json:"words"`
@@ -105,8 +99,6 @@ type LiveUserGetRoomIDResp struct {
 }
 
 // LiveUserAssetsPageResp 分页查询账户变动记录返回
-//
-// 商城端查的是当前登录用户自己，管理端按 user_id 查指定用户，响应结构相同。
 type LiveUserAssetsPageResp struct {
 	// 总计条数
 	Total int64 `json:"total" example:"100"`
