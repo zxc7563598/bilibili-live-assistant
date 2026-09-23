@@ -482,12 +482,14 @@ func (s *Service) GetUserInfo(ctx context.Context, userID int64) (UserInfoResp, 
 	if user == nil {
 		return UserInfoResp{}, CodeUserNotFound, nil
 	}
+	now := time.Now().Unix()
 	return UserInfoResp{
-		UID:    user.UID,
-		Avatar: user.Face,
-		Name:   user.Uname,
-		Points: user.Points,
-		Stars:  user.Stars,
+		UID:     user.UID,
+		Avatar:  user.Face,
+		Name:    user.Uname,
+		Points:  user.Points,
+		Stars:   user.Stars,
+		VipType: guardVipType(user, now),
 	}, 0, nil
 }
 

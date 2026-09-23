@@ -26,6 +26,8 @@ type LiveUserListPageItem struct {
 	TotalDanmuCount int64 `json:"total_danmu_count" example:"100"`
 	// 累计赠送礼物金额(分)
 	TotalGiftAmount int64 `json:"total_gift_amount" example:"100"`
+	// 会员类型
+	VipType enum.BadgeType `json:"vip_type" example:"0"`
 }
 
 // LiveUserUserMonthlyAnalysisResp 获取用户某月分析数据返回
@@ -92,6 +94,8 @@ type LiveUserUserInfoResp struct {
 	Points int64 `json:"points" example:"30"`
 	// 用户剩余星光
 	Stars int64 `json:"stars" example:"50"`
+	// 会员类型
+	VipType enum.BadgeType `json:"vip_type" example:"0"`
 }
 
 // LiveUserGetRoomIDResp 获取当前用户绑定的直播间房间号返回

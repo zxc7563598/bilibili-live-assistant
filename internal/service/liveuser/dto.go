@@ -62,22 +62,24 @@ type ListPageResp struct {
 }
 
 type ListPageItem struct {
-	ID              int64  `json:"id"`
-	UID             int64  `json:"uid"`
-	Uname           string `json:"uname"`
-	Points          int64  `json:"points"`
-	Stars           int64  `json:"stars"`
-	TotalDanmuCount int64  `json:"total_danmu_count"`
-	TotalGiftAmount int64  `json:"total_gift_amount"`
+	ID              int64          `json:"id"`
+	UID             int64          `json:"uid"`
+	Uname           string         `json:"uname"`
+	Points          int64          `json:"points"`
+	Stars           int64          `json:"stars"`
+	TotalDanmuCount int64          `json:"total_danmu_count"`
+	TotalGiftAmount int64          `json:"total_gift_amount"`
+	VipType         enum.BadgeType `json:"vip_type"`
 }
 
 // UserInfo 请求返回
 type UserInfoResp struct {
-	UID    int64  `json:"uid"`
-	Avatar string `json:"avatar"`
-	Name   string `json:"name"`
-	Points int64  `json:"points"`
-	Stars  int64  `json:"stars"`
+	UID     int64          `json:"uid"`
+	Avatar  string         `json:"avatar"`
+	Name    string         `json:"name"`
+	Points  int64          `json:"points"`
+	Stars   int64          `json:"stars"`
+	VipType enum.BadgeType `json:"vip_type"`
 }
 
 // UserAssetsPage 请求入参

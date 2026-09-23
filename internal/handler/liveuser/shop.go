@@ -253,11 +253,12 @@ func (h *Handler) GetUserInfo(c *gin.Context) {
 	}
 	// 返回结果
 	response.Success(c, lang, resp.LiveUserUserInfoResp{
-		UID:    svcResp.UID,
-		Avatar: svcResp.Avatar,
-		Name:   svcResp.Name,
-		Points: svcResp.Points,
-		Stars:  svcResp.Stars,
+		UID:     svcResp.UID,
+		Avatar:  svcResp.Avatar,
+		Name:    svcResp.Name,
+		Points:  svcResp.Points,
+		Stars:   svcResp.Stars,
+		VipType: svcResp.VipType,
 	})
 }
 

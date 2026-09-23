@@ -31,6 +31,7 @@ func toLiveUserListItems(list []liveuser.ListPageItem) []resp.LiveUserListPageIt
 			Stars:           v.Stars,
 			TotalDanmuCount: v.TotalDanmuCount,
 			TotalGiftAmount: v.TotalGiftAmount,
+			VipType:         v.VipType,
 		})
 	}
 	return res

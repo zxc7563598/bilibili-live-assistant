@@ -3,6 +3,7 @@ package liveuser
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
@@ -74,6 +75,7 @@ func (s *Service) updateToken(ctx context.Context, userID int64) (TokenResp, int
 
 func toListPageItems(liveUser []model.LiveUser) []ListPageItem {
 	respList := make([]ListPageItem, 0, len(liveUser))
+	now := time.Now().Unix()
 	for _, v := range liveUser {
 		item := ListPageItem{
 			ID:              v.ID,
@@ -83,10 +85,25 @@ func toListPageItems(liveUser []model.LiveUser) []ListPageItem {
 			Stars:           v.Stars,
 			TotalDanmuCount: v.TotalDanmuCount,
 			TotalGiftAmount: v.TotalGiftAmount,
+			VipType:         guardVipType(&v, now),
 		}
 		respList = append(respList, item)
 	}
 	return respList
+}
+
+// guardVipType 用户当前生效的大航海身份
+func guardVipType(user *model.LiveUser, now int64) enum.BadgeType {
+	switch {
+	case user.GovernorExpireAt != nil && *user.GovernorExpireAt > now:
+		return enum.BadgeTypeL3
+	case user.AdmiralExpireAt != nil && *user.AdmiralExpireAt > now:
+		return enum.BadgeTypeL2
+	case user.CaptainExpireAt != nil && *user.CaptainExpireAt > now:
+		return enum.BadgeTypeL1
+	default:
+		return enum.BadgeTypeL0
+	}
 }
 
 func toUserAssetsPageItems(list []model.LiveUserCreditLogListItem) []UserAssetsPageItem {
