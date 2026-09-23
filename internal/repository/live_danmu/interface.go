@@ -3,11 +3,11 @@ package live_danmu
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
 
@@ -195,7 +195,7 @@ func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, 
 	}
 	result := make(map[int64]int64)
 	for _, sendAt := range sendAts {
-		day := int64(time.Unix(sendAt, 0).In(time.Local).Day())
+		day := timeutil.LocalDayOfMonth(sendAt)
 		result[day]++
 	}
 	return result, nil

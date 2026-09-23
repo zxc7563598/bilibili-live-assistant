@@ -6,6 +6,7 @@ import (
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
 
@@ -46,7 +47,7 @@ func (r *gormRepo) StreakDaysByUID(ctx context.Context, tx *gorm.DB, uid int64) 
 		return 0, nil
 	}
 	// 从今天开始往前逐日比对，出现断档立即结束（今天未签到则为 0）
-	today := time.Now()
+	today := timeutil.StartOfDay(time.Now())
 	var streak int64
 	for _, d := range dates {
 		if d != today.AddDate(0, 0, -int(streak)).Format(time.DateOnly) {

@@ -20,6 +20,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/tokenizer"
 	"gorm.io/gorm"
 )
@@ -274,7 +275,7 @@ func (s *Service) ExtendGuardExpire(ctx context.Context, uid int64, uname string
 	if user == nil {
 		return CodeUserNotFound, fmt.Errorf("用户记录缺失: id=%d", userID)
 	}
-	base := time.Date(recvAt.Year(), recvAt.Month(), recvAt.Day(), 0, 0, 0, 0, recvAt.Location())
+	base := timeutil.StartOfDay(recvAt)
 	// 仍在有效期内则接着原到期时间算
 	if current := guardExpireValue(level, user); current != nil && *current > base.Unix() {
 		base = time.Unix(*current, 0).In(recvAt.Location())

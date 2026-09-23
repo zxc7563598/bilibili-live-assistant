@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
 
@@ -129,18 +130,12 @@ func (r *gormRepo) listDistinctDaysByType(ctx context.Context, tx *gorm.DB, uid,
 	return distinctDays(timestamps), nil
 }
 
-// localDayStart 返回该时间戳所在「本地自然日」的零点时间戳
-func localDayStart(ts int64) int64 {
-	t := time.Unix(ts, 0).In(time.Local)
-	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local).Unix()
-}
-
 // distinctDays 将时间戳列表去重为「本地自然日零点」的日期序列，保持时间倒序
 func distinctDays(timestamps []int64) []int64 {
 	days := make([]int64, 0, len(timestamps))
 	seen := make(map[int64]struct{}, len(timestamps))
 	for _, ts := range timestamps {
-		day := localDayStart(ts)
+		day := timeutil.LocalDayStart(ts)
 		if _, ok := seen[day]; ok {
 			continue
 		}
@@ -157,11 +152,11 @@ func streakDays(days []int64) int64 {
 	if len(days) == 0 {
 		return 0
 	}
-	today := localDayStart(time.Now().Unix())
+	today := timeutil.LocalDayStart(time.Now().Unix())
 	var streak int64
 	for i, d := range days {
 		// 今天往前推 i 天的本地零点；再归一化一次，避免夏令时切换带来的小时偏移
-		expected := localDayStart(time.Unix(today, 0).In(time.Local).AddDate(0, 0, -i).Unix())
+		expected := timeutil.LocalDayStart(time.Unix(today, 0).AddDate(0, 0, -i).Unix())
 		if d == expected {
 			streak++
 		} else if d < expected {

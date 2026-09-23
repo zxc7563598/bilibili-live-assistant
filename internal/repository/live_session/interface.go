@@ -3,10 +3,10 @@ package live_session
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
 
@@ -198,7 +198,7 @@ func (r *gormRepo) DistinctLiveDays(ctx context.Context, tx *gorm.DB, startAt in
 	}
 	result := make(map[int64]struct{})
 	for _, start := range startAts {
-		day := int64(time.Unix(start, 0).In(time.Local).Day())
+		day := timeutil.LocalDayOfMonth(start)
 		result[day] = struct{}{}
 	}
 	return result, nil

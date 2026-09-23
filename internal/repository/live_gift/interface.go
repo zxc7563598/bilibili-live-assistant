@@ -3,12 +3,12 @@ package live_gift
 import (
 	"context"
 	"strings"
-	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/base"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/sqlutil"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"gorm.io/gorm"
 )
 
@@ -355,7 +355,7 @@ func (r *gormRepo) CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, 
 	}
 	result := make(map[int64]model.LiveGiftDailyGiftStatistics)
 	for _, row := range rows {
-		day := int64(time.Unix(row.SendAt, 0).In(time.Local).Day())
+		day := timeutil.LocalDayOfMonth(row.SendAt)
 		result[day] = model.LiveGiftDailyGiftStatistics{
 			Num:    result[day].Num + row.Num,
 			Amount: result[day].Amount + row.Num*row.Price,

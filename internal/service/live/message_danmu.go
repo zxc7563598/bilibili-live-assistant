@@ -21,6 +21,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/bilibili/live"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/util"
 	"gorm.io/gorm"
 )
@@ -451,7 +452,7 @@ func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuM
 	needRoomProfit := needed["room_daily_net"] || needed["room_weekly_net"] || needed["room_monthly_net"] || needed["room_total_net"]
 	if needUserProfit || needRoomProfit {
 		now := time.Now()
-		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		today := timeutil.StartOfDay(now)
 		// 处理时间变量
 		day := live_gift.TimeRange{Start: today.Unix(), End: now.Unix()}
 		daysSinceMonday := int(now.Weekday()) - int(time.Monday)

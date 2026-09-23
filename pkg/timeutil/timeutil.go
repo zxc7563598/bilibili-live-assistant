@@ -23,6 +23,21 @@ func Parse(timeStr string) (time.Time, error) {
 // SecondsPerDay 一天的秒数
 const SecondsPerDay = 24 * 60 * 60
 
+// StartOfDay 返回 t 所在本地自然日的零点
+func StartOfDay(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+
+// LocalDayStart 返回该时间戳所在本地自然日的零点时间戳
+func LocalDayStart(ts int64) int64 {
+	return StartOfDay(time.Unix(ts, 0)).Unix()
+}
+
+// LocalDayOfMonth 返回该时间戳在本地自然日里是几号（1-31），用作按月聚合的 map key
+func LocalDayOfMonth(ts int64) int64 {
+	return int64(time.Unix(ts, 0).In(time.Local).Day())
+}
+
 // SecondRange 把前端的毫秒级时间区间 [起始, 结束] 换算成秒级查询区间：
 // 起始取首项当天 0 点，结束推到末项当天最后一秒（23:59:59）。
 //
