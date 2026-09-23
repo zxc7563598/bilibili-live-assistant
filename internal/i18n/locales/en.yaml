@@ -223,6 +223,9 @@ error:
   41103: Virtual orders only support changing the email
   41104: Physical orders only support changing the shipping address
   41105: Insufficient balance
+  41106: This item requires captain or above # Item requires captain tier
+  41107: This item requires admiral or above # Item requires admiral tier
+  41108: This item requires governor only # Item requires governor tier
   41601: Captcha verification failed
   41602: Captcha expired, please refresh and try again
   41701: Too many exports in progress, please try again later # Exceeds export.max_concurrent

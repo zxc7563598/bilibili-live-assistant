@@ -23,6 +23,9 @@ const (
 	CodeVirtualEmailOnly       = 41103 // 虚拟订单只支持变更邮箱
 	CodeActualAddressOnly      = 41104 // 实体订单只支持变更收货地址
 	CodeInsufficientBalance    = 41105 // 余额不足
+	CodeGuardCaptainRequired   = 41106 // 该商品仅限舰长及以上购买
+	CodeGuardAdmiralRequired   = 41107 // 该商品仅限提督及以上购买
+	CodeGuardGovernorRequired  = 41108 // 该商品仅限总督购买
 	CodeProductNotFound        = 51101 // 未能查询到商品（商品或SKU不存在）
 	CodeNoPendingDraft         = 51102 // 无待支付订单（无待支付订单草稿）
 	CodeDraftNotFound          = 51103 // 待重新购买的订单不存在（历史草稿不存在或不属于当前用户）

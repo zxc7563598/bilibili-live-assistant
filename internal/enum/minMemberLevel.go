@@ -38,3 +38,17 @@ func (m MinMemberLevel) IsValid() bool {
 func (m MinMemberLevel) Text(lang string) string {
 	return i18n.T(lang, m.Key())
 }
+
+// MinMemberLevelFromBadge 用户身份（BadgeType：1 总督 / 2 提督 / 3 舰长）换算成限购档位口径（1 舰长 / 2 提督 / 3 总督）
+func MinMemberLevelFromBadge(badge BadgeType) MinMemberLevel {
+	switch badge {
+	case BadgeTypeL1:
+		return MinMemberLevelL1
+	case BadgeTypeL2:
+		return MinMemberLevelL2
+	case BadgeTypeL3:
+		return MinMemberLevelL3
+	default:
+		return MinMemberLevelUnlimited
+	}
+}

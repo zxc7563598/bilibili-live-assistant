@@ -33,7 +33,36 @@ var (
 	errDraftNotFound     = errors.New("待兑换的订单不存在或不属于当前用户")
 	errDraftStateChanged = errors.New("订单已取消或已完成兑换")
 	errAddressNotFound   = errors.New("收货地址不存在或不属于当前用户")
+	// 限购档位不满足，按商品要求的档位区分文案
+	errGuardCaptainRequired  = errors.New("当前身份不满足商品的限购档位：需舰长")
+	errGuardAdmiralRequired  = errors.New("当前身份不满足商品的限购档位：需提督")
+	errGuardGovernorRequired = errors.New("当前身份不满足商品的限购档位：需总督")
 )
+
+// checkGuardLimit 校验用户当前大航海身份是否满足商品的限购档位
+func (s *Service) checkGuardLimit(ctx context.Context, userID int64, required enum.MinMemberLevel) error {
+	if !required.IsValid() || required == enum.MinMemberLevelUnlimited {
+		return nil
+	}
+	info, code, err := s.liveUserSvc.GetUserInfo(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("获取用户身份失败: %w", err)
+	}
+	if code != 0 {
+		return fmt.Errorf("获取用户身份失败: code=%d", code)
+	}
+	if enum.MinMemberLevelFromBadge(info.VipType) >= required {
+		return nil
+	}
+	switch required {
+	case enum.MinMemberLevelL1:
+		return errGuardCaptainRequired
+	case enum.MinMemberLevelL2:
+		return errGuardAdmiralRequired
+	default:
+		return errGuardGovernorRequired
+	}
+}
 
 // placeOrder 下单公共流程：取消用户已有 Active 草稿并归还库存 → 校验 SKU → 新建待支付草稿并锁定库存。
 // skuID / count 由调用方给出（首次下单来自入参，重新下单从历史草稿解析）。返回新草稿 ID。

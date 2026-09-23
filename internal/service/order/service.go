@@ -149,6 +149,10 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 		if sku == nil {
 			return errSkuNotFound
 		}
+		// 限购校验
+		if err := s.checkGuardLimit(ctx, userID, product.MinMemberLevel); err != nil {
+			return err
+		}
 		// 原子占用草稿：Active→Redeemed。与到期取消互斥，占用失败说明已被取消或已兑换
 		ok, err := s.liveUserOrderDraftRepo.RedeemActiveByID(ctx, tx, draftID)
 		if err != nil {
@@ -208,6 +212,12 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 			return 0, CodeProductNotFound, err
 		case errors.Is(err, live_user.ErrInsufficientBalance):
 			return 0, CodeInsufficientBalance, err
+		case errors.Is(err, errGuardCaptainRequired):
+			return 0, CodeGuardCaptainRequired, err
+		case errors.Is(err, errGuardAdmiralRequired):
+			return 0, CodeGuardAdmiralRequired, err
+		case errors.Is(err, errGuardGovernorRequired):
+			return 0, CodeGuardGovernorRequired, err
 		default:
 			return 0, CodeQueryFailed, err
 		}
