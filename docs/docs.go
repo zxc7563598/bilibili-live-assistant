@@ -2860,6 +2860,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/product/min-member-level": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "用于后台快速变更商品的大航海限购档位：0-不限制，1-舰长，2-提督，3-总督",
+                "tags": [
+                    "商品管理"
+                ],
+                "summary": "后台变更商品限购档位",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.ProductUpdateMinMemberLevelReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/product/save": {
             "post": {
                 "security": [
@@ -7439,6 +7483,17 @@ const docTemplate = `{
                         "$ref": "#/definitions/input.ProductSaveImageReq"
                     }
                 },
+                "min_member_level": {
+                    "description": "购买限制",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "example": 1
+                },
                 "name": {
                     "description": "商品名称",
                     "type": "string",
@@ -7618,6 +7673,30 @@ const docTemplate = `{
                 "id": {
                     "description": "商品ID",
                     "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "input.ProductUpdateMinMemberLevelReq": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "商品ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "min_member_level": {
+                    "description": "限购档位 0-不限制，1-舰长，2-提督，3-总督；不传按 0 处理",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
                     "example": 1
                 }
             }
@@ -10536,6 +10615,17 @@ const docTemplate = `{
                         "$ref": "#/definitions/resp.ImageItem"
                     }
                 },
+                "min_member_level": {
+                    "description": "购买限制",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "example": 1
+                },
                 "name": {
                     "description": "商品名称",
                     "type": "string",
@@ -10674,6 +10764,17 @@ const docTemplate = `{
                 "id": {
                     "description": "商品ID",
                     "type": "integer",
+                    "example": 1
+                },
+                "min_member_level": {
+                    "description": "购买限制",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
                     "example": 1
                 },
                 "name": {

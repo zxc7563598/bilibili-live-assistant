@@ -38,17 +38,18 @@ func toListPageItems(admins []model.Product) []ListPageItem {
 	respList := make([]ListPageItem, 0, len(admins))
 	for _, v := range admins {
 		item := ListPageItem{
-			ID:         v.ID,
-			Name:       v.Name,
-			Cover:      v.Cover,
-			Price:      v.Price,
-			CreditType: int(v.CreditType),
-			Sold:       v.Sold,
-			Stock:      v.Stock,
-			Tags:       v.Tags,
-			Describe:   v.Describe,
-			SortOrder:  v.SortOrder,
-			Enable:     v.Enable == enum.EnableEnable,
+			ID:             v.ID,
+			Name:           v.Name,
+			Cover:          v.Cover,
+			Price:          v.Price,
+			CreditType:     int(v.CreditType),
+			Sold:           v.Sold,
+			Stock:          v.Stock,
+			Tags:           v.Tags,
+			Describe:       v.Describe,
+			SortOrder:      v.SortOrder,
+			Enable:         v.Enable == enum.EnableEnable,
+			MinMemberLevel: int(v.MinMemberLevel),
 		}
 		respList = append(respList, item)
 	}

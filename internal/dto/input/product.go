@@ -48,6 +48,14 @@ type ProductUpdateEnableReq struct {
 	Enable *bool `json:"enable" binding:"required" err:"required=11001" example:"true"`
 }
 
+// ProductUpdateMinMemberLevelReq 后台变更商品限购档位请求
+type ProductUpdateMinMemberLevelReq struct {
+	// 商品ID
+	ID int64 `json:"id" binding:"required" err:"required=11001" example:"1"`
+	// 限购档位 0-不限制，1-舰长，2-提督，3-总督；不传按 0 处理
+	MinMemberLevel int `json:"min_member_level" binding:"oneof=0 1 2 3" err:"oneof=11031" example:"1" enums:"0,1,2,3"`
+}
+
 // ProductSaveReq 后台创建或变更商品请求
 //
 // 子表（规格 / 规格值 / SKU / 图片）采用全量覆盖语义：请求里没有的即视为删除。

@@ -21,17 +21,18 @@ func toProductListItems(list []product.ListPageItem) []resp.ProductListPageItem 
 	res := make([]resp.ProductListPageItem, 0, len(list))
 	for _, v := range list {
 		res = append(res, resp.ProductListPageItem{
-			ID:         v.ID,
-			Name:       v.Name,
-			Cover:      v.Cover,
-			Price:      v.Price,
-			CreditType: v.CreditType,
-			Sold:       v.Sold,
-			Stock:      v.Stock,
-			Tags:       v.Tags,
-			Describe:   v.Describe,
-			SortOrder:  v.SortOrder,
-			Enable:     v.Enable,
+			ID:             v.ID,
+			Name:           v.Name,
+			Cover:          v.Cover,
+			Price:          v.Price,
+			CreditType:     v.CreditType,
+			Sold:           v.Sold,
+			Stock:          v.Stock,
+			Tags:           v.Tags,
+			Describe:       v.Describe,
+			SortOrder:      v.SortOrder,
+			Enable:         v.Enable,
+			MinMemberLevel: v.MinMemberLevel,
 		})
 	}
 	return res

@@ -17,17 +17,18 @@ type ListPageResp struct {
 }
 
 type ListPageItem struct {
-	ID         int64  `json:"id"`
-	Name       string `json:"name"`
-	Cover      string `json:"cover"`
-	Price      int64  `json:"price"`
-	CreditType int    `json:"credit_type"`
-	Sold       int64  `json:"sold"`
-	Stock      int64  `json:"stock"`
-	Tags       string `json:"tags"`
-	Describe   string `json:"describe"`
-	SortOrder  int    `json:"sort_order"`
-	Enable     bool   `json:"enable"`
+	ID             int64  `json:"id"`
+	Name           string `json:"name"`
+	Cover          string `json:"cover"`
+	Price          int64  `json:"price"`
+	CreditType     int    `json:"credit_type"`
+	Sold           int64  `json:"sold"`
+	Stock          int64  `json:"stock"`
+	Tags           string `json:"tags"`
+	Describe       string `json:"describe"`
+	SortOrder      int    `json:"sort_order"`
+	Enable         bool   `json:"enable"`
+	MinMemberLevel int    `json:"min_member_level"`
 }
 
 // DetailsResp 商品详情返回，含商品基础信息、SKU、规格、图片

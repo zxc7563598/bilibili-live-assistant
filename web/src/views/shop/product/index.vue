@@ -6,7 +6,7 @@
         添加商品
       </NButton>
     </template>
-    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="800">
+    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="api.getList" :scroll-x="880">
       <MeQueryItem label="商品名称">
         <n-input v-model:value="query.name" placeholder="支持模糊搜索" />
       </MeQueryItem>
@@ -14,6 +14,7 @@
         <n-select v-model:value="query.credit_type" :options="creditTypeOptions" placeholder="请指定积分类型" />
       </MeQueryItem>
     </MeCrud>
+    <ProductLimitModal ref="limitModalRef" @success="onLimitSuccess" />
   </CommonPage>
 </template>
 
@@ -22,12 +23,15 @@ import { NButton, NSwitch } from 'naive-ui'
 import { MeCrud, MeQueryItem } from '@/components'
 import { getOptionsLabel } from '@/utils'
 import api from './api'
+import ProductLimitModal from './components/ProductLimitModal.vue'
+import ProductLimitTag from './components/ProductLimitTag.vue'
 
 const loadingMap = reactive({})
 const router = useRouter()
 
 // 列表信息
 const $table = ref(null)
+const limitModalRef = ref(null)
 const creditTypeOptions = ref([
   {
     label: '星光',
@@ -39,7 +43,17 @@ const creditTypeOptions = ref([
   },
 ])
 const columns = [
-  { title: '商品名称', key: 'name', minWidth: 180, sorter: true },
+  { title: '商品名称', key: 'name', minWidth: 220, sorter: true, render(row) {
+    // 名称前的限购标签点开即可单独变更档位，不必进详情页
+    return h('div', { class: 'flex items-center' }, [
+      h(ProductLimitTag, {
+        type: row.min_member_level,
+        class: 'mr-6',
+        onClick: () => limitModalRef.value?.open(row),
+      }),
+      h('span', row.name),
+    ])
+  } },
   { title: '商品标价', key: 'price', width: 160, sorter: true, render(row) {
     return row.price + getOptionsLabel(creditTypeOptions, row.credit_type)
   } },
@@ -110,6 +124,11 @@ async function handleEnable(id, enable) {
     delete loadingMap[id]
     $table.value?.handleSearch(true)
   }
+}
+
+// 限购档位变了名称前的标签就过期了，只刷新当前页
+function onLimitSuccess() {
+  $table.value?.handleSearch(true)
 }
 
 onMounted(() => {

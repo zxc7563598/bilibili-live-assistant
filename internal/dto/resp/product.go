@@ -32,6 +32,8 @@ type ProductListPageItem struct {
 	SortOrder int `json:"sort_order" example:"100"`
 	// 是否启用
 	Enable bool `json:"enable" example:"true"`
+	// 购买限制
+	MinMemberLevel int `json:"min_member_level" example:"1" enums:"0,1,2,3"`
 }
 
 // ProductDetailResp 商城端获取商品详细信息返回

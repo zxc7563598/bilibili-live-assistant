@@ -1528,6 +1528,15 @@ definitions:
           $ref: '#/definitions/input.ProductSaveImageReq'
         maxItems: 200
         type: array
+      min_member_level:
+        description: 购买限制
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 1
+        type: integer
       name:
         description: 商品名称
         example: 小立牌
@@ -1672,6 +1681,24 @@ definitions:
         type: integer
     required:
     - enable
+    - id
+    type: object
+  input.ProductUpdateMinMemberLevelReq:
+    properties:
+      id:
+        description: 商品ID
+        example: 1
+        type: integer
+      min_member_level:
+        description: 限购档位 0-不限制，1-舰长，2-提督，3-总督；不传按 0 处理
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 1
+        type: integer
+    required:
     - id
     type: object
   input.ReplyConfigReq:
@@ -3847,6 +3874,15 @@ definitions:
         items:
           $ref: '#/definitions/resp.ImageItem'
         type: array
+      min_member_level:
+        description: 购买限制
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 1
+        type: integer
       name:
         description: 商品名称
         example: 小立牌
@@ -3953,6 +3989,15 @@ definitions:
         type: boolean
       id:
         description: 商品ID
+        example: 1
+        type: integer
+      min_member_level:
+        description: 购买限制
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
         example: 1
         type: integer
       name:
@@ -6059,6 +6104,34 @@ paths:
       security:
       - BearerAuth: []
       summary: 后台获取主页商品分页列表
+      tags:
+      - 商品管理
+  /api/admin/product/min-member-level:
+    post:
+      description: 用于后台快速变更商品的大航海限购档位：0-不限制，1-舰长，2-提督，3-总督
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.ProductUpdateMinMemberLevelReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 后台变更商品限购档位
       tags:
       - 商品管理
   /api/admin/product/save:

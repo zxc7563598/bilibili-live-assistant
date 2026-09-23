@@ -107,6 +107,26 @@ func (s *Service) UpdateEnable(ctx context.Context, id int64, enable bool) (int,
 	return 0, nil
 }
 
+// UpdateMinMemberLevel 变更商品限购档位
+func (s *Service) UpdateMinMemberLevel(ctx context.Context, id int64, level int) (int, error) {
+	lv := enum.MinMemberLevel(level)
+	if !lv.IsValid() {
+		return CodeMinMemberLevelInvalid, nil
+	}
+	// 预检商品存在：UpdateField 不返回影响行数，没有这一步「商品不存在」会被当成成功
+	prod, err := s.productRepo.GetByID(ctx, nil, id)
+	if err != nil {
+		return CodeQueryFailed, err
+	}
+	if prod == nil {
+		return CodeNotFound, errors.New("商品不存在")
+	}
+	if err := s.productRepo.UpdateField(ctx, nil, id, "min_member_level", lv); err != nil {
+		return CodeSaveFailed, err
+	}
+	return 0, nil
+}
+
 // Save 创建或变更商品
 func (s *Service) Save(ctx context.Context, req SaveReq) (SaveResp, int, error) {
 	if errCode, err := validateSaveReq(req); errCode != 0 {

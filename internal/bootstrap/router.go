@@ -188,6 +188,7 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// 商品管理路由
 	adminApi.POST("/product/list", middleware.AdminAuth(rdb), handlers.Product.AdminListPage)
 	adminApi.POST("/product/enable", middleware.AdminAuth(rdb), handlers.Product.AdminUpdateEnable)
+	adminApi.POST("/product/min-member-level", middleware.AdminAuth(rdb), handlers.Product.AdminUpdateMinMemberLevel)
 	adminApi.POST("/product/details", middleware.AdminAuth(rdb), handlers.Product.AdminDetails)
 	adminApi.POST("/product/save", middleware.AdminAuth(rdb), handlers.Product.AdminSave)
 	// 订单管理路由

@@ -112,6 +112,49 @@ func (h *Handler) AdminUpdateEnable(c *gin.Context) {
 	response.Success(c, lang, nil)
 }
 
+// @Summary 后台变更商品限购档位
+// @Description 用于后台快速变更商品的大航海限购档位：0-不限制，1-舰长，2-提督，3-总督
+// @Tags 商品管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.ProductUpdateMinMemberLevelReq true "请求参数"
+// @Success 200 {object} response.Response "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/product/min-member-level [post]
+func (h *Handler) AdminUpdateMinMemberLevel(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员ID
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, i18n.CodeTokenExpired)
+		return
+	}
+	// 获取参数
+	var req input.ProductUpdateMinMemberLevelReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.ProductLogger, "AdminUpdateMinMemberLevel 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	errCode, err := h.productSvc.UpdateMinMemberLevel(ctx, req.ID, req.MinMemberLevel)
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.ProductLogger,
+			"productSvc.UpdateMinMemberLevel 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Any("req.id", req.ID),
+			zap.Any("req.min_member_level", req.MinMemberLevel),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, nil)
+}
+
 // @Summary 后台创建或变更商品
 // @Description 不传 ID 或 ID 为 0 时新增商品；否则变更对应商品。规格、规格值、SKU、图片为全量覆盖，请求中未出现的即被软删除
 // @Tags 商品管理

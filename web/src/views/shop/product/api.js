@@ -3,6 +3,7 @@ import { request } from '@/utils'
 export default {
   getList: (params = {}) => request.post('/product/list', params),
   productEnable: (id, enable) => request.post('/product/enable', { id, enable }),
+  productMinMemberLevel: (id, min_member_level) => request.post('/product/min-member-level', { id, min_member_level }),
   getDetails: id => request.post('/product/details', { id }),
   productSave: data => request.post('/product/save', data),
   uploadImage: (file, scene) => {
