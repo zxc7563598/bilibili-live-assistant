@@ -201,6 +201,11 @@ func New(adminRepo admin.Repository, adminRoleRepo admin_role.Repository, roleRe
 
 - 事务用 `s.db.Transaction(func(tx *gorm.DB) error { ... })`，
   `tx` 一路透传给 Repository 的第二个参数
+- **事务里的任何查询都必须走 `tx`，包括跨服务调用**：sqlite 下连接池固定为 1
+  （`internal/config/database.go` 的 sqlite 分支），事务占着唯一的连接，里面再拿
+  第二条会互相等对方释放、直到请求超时（前端 10 秒断开后表现为 `context canceled`）。
+  跨服务方法要么收 `tx` 参数（`liveuser.AdjustCredit`、`liveuser.GetUserVipType`），
+  要么挪到事务之外
 - **Redis 的操作放在事务之外**：事务回滚时 Redis 无法回滚，
   放在里面会造成两边不一致。见 `admin.Save` 结尾的 `Logout`、`role.RemoveRoleUsers`
 

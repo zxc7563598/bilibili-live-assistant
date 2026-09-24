@@ -40,18 +40,18 @@ var (
 )
 
 // checkGuardLimit 校验用户当前大航海身份是否满足商品的限购档位
-func (s *Service) checkGuardLimit(ctx context.Context, userID int64, required enum.MinMemberLevel) error {
+func (s *Service) checkGuardLimit(ctx context.Context, tx *gorm.DB, userID int64, required enum.MinMemberLevel) error {
 	if !required.IsValid() || required == enum.MinMemberLevelUnlimited {
 		return nil
 	}
-	info, code, err := s.liveUserSvc.GetUserInfo(ctx, userID)
+	vipType, code, err := s.liveUserSvc.GetUserVipType(ctx, tx, userID)
 	if err != nil {
 		return fmt.Errorf("获取用户身份失败: %w", err)
 	}
 	if code != 0 {
 		return fmt.Errorf("获取用户身份失败: code=%d", code)
 	}
-	if enum.MinMemberLevelFromBadge(info.VipType) >= required {
+	if enum.MinMemberLevelFromBadge(vipType) >= required {
 		return nil
 	}
 	switch required {

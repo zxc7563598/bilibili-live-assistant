@@ -508,6 +508,18 @@ func (s *Service) ResetPassword(ctx context.Context, userID int64, newPassword s
 	return 0, nil
 }
 
+// GetUserVipType 按用户主键取当前生效的大航海身份，事务内调用必须把 tx 传进来
+func (s *Service) GetUserVipType(ctx context.Context, tx *gorm.DB, userID int64) (enum.BadgeType, int, error) {
+	user, err := s.liveUserRepo.GetByID(ctx, tx, userID)
+	if err != nil {
+		return enum.BadgeTypeL0, CodeQueryFailed, err
+	}
+	if user == nil {
+		return enum.BadgeTypeL0, CodeUserNotFound, nil
+	}
+	return guardVipType(user, time.Now().Unix()), 0, nil
+}
+
 // GetUserInfo 获取用户基本信息
 func (s *Service) GetUserInfo(ctx context.Context, userID int64) (UserInfoResp, int, error) {
 	// 根据主键ID获取用户信息

@@ -150,7 +150,7 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 			return errSkuNotFound
 		}
 		// 限购校验
-		if err := s.checkGuardLimit(ctx, userID, product.MinMemberLevel); err != nil {
+		if err := s.checkGuardLimit(ctx, tx, userID, product.MinMemberLevel); err != nil {
 			return err
 		}
 		// 原子占用草稿：Active→Redeemed。与到期取消互斥，占用失败说明已被取消或已兑换
