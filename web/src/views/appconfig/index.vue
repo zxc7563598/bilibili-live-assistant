@@ -280,7 +280,7 @@
                   登录页底部会显示一行「登录即代表同意《规定标题》」，用户点击后以弹层的形式展开下面的正文，用来放用户协议、活动规则这类需要提前告知用户的说明。
                 </div>
                 <div>
-                  <span class="text-gray-700 font-medium dark:text-gray-200">正文支持 Markdown 语法</span>：<span class="text-gray-700 dark:text-gray-200">## 小标题</span> 表示小标题，<span class="text-gray-700 dark:text-gray-200">1. 内容</span> 表示编号条款（注意点号后面要有空格，否则不会被识别成编号），<span class="text-gray-700 dark:text-gray-200">**内容**</span> 表示加粗，段落之间空一行分隔。手机上展示的排版由商城统一控制，无需自己调样式。
+                  <span class="text-gray-700 font-medium dark:text-gray-200">正文支持 Markdown 语法</span>：详情可以自行通过百度或者AI搜索 Markdown 语法
                 </div>
                 <div>
                   <span class="text-gray-700 font-medium dark:text-gray-200">标题留空时</span>：登录页不会显示协议入口。正文留空同样不展示，可以随时清空来关掉这个入口。
