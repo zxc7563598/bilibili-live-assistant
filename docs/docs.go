@@ -4929,7 +4929,7 @@ const docTemplate = `{
         },
         "/api/shop/login": {
             "get": {
-                "description": "获取登录页配置（注册开关、Logo、背景图、标题、Slogan）",
+                "description": "获取登录页配置（注册开关、Logo、背景图、标题、Slogan、用户协议）",
                 "tags": [
                     "移动端"
                 ],
@@ -5958,6 +5958,18 @@ const docTemplate = `{
                 "register"
             ],
             "properties": {
+                "agreement_content": {
+                    "description": "登录页用户协议正文（Markdown 格式）",
+                    "type": "string",
+                    "maxLength": 20000,
+                    "example": "## 基本协议"
+                },
+                "agreement_title": {
+                    "description": "登录页用户协议标题（留空则登录页不展示协议入口）",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "关于进一步加强主播领导地位的若干规定"
+                },
                 "login_bg": {
                     "description": "登录页背景图路径（留空则根据主题色生成背景）",
                     "type": "string",
@@ -8539,6 +8551,16 @@ const docTemplate = `{
         "resp.AppConfigDataResp": {
             "type": "object",
             "properties": {
+                "agreement_content": {
+                    "description": "登录页用户协议正文（Markdown 格式）",
+                    "type": "string",
+                    "example": "## 基本协议"
+                },
+                "agreement_title": {
+                    "description": "登录页用户协议标题（留空则登录页不展示协议入口）",
+                    "type": "string",
+                    "example": "关于进一步加强主播领导地位的若干规定"
+                },
                 "login_bg": {
                     "description": "登录页背景图路径（留空则根据主题色生成背景）",
                     "type": "string",
@@ -8639,6 +8661,16 @@ const docTemplate = `{
         "resp.AppShopLoginConfigResp": {
             "type": "object",
             "properties": {
+                "agreement_content": {
+                    "description": "登录页用户协议正文（Markdown 格式）",
+                    "type": "string",
+                    "example": "## 基本协议"
+                },
+                "agreement_title": {
+                    "description": "登录页用户协议标题（空串表示不展示协议入口）",
+                    "type": "string",
+                    "example": "关于进一步加强主播领导地位的若干规定"
+                },
                 "login_bg": {
                     "description": "登录页背景图路径（空串表示由前端按主题色生成）",
                     "type": "string",

@@ -271,6 +271,37 @@
               </div>
               <n-input v-model:value="appConfigForm.login_slogan" type="text" placeholder="显示在主标题下方的一句话宣传语，例如：签到送礼，好礼不断" />
             </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                关于用户协议
+              </div>
+              <div class="mt-2 text-12 text-gray-500 space-y-10 dark:text-gray-400">
+                <div>
+                  登录页底部会显示一行「登录即代表同意《规定标题》」，用户点击后以弹层的形式展开下面的正文，用来放用户协议、活动规则这类需要提前告知用户的说明。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">正文支持 Markdown 语法</span>：<span class="text-gray-700 dark:text-gray-200">## 小标题</span> 表示小标题，<span class="text-gray-700 dark:text-gray-200">1. 内容</span> 表示编号条款（注意点号后面要有空格，否则不会被识别成编号），<span class="text-gray-700 dark:text-gray-200">**内容**</span> 表示加粗，段落之间空一行分隔。手机上展示的排版由商城统一控制，无需自己调样式。
+                </div>
+                <div>
+                  <span class="text-gray-700 font-medium dark:text-gray-200">标题留空时</span>：登录页不会显示协议入口。正文留空同样不展示，可以随时清空来关掉这个入口。
+                </div>
+                <div>
+                  修改后不需要重新部署，用户刷新登录页即可看到最新内容。
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                规定标题
+              </div>
+              <n-input v-model:value="appConfigForm.agreement_title" type="text" placeholder="显示在登录页底部与弹层顶部，例如：用户协议" />
+            </div>
+            <div class="flex items-start gap-5">
+              <div class="w-100 shrink-0 pt-6 text-right text-13 text-gray-500 dark:text-gray-400">
+                规定正文
+              </div>
+              <n-input v-model:value="appConfigForm.agreement_content" type="textarea" :autosize="{ minRows: 6, maxRows: 16 }" :maxlength="20000" show-count placeholder="支持 Markdown 语法，段落之间空一行，编号条款写作「1. 内容」" />
+            </div>
           </div>
           <template #footer>
             <div class="flex justify-end">
@@ -324,6 +355,8 @@ const appConfigForm = ref({
   login_bg: '',
   login_title: '',
   login_slogan: '',
+  agreement_title: '',
+  agreement_content: '',
   oss_endpoint: '',
   oss_access_key_id: '',
   oss_access_key_secret: '',
@@ -363,18 +396,7 @@ function apply() {
     return $message.warning('登录页标题')
   }
   appLoading.value = true
-  api.applyData(
-    appConfigForm.value.site_name,
-    appConfigForm.value.site_description,
-    appConfigForm.value.site_background_color,
-    appConfigForm.value.site_theme_color,
-    appConfigForm.value.site_icon,
-    appConfigForm.value.register,
-    appConfigForm.value.logo,
-    appConfigForm.value.login_bg,
-    appConfigForm.value.login_title,
-    appConfigForm.value.login_slogan,
-  ).then(() => {
+  api.applyData(appConfigForm.value).then(() => {
     $message.success('保存成功')
   }).finally(() => {
     appLoading.value = false

@@ -37,6 +37,8 @@ func (h *Handler) GetConfig(c *gin.Context) {
 		LoginBg:             svcResp.LoginBg,
 		LoginTitle:          svcResp.LoginTitle,
 		LoginSlogan:         svcResp.LoginSlogan,
+		AgreementTitle:      svcResp.AgreementTitle,
+		AgreementContent:    svcResp.AgreementContent,
 		OssEndpoint:         svcResp.OssEndpoint,
 		OssAccessKeyId:      svcResp.OssAccessKeyId,
 		OssAccessKeySecret:  svcResp.OssAccessKeySecret,
@@ -73,6 +75,8 @@ func (h *Handler) SaveConfig(c *gin.Context) {
 		LoginBg:             req.LoginBg,
 		LoginTitle:          req.LoginTitle,
 		LoginSlogan:         req.LoginSlogan,
+		AgreementTitle:      req.AgreementTitle,
+		AgreementContent:    req.AgreementContent,
 	})
 	if errCode != 0 {
 		handler.ErrorLog(logger.AppConfigLogger, "appConfigSvc.SaveConfig 调用失败", errCode, err)

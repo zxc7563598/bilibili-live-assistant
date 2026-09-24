@@ -70,6 +70,10 @@ type AppShopLoginConfigResp struct {
 	Title string `json:"title" example:"积分商城"`
 	// 登录页副标题 / Slogan
 	Slogan string `json:"slogan" example:"登录后可兑换积分好礼"`
+	// 登录页用户协议标题
+	AgreementTitle string `json:"agreement_title" example:"关于进一步加强主播领导地位的若干规定"`
+	// 登录页用户协议正文（Markdown 格式）
+	AgreementContent string `json:"agreement_content" example:"## 基本协议"`
 }
 
 // AppConfigDataResp 后台查询 App 全部配置返回
@@ -94,6 +98,10 @@ type AppConfigDataResp struct {
 	LoginTitle string `json:"login_title" example:"积分商城"`
 	// 登录页副标题 / Slogan
 	LoginSlogan string `json:"login_slogan" example:""`
+	// 登录页用户协议标题
+	AgreementTitle string `json:"agreement_title" example:"关于进一步加强主播领导地位的若干规定"`
+	// 登录页用户协议正文（Markdown 格式）
+	AgreementContent string `json:"agreement_content" example:"## 基本协议"`
 	// 完整 OSS 地址
 	OssEndpoint string `json:"oss_endpoint" example:"https://oss-cn-hangzhou.aliyuncs.com"`
 	// 阿里云 AccessKey ID

@@ -55,10 +55,13 @@
           返回上一步
         </button>
       </div>
-      <p class="mt-6 text-center text-xs text-fg-3">
-        登录即代表同意《用户协议》与《隐私政策》
+      <p v-if="agreementContent" class="mt-6 text-center text-xs text-fg-3">
+        登录即代表同意<a href="javascript:;" class="inline text-primary press" @click="showAgreement = true">《{{ agreementTitle }}》</a>
       </p>
     </div>
+    <AppBottomSheet v-model="showAgreement" :title="agreementTitle">
+      <AppMarkdown :content="agreementContent" />
+    </AppBottomSheet>
   </div>
 </template>
 
@@ -66,6 +69,7 @@
 import Cookies from 'js-cookie'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AppMarkdown from '@/components/base/AppMarkdown.vue'
 import { isDark, toggleTheme } from '@/utils/theme'
 import toast from '@/utils/toast'
 import api from './api'
@@ -78,6 +82,9 @@ const logo = ref('')
 const title = ref('')
 const slogan = ref('')
 const register = ref(false)
+const agreementTitle = ref('')
+const agreementContent = ref('')
+const showAgreement = ref(false)
 
 // 表单信息
 const step = ref(1)
@@ -148,6 +155,8 @@ onMounted(() => {
       title.value = res.data.title
       slogan.value = res.data.slogan
       register.value = res.data.register
+      agreementTitle.value = res.data.agreement_title
+      agreementContent.value = res.data.agreement_content
     }
     else {
       toast.error(res.msg || res.message)

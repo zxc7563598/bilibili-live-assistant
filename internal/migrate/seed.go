@@ -864,6 +864,18 @@ func seedRobotConfigs(db *gorm.DB) error {
 	}).Create(&configs).Error
 }
 
+// agreementDefaultContent 用户协议默认正文，Markdown 格式
+const agreementDefaultContent = `**特别提醒：请用户仔细阅读本协议所有条款（包括附件），尤其是加粗字体及加下划线部分，请务必仔细阅读。如您对本协议内容有任何疑问，那就别有疑问。一旦您通过勾选/点击或确认本协议，即意味着您已阅读本协议所有条款，并对本协议条款的含义及相应的法律后果已全部通晓并充分理解，您同意以数据电文形式订立本协议，虽然本协议完全不具有任何法律约束力。为重视未成年人权益的保障，您在使用本服务时应具备完全民事行为能力。若您不具备完全民事行为能力，请立即v我50。**
+
+## 基本协议
+
+1. 坚持主播的绝对领导。直播间里主播永远是第一位
+2. 爱护主播，做文明观众，做到“打不还手，骂不还口，笑脸迎送冷屁股”
+3. 诚心接受主播感情上的独裁，“不要和陌生人说话”，尤其不能跟陌生主播说话。当然，问路的老太太除外。
+4. 坚持工资奖金全部上缴制度。不涂改工资条，不在衣柜里藏钱。不过，每月可以申请领取500元零花（日元）
+5. 用户有义务从心里热爱主播崇敬主播，视主播为自己的上帝，与主播沟通时须使用低三下四/讨好/献媚等温柔语气，不得用生硬、顶撞的语气
+6. 主播拥有精神羞辱权，有权剥夺用户的一切自由和尊严，用语言和行为强迫甲方，达到羞辱的目的。`
+
 // seedAppConfigs 初始化 APP 配置表
 //
 // 以 config_key 为唯一键做幂等 upsert：
@@ -919,6 +931,16 @@ func seedAppConfigs(db *gorm.DB) error {
 			ConfigKey:   "login_slogan",
 			ConfigValue: "纯美女神伊德利拉美貌盖世无双！",
 			Remark:      "登录页副标题或宣传语（Slogan），可填写品牌口号、活动标语等内容",
+		},
+		{
+			ConfigKey:   "agreement_title",
+			ConfigValue: "关于进一步加强主播领导地位的若干规定",
+			Remark:      "登录页用户协议标题。留空则登录页不展示协议入口",
+		},
+		{
+			ConfigKey:   "agreement_content",
+			ConfigValue: agreementDefaultContent,
+			Remark:      "登录页用户协议正文，支持 Markdown 语法",
 		},
 		{
 			ConfigKey:   "oss_endpoint",

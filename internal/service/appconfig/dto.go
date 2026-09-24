@@ -11,11 +11,13 @@ type ManifestResp struct {
 
 // LoginConfig 请求返回
 type LoginConfig struct {
-	Register bool   `json:"register"`
-	Logo     string `json:"logo"`
-	LoginBg  string `json:"login_bg"`
-	Title    string `json:"title"`
-	Slogan   string `json:"slogan"`
+	Register         bool   `json:"register"`
+	Logo             string `json:"logo"`
+	LoginBg          string `json:"login_bg"`
+	Title            string `json:"title"`
+	Slogan           string `json:"slogan"`
+	AgreementTitle   string `json:"agreement_title"`
+	AgreementContent string `json:"agreement_content"`
 }
 
 // ConfigData 请求返回
@@ -30,6 +32,8 @@ type ConfigDataResp struct {
 	LoginBg             string `json:"login_bg"`
 	LoginTitle          string `json:"login_title"`
 	LoginSlogan         string `json:"login_slogan"`
+	AgreementTitle      string `json:"agreement_title"`
+	AgreementContent    string `json:"agreement_content"`
 	OssEndpoint         string `json:"oss_endpoint"`
 	OssAccessKeyId      string `json:"oss_access_key_id"`
 	OssAccessKeySecret  string `json:"oss_access_key_secret"`
@@ -48,6 +52,8 @@ type SaveConfigReq struct {
 	LoginBg             string `json:"login_bg"`
 	LoginTitle          string `json:"login_title"`
 	LoginSlogan         string `json:"login_slogan"`
+	AgreementTitle      string `json:"agreement_title"`
+	AgreementContent    string `json:"agreement_content"`
 }
 
 // SaveOssConfig 请求入参

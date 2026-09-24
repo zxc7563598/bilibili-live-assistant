@@ -362,6 +362,16 @@ definitions:
     type: object
   input.AppConfigSaveConfigReq:
     properties:
+      agreement_content:
+        description: 登录页用户协议正文（Markdown 格式）
+        example: '## 基本协议'
+        maxLength: 20000
+        type: string
+      agreement_title:
+        description: 登录页用户协议标题（留空则登录页不展示协议入口）
+        example: 关于进一步加强主播领导地位的若干规定
+        maxLength: 100
+        type: string
       login_bg:
         description: 登录页背景图路径（留空则根据主题色生成背景）
         example: ""
@@ -2334,6 +2344,14 @@ definitions:
     type: object
   resp.AppConfigDataResp:
     properties:
+      agreement_content:
+        description: 登录页用户协议正文（Markdown 格式）
+        example: '## 基本协议'
+        type: string
+      agreement_title:
+        description: 登录页用户协议标题（留空则登录页不展示协议入口）
+        example: 关于进一步加强主播领导地位的若干规定
+        type: string
       login_bg:
         description: 登录页背景图路径（留空则根据主题色生成背景）
         example: ""
@@ -2413,6 +2431,14 @@ definitions:
     type: object
   resp.AppShopLoginConfigResp:
     properties:
+      agreement_content:
+        description: 登录页用户协议正文（Markdown 格式）
+        example: '## 基本协议'
+        type: string
+      agreement_title:
+        description: 登录页用户协议标题（空串表示不展示协议入口）
+        example: 关于进一步加强主播领导地位的若干规定
+        type: string
       login_bg:
         description: 登录页背景图路径（空串表示由前端按主题色生成）
         example: ""
@@ -7363,7 +7389,7 @@ paths:
       - 移动端
   /api/shop/login:
     get:
-      description: 获取登录页配置（注册开关、Logo、背景图、标题、Slogan）
+      description: 获取登录页配置（注册开关、Logo、背景图、标题、Slogan、用户协议）
       parameters:
       - default: zh
         description: '语言标识（zh: 中文，en: English）'

@@ -97,7 +97,7 @@ func (h *Handler) GetThemeColor(c *gin.Context) {
 }
 
 // @Summary 获取登录页面配置信息
-// @Description 获取登录页配置（注册开关、Logo、背景图、标题、Slogan）
+// @Description 获取登录页配置（注册开关、Logo、背景图、标题、Slogan、用户协议）
 // @Tags 移动端
 // @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
 // @Success 200 {object} response.Response{data=resp.AppShopLoginConfigResp} "统一响应（code=0成功，其它失败）"
@@ -112,10 +112,12 @@ func (h *Handler) GetLoginConfig(c *gin.Context) {
 		return
 	}
 	response.Success(c, lang, resp.AppShopLoginConfigResp{
-		Register: svcResp.Register,
-		Logo:     svcResp.Logo,
-		LoginBg:  svcResp.LoginBg,
-		Title:    svcResp.Title,
-		Slogan:   svcResp.Slogan,
+		Register:         svcResp.Register,
+		Logo:             svcResp.Logo,
+		LoginBg:          svcResp.LoginBg,
+		Title:            svcResp.Title,
+		Slogan:           svcResp.Slogan,
+		AgreementTitle:   svcResp.AgreementTitle,
+		AgreementContent: svcResp.AgreementContent,
 	})
 }

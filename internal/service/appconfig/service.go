@@ -25,6 +25,8 @@ const (
 	keyLoginBg             = "login_bg"
 	keyTitle               = "login_title"
 	keySlogan              = "login_slogan"
+	keyAgreementTitle      = "agreement_title"
+	keyAgreementContent    = "agreement_content"
 )
 
 type Service struct {
@@ -72,11 +74,13 @@ func (s *Service) GetThemeColor() (string, int, error) {
 // GetLoginConfig 获取登录页配置
 func (s *Service) GetLoginConfig() (LoginConfig, int, error) {
 	resp := LoginConfig{
-		Logo:     s.appConfigCache.GetValue(keyLogo),
-		LoginBg:  s.appConfigCache.GetValue(keyLoginBg),
-		Title:    s.appConfigCache.GetValue(keyTitle),
-		Slogan:   s.appConfigCache.GetValue(keySlogan),
-		Register: false,
+		Logo:             s.appConfigCache.GetValue(keyLogo),
+		LoginBg:          s.appConfigCache.GetValue(keyLoginBg),
+		Title:            s.appConfigCache.GetValue(keyTitle),
+		Slogan:           s.appConfigCache.GetValue(keySlogan),
+		AgreementTitle:   s.appConfigCache.GetValue(keyAgreementTitle),
+		AgreementContent: s.appConfigCache.GetValue(keyAgreementContent),
+		Register:         false,
 	}
 	register := ptr.ParseEnumInt[enum.YesNo](s.appConfigCache.GetValue(keyRegister))
 	if register == enum.Yes {
@@ -99,6 +103,8 @@ func (s *Service) GetConfigData() (ConfigDataResp, int, error) {
 		LoginBg:             data[keyLoginBg],
 		LoginTitle:          data[keyTitle],
 		LoginSlogan:         data[keySlogan],
+		AgreementTitle:      data[keyAgreementTitle],
+		AgreementContent:    data[keyAgreementContent],
 		OssEndpoint:         data[appconfig.KeyOssEndpoint],
 		OssAccessKeyId:      data[appconfig.KeyOssAccessKeyId],
 		OssAccessKeySecret:  data[appconfig.KeyOssAccessKeySecret],
@@ -119,6 +125,8 @@ func (s *Service) SaveConfig(ctx context.Context, data SaveConfigReq) (int, erro
 		keyLoginBg:             data.LoginBg,
 		keyTitle:               data.LoginTitle,
 		keySlogan:              data.LoginSlogan,
+		keyAgreementTitle:      data.AgreementTitle,
+		keyAgreementContent:    data.AgreementContent,
 	}
 	if err := s.appConfigRepo.SaveValues(ctx, nil, values); err != nil {
 		return CodeSaveFailed, fmt.Errorf("保存 App 配置失败: %w", err)

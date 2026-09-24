@@ -22,6 +22,10 @@ type AppConfigSaveConfigReq struct {
 	LoginTitle string `json:"login_title" binding:"max=100" err:"max=10902" example:"积分商城"`
 	// 登录页副标题 / Slogan
 	LoginSlogan string `json:"login_slogan" binding:"max=255" err:"max=10902" example:""`
+	// 登录页用户协议标题
+	AgreementTitle string `json:"agreement_title" binding:"max=100" err:"max=10902" example:"关于进一步加强主播领导地位的若干规定"`
+	// 登录页用户协议正文（Markdown 格式）
+	AgreementContent string `json:"agreement_content" binding:"max=20000" err:"max=10902" example:"## 基本协议"`
 }
 
 // AppConfigSaveOssConfigReq OSS 配置保存请求入参
