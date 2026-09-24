@@ -1,7 +1,7 @@
 <template>
   <div class="relative flex min-h-dvh items-center justify-center overflow-hidden px-5 py-8">
     <div class="absolute inset-0 -z-10 bg-bg">
-      <img v-if="loginBg" :src="loginBg" alt="" class="absolute inset-0 h-full w-full object-cover">
+      <img v-if="loginBg" :src="loginBg" alt="" class="absolute inset-0 h-full w-full object-cover transition-[filter] duration-300" :class="isDark && 'brightness-50'">
       <template v-else>
         <div class="absolute -left-24 -top-24 h-80 w-80 rounded-full opacity-30 blur-3xl" style="background: color-mix(in srgb, var(--primary) 55%, transparent)" />
         <div class="absolute -right-20 top-1/3 h-96 w-96 rounded-full opacity-20 blur-3xl" style="background: color-mix(in srgb, var(--primary) 70%, transparent)" />
