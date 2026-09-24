@@ -41,12 +41,19 @@ function submit() {
   }
   if (type.value === '单纯发癫') {
     dialog.warning({
-      title: '认真的？',
-      message: `你确定吗？`,
-      confirmText: '我不怕',
+      title: '温馨提示',
+      message: `根据《民法典》第一千零一十条，言语性骚扰也是性骚扰。\n本主播虽无执法权，但保留精神鄙视、辱骂、扎小人，以及包括但不限于以上手段的一切权利。`,
+      confirmText: '坚持发癫',
       confirmVariant: 'danger',
       onConfirm: () => {
         save()
+      },
+      showCancel: true,
+      cancelText: '取消发癫',
+      onCancel: () => {
+        content.value = ''
+        contact.value = ''
+        toast.success('既然你真心悔过，内容就帮你清了，记得V我50')
       },
     })
   }
