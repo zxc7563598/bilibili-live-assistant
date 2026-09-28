@@ -90,6 +90,16 @@
       <div class="mb-12 flex items-center gap-8">
         <div class="h-14 w-3 rounded-l-2 bg-primary" />
         <h2 class="text-15 font-medium">
+          从旧版迁移数据
+        </h2>
+        <span class="text-12 text-gray-400">旧版导出的 .gz 文件可以在这里导入</span>
+      </div>
+      <ImportCard />
+    </section>
+    <section class="mt-18">
+      <div class="mb-12 flex items-center gap-8">
+        <div class="h-14 w-3 rounded-l-2 bg-primary" />
+        <h2 class="text-15 font-medium">
           遇到问题
         </h2>
       </div>
@@ -116,6 +126,7 @@
 
 <script setup>
 import { useUserStore } from '@/store'
+import ImportCard from './components/ImportCard.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
