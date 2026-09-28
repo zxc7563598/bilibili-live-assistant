@@ -101,6 +101,8 @@ type Repository interface {
 	UpdateGuardExpireByID(ctx context.Context, tx *gorm.DB, id int64, captainExpireAt, admiralExpireAt, governorExpireAt *int64) error
 	// ListByUIDs 根据 B站 UID 批量查询用户，内部按 uidQueryChunk 分块拼 IN；无匹配返回空切片
 	ListByUIDs(ctx context.Context, tx *gorm.DB, uids []int64) ([]model.LiveUser, error)
+	// CountUnscoped 统计物理行数（含软删除行），用于导入前的空表校验
+	CountUnscoped(ctx context.Context, tx *gorm.DB) (int64, error)
 	// ListActiveGuard 查询任一档位到期时间 >= from 的用户；三列为 NULL 的行不会命中，不排序，供每日大航海名单校对定位「库里仍认为有效」的用户
 	ListActiveGuard(ctx context.Context, tx *gorm.DB, from int64) ([]model.LiveUser, error)
 	// UpdateGuardExpireIfBelow 仅当该档位到期时间当前 < threshold（列为 NULL 同样满足）时写入 value，返回是否真的发生变更。语义是「抬升」，不会把已有的更晚到期时间改早
@@ -260,6 +262,13 @@ func (r *gormRepo) UpdateGuardExpireByID(ctx context.Context, tx *gorm.DB, id in
 		"admiral_expire_at":  admiralExpireAt,
 		"governor_expire_at": governorExpireAt,
 	})
+}
+
+// CountUnscoped 统计物理行数（含软删除行）
+func (r *gormRepo) CountUnscoped(ctx context.Context, tx *gorm.DB) (int64, error) {
+	var total int64
+	err := r.ResolveDB(ctx, tx).Unscoped().Model(&model.LiveUser{}).Count(&total).Error
+	return total, err
 }
 
 // ListByUIDs 根据 B站 UID 批量查询用户

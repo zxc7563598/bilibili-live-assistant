@@ -36,6 +36,18 @@ definitions:
     x-enum-varnames:
     - CreditTypeStars
     - CreditTypePoints
+  enum.ImportStatus:
+    enum:
+    - 0
+    - 1
+    - 2
+    - 3
+    type: integer
+    x-enum-varnames:
+    - ImportStatusPending
+    - ImportStatusRunning
+    - ImportStatusFinished
+    - ImportStatusFailed
   enum.OrderStatus:
     enum:
     - 0
@@ -368,7 +380,7 @@ definitions:
         maxLength: 20000
         type: string
       agreement_title:
-        description: 登录页用户协议标题（留空则登录页不展示协议入口）
+        description: 登录页用户协议标题
         example: 关于进一步加强主播领导地位的若干规定
         maxLength: 100
         type: string
@@ -2023,6 +2035,15 @@ definitions:
     - scene
     - success_reply
     type: object
+  input.UploadImportProgressReq:
+    properties:
+      task_id:
+        description: 导入任务标识（由 /api/admin/upload/import 上传后返回）
+        example: 8f14e45fceea167a5a36dedd4bea2543
+        type: string
+    required:
+    - task_id
+    type: object
   input.UploadSyncOSSReq:
     properties:
       path:
@@ -2349,7 +2370,7 @@ definitions:
         example: '## 基本协议'
         type: string
       agreement_title:
-        description: 登录页用户协议标题（留空则登录页不展示协议入口）
+        description: 登录页用户协议标题
         example: 关于进一步加强主播领导地位的若干规定
         type: string
       login_bg:
@@ -2436,7 +2457,7 @@ definitions:
         example: '## 基本协议'
         type: string
       agreement_title:
-        description: 登录页用户协议标题（空串表示不展示协议入口）
+        description: 登录页用户协议标题
         example: 关于进一步加强主播领导地位的若干规定
         type: string
       login_bg:
@@ -4371,6 +4392,78 @@ definitions:
       value_name:
         description: 规格值内容
         example: bb
+        type: string
+    type: object
+  resp.UploadImportProgressResp:
+    properties:
+      bytes_processed:
+        description: 已读取的压缩字节数
+        example: 3250419
+        type: integer
+      bytes_total:
+        description: 压缩文件总字节数
+        example: 6506835
+        type: integer
+      credit_log_count:
+        description: 已补录的资产流水条数
+        example: 301
+        type: integer
+      current_table:
+        description: 当前正在导入的表名
+        example: bl_danmu_logs
+        type: string
+      danmu_count:
+        description: 已导入的弹幕条数
+        example: 198138
+        type: integer
+      error_code:
+        description: 失败时的错误码，0 表示无错误
+        example: 0
+        type: integer
+      finished_at:
+        description: 任务结束时间
+        example: "2026-09-24 16:30:19"
+        type: string
+      gift_count:
+        description: 已导入的礼物条数
+        example: 17697
+        type: integer
+      percent:
+        description: 已读取字节百分比
+        example: 49.96
+        type: number
+      skipped_user_count:
+        description: 因 uid 非法或重复被跳过的用户条数
+        example: 30
+        type: integer
+      started_at:
+        description: 任务开始时间
+        example: "2026-09-24 16:28:19"
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/enum.ImportStatus'
+        description: 任务状态（0等待中，1导入中，2已完成，3已失败）
+        enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        example: 1
+      task_id:
+        description: 导入任务标识
+        example: 8f14e45fceea167a5a36dedd4bea2543
+        type: string
+      user_count:
+        description: 已导入的用户条数
+        example: 1624
+        type: integer
+    type: object
+  resp.UploadImportTaskResp:
+    properties:
+      task_id:
+        description: 导入任务标识，用于查询导入进度
+        example: 8f14e45fceea167a5a36dedd4bea2543
         type: string
     type: object
   resp.UploadPathResp:
@@ -6931,6 +7024,75 @@ paths:
       security:
       - BearerAuth: []
       summary: 上传图片
+      tags:
+      - 上传
+  /api/admin/upload/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: |-
+        接收旧版系统导出的 .gz 数据文件，后台解压导入 live_danmus / live_gifts / live_users
+        三张表必须均为空，已有数据会被拒绝；导入进度通过 /api/admin/upload/import/progress 查询
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 旧版导出的 .gz 数据文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.UploadImportTaskResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 导入旧版数据
+      tags:
+      - 上传
+  /api/admin/upload/import/progress:
+    post:
+      description: 按任务标识查询导入状态、各表已导入条数与失败原因
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 导入任务标识
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.UploadImportProgressReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.UploadImportProgressResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 查询数据导入进度
       tags:
       - 上传
   /api/admin/upload/oss-sync:

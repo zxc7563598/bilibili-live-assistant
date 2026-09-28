@@ -1,18 +1,24 @@
-// Package upload 提供通用的图片上传与 OSS 同步能力
+// Package upload 提供通用的图片上传、OSS 同步与旧版数据导入能力
 //
-// 与业务模块解耦：落盘目录由 scene 白名单决定，OSS 配置从 appconfig 基础设施缓存读取。
-// 任意模块把上传接口挂到自己的业务页面上即可复用，无需重复实现落盘与同步逻辑。
+// 图片上传与业务模块解耦：落盘目录由 scene 白名单决定，OSS 配置从 appconfig 基础设施缓存读取。
+// 数据导入把旧版导出的 .gz 文件还原到 live_danmus / live_gifts / live_users，见 import.go。
 package upload
 
 import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/appconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/fileutil"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/oss"
+	"gorm.io/gorm"
 )
 
 // MaxRequestSize 上传请求体上限：单文件上限 + 1MB（multipart 头部 / 边界开销）
@@ -20,11 +26,23 @@ const MaxRequestSize int64 = fileutil.MaxUploadSize + 1<<20
 
 type Service struct {
 	appConfigCache *appconfig.Cache
+	db             *gorm.DB
+	liveDanmuRepo  live_danmu.Repository
+	liveGiftRepo   live_gift.Repository
+	liveUserRepo   live_user.Repository
+	liveUserSvc    *liveuser.Service
+	importTasks    *importTaskStore
 }
 
-func New(appConfigCache *appconfig.Cache) *Service {
+func New(appConfigCache *appconfig.Cache, db *gorm.DB, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveUserRepo live_user.Repository, liveUserSvc *liveuser.Service) *Service {
 	return &Service{
 		appConfigCache: appConfigCache,
+		db:             db,
+		liveDanmuRepo:  liveDanmuRepo,
+		liveGiftRepo:   liveGiftRepo,
+		liveUserRepo:   liveUserRepo,
+		liveUserSvc:    liveUserSvc,
+		importTasks:    newImportTaskStore(),
 	}
 }
 
@@ -88,4 +106,61 @@ func (s *Service) SyncOSS(_ context.Context, path string) (UploadPathResp, int, 
 		return UploadPathResp{}, CodeOSSUploadFailed, fmt.Errorf("OSS 上传 %s 失败: %w", objectKey, err)
 	}
 	return UploadPathResp{Path: url}, 0, nil
+}
+
+// StartImport 接收旧版导出的 .gz 文件并投递后台导入任务，返回任务标识
+func (s *Service) StartImport(ctx context.Context, req ImportDataReq) (ImportTaskResp, int, error) {
+	if req.File == nil || req.File.Size == 0 {
+		return ImportTaskResp{}, CodeImportFileRequired, errors.New("导入文件为空")
+	}
+	if req.File.Size > importFileLimit {
+		return ImportTaskResp{}, CodeImportFileTooLarge, fmt.Errorf("导入文件大小 %d 超过上限 %d", req.File.Size, importFileLimit)
+	}
+	// 先抢单飞锁：任务表在内存里，并发请求能立即拿到拒绝原因，不必等数据库
+	taskID, ok := s.importTasks.start(req.AdminID, req.File.Filename, req.File.Size)
+	if !ok {
+		return ImportTaskResp{}, CodeImportRunning, errors.New("已有导入任务正在进行中")
+	}
+	// 请求结束后 multipart 临时文件会被清理，先落到自己的临时文件
+	path, err := copyUploadedFile(req.File)
+	if err != nil {
+		s.importTasks.cancel(taskID)
+		return ImportTaskResp{}, CodeImportFailed, fmt.Errorf("暂存导入文件失败: %w", err)
+	}
+	// 空表校验放在任务开跑之前，让调用方立即拿到拒绝原因
+	if errCode, err := s.checkImportPrecondition(ctx); errCode != 0 {
+		s.importTasks.cancel(taskID)
+		os.Remove(path)
+		return ImportTaskResp{}, errCode, err
+	}
+	// 导入在后台跑，必须用与请求生命周期无关的上下文
+	go s.runImport(context.Background(), taskID, path)
+	return ImportTaskResp{TaskID: taskID}, 0, nil
+}
+
+// GetImportProgress 查询导入任务进度，任务已被淘汰时返回 CodeImportTaskNotFound
+func (s *Service) GetImportProgress(_ context.Context, taskID string) (ImportProgressResp, int, error) {
+	task := s.importTasks.get(taskID)
+	if task == nil {
+		return ImportProgressResp{}, CodeImportTaskNotFound, errors.New("导入任务不存在或已过期")
+	}
+	resp := ImportProgressResp{
+		TaskID:           task.id,
+		Status:           task.status,
+		CurrentTable:     task.currentTable,
+		DanmuCount:       task.danmuCount,
+		GiftCount:        task.giftCount,
+		UserCount:        task.userCount,
+		CreditLogCount:   task.creditLogCount,
+		SkippedUserCount: task.skippedUserCount,
+		BytesProcessed:   task.bytesProcessed,
+		BytesTotal:       task.bytesTotal,
+		ErrorCode:        task.errorCode,
+		StartedAt:        task.startedAt,
+		FinishedAt:       task.finishedAt,
+	}
+	if task.bytesTotal > 0 {
+		resp.Percent = math.Round(float64(task.bytesProcessed)/float64(task.bytesTotal)*10000) / 100
+	}
+	return resp, 0, nil
 }

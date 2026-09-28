@@ -68,7 +68,7 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		Product:     product.New(db, repo.Product, repo.ProductSku, repo.ProductImage, repo.ProductSpec, repo.ProductSpecValue),
 		Order:       order.New(db, repo.LiveUserOrder, repo.LiveUserOrderDraft, repo.LiveUserAddress, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, liveUserSvc),
 		Feedback:    feedbacksvc.New(repo.Feedback),
-		Upload:      uploadsvc.New(appConfigCache),
+		Upload:      uploadsvc.New(appConfigCache, db, repo.LiveDanmu, repo.LiveGift, repo.LiveUser, liveUserSvc),
 	}
 	// 导出服务需要消费各业务模块的导出数据源，因此在服务组装完之后再装配
 	services.Export = initExportService(cfg, services)

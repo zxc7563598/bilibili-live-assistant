@@ -186,6 +186,11 @@ error:
   11405: Invalid upload scene # Scene is not in the upload whitelist (Upload)
   11406: Image path cannot be empty # Image path is empty for OSS sync (Upload)
   11407: Invalid image path # Path is not a valid /uploads access path for OSS sync (Upload)
+  11408: The import file is not a valid export data file # Decompression failed or JSON parsing failed (Upload)
+  11409: Please select a data file to import # No import file received or the file is empty (Upload)
+  11410: The import file exceeds the size limit # Import request body exceeds the size limit (Upload)
+  11411: The import file source does not match # manifest.source is not BilibiliDanmuji (Upload)
+  11412: Please provide the import task ID # task_id is missing for the progress query (Upload)
   11501: Invalid request parameters # Parameter validation failed (PK battle records)
   11601: Invalid request parameters
   11602: Please complete the captcha verification
@@ -218,6 +223,8 @@ error:
   40802: Account unavailable # User account disabled
   40803: Insufficient balance # Insufficient balance for this redemption
   41401: OSS is not configured, please save the Alibaba Cloud OSS config first # OSS config is incomplete before sync (Upload)
+  41402: An import task is already running, please wait # Only one import task at a time (Upload)
+  41403: The system already contains data, import is not allowed # live_danmus/live_gifts/live_users is not empty (Upload)
   41101: Insufficient stock # Insufficient stock, unable to place order
   41102: Virtual orders do not support express information
   41103: Virtual orders only support changing the email
@@ -238,6 +245,7 @@ error:
   50801: Tokenizer initialization failed # Tokenizer initialization failed
   50802: Unknown User # Failed to query user information
   51401: Local image not found or has been cleaned, please re-upload # Local file to sync does not exist (Upload)
+  51402: The import task does not exist or has expired # task_id is not in the in-memory task table (Upload)
   51001: Product does not exist # Product information does not exist
   51101: Unable to find the product # Product or SKU does not exist
   51102: No pending order # No active order draft
@@ -304,6 +312,7 @@ error:
   61402: Failed to read the image, please try again later # Failed to read local image state (Upload)
   61403: Alibaba Cloud OSS initialization failure # Alibaba Cloud OSS initialization failure (Upload)
   61404: Failed to sync image to OSS, please try again later # Image upload to OSS error (Upload)
+  61405: Data import failed, please try again later # Internal import failure (Upload)
   61501: System busy, please try again later # Database query exception (PK battle records)
   61601: System busy, please try again later
   61701: System busy, please try again later # Internal export failure (count/read/sign)
@@ -456,6 +465,13 @@ min_member_level:
   l1: captain
   l2: admiral
   l3: governor
+
+# Data import: task status
+import_status:
+  pending: pending
+  running: running
+  finished: finished
+  failed: failed
 
 # Data export: module labels the download filename, column entries are CSV headers
 export:

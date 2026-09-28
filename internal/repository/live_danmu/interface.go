@@ -33,6 +33,8 @@ type Repository interface {
 	base.Repository[model.LiveDanmu]
 	// DistinctRoomIDs 获取全表中所有不重复的 RoomID
 	DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error)
+	// CountUnscoped 统计物理行数（含软删除行），用于导入前的空表校验
+	CountUnscoped(ctx context.Context, tx *gorm.DB) (int64, error)
 	// ListPage 分页查询弹幕，Uname/Msg 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveDanmuListPageQuery) ([]model.LiveDanmu, int64, error)
 	// CountFiltered 统计命中行数。limit > 0 时只保证「不超过 limit」的语义，实现上用「子查询 + LIMIT limit」早停，避免在大表上做全量 COUNT
@@ -67,6 +69,13 @@ func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, e
 		return nil, err
 	}
 	return roomIDs, nil
+}
+
+// CountUnscoped 统计物理行数（含软删除行）
+func (r *gormRepo) CountUnscoped(ctx context.Context, tx *gorm.DB) (int64, error) {
+	var total int64
+	err := r.ResolveDB(ctx, tx).Unscoped().Model(&model.LiveDanmu{}).Count(&total).Error
+	return total, err
 }
 
 // applyFilters 应用筛选条件。

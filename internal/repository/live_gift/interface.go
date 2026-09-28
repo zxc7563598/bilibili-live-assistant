@@ -54,6 +54,8 @@ type Repository interface {
 	base.Repository[model.LiveGift]
 	// DistinctRoomIDs 获取全表中所有不重复的 RoomID
 	DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, error)
+	// CountUnscoped 统计物理行数（含软删除行），用于导入前的空表校验
+	CountUnscoped(ctx context.Context, tx *gorm.DB) (int64, error)
 	// ListPage 分页查询礼物，Uname/GiftName 模糊匹配，SendAt 范围查询，按 SendAt 倒序
 	ListPage(ctx context.Context, tx *gorm.DB, query model.LiveGiftListPageQuery) ([]model.LiveGift, int64, error)
 	// CountFiltered 统计命中行数。limit > 0 时只保证「不超过 limit」的语义，
@@ -103,6 +105,13 @@ func (r *gormRepo) DistinctRoomIDs(ctx context.Context, tx *gorm.DB) ([]int64, e
 		return nil, err
 	}
 	return roomIDs, nil
+}
+
+// CountUnscoped 统计物理行数（含软删除行）
+func (r *gormRepo) CountUnscoped(ctx context.Context, tx *gorm.DB) (int64, error) {
+	var total int64
+	err := r.ResolveDB(ctx, tx).Unscoped().Model(&model.LiveGift{}).Count(&total).Error
+	return total, err
 }
 
 // ListPage 分页查询礼物

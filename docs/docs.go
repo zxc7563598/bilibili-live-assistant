@@ -4177,6 +4177,119 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/admin/upload/import": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "接收旧版系统导出的 .gz 数据文件，后台解压导入 live_danmus / live_gifts / live_users\n三张表必须均为空，已有数据会被拒绝；导入进度通过 /api/admin/upload/import/progress 查询",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "上传"
+                ],
+                "summary": "导入旧版数据",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "type": "file",
+                        "description": "旧版导出的 .gz 数据文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.UploadImportTaskResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/upload/import/progress": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按任务标识查询导入状态、各表已导入条数与失败原因",
+                "tags": [
+                    "上传"
+                ],
+                "summary": "查询数据导入进度",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "导入任务标识",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.UploadImportProgressReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.UploadImportProgressResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/upload/oss-sync": {
             "post": {
                 "security": [
@@ -5522,6 +5635,21 @@ const docTemplate = `{
                 "CreditTypePoints"
             ]
         },
+        "enum.ImportStatus": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "ImportStatusPending",
+                "ImportStatusRunning",
+                "ImportStatusFinished",
+                "ImportStatusFailed"
+            ]
+        },
         "enum.OrderStatus": {
             "type": "integer",
             "enum": [
@@ -5965,7 +6093,7 @@ const docTemplate = `{
                     "example": "## 基本协议"
                 },
                 "agreement_title": {
-                    "description": "登录页用户协议标题（留空则登录页不展示协议入口）",
+                    "description": "登录页用户协议标题",
                     "type": "string",
                     "maxLength": 100,
                     "example": "关于进一步加强主播领导地位的若干规定"
@@ -8122,6 +8250,19 @@ const docTemplate = `{
                 }
             }
         },
+        "input.UploadImportProgressReq": {
+            "type": "object",
+            "required": [
+                "task_id"
+            ],
+            "properties": {
+                "task_id": {
+                    "description": "导入任务标识（由 /api/admin/upload/import 上传后返回）",
+                    "type": "string",
+                    "example": "8f14e45fceea167a5a36dedd4bea2543"
+                }
+            }
+        },
         "input.UploadSyncOSSReq": {
             "type": "object",
             "required": [
@@ -8557,7 +8698,7 @@ const docTemplate = `{
                     "example": "## 基本协议"
                 },
                 "agreement_title": {
-                    "description": "登录页用户协议标题（留空则登录页不展示协议入口）",
+                    "description": "登录页用户协议标题",
                     "type": "string",
                     "example": "关于进一步加强主播领导地位的若干规定"
                 },
@@ -8667,7 +8808,7 @@ const docTemplate = `{
                     "example": "## 基本协议"
                 },
                 "agreement_title": {
-                    "description": "登录页用户协议标题（空串表示不展示协议入口）",
+                    "description": "登录页用户协议标题",
                     "type": "string",
                     "example": "关于进一步加强主播领导地位的若干规定"
                 },
@@ -11275,6 +11416,101 @@ const docTemplate = `{
                     "description": "规格值内容",
                     "type": "string",
                     "example": "bb"
+                }
+            }
+        },
+        "resp.UploadImportProgressResp": {
+            "type": "object",
+            "properties": {
+                "bytes_processed": {
+                    "description": "已读取的压缩字节数",
+                    "type": "integer",
+                    "example": 3250419
+                },
+                "bytes_total": {
+                    "description": "压缩文件总字节数",
+                    "type": "integer",
+                    "example": 6506835
+                },
+                "credit_log_count": {
+                    "description": "已补录的资产流水条数",
+                    "type": "integer",
+                    "example": 301
+                },
+                "current_table": {
+                    "description": "当前正在导入的表名",
+                    "type": "string",
+                    "example": "bl_danmu_logs"
+                },
+                "danmu_count": {
+                    "description": "已导入的弹幕条数",
+                    "type": "integer",
+                    "example": 198138
+                },
+                "error_code": {
+                    "description": "失败时的错误码，0 表示无错误",
+                    "type": "integer",
+                    "example": 0
+                },
+                "finished_at": {
+                    "description": "任务结束时间",
+                    "type": "string",
+                    "example": "2026-09-24 16:30:19"
+                },
+                "gift_count": {
+                    "description": "已导入的礼物条数",
+                    "type": "integer",
+                    "example": 17697
+                },
+                "percent": {
+                    "description": "已读取字节百分比",
+                    "type": "number",
+                    "example": 49.96
+                },
+                "skipped_user_count": {
+                    "description": "因 uid 非法或重复被跳过的用户条数",
+                    "type": "integer",
+                    "example": 30
+                },
+                "started_at": {
+                    "description": "任务开始时间",
+                    "type": "string",
+                    "example": "2026-09-24 16:28:19"
+                },
+                "status": {
+                    "description": "任务状态（0等待中，1导入中，2已完成，3已失败）",
+                    "enum": [
+                        0,
+                        1,
+                        2,
+                        3
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.ImportStatus"
+                        }
+                    ],
+                    "example": 1
+                },
+                "task_id": {
+                    "description": "导入任务标识",
+                    "type": "string",
+                    "example": "8f14e45fceea167a5a36dedd4bea2543"
+                },
+                "user_count": {
+                    "description": "已导入的用户条数",
+                    "type": "integer",
+                    "example": 1624
+                }
+            }
+        },
+        "resp.UploadImportTaskResp": {
+            "type": "object",
+            "properties": {
+                "task_id": {
+                    "description": "导入任务标识，用于查询导入进度",
+                    "type": "string",
+                    "example": "8f14e45fceea167a5a36dedd4bea2543"
                 }
             }
         },
