@@ -17,6 +17,7 @@ import App from './App.vue'
 import router from './router/index.js'
 import { applyPrimaryColor } from './utils/color'
 import { applySiteConfig, loadSiteConfig, siteConfig } from './utils/pwa'
+import { registerPwaUpdate } from './utils/pwaUpdate'
 import { initTheme } from './utils/theme'
 import './style.css'
 
@@ -35,6 +36,23 @@ request.get('/api/shop/theme-color').then((res) => {
 
 // 加载后台站点配置，动态设置 title / favicon 等（theme-color 由 utils/theme.js 接管）
 loadSiteConfig().then(applySiteConfig)
+
+// 注册 Service Worker，新版本发布后自动整页刷新
+registerPwaUpdate()
+
+// 旧页面在新 SW 清掉旧预缓存后 import 老 hash 分块会失败，兜底刷新
+const PRELOAD_RELOAD_KEY = 'shop:preload-reload'
+window.addEventListener('vite:preloadError', () => {
+  const reloaded = Number(sessionStorage.getItem(PRELOAD_RELOAD_KEY) || 0)
+  // 分块真缺失时最多刷两次，避免无限刷新
+  if (reloaded >= 2)
+    return
+  sessionStorage.setItem(PRELOAD_RELOAD_KEY, String(reloaded + 1))
+  window.location.reload()
+})
+
+// 页面稳定存活 30 秒即认为加载成功，清空计数
+setTimeout(() => sessionStorage.removeItem(PRELOAD_RELOAD_KEY), 30000)
 
 const app = createApp(App)
 

@@ -44,6 +44,8 @@ export default defineConfig(({ mode }) => {
           globPatterns: ['**/*.{js,css,html}'],
           cleanupOutdatedCaches: true,
           clientsClaim: true,
+          // 必须显式开：injectRegister 为 false 时插件不会自动补这个默认值
+          skipWaiting: true,
         },
         devOptions: {
           enabled: false,

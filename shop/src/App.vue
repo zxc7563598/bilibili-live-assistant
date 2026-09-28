@@ -1,7 +1,6 @@
 <script setup>
 import AppDialog from './components/base/AppDialog.vue'
 import AppToast from './components/base/AppToast.vue'
-import PWABadge from './components/PWABadge.vue'
 </script>
 
 <template>
@@ -12,7 +11,6 @@ import PWABadge from './components/PWABadge.vue'
       </Transition>
     </router-view>
   </div>
-  <PWABadge />
   <AppToast />
   <AppDialog />
 </template>
