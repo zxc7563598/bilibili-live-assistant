@@ -72,7 +72,7 @@ import api from '../api'
 defineOptions({ name: 'HomeImportCard' })
 
 // 与后端 upload.importFileLimit 保持一致
-const IMPORT_FILE_MAX = 100 * 1024 * 1024
+const IMPORT_FILE_MAX = 500 * 1024 * 1024
 // 后台每导入一批会刷新一次进度，2 秒足够跟上
 const POLL_INTERVAL = 2000
 
