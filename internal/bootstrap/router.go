@@ -231,6 +231,20 @@ func staticCacheControl(c *gin.Context) {
 	}
 }
 
+// isStaticAssetPath 判断请求路径指向构建产物而非前端路由
+func isStaticAssetPath(p string) bool {
+	if strings.HasPrefix(p, "assets/") {
+		return true
+	}
+	switch path.Ext(p) {
+	case ".js", ".mjs", ".css", ".map", ".json", ".txt",
+		".html", ".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico",
+		".woff", ".woff2", ".ttf", ".otf", ".eot", ".wasm":
+		return true
+	}
+	return false
+}
+
 func registerWeb(route *gin.RouterGroup) {
 	sub, err := fs.Sub(webui.Dist, "dist")
 	if err != nil {
@@ -254,6 +268,12 @@ func registerWeb(route *gin.RouterGroup) {
 		if path != "index.html" {
 			if _, err := sub.Open(path); err == nil {
 				http.StripPrefix("/admin/", fileServer).ServeHTTP(c.Writer, c.Request)
+				return
+			}
+			// 已下线的资源必须 404，兜底返回 HTML 会被 immutable 永久缓存
+			if isStaticAssetPath(path) {
+				c.Header("Cache-Control", "no-store")
+				c.Status(http.StatusNotFound)
 				return
 			}
 		}
@@ -290,6 +310,12 @@ func registerShop(route *gin.RouterGroup) {
 		if path != "index.html" {
 			if _, err := sub.Open(path); err == nil {
 				http.StripPrefix("/shop/", fileServer).ServeHTTP(c.Writer, c.Request)
+				return
+			}
+			// 已下线的资源必须 404，兜底返回 HTML 会被 immutable 永久缓存
+			if isStaticAssetPath(path) {
+				c.Header("Cache-Control", "no-store")
+				c.Status(http.StatusNotFound)
 				return
 			}
 		}
