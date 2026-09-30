@@ -90,6 +90,32 @@
 
 服务模式的部署方式可以看 [官方文档](https://hejunjie.life/danmusuite/local/provide-service)，文档里讲了怎么打包、传到服务器并用 systemd 常驻运行。
 
+## 备份数据与更换数据库
+
+所有数据都在数据库里（默认是 SQLite 单文件）。程序内置了导出与导入命令，不用自己研究数据库怎么备份——导出的文件本身就是标准 SQL，想交给数据库自带的客户端导入也没问题。
+
+导出（备份），先停掉程序再执行：
+
+```bash
+# Windows
+BiliLiveAssistant.exe db export -config config.yaml -out backup.sql.gz
+# macOS / Linux
+./BiliLiveAssistant db export -config config.yaml -out backup.sql.gz
+```
+
+从一种数据库换到另一种（比如 SQLite 换 MySQL）：
+
+1. 停掉程序
+2. 用旧配置导出数据：`./BiliLiveAssistant db export -config config.yaml -out backup.sql.gz`
+3. 改 `config.yaml` 里的 `database.driver` 与对应连接信息
+4. 导入到新库（**必须是空库**）：`./BiliLiveAssistant db import -config config.yaml -in backup.sql.gz`
+5. 重新启动程序
+
+两点注意：
+
+- 导出、导入都要在程序停止时做。程序正在写数据时导出，不同表的数据可能不在同一时间点（导出会发现行数对不上并报错，但不保证每次都能发现）
+- 导入只允许写空库，目标库已有数据会被拒绝并列出是哪几张表
+
 ## 常见问题
 
 **机器人需要一直开着电脑吗？**

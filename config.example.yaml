@@ -5,6 +5,7 @@ server: # 服务配置
   idle_timeout: 60 # 空闲连接保持时间（秒）
 
 database: # 数据库配置
+  # 换驱动前请先用 `BiliLiveAssistant db export` 导出旧库数据，改完配置后再 `db import` 导入新库（导入只接受空库）
   driver: sqlite # 数据库驱动：mysql | postgres | sqlite
   # mysql: # mysql 数据库配置（不使用可不进行配置）
   #   host: 127.0.0.1 # 数据库地址
