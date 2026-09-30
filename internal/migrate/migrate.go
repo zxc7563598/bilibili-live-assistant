@@ -5,20 +5,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func Run(db *gorm.DB) error {
-	// 兼容历史数据：为 live_user_sign_logs 回填 sign_date 字段，并对重复记录去重
-	if err := backfillLiveUserSignLogSignDate(db); err != nil {
-		return err
-	}
-	if err := dedupeLiveUserSignLogSignDate(db); err != nil {
-		return err
-	}
-	// 升级早期版本：为 live_users 补齐 v2.0.0 新增的 password / face 列。
-	// 必须赶在 AutoMigrate 之前，否则 ADD COLUMN 会带上 NOT NULL 而被 SQLite / PostgreSQL 拒绝
-	if err := addLiveUserPasswordFaceColumns(db); err != nil {
-		return err
-	}
-	if err := db.AutoMigrate(
+// Models 返回全部需要建表的模型，顺序即 AutoMigrate 的注册顺序
+func Models() []any {
+	return []any{
 		&model.Admin{},
 		&model.Role{},
 		&model.Menu{},
@@ -45,7 +34,28 @@ func Run(db *gorm.DB) error {
 		&model.LiveUserAddress{},
 		&model.Feedback{},
 		&model.LivePkLog{},
-	); err != nil {
+	}
+}
+
+// AutoMigrate 按模型定义建表 / 补列，不涉及任何历史数据补丁
+func AutoMigrate(db *gorm.DB) error {
+	return db.AutoMigrate(Models()...)
+}
+
+func Run(db *gorm.DB) error {
+	// 兼容历史数据：为 live_user_sign_logs 回填 sign_date 字段，并对重复记录去重
+	if err := backfillLiveUserSignLogSignDate(db); err != nil {
+		return err
+	}
+	if err := dedupeLiveUserSignLogSignDate(db); err != nil {
+		return err
+	}
+	// 升级早期版本：为 live_users 补齐 v2.0.0 新增的 password / face 列。
+	// 必须赶在 AutoMigrate 之前，否则 ADD COLUMN 会带上 NOT NULL 而被 SQLite / PostgreSQL 拒绝
+	if err := addLiveUserPasswordFaceColumns(db); err != nil {
+		return err
+	}
+	if err := AutoMigrate(db); err != nil {
 		return err
 	}
 	// 升级已有系统：为 live_users 回填累计弹幕数/礼物金额

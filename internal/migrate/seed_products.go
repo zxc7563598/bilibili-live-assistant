@@ -15,7 +15,7 @@ const seedProductsTag = "测试"
 //
 // 该函数不会被项目启动流程调用（启动只执行 Seed），而是通过命令行手动触发：
 //
-//	go run ./cmd/server/main.go -seed-products
+//	go run ./cmd/server -seed-products
 //
 // 或
 //

@@ -19,10 +19,10 @@ var explicitIDSeedModels = []any{
 	&model.AdminRole{},
 }
 
-// explicitIDSeedTables 返回上述模型对应的表名
-func explicitIDSeedTables(db *gorm.DB) ([]string, error) {
-	tables := make([]string, 0, len(explicitIDSeedModels))
-	for _, m := range explicitIDSeedModels {
+// TableNamesOf 返回模型对应的表名
+func TableNamesOf(db *gorm.DB, models ...any) ([]string, error) {
+	tables := make([]string, 0, len(models))
+	for _, m := range models {
 		stmt := &gorm.Statement{DB: db}
 		if err := stmt.Parse(m); err != nil {
 			return nil, fmt.Errorf("解析 %T 表名失败: %w", m, err)
@@ -32,24 +32,29 @@ func explicitIDSeedTables(db *gorm.DB) ([]string, error) {
 	return tables, nil
 }
 
-// syncPostgresSequences 把 PostgreSQL 的自增序列推进到各表当前最大 ID 之后，其余数据库为空操作。
+// syncPostgresSequences 同步写死 ID 的种子表的序列
+func syncPostgresSequences(db *gorm.DB) error {
+	tables, err := TableNamesOf(db, explicitIDSeedModels...)
+	if err != nil {
+		return err
+	}
+	return SyncPostgresSequences(db, tables)
+}
+
+// SyncPostgresSequences 把 PostgreSQL 的自增序列推进到各表当前最大 ID 之后，其余数据库为空操作。
 //
 // 背景：模型主键是裸的 ID int64 `gorm:"primaryKey"`，GORM 在 PostgreSQL 下会建成
 // bigserial（等价于 bigint DEFAULT nextval('xxx_id_seq')）。serial 序列只在 INSERT
-// 省略该列时才取 nextval，而种子数据是显式写入 ID 的，序列因此仍停在起点；之后
-// 业务侧新增（不带 ID）取到的就是已被占用的 1，直接报主键冲突。
+// 省略该列时才取 nextval，而种子数据与 db import 导入的数据都是显式写入 ID 的，
+// 序列因此仍停在起点；之后业务侧新增（不带 ID）取到的就是已被占用的 1，直接报主键冲突。
 // MySQL 的 AUTO_INCREMENT 与 SQLite 的 rowid 在显式插入时都会自动抬到 MAX(id)+1，
 // 不存在这个问题，所以只在 PostgreSQL 上做补偿。
 //
 // setval 第三个参数传 false 表示设定值本身即下一个 nextval 的返回值，
 // 因此取 MAX(id)+1 后下一个自增 ID 恰好是当前最大值加一；表为空时回到 1。
-func syncPostgresSequences(db *gorm.DB) error {
+func SyncPostgresSequences(db *gorm.DB, tables []string) error {
 	if db.Dialector.Name() != "postgres" {
 		return nil
-	}
-	tables, err := explicitIDSeedTables(db)
-	if err != nil {
-		return err
 	}
 	for _, table := range tables {
 		// 先取出该列绑定的序列名：手工建表等情况下 id 可能没有序列，此时跳过而不是让启动失败
