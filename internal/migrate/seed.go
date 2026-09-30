@@ -35,7 +35,7 @@ func Seed(db *gorm.DB) error {
 }
 
 // seedRoles 初始化填充角色表
-// 以 code 为唯一键做幂等 upsert：已存在的跳过，未来新增的角色会自动追加。
+// 幂等 upsert：已存在的跳过，未来新增的角色会自动追加。
 func seedRoles(db *gorm.DB) error {
 	role := model.Role{
 		ID:     1,
@@ -43,14 +43,13 @@ func seedRoles(db *gorm.DB) error {
 		Name:   "超级管理员",
 		Enable: enum.EnableEnable,
 	}
-	return db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "code"}},
-		DoNothing: true,
-	}).Create(&role).Error
+	// 不限定冲突列：种子数据写死了主键 ID，被别的记录占用时同样跳过，
+	// 否则主键冲突会让每次启动直接失败
+	return db.Clauses(clause.OnConflict{DoNothing: true}).Create(&role).Error
 }
 
 // seedMenus 初始化填充菜单表
-// 以 code 为唯一键做幂等 upsert：已存在的菜单跳过，未来新增的菜单会自动追加。
+// 幂等 upsert：已存在的菜单跳过，未来新增的菜单会自动追加。
 func seedMenus(db *gorm.DB) error {
 	menus := []model.Menu{
 		{
@@ -489,10 +488,9 @@ func seedMenus(db *gorm.DB) error {
 			Order:     1,
 		},
 	}
-	return db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "code"}},
-		DoNothing: true,
-	}).Create(&menus).Error
+	// 不限定冲突列：种子菜单写死了主键 ID，用户自建的菜单若占用了同一个 ID，
+	// 这一条就跳过而不是让启动失败（该菜单会缺失，需要用户自行调整 ID）
+	return db.Clauses(clause.OnConflict{DoNothing: true}).Create(&menus).Error
 }
 
 // seedAdmin 初始化填充管理员表
