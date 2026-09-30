@@ -35,6 +35,10 @@ import (
 
 // @BasePath /
 func main() {
+	// 数据库导出 / 导入子命令：跑完即退，不启动服务
+	if runDBCommand(os.Args[1:]) {
+		return
+	}
 	port := flag.Int("port", 25443, "服务端口")
 	configPath := flag.String("config", "config.yaml", "配置文件路径")
 	seedProducts := flag.Bool("seed-products", false, "填充商城商品测试数据后退出，不启动服务（仅供测试环境）")

@@ -67,7 +67,7 @@ dev:
 
 dev-go:
 	@echo "启动 Go 服务..."
-	GIN_MODE=debug $(GO_RUN) $(CMD_DIR)/main.go
+	GIN_MODE=debug $(GO_RUN) $(CMD_DIR)
 
 dev-web:
 	@echo "启动 Web dev server..."
@@ -79,7 +79,7 @@ dev-shop:
 
 seed-products:
 	@echo "填充商城商品测试数据..."
-	$(GO_RUN) $(CMD_DIR)/main.go -seed-products
+	$(GO_RUN) $(CMD_DIR) -seed-products
 
 swagger:
 	@command -v swag >/dev/null 2>&1 || { \
