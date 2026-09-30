@@ -1,44 +1,44 @@
-server:
-  port: 25443
-  read_timeout: 15
-  write_timeout: 15
-  idle_timeout: 60
+server: # 服务配置
+  port: 25443 # 服务监听端口，可用启动参数 -port 覆盖
+  read_timeout: 15 # 读取请求超时（秒）
+  write_timeout: 15 # 写出响应超时（秒）
+  idle_timeout: 60 # 空闲连接保持时间（秒）
 
-database:
+database: # 数据库配置
   driver: sqlite # 数据库驱动：mysql | postgres | sqlite
   # mysql: # mysql 数据库配置（不使用可不进行配置）
-  #   host: 127.0.0.1
-  #   port: 3306
-  #   user: user
-  #   password: password
-  #   dbname: databasename
+  #   host: 127.0.0.1 # 数据库地址
+  #   port: 3306 # 数据库端口
+  #   user: user # 数据库用户名
+  #   password: password # 数据库密码
+  #   dbname: databasename # 数据库名，不存在时自动创建
   # postgres: # postgres 数据库配置（不使用可不进行配置）
-  #   host: 127.0.0.1
-  #   port: 5432
-  #   user: user
-  #   password: password
-  #   dbname: databasename
+  #   host: 127.0.0.1 # 数据库地址
+  #   port: 5432 # 数据库端口
+  #   user: user # 数据库用户名
+  #   password: password # 数据库密码
+  #   dbname: databasename # 数据库名，不存在时自动创建
   sqlite: # sqlite 数据库配置（不使用可不进行配置）
     filepath: data.db # 数据库文件路径，相对路径相对于配置文件所在目录
 
-pool:
-  max_open_conns: 25
-  max_idle_conns: 10
-  conn_max_lifetime: 3600
-  conn_max_idle_time: 1800
+pool: # 数据库连接池配置（仅 mysql / postgres 生效，sqlite 固定为单个连接）
+  max_open_conns: 25 # 最大打开连接数
+  max_idle_conns: 10 # 最大空闲连接数
+  conn_max_lifetime: 3600 # 连接最长存活时间（秒），到期后重建
+  conn_max_idle_time: 1800 # 连接最长空闲时间（秒），超时后关闭
 
-# redis: # redis 配置（不使用可不进行配置）
-#   host: 127.0.0.1
-#   port: 6379
-#   password:
-#   db: 0
-#   pool_size: 20
-#   min_idle_conns: 5
+# redis: # redis 配置（用于登录态单点校验，不使用可不进行配置，留空则跳过该校验）
+#   host: 127.0.0.1 # redis 地址
+#   port: 6379 # redis 端口
+#   password: # redis 密码，无密码留空
+#   db: 0 # 库编号
+#   pool_size: 20 # 连接池最大连接数
+#   min_idle_conns: 5 # 连接池保持的最小空闲连接数
 
 jwt: # jwt 配置
   secret: "your-secret-at-least-32-characters-long!!" # 需要替换为32位的随机字母或数字内容
-  access_ttl: 7200
-  refresh_ttl: 604800
+  access_ttl: 7200 # 访问令牌有效期（秒）
+  refresh_ttl: 604800 # 刷新令牌有效期（秒）
 
 cors: # CORS 跨域配置
   allowed_origins: [] # 允许的前端来源列表，为空时允许所有来源
@@ -70,7 +70,8 @@ export: # 数据导出配置
   batch_size: 10000 # 分块扫描的每块行数，越大查询次数越少、单次内存占用越高
   ticket_ttl: 120 # 下载凭证有效期（秒）
   max_duration: 600 # 单次导出墙钟上限（秒）
-  write_idle_timeout: 30 # 客户端写空闲上限（秒），每写一块续期一次。相对路径以本配置文件所在目录为基准，也可填绝对路径
+  write_idle_timeout: 30 # 客户端写空闲上限（秒），每写一块续期一次
 
-# 说明：上面三项的相对路径都以本配置文件所在目录为基准解析，不受启动时工作目录影响。
+# 说明：database.sqlite.filepath、live.state_file、file.upload_dir、log.dir 的相对路径
+# 都以本配置文件所在目录为基准解析，不受启动时工作目录影响。
 # 例如配置文件在 /opt/app/config.yaml，upload_dir 填 uploads，实际落盘到 /opt/app/uploads。
