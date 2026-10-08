@@ -2,6 +2,7 @@
 
 import api from '@/api'
 import { useAuthStore } from '@/store'
+import { encryptConfigData } from './encrypt'
 import { handleAuthExpired, resolveResError } from './helpers'
 
 const SUCCESS_CODES = [0, 200]
@@ -14,6 +15,25 @@ let refreshPromise = null
 export function setupInterceptors(axiosInstance) {
   axiosInstance.interceptors.request.use(reqResolve, reqReject)
   axiosInstance.interceptors.response.use(resResolve, resReject)
+
+  // 请求前：注入 token 与请求体加密互不干涉，各自独立判断。
+  // 不能像原来那样在 needToken === false 时提前 return——登录、验证码、刷新
+  // 这几个接口恰好都是 needToken: false，提前返回会把它们漏在加密之外。
+  async function reqResolve(config) {
+    if (config.needToken !== false) {
+      const { accessToken } = useAuthStore()
+      if (accessToken) {
+        config.headers = config.headers || {}
+        config.headers.Authorization = `Bearer ${accessToken}`
+      }
+    }
+    // 刷新 token 后的重放不重新加密：此时 config.data 已是第一遍的密文，再加密就成密文套密文
+    if (config.encrypt !== false && !config.__isRetryRequest) {
+      await encryptConfigData(config, axiosInstance)
+    }
+    return config
+  }
+
   // 响应前
   function resResolve(response) {
     const { data, status, config, statusText, headers } = response
@@ -39,19 +59,6 @@ export function setupInterceptors(axiosInstance) {
       error: data ?? response,
     })
   }
-}
-
-// 请求前
-function reqResolve(config) {
-  if (config.needToken === false) {
-    return config
-  }
-  const { accessToken } = useAuthStore()
-  if (accessToken) {
-    config.headers = config.headers || {}
-    config.headers.Authorization = `Bearer ${accessToken}`
-  }
-  return config
 }
 
 // 请求失败

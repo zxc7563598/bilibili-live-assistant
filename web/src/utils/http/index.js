@@ -7,6 +7,8 @@ export function createAxios(options = {}) {
   const defaultOptions = {
     baseURL: `${import.meta.env.VITE_AXIOS_BASE_URL}/api/admin`,
     timeout: 12000,
+    // 请求体加密开关，拦截器按此判断；mock 实例单独关掉
+    encrypt: true,
   }
   const service = axios.create({
     ...defaultOptions,
@@ -20,4 +22,5 @@ export const request = createAxios()
 
 export const mockRequest = createAxios({
   baseURL: '/mock-api',
+  encrypt: false,
 })

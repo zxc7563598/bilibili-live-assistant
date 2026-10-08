@@ -38,6 +38,11 @@ export function resolveResError(code, message, needTip = true) {
     case 20102:
     case 20103:
       return handleAuthExpired('登录已过期，是否重新登录？', needTip)
+    // 请求体解密失败：后端只会回一句「请求参数不合法」，这里补上有指向性的排查方向
+    case 10009:
+      message = '请求安全校验失败，请刷新页面重试；若持续失败，请检查前端构建的 VITE_SIGN_SECRET 是否与后端 crypto.sign_secret 一致'
+      console.error('[http] 请求被后端拒绝（10009）:', message)
+      break
     default:
       message = message ?? `【${code}】: 未知异常!`
       break
