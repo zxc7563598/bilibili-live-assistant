@@ -51,7 +51,7 @@ altcha: # altcha 验证码配置（留空则可以不启用验证码）
   hmac_key: "your-secret-at-least-32-characters-long!!" # 需要替换为32位的随机字母或数字内容
 
 crypto: # 商城请求加密配置
-  sign_secret: "your-secret-at-least-32-characters-long!!" # 请求加密 HMAC 签名密钥，需要替换为32位的随机字母或数字内容，必须与前端 shop/.env 中 VITE_SIGN_SECRET 保持一致，生产环境务必修改
+  sign_secret: "your-secret-at-least-32-characters-long!!" # 请求加密 HMAC 签名密钥，需要替换为32位的随机字母或数字内容，必须与前端 shop/.env 和 web/.env 中 VITE_SIGN_SECRET 保持一致，生产环境务必修改
   timestamp: 60 # 请求时间偏差窗口（秒），用户请求数据中携带的时间与服务器时间误差超过此设置时视为重放攻击
   require_encryption: false # 是否强制请求体必须加密（仅全 HTTPS 部署可置 true，纯 HTTP 部署必须保持 false）
 

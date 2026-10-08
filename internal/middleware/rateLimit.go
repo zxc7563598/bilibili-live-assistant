@@ -15,7 +15,7 @@ import (
 
 // NewAccountRateLimiter 按账号(UID)限流的内存版固定窗口限流器。
 //
-// 需挂在已解密请求体的中间件（ShopEncrypt）之后，从明文 JSON 提取 account 字段作为统计 key，
+// 需挂在已解密请求体的中间件（RequestDecrypt）之后，从明文 JSON 提取 account 字段作为统计 key，
 // 用于防止对同一账号暴力撞库 / 频繁探测。
 // 纯内存计数、不依赖 Redis（Redis 可选，未配置时也正常工作）；单实例自部署场景够用，
 // 多实例负载均衡时各实例独立计数，进程重启后计数清零。

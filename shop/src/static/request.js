@@ -65,7 +65,7 @@ async function verifyPubkeySign({ key_id: keyId, public_key: publicKey, timestam
 function fetchPublicKey() {
   if (!publicKeyPromise) {
     publicKeyPromise = service
-      .get('/api/shop/public-key')
+      .get('/api/public-key')
       .then(async (res) => {
         if (res.code !== 0) {
           toast.error(`获取公钥失败: ${res.msg}`)

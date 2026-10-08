@@ -54,6 +54,8 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	})
 	// altcha 验证码（独立路由，不受分组中间件影响）
 	r.GET("/auth/altcha/challenge", handlers.Altcha.GetChallenge)
+	// 前端加密所需的 RSA 公钥，商城与管理后台共用（GET，不受下面的解密中间件影响）
+	r.GET("/api/public-key", handlers.AppConfig.GetPublicKey)
 	// web路由
 	admin := r.Group("/admin")
 	registerWeb(admin)
@@ -63,10 +65,11 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	// shop api路由
 	shopApi := r.Group("/api/shop")
 	// 请求体解密中间件：验证/解密前端 encryptRequest 加密的请求体，明文请求按策略放行或拒绝
-	shopApi.Use(middleware.ShopEncrypt(cryptoCfg.RequireEncryption))
+	shopApi.Use(middleware.RequestDecrypt(cryptoCfg.RequireEncryption))
 	shopApi.GET("/manifest", handlers.AppConfig.GetManifest)
 	shopApi.GET("/theme-color", handlers.AppConfig.GetThemeColor)
 	shopApi.GET("/login", handlers.AppConfig.GetLoginConfig)
+	// 保留旧地址：商城是 PWA，Service Worker 会缓存旧版 JS，老页面仍在按这个路径取公钥
 	shopApi.GET("/public-key", handlers.AppConfig.GetPublicKey)
 	// 按账号(UID)固定窗口限流：防止对同一账号暴力撞库 / 频繁探测。
 	// account 探测与 login 共用同一预算，避免交替请求绕过单接口上限。
@@ -94,6 +97,9 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	shopApi.POST("/feedback/submit", middleware.UserAuth(rdb), handlers.Feedback.Submit)
 	// api路由
 	adminApi := r.Group("/api/admin")
+	// 请求体解密中间件：与商城同一套机制、同一个开关。
+	// 只挂分组、不挂全局——全局挂载会先把商城密文解成明文，分组上再解一次就会误判成"未加密请求"
+	adminApi.Use(middleware.RequestDecrypt(cryptoCfg.RequireEncryption))
 	// 登录接口：如需限流可参考 shop 端的按账号限流（middleware.NewAccountRateLimiter(10, time.Minute)）
 	adminApi.POST("/auth/login", handlers.Admin.Login)
 	adminApi.POST("/auth/captcha", handlers.Admin.GetCaptchaStatus)
