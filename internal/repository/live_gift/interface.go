@@ -18,12 +18,16 @@ type TimeRange struct {
 	End   int64 // 结束时间戳（含）
 }
 
-// BlindBoxProfit 盲盒盈利统计
-type BlindBoxProfit struct {
-	Daily   int64 // 本日盈利
-	Weekly  int64 // 本周盈利
-	Monthly int64 // 本月盈利
-	Total   int64 // 总计盈利
+// BlindBoxStats 盲盒盈利与数量统计
+type BlindBoxStats struct {
+	Daily        int64 // 本日盈利
+	Weekly       int64 // 本周盈利
+	Monthly      int64 // 本月盈利
+	Total        int64 // 总计盈利
+	DailyCount   int64 // 本日数量
+	WeeklyCount  int64 // 本周数量
+	MonthlyCount int64 // 本月数量
+	TotalCount   int64 // 总计数量
 }
 
 // sortColumns 允许参与 ListPage 排序的 DB 列
@@ -90,8 +94,8 @@ type Repository interface {
 	CountGuardByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
 	// CountSuperChatByRoomIDAndTimeRange 统计指定房间在时间范围内的醒目留言数量
 	CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *gorm.DB, startTime, endTime, roomID int64) (int64, error)
-	// SumBlindBoxProfit 统计盲盒盈利
-	SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxProfit, error)
+	// SumBlindBoxStats 统计盲盒盈利与数量
+	SumBlindBoxStats(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxStats, error)
 	// CountDailyByUID 根据uid统计用户在时间范围内的每日消费数量与金额，
 	// map key 为「当月第几天」(1-31)
 	CountDailyByUID(ctx context.Context, tx *gorm.DB, uid int64, startAt int64, endAt int64) (map[int64]model.LiveGiftDailyGiftStatistics, error)
@@ -324,8 +328,8 @@ func (r *gormRepo) CountSuperChatByRoomIDAndTimeRange(ctx context.Context, tx *g
 	return count, err
 }
 
-// SumBlindBoxProfit 统计盲盒盈利
-func (r *gormRepo) SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxProfit, error) {
+// SumBlindBoxStats 统计盲盒盈利与数量
+func (r *gormRepo) SumBlindBoxStats(ctx context.Context, tx *gorm.DB, uid, roomID int64, day, week, month TimeRange) (*BlindBoxStats, error) {
 	db := r.ResolveDB(ctx, tx)
 	db = db.Model(&model.LiveGift{}).Where("original = ?", enum.No)
 	// 筛选用户或房间
@@ -335,12 +339,19 @@ func (r *gormRepo) SumBlindBoxProfit(ctx context.Context, tx *gorm.DB, uid, room
 	if roomID > 0 {
 		db = db.Where("room_id = ?", roomID)
 	}
-	var result BlindBoxProfit
+	var result BlindBoxStats
 	err := db.Select(`
 		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN (price - original_gift_price) * num ELSE 0 END), 0) AS daily,
 		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN (price - original_gift_price) * num ELSE 0 END), 0) AS weekly,
 		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN (price - original_gift_price) * num ELSE 0 END), 0) AS monthly,
-		COALESCE(SUM((price - original_gift_price) * num), 0) AS total`,
+		COALESCE(SUM((price - original_gift_price) * num), 0) AS total,
+		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN num ELSE 0 END), 0) AS daily_count,
+		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN num ELSE 0 END), 0) AS weekly_count,
+		COALESCE(SUM(CASE WHEN send_at >= ? AND send_at <= ? THEN num ELSE 0 END), 0) AS monthly_count,
+		COALESCE(SUM(num), 0) AS total_count`,
+		day.Start, day.End,
+		week.Start, week.End,
+		month.Start, month.End,
 		day.Start, day.End,
 		week.Start, week.End,
 		month.Start, month.End,

@@ -449,8 +449,10 @@ func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuM
 	}
 	// IO：计算盲盒变量
 	needUserProfit := needed["daily_net"] || needed["weekly_net"] || needed["monthly_net"] || needed["total_net"]
+	needUserCount := needed["daily_net_count"] || needed["weekly_net_count"] || needed["monthly_net_count"] || needed["total_net_count"]
 	needRoomProfit := needed["room_daily_net"] || needed["room_weekly_net"] || needed["room_monthly_net"] || needed["room_total_net"]
-	if needUserProfit || needRoomProfit {
+	needRoomCount := needed["room_daily_net_count"] || needed["room_weekly_net_count"] || needed["room_monthly_net_count"] || needed["room_total_net_count"]
+	if needUserProfit || needUserCount || needRoomProfit || needRoomCount {
 		now := time.Now()
 		today := timeutil.StartOfDay(now)
 		// 处理时间变量
@@ -464,42 +466,66 @@ func (p *danmuProcessor) resolveReplyVars(ctx context.Context, info *live.DanmuM
 		monthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 		month := live_gift.TimeRange{Start: monthStart.Unix(), End: now.Unix()}
 		// 获取用户纬度数据（如果需要）
-		if needUserProfit {
-			profit, err := p.liveGiftRepo.SumBlindBoxProfit(ctx, nil, info.UID, roomID, day, week, month)
+		if needUserProfit || needUserCount {
+			stats, err := p.liveGiftRepo.SumBlindBoxStats(ctx, nil, info.UID, roomID, day, week, month)
 			if err != nil {
 				log.Printf("[live.Reply] 查询用户盲盒盈利失败: %v", err)
 			} else {
 				if needed["daily_net"] {
-					vars["daily_net"] = centsToYuan(profit.Daily)
+					vars["daily_net"] = centsToYuan(stats.Daily)
 				}
 				if needed["weekly_net"] {
-					vars["weekly_net"] = centsToYuan(profit.Weekly)
+					vars["weekly_net"] = centsToYuan(stats.Weekly)
 				}
 				if needed["monthly_net"] {
-					vars["monthly_net"] = centsToYuan(profit.Monthly)
+					vars["monthly_net"] = centsToYuan(stats.Monthly)
 				}
 				if needed["total_net"] {
-					vars["total_net"] = centsToYuan(profit.Total)
+					vars["total_net"] = centsToYuan(stats.Total)
+				}
+				if needed["daily_net_count"] {
+					vars["daily_net_count"] = strconv.FormatInt(stats.DailyCount, 10)
+				}
+				if needed["weekly_net_count"] {
+					vars["weekly_net_count"] = strconv.FormatInt(stats.WeeklyCount, 10)
+				}
+				if needed["monthly_net_count"] {
+					vars["monthly_net_count"] = strconv.FormatInt(stats.MonthlyCount, 10)
+				}
+				if needed["total_net_count"] {
+					vars["total_net_count"] = strconv.FormatInt(stats.TotalCount, 10)
 				}
 			}
 		}
 		// 获取房间纬度数据（如果需要）
-		if needRoomProfit {
-			profit, err := p.liveGiftRepo.SumBlindBoxProfit(ctx, nil, 0, roomID, day, week, month)
+		if needRoomProfit || needRoomCount {
+			stats, err := p.liveGiftRepo.SumBlindBoxStats(ctx, nil, 0, roomID, day, week, month)
 			if err != nil {
 				log.Printf("[live.Reply] 查询直播间盲盒盈利失败: %v", err)
 			} else {
 				if needed["room_daily_net"] {
-					vars["room_daily_net"] = centsToYuan(profit.Daily)
+					vars["room_daily_net"] = centsToYuan(stats.Daily)
 				}
 				if needed["room_weekly_net"] {
-					vars["room_weekly_net"] = centsToYuan(profit.Weekly)
+					vars["room_weekly_net"] = centsToYuan(stats.Weekly)
 				}
 				if needed["room_monthly_net"] {
-					vars["room_monthly_net"] = centsToYuan(profit.Monthly)
+					vars["room_monthly_net"] = centsToYuan(stats.Monthly)
 				}
 				if needed["room_total_net"] {
-					vars["room_total_net"] = centsToYuan(profit.Total)
+					vars["room_total_net"] = centsToYuan(stats.Total)
+				}
+				if needed["room_daily_net_count"] {
+					vars["room_daily_net_count"] = strconv.FormatInt(stats.DailyCount, 10)
+				}
+				if needed["room_weekly_net_count"] {
+					vars["room_weekly_net_count"] = strconv.FormatInt(stats.WeeklyCount, 10)
+				}
+				if needed["room_monthly_net_count"] {
+					vars["room_monthly_net_count"] = strconv.FormatInt(stats.MonthlyCount, 10)
+				}
+				if needed["room_total_net_count"] {
+					vars["room_total_net_count"] = strconv.FormatInt(stats.TotalCount, 10)
 				}
 			}
 		}
