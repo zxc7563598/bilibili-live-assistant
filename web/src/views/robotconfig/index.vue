@@ -647,6 +647,32 @@
                 </n-button>
               </div>
             </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                黑名单匹配规则
+              </div>
+              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
+                填写完整昵称时完全匹配；填写含 <b>*</b> 的内容时，<b>*</b> 可匹配任意长度（含 0）的任意字符。匹配区分大小写，且按原始昵称比对，不受用户名裁剪设置影响。<br>
+                例：<b>bill*</b> 匹配 bill 开头的昵称；<b>*2222</b> 匹配以 2222 结尾的昵称；<b>*A*</b> 匹配包含 A 的昵称；<b>AA*BB</b> 匹配以 AA 开头且以 BB 结尾的昵称。<br>
+                列表为空表示不使用黑名单。
+              </div>
+            </div>
+            <div class="flex items-start gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                黑名单列表
+              </div>
+              <div class="w-full space-y-5">
+                <div v-for="(_reply, index) in welcomeForm.blacklist" v-show="welcomeForm.blacklist.length > 0" :key="index" class="w-full flex gap-5">
+                  <n-input v-model:value="welcomeForm.blacklist[index]" placeholder="支持以 * 作为通配符" show-count :maxlength="99" />
+                  <n-button secondary type="error" size="medium" @click="welcomeForm.blacklist.splice(index, 1)">
+                    删除
+                  </n-button>
+                </div>
+                <n-button secondary type="primary" size="medium" class="w-full" @click="welcomeForm.blacklist.push('')">
+                  添加
+                </n-button>
+              </div>
+            </div>
           </div>
           <template #footer>
             <div class="flex justify-end">
@@ -726,6 +752,32 @@
                 </n-button>
               </div>
             </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                黑名单匹配规则
+              </div>
+              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
+                填写完整昵称时完全匹配；填写含 <b>*</b> 的内容时，<b>*</b> 可匹配任意长度（含 0）的任意字符。匹配区分大小写，且按原始昵称比对，不受用户名裁剪设置影响。<br>
+                例：<b>bill*</b> 匹配 bill 开头的昵称；<b>*2222</b> 匹配以 2222 结尾的昵称；<b>*A*</b> 匹配包含 A 的昵称；<b>AA*BB</b> 匹配以 AA 开头且以 BB 结尾的昵称。<br>
+                列表为空表示不使用黑名单。
+              </div>
+            </div>
+            <div class="flex items-start gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                黑名单列表
+              </div>
+              <div class="w-full space-y-5">
+                <div v-for="(_reply, index) in followForm.blacklist" v-show="followForm.blacklist.length > 0" :key="index" class="w-full flex gap-5">
+                  <n-input v-model:value="followForm.blacklist[index]" placeholder="支持以 * 作为通配符" show-count :maxlength="99" />
+                  <n-button secondary type="error" size="medium" @click="followForm.blacklist.splice(index, 1)">
+                    删除
+                  </n-button>
+                </div>
+                <n-button secondary type="primary" size="medium" class="w-full" @click="followForm.blacklist.push('')">
+                  添加
+                </n-button>
+              </div>
+            </div>
           </div>
           <template #footer>
             <div class="flex justify-end">
@@ -801,6 +853,32 @@
                   </n-button>
                 </div>
                 <n-button secondary type="primary" size="medium" class="w-full" @click="shareForm.content.push('')">
+                  添加
+                </n-button>
+              </div>
+            </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                黑名单匹配规则
+              </div>
+              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
+                填写完整昵称时完全匹配；填写含 <b>*</b> 的内容时，<b>*</b> 可匹配任意长度（含 0）的任意字符。匹配区分大小写，且按原始昵称比对，不受用户名裁剪设置影响。<br>
+                例：<b>bill*</b> 匹配 bill 开头的昵称；<b>*2222</b> 匹配以 2222 结尾的昵称；<b>*A*</b> 匹配包含 A 的昵称；<b>AA*BB</b> 匹配以 AA 开头且以 BB 结尾的昵称。<br>
+                列表为空表示不使用黑名单。
+              </div>
+            </div>
+            <div class="flex items-start gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                黑名单列表
+              </div>
+              <div class="w-full space-y-5">
+                <div v-for="(_reply, index) in shareForm.blacklist" v-show="shareForm.blacklist.length > 0" :key="index" class="w-full flex gap-5">
+                  <n-input v-model:value="shareForm.blacklist[index]" placeholder="支持以 * 作为通配符" show-count :maxlength="99" />
+                  <n-button secondary type="error" size="medium" @click="shareForm.blacklist.splice(index, 1)">
+                    删除
+                  </n-button>
+                </div>
+                <n-button secondary type="primary" size="medium" class="w-full" @click="shareForm.blacklist.push('')">
                   添加
                 </n-button>
               </div>
@@ -1125,6 +1203,7 @@ const welcomeForm = ref({
   scene: '',
   requirement: '',
   content: [],
+  blacklist: [],
 })
 
 // 感谢关注配置模块
@@ -1135,6 +1214,7 @@ const followForm = ref({
   scene: '',
   requirement: '',
   content: [],
+  blacklist: [],
 })
 
 // 感谢分享配置模块
@@ -1145,6 +1225,7 @@ const shareForm = ref({
   scene: '',
   requirement: '',
   content: [],
+  blacklist: [],
 })
 
 // 自动回复配置模块
@@ -1525,12 +1606,14 @@ function apply(type) {
       if (welcomeForm.value.content.length === 0) {
         return $message.warning('欢迎内容不可以为空')
       }
+      welcomeForm.value.blacklist = welcomeForm.value.blacklist.map(s => s.trim()).filter(s => s !== '')
       welcomeLoading.value = true
       api.applyWelcome(
         welcomeForm.value.enabled,
         welcomeForm.value.scene,
         welcomeForm.value.requirement,
         welcomeForm.value.content,
+        welcomeForm.value.blacklist,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {
@@ -1551,12 +1634,14 @@ function apply(type) {
       if (followForm.value.content.length === 0) {
         return $message.warning('感谢内容不可以为空')
       }
+      followForm.value.blacklist = followForm.value.blacklist.map(s => s.trim()).filter(s => s !== '')
       followLoading.value = true
       api.applyFollow(
         followForm.value.enabled,
         followForm.value.scene,
         followForm.value.requirement,
         followForm.value.content,
+        followForm.value.blacklist,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {
@@ -1577,12 +1662,14 @@ function apply(type) {
       if (shareForm.value.content.length === 0) {
         return $message.warning('感谢内容不可以为空')
       }
+      shareForm.value.blacklist = shareForm.value.blacklist.map(s => s.trim()).filter(s => s !== '')
       shareLoading.value = true
       api.applyShare(
         shareForm.value.enabled,
         shareForm.value.scene,
         shareForm.value.requirement,
         shareForm.value.content,
+        shareForm.value.blacklist,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {

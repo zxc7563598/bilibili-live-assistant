@@ -17,9 +17,9 @@ export default {
   applyAd: (enabled, scene, interval, send_mode, content) => request.post('/robot/ad/apply', { enabled, scene, interval, send_mode, content }), // 变更定时广告模块配置
   applyGift: (enabled, scene, requirement, show_count, merge_gift, include_blindbox, min_battery, content) => request.post('/robot/gift/apply', { enabled, scene, requirement, show_count, merge_gift, include_blindbox, min_battery, content }), // 变更礼物答谢模块配置
   applyPk: (enabled, content) => request.post('/robot/pk/apply', { enabled, content }), // 变更PK播报模块配置
-  applyWelcome: (enabled, scene, requirement, content) => request.post('/robot/welcome/apply', { enabled, scene, requirement, content }), // 变更进房欢迎模块配置
-  applyFollow: (enabled, scene, requirement, content) => request.post('/robot/follow/apply', { enabled, scene, requirement, content }), // 变更感谢关注模块配置
-  applyShare: (enabled, scene, requirement, content) => request.post('/robot/share/apply', { enabled, scene, requirement, content }), // 变更感谢分享模块配置
+  applyWelcome: (enabled, scene, requirement, content, blacklist) => request.post('/robot/welcome/apply', { enabled, scene, requirement, content, blacklist }), // 变更进房欢迎模块配置
+  applyFollow: (enabled, scene, requirement, content, blacklist) => request.post('/robot/follow/apply', { enabled, scene, requirement, content, blacklist }), // 变更感谢关注模块配置
+  applyShare: (enabled, scene, requirement, content, blacklist) => request.post('/robot/share/apply', { enabled, scene, requirement, content, blacklist }), // 变更感谢分享模块配置
   applyReply: (enabled, scene, requirement, content) => request.post('/robot/reply/apply', { enabled, scene, requirement, content }), // 变更自动回复模块配置
 
 }
