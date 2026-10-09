@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
@@ -150,10 +151,57 @@ func (p *interactProcessor) processInteractIn(ctx context.Context, kind interact
 	if !ptr.ParseBool(interactCfg.Enabled) {
 		return
 	}
+	if hit, ok := blacklistHit(info.Uname, interactCfg.Blacklist); ok {
+		log.Printf("[live.%s] %s黑名单命中，跳过回复: 用户名=%q 命中规则=%q", kind.tag, kind.label, info.Uname, hit)
+		return
+	}
 	if !p.checkInteractCondition(kind, interactCfg, info, anchorID, liveStatus) {
 		return
 	}
 	p.sendInteractReply(ctx, kind, interactCfg.Content, info)
+}
+
+// blacklistHit 返回昵称命中的第一条黑名单规则
+func blacklistHit(nickname string, rules []string) (string, bool) {
+	for _, rule := range rules {
+		if nicknameMatched(nickname, rule) {
+			return rule, true
+		}
+	}
+	return "", false
+}
+
+// nicknameMatched 判断昵称是否命中单条黑名单规则, 规则中的 * 匹配任意长度(含 0)的任意字符
+func nicknameMatched(nickname, pattern string) bool {
+	if pattern == "" {
+		return false
+	}
+	if !strings.Contains(pattern, "*") {
+		return nickname == pattern
+	}
+	segs := strings.Split(pattern, "*")
+	pos := 0
+	if segs[0] != "" {
+		if !strings.HasPrefix(nickname, segs[0]) {
+			return false
+		}
+		pos = len(segs[0])
+	}
+	last := len(segs) - 1
+	for _, seg := range segs[1:last] {
+		if seg == "" {
+			continue
+		}
+		idx := strings.Index(nickname[pos:], seg)
+		if idx < 0 {
+			return false
+		}
+		pos += idx + len(seg)
+	}
+	if segs[last] == "" {
+		return true
+	}
+	return strings.HasSuffix(nickname[pos:], segs[last])
 }
 
 // checkInteractCondition 校验互动回复的 Requirement 和 Scene 是否满足
