@@ -193,10 +193,10 @@ const dailyGuides = [
 
 const helpLinks = [
   {
-    title: '去作者网站留言',
-    desc: '使用中遇到问题，或者有想要的功能，都可以写在留言板',
-    icon: 'i-fe:message-circle',
-    url: 'https://hejunjie.life/danmusuite/local',
+    title: '查看官方文档',
+    desc: '使用中遇到问题，都可以在这里查看',
+    icon: 'i-fe:book-open',
+    url: 'https://danmubot.top/docs',
   },
   {
     title: '直接联系作者',
