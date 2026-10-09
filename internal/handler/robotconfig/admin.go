@@ -320,6 +320,7 @@ func (h *Handler) ApplyWelcomeConfig(c *gin.Context) {
 		Scene:       req.Scene,
 		Requirement: req.Requirement,
 		Content:     req.Content,
+		Blacklist:   req.Blacklist,
 	})
 	if errCode != 0 {
 		handler.ErrorLog(logger.RobotConfigLogger, "robotConfigSvc.ApplyWelcomeConfig 调用失败", errCode, err)
@@ -370,6 +371,7 @@ func (h *Handler) ApplyFollowConfig(c *gin.Context) {
 		Scene:       req.Scene,
 		Requirement: req.Requirement,
 		Content:     req.Content,
+		Blacklist:   req.Blacklist,
 	})
 	if errCode != 0 {
 		handler.ErrorLog(logger.RobotConfigLogger, "robotConfigSvc.ApplyFollowConfig 调用失败", errCode, err)
@@ -420,6 +422,7 @@ func (h *Handler) ApplyShareConfig(c *gin.Context) {
 		Scene:       req.Scene,
 		Requirement: req.Requirement,
 		Content:     req.Content,
+		Blacklist:   req.Blacklist,
 	})
 	if errCode != 0 {
 		handler.ErrorLog(logger.RobotConfigLogger, "robotConfigSvc.ApplyShareConfig 调用失败", errCode, err)

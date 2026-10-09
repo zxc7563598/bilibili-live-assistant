@@ -75,6 +75,7 @@ type SceneReplyConfigResp struct {
 	Scene       string   `json:"scene"`
 	Requirement string   `json:"requirement"`
 	Content     []string `json:"content"`
+	Blacklist   []string `json:"blacklist"`
 }
 
 // SceneReplyConfigReq 场景答谢配置请求入参
@@ -83,6 +84,7 @@ type SceneReplyConfigReq struct {
 	Scene       string   `json:"scene"`
 	Requirement string   `json:"requirement"`
 	Content     []string `json:"content"`
+	Blacklist   []string `json:"blacklist"`
 }
 
 // GetReplyConfig 请求返回

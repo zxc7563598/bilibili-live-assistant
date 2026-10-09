@@ -218,6 +218,10 @@ func pkConfigReqToMap(req PkConfigReq) map[string]string {
 
 // ======================== welcome ========================
 func toSceneReplyConfigResp(group map[string]string) (SceneReplyConfigResp, error) {
+	blacklist, err := getStringSlice(group, "blacklist")
+	if err != nil {
+		return SceneReplyConfigResp{}, err
+	}
 	content, err := getStringSlice(group, "content")
 	if err != nil {
 		return SceneReplyConfigResp{}, err
@@ -227,6 +231,7 @@ func toSceneReplyConfigResp(group map[string]string) (SceneReplyConfigResp, erro
 		Scene:       getString(group, "scene"),
 		Requirement: getString(group, "requirement"),
 		Content:     content,
+		Blacklist:   blacklist,
 	}, nil
 }
 func sceneReplyConfigReqToMap(req SceneReplyConfigReq) map[string]string {
@@ -235,6 +240,7 @@ func sceneReplyConfigReqToMap(req SceneReplyConfigReq) map[string]string {
 		"scene":       req.Scene,
 		"requirement": req.Requirement,
 		"content":     marshalSlice(req.Content),
+		"blacklist":   marshalSlice(req.Blacklist),
 	}
 }
 

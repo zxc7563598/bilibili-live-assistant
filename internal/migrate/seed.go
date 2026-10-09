@@ -758,7 +758,6 @@ func seedRobotConfigs(db *gorm.DB) error {
 			ConfigValue: "",
 			Remark:      "感谢内容, 支持占位符变量",
 		},
-
 		{
 			GroupName:   "welcome",
 			ConfigKey:   "enabled",
@@ -784,6 +783,12 @@ func seedRobotConfigs(db *gorm.DB) error {
 			Remark:      "欢迎内容, 支持占位符变量",
 		},
 		{
+			GroupName:   "welcome",
+			ConfigKey:   "blacklist",
+			ConfigValue: "",
+			Remark:      "进房欢迎黑名单, 支持 * 作为通配符",
+		},
+		{
 			GroupName:   "follow",
 			ConfigKey:   "enabled",
 			ConfigValue: "0",
@@ -808,6 +813,12 @@ func seedRobotConfigs(db *gorm.DB) error {
 			Remark:      "感谢内容, 支持占位符变量",
 		},
 		{
+			GroupName:   "follow",
+			ConfigKey:   "blacklist",
+			ConfigValue: "",
+			Remark:      "感谢关注黑名单, 支持 * 作为通配符",
+		},
+		{
 			GroupName:   "share",
 			ConfigKey:   "enabled",
 			ConfigValue: "0",
@@ -830,6 +841,12 @@ func seedRobotConfigs(db *gorm.DB) error {
 			ConfigKey:   "content",
 			ConfigValue: "",
 			Remark:      "感谢内容, 支持占位符变量",
+		},
+		{
+			GroupName:   "share",
+			ConfigKey:   "blacklist",
+			ConfigValue: "",
+			Remark:      "感谢分享黑名单, 支持 * 作为通配符",
 		},
 		{
 			GroupName:   "reply",

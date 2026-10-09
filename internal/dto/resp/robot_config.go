@@ -102,6 +102,8 @@ type SceneReplyConfigResp struct {
 	Requirement string `json:"requirement" example:"0"`
 	// 答谢内容
 	Content []string `json:"content"`
+	// 黑名单列表
+	Blacklist []string `json:"blacklist"`
 }
 
 // ReplyConfigResp 自动回复模块配置返回

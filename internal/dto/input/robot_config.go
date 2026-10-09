@@ -103,6 +103,8 @@ type SceneReplyConfigReq struct {
 	Requirement string `json:"requirement" binding:"required" err:"required=10501" example:"0"`
 	// 答谢内容（JSON 数组字符串）
 	Content []string `json:"content" binding:"required" err:"required=10501"`
+	// 黑名单列表（JSON 数组字符串）
+	Blacklist []string `json:"blacklist"`
 }
 
 // ReplyConfigReq 自动回复模块配置请求
