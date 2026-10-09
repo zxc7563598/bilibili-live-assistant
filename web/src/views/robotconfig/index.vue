@@ -1090,13 +1090,21 @@
             发送人昵称：<b>@name@</b><br>
             用户航海类型：<b>@guard@</b><br>
             用户本日盲盒盈利：<b>@daily_net@</b><br>
+            用户本日盲盒数量：<b>@daily_net_count@</b><br>
             用户本周盲盒盈利：<b>@weekly_net@</b><br>
+            用户本周盲盒数量：<b>@weekly_net_count@</b><br>
             用户本月盲盒盈利：<b>@monthly_net@</b><br>
+            用户本月盲盒数量：<b>@monthly_net_count@</b><br>
             用户总计盲盒盈利：<b>@total_net@</b><br>
+            用户总计盲盒数量：<b>@total_net_count@</b><br>
             直播间本日盲盒盈利：<b>@room_daily_net@</b><br>
+            直播间本日盲盒数量：<b>@room_daily_net_count@</b><br>
             直播间本周盲盒盈利：<b>@room_weekly_net@</b><br>
+            直播间本周盲盒数量：<b>@room_weekly_net_count@</b><br>
             直播间本月盲盒盈利：<b>@room_monthly_net@</b><br>
+            直播间本月盲盒数量：<b>@room_monthly_net_count@</b><br>
             直播间总计盲盒盈利：<b>@room_total_net@</b><br>
+            直播间总计盲盒数量：<b>@room_total_net_count@</b><br>
           </div>
         </div>
         <div class="flex items-start gap-5">
