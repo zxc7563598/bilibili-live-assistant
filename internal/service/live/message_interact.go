@@ -165,6 +165,9 @@ func (p *interactProcessor) processInteractIn(ctx context.Context, kind interact
 	if !ptr.ParseBool(interactCfg.Enabled) {
 		return
 	}
+	if p.interactIntervalHit(ctx, kind, interactCfg.Interval, info) {
+		return
+	}
 	if hit, ok := blacklistHit(info.Uname, interactCfg.Blacklist); ok {
 		log.Printf("[live.%s] %s黑名单命中，跳过回复: 用户名=%q 命中规则=%q", kind.tag, kind.label, info.Uname, hit)
 		return
@@ -173,6 +176,26 @@ func (p *interactProcessor) processInteractIn(ctx context.Context, kind interact
 		return
 	}
 	p.sendInteractReply(ctx, kind, interactCfg.Content, info)
+}
+
+// interactIntervalHit 判断用户在该模块的响应间隔内是否刚触发过同类行为, 命中则不发送
+//
+// 间隔为 0 或解析失败表示不限制；查询失败时放行, 不因读库出错而吞掉答谢。
+func (p *interactProcessor) interactIntervalHit(ctx context.Context, kind interactKind, interval string, info *live.InteractWordV2Info) bool {
+	seconds, err := strconv.Atoi(interval)
+	if err != nil || seconds <= 0 {
+		return false
+	}
+	elapsed, found, err := kind.last(ctx, info.UID, info.RoomID, info.Timestamp)
+	if err != nil {
+		log.Printf("[live.%s] 查询响应间隔失败: %v", kind.tag, err)
+		return false
+	}
+	if !found || elapsed >= int64(seconds) {
+		return false
+	}
+	log.Printf("[live.%s] %s响应间隔内重复触发，跳过回复: 用户名=%q 间隔=%d秒 距上次=%d秒", kind.tag, kind.label, info.Uname, seconds, elapsed)
+	return true
 }
 
 // blacklistHit 返回昵称命中的第一条黑名单规则

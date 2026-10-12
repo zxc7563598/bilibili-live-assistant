@@ -232,6 +232,7 @@ func toSceneReplyConfigResp(group map[string]string) (SceneReplyConfigResp, erro
 		Requirement: getString(group, "requirement"),
 		Content:     content,
 		Blacklist:   blacklist,
+		Interval:    getString(group, "interval"),
 	}, nil
 }
 func sceneReplyConfigReqToMap(req SceneReplyConfigReq) map[string]string {
@@ -241,6 +242,7 @@ func sceneReplyConfigReqToMap(req SceneReplyConfigReq) map[string]string {
 		"requirement": req.Requirement,
 		"content":     marshalSlice(req.Content),
 		"blacklist":   marshalSlice(req.Blacklist),
+		"interval":    req.Interval,
 	}
 }
 

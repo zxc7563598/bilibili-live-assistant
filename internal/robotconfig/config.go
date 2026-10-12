@@ -53,6 +53,7 @@ type InteractConfig struct {
 	Requirement string   `config:"requirement"` // 条件
 	Content     []string `config:"content"`     // 内容
 	Blacklist   []string `config:"blacklist"`   // 黑名单, 支持 * 通配符
+	Interval    string   `config:"interval"`    // 响应间隔（秒）, 0 表示不限制
 }
 
 // PkConfig PK信息

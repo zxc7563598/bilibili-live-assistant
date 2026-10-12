@@ -88,6 +88,7 @@ func toSceneReplyConfigResp(svcResp robotconfigsvc.SceneReplyConfigResp) resp.Sc
 		Requirement: svcResp.Requirement,
 		Content:     svcResp.Content,
 		Blacklist:   svcResp.Blacklist,
+		Interval:    svcResp.Interval,
 	}
 }
 

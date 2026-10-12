@@ -789,6 +789,12 @@ func seedRobotConfigs(db *gorm.DB) error {
 			Remark:      "进房欢迎黑名单, 支持 * 作为通配符",
 		},
 		{
+			GroupName:   "welcome",
+			ConfigKey:   "interval",
+			ConfigValue: "0",
+			Remark:      "响应间隔, 秒, 同一用户在此时长内重复触发不回复, 0 表示不限制",
+		},
+		{
 			GroupName:   "follow",
 			ConfigKey:   "enabled",
 			ConfigValue: "0",
@@ -819,6 +825,12 @@ func seedRobotConfigs(db *gorm.DB) error {
 			Remark:      "感谢关注黑名单, 支持 * 作为通配符",
 		},
 		{
+			GroupName:   "follow",
+			ConfigKey:   "interval",
+			ConfigValue: "0",
+			Remark:      "响应间隔, 秒, 同一用户在此时长内重复触发不回复, 0 表示不限制",
+		},
+		{
 			GroupName:   "share",
 			ConfigKey:   "enabled",
 			ConfigValue: "0",
@@ -847,6 +859,12 @@ func seedRobotConfigs(db *gorm.DB) error {
 			ConfigKey:   "blacklist",
 			ConfigValue: "",
 			Remark:      "感谢分享黑名单, 支持 * 作为通配符",
+		},
+		{
+			GroupName:   "share",
+			ConfigKey:   "interval",
+			ConfigValue: "0",
+			Remark:      "响应间隔, 秒, 同一用户在此时长内重复触发不回复, 0 表示不限制",
 		},
 		{
 			GroupName:   "reply",

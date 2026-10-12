@@ -105,6 +105,8 @@ type SceneReplyConfigReq struct {
 	Content []string `json:"content" binding:"required" err:"required=10501"`
 	// 黑名单列表（JSON 数组字符串）
 	Blacklist []string `json:"blacklist"`
+	// 响应间隔（秒）, 同一用户在该时长内重复触发不回复, 0-不限制
+	Interval string `json:"interval" example:"0"`
 }
 
 // ReplyConfigReq 自动回复模块配置请求

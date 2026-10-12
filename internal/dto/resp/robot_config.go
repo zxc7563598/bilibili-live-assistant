@@ -104,6 +104,8 @@ type SceneReplyConfigResp struct {
 	Content []string `json:"content"`
 	// 黑名单列表
 	Blacklist []string `json:"blacklist"`
+	// 响应间隔（秒）, 0-不限制
+	Interval string `json:"interval" example:"0"`
 }
 
 // ReplyConfigResp 自动回复模块配置返回
