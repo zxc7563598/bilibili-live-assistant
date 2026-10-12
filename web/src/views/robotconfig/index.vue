@@ -621,6 +621,24 @@
             </div>
             <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                关于响应间隔
+              </div>
+              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
+                同一用户在此时长内重复触发不回复, 0 表示不限制<br>
+                用来防止用户短时间内反复进入房间大量触发感谢
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                响应间隔
+              </div>
+              <n-input-group>
+                <n-input v-model:value="welcomeForm.interval" type="number" placeholder="0 表示不限制" />
+                <n-input-group-label>秒</n-input-group-label>
+              </n-input-group>
+            </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 进房欢迎相关占位变量
               </div>
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
@@ -727,6 +745,24 @@
             </div>
             <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                关于响应间隔
+              </div>
+              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
+                同一用户在此时长内重复触发不回复, 0 表示不限制<br>
+                用来防止用户短时间内反复关注大量触发感谢
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                响应间隔
+              </div>
+              <n-input-group>
+                <n-input v-model:value="followForm.interval" type="number" placeholder="0 表示不限制" />
+                <n-input-group-label>秒</n-input-group-label>
+              </n-input-group>
+            </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
                 感谢关注相关占位变量
               </div>
               <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
@@ -830,6 +866,24 @@
                   {{ item.label }}
                 </div>
               </div>
+            </div>
+            <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
+              <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
+                关于响应间隔
+              </div>
+              <div class="mt-2 text-12 text-gray-500 dark:text-gray-400">
+                同一用户在此时长内重复触发不回复, 0 表示不限制<br>
+                用来防止用户短时间内连续进行分享大量触发感谢
+              </div>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="w-100 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
+                响应间隔
+              </div>
+              <n-input-group>
+                <n-input v-model:value="shareForm.interval" type="number" placeholder="0 表示不限制" />
+                <n-input-group-label>秒</n-input-group-label>
+              </n-input-group>
             </div>
             <div class="border border-gray-200 rounded-4 bg-gray-50 px-10 py-6 dark:border-gray-700 dark:bg-gray-800/50">
               <div class="text-13 text-gray-700 font-medium dark:text-gray-200">
@@ -1141,6 +1195,9 @@
 <script setup>
 import api from './api'
 
+// 响应间隔必须是大于等于 0 的整数
+const INTERVAL_PATTERN = /^\d+$/
+
 // 基本配置模块
 const roomLoading = ref(false)
 const roomConfigShow = ref(false)
@@ -1215,6 +1272,7 @@ const welcomeForm = ref({
   requirement: '',
   content: [],
   blacklist: [],
+  interval: '',
 })
 
 // 感谢关注配置模块
@@ -1226,6 +1284,7 @@ const followForm = ref({
   requirement: '',
   content: [],
   blacklist: [],
+  interval: '',
 })
 
 // 感谢分享配置模块
@@ -1237,6 +1296,7 @@ const shareForm = ref({
   requirement: '',
   content: [],
   blacklist: [],
+  interval: '',
 })
 
 // 自动回复配置模块
@@ -1618,6 +1678,9 @@ function apply(type) {
         return $message.warning('欢迎内容不可以为空')
       }
       welcomeForm.value.blacklist = welcomeForm.value.blacklist.map(s => s.trim()).filter(s => s !== '')
+      if (!INTERVAL_PATTERN.test(welcomeForm.value.interval.trim())) {
+        return $message.warning('响应间隔需为不小于 0 的整数')
+      }
       welcomeLoading.value = true
       api.applyWelcome(
         welcomeForm.value.enabled,
@@ -1625,6 +1688,7 @@ function apply(type) {
         welcomeForm.value.requirement,
         welcomeForm.value.content,
         welcomeForm.value.blacklist,
+        welcomeForm.value.interval,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {
@@ -1646,6 +1710,9 @@ function apply(type) {
         return $message.warning('感谢内容不可以为空')
       }
       followForm.value.blacklist = followForm.value.blacklist.map(s => s.trim()).filter(s => s !== '')
+      if (!INTERVAL_PATTERN.test(followForm.value.interval.trim())) {
+        return $message.warning('响应间隔需为不小于 0 的整数')
+      }
       followLoading.value = true
       api.applyFollow(
         followForm.value.enabled,
@@ -1653,6 +1720,7 @@ function apply(type) {
         followForm.value.requirement,
         followForm.value.content,
         followForm.value.blacklist,
+        followForm.value.interval,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {
@@ -1674,6 +1742,9 @@ function apply(type) {
         return $message.warning('感谢内容不可以为空')
       }
       shareForm.value.blacklist = shareForm.value.blacklist.map(s => s.trim()).filter(s => s !== '')
+      if (!INTERVAL_PATTERN.test(shareForm.value.interval.trim())) {
+        return $message.warning('响应间隔需为不小于 0 的整数')
+      }
       shareLoading.value = true
       api.applyShare(
         shareForm.value.enabled,
@@ -1681,6 +1752,7 @@ function apply(type) {
         shareForm.value.requirement,
         shareForm.value.content,
         shareForm.value.blacklist,
+        shareForm.value.interval,
       ).then(() => {
         $message.success('保存成功')
       }).finally(() => {
