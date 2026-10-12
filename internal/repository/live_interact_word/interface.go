@@ -2,6 +2,7 @@ package live_interact_word
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
@@ -21,6 +22,10 @@ type Repository interface {
 	EnterStreakDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
 	// EnterTotalDaysByUIDAndRoomID 统计指定 UID 进入指定房间的累计天数
 	EnterTotalDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
+	// SecondsSinceLastEnterByUIDAndRoomID 返回指定 UID 在指定房间内距上一次进房的秒数。
+	// now 传本次事件时间戳，查询只取严格早于它的记录，避免命中外层刚写入的当前行；
+	// 没有更早的记录时返回 found=false
+	SecondsSinceLastEnterByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID, now int64) (seconds int64, found bool, err error)
 
 	// CountFollowByUIDAndRoomID 统计指定 UID 关注指定房间的累计次数
 	CountFollowByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
@@ -28,6 +33,9 @@ type Repository interface {
 	FollowStreakDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
 	// FollowTotalDaysByUIDAndRoomID 统计指定 UID 关注指定房间的累计天数
 	FollowTotalDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
+	// SecondsSinceLastFollowByUIDAndRoomID 返回指定 UID 在指定房间内距上一次关注的秒数，
+	// 语义同 SecondsSinceLastEnterByUIDAndRoomID
+	SecondsSinceLastFollowByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID, now int64) (seconds int64, found bool, err error)
 
 	// CountShareByUIDAndRoomID 统计指定 UID 分享指定房间的累计次数
 	CountShareByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
@@ -35,6 +43,9 @@ type Repository interface {
 	ShareStreakDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
 	// ShareTotalDaysByUIDAndRoomID 统计指定 UID 分享指定房间的累计天数
 	ShareTotalDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID int64) (int64, error)
+	// SecondsSinceLastShareByUIDAndRoomID 返回指定 UID 在指定房间内距上一次分享的秒数，
+	// 语义同 SecondsSinceLastEnterByUIDAndRoomID
+	SecondsSinceLastShareByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID, now int64) (seconds int64, found bool, err error)
 }
 
 // CountEnterByUIDAndRoomID 统计指定 UID 进入指定房间的累计次数
@@ -104,6 +115,38 @@ func (r *gormRepo) ShareTotalDaysByUIDAndRoomID(ctx context.Context, tx *gorm.DB
 		return 0, err
 	}
 	return int64(len(days)), nil
+}
+
+// SecondsSinceLastEnterByUIDAndRoomID 返回指定 UID 在指定房间内距上一次进房的秒数
+func (r *gormRepo) SecondsSinceLastEnterByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID, now int64) (int64, bool, error) {
+	return r.secondsSinceLastByType(ctx, tx, uid, roomID, now, enum.InteractTypeEnter)
+}
+
+// SecondsSinceLastFollowByUIDAndRoomID 返回指定 UID 在指定房间内距上一次关注的秒数
+func (r *gormRepo) SecondsSinceLastFollowByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID, now int64) (int64, bool, error) {
+	return r.secondsSinceLastByType(ctx, tx, uid, roomID, now, enum.InteractTypeFollow)
+}
+
+// SecondsSinceLastShareByUIDAndRoomID 返回指定 UID 在指定房间内距上一次分享的秒数
+func (r *gormRepo) SecondsSinceLastShareByUIDAndRoomID(ctx context.Context, tx *gorm.DB, uid, roomID, now int64) (int64, bool, error) {
+	return r.secondsSinceLastByType(ctx, tx, uid, roomID, now, enum.InteractTypeShare)
+}
+
+// secondsSinceLastByType 查询指定 UID 在指定房间内、指定互动类型下早于 now 的最近一条记录，
+// 返回距 now 的秒数；一条都没有时返回 found=false
+func (r *gormRepo) secondsSinceLastByType(ctx context.Context, tx *gorm.DB, uid, roomID, now int64, msgType enum.InteractType) (int64, bool, error) {
+	var last model.LiveInteractWord
+	err := r.ResolveDB(ctx, tx).Model(&model.LiveInteractWord{}).
+		Where("uid = ? AND room_id = ? AND msg_type = ? AND timestamp < ?", uid, roomID, msgType, now).
+		Order("timestamp desc").
+		First(&last).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, false, nil
+	}
+	if err != nil {
+		return 0, false, err
+	}
+	return now - last.Timestamp, true, nil
 }
 
 // countByType 统计指定 UID 在指定房间内指定互动类型的累计次数

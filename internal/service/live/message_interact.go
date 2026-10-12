@@ -83,13 +83,15 @@ func (p *interactProcessor) Process(ctx context.Context, cmd live.Cmd, data any,
 
 // interactKind 描述一类互动消息在回复流程中的差异点
 type interactKind struct {
-	group     string                                                      // 配置分组名：welcome / follow / share
-	tag       string                                                      // 日志标签：Welcome / Follow / Share
-	label     string                                                      // 中文说明：进房欢迎 / 感谢关注 / 感谢分享
-	danmuKind string                                                      // 弹幕发送分类
-	count     func(ctx context.Context, uid, roomID int64) (int64, error) // 累计次数
-	streak    func(ctx context.Context, uid, roomID int64) (int64, error) // 连续天数
-	totalDays func(ctx context.Context, uid, roomID int64) (int64, error) // 累计天数
+	group     string                                                                 // 配置分组名：welcome / follow / share
+	tag       string                                                                 // 日志标签：Welcome / Follow / Share
+	label     string                                                                 // 中文说明：进房欢迎 / 感谢关注 / 感谢分享
+	danmuKind string                                                                 // 弹幕发送分类
+	count     func(ctx context.Context, uid, roomID int64) (int64, error)            // 累计次数
+	streak    func(ctx context.Context, uid, roomID int64) (int64, error)            // 连续天数
+	totalDays func(ctx context.Context, uid, roomID int64) (int64, error)            // 累计天数
+	last      func(ctx context.Context, uid, roomID, now int64) (int64, bool, error) // 距上次行为的秒数
+	lastVar   string                                                                 // 距上次行为的模板变量名：last_enter / last_follow / last_share
 }
 
 // interactKind 根据互动类型返回对应的差异点描述
@@ -107,6 +109,10 @@ func (p *interactProcessor) interactKind(t enum.InteractType) (interactKind, boo
 			totalDays: func(ctx context.Context, uid, roomID int64) (int64, error) {
 				return p.liveInteractWord.EnterTotalDaysByUIDAndRoomID(ctx, nil, uid, roomID)
 			},
+			lastVar: "last_enter",
+			last: func(ctx context.Context, uid, roomID, now int64) (int64, bool, error) {
+				return p.liveInteractWord.SecondsSinceLastEnterByUIDAndRoomID(ctx, nil, uid, roomID, now)
+			},
 		}, true
 	case enum.InteractTypeFollow:
 		return interactKind{
@@ -120,6 +126,10 @@ func (p *interactProcessor) interactKind(t enum.InteractType) (interactKind, boo
 			totalDays: func(ctx context.Context, uid, roomID int64) (int64, error) {
 				return p.liveInteractWord.FollowTotalDaysByUIDAndRoomID(ctx, nil, uid, roomID)
 			},
+			lastVar: "last_follow",
+			last: func(ctx context.Context, uid, roomID, now int64) (int64, bool, error) {
+				return p.liveInteractWord.SecondsSinceLastFollowByUIDAndRoomID(ctx, nil, uid, roomID, now)
+			},
 		}, true
 	case enum.InteractTypeShare:
 		return interactKind{
@@ -132,6 +142,10 @@ func (p *interactProcessor) interactKind(t enum.InteractType) (interactKind, boo
 			},
 			totalDays: func(ctx context.Context, uid, roomID int64) (int64, error) {
 				return p.liveInteractWord.ShareTotalDaysByUIDAndRoomID(ctx, nil, uid, roomID)
+			},
+			lastVar: "last_share",
+			last: func(ctx context.Context, uid, roomID, now int64) (int64, bool, error) {
+				return p.liveInteractWord.SecondsSinceLastShareByUIDAndRoomID(ctx, nil, uid, roomID, now)
 			},
 		}, true
 	}
@@ -305,5 +319,31 @@ func (p *interactProcessor) resolveInteractVars(ctx context.Context, kind intera
 			vars["streak"] = strconv.FormatInt(v, 10)
 		}
 	}
+	if needed[kind.lastVar] {
+		if v, ok, err := kind.last(ctx, info.UID, info.RoomID, info.Timestamp); err != nil {
+			log.Printf("[live.%s] 查询上次时间失败: %v", kind.tag, err)
+		} else if ok {
+			vars[kind.lastVar] = formatElapsed(v)
+		} else {
+			vars[kind.lastVar] = lastNoneText
+		}
+	}
 	return vars
+}
+
+// lastNoneText 该用户没有任何历史记录（本次是第一条）时的兜底文案
+const lastNoneText = "无记录"
+
+// formatElapsed 将秒数格式化为秒/分钟/小时/天四档文本, 向下取整
+func formatElapsed(seconds int64) string {
+	switch {
+	case seconds < 60:
+		return strconv.FormatInt(seconds, 10) + "秒"
+	case seconds < 3600:
+		return strconv.FormatInt(seconds/60, 10) + "分钟"
+	case seconds < 86400:
+		return strconv.FormatInt(seconds/3600, 10) + "小时"
+	default:
+		return strconv.FormatInt(seconds/86400, 10) + "天"
+	}
 }
