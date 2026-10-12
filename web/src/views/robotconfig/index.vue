@@ -629,6 +629,7 @@
                 用户累计进房次数：<b>@total_times@</b><br>
                 用户累计进房天数：<b>@total_days@</b><br>
                 用户连续进房天数：<b>@streak@</b><br>
+                距离上次进房时间：<b>@last_enter@</b>&nbsp;&nbsp;&nbsp;<u>例如30秒、30分钟、30天、100天；无记录表示首次</u><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -734,6 +735,7 @@
                 用户累计关注次数：<b>@total_times@</b><br>
                 用户累计关注天数：<b>@total_days@</b><br>
                 用户连续关注天数：<b>@streak@</b><br>
+                距离上次关注时间：<b>@last_follow@</b>&nbsp;&nbsp;&nbsp;<u>例如30秒、30分钟、30天、100天；无记录表示首次</u><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
@@ -839,6 +841,7 @@
                 用户累计分享次数：<b>@total_times@</b><br>
                 用户累计分享天数：<b>@total_days@</b><br>
                 用户连续分享天数：<b>@streak@</b><br>
+                距离上次分享时间：<b>@last_share@</b>&nbsp;&nbsp;&nbsp;<u>例如30秒、30分钟、30天、100天；无记录表示首次</u><br>
               </div>
             </div>
             <div class="flex items-start gap-5">
