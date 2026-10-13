@@ -18,6 +18,7 @@ type Cache struct {
 	mu    sync.RWMutex
 	repo  robot_config.Repository
 	cache map[string]map[string]string // group_name -> config_key -> config_value
+	snap  map[snapKey]any              // 解析结果快照, 随 Init 重建
 }
 
 // New 创建配置缓存（仅创建实例，需调用 Init 加载数据）
@@ -25,6 +26,7 @@ func New(repo robot_config.Repository) *Cache {
 	return &Cache{
 		repo:  repo,
 		cache: make(map[string]map[string]string),
+		snap:  make(map[snapKey]any),
 	}
 }
 
@@ -37,6 +39,7 @@ func (c *Cache) Init(ctx context.Context) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.cache = make(map[string]map[string]string, len(configs))
+	c.snap = make(map[snapKey]any)
 	for _, cfg := range configs {
 		if c.cache[cfg.GroupName] == nil {
 			c.cache[cfg.GroupName] = make(map[string]string)
@@ -59,6 +62,9 @@ func (c *Cache) Get(groupName, configKey string) (string, bool) {
 }
 
 // GetGroup 获取指定分组下的全部配置
+//
+// 返回的是缓存内部的 map，调用方只读，禁止写入或删除键。
+// Init 整体替换 c.cache，已发布的 map 之后不再被修改，因此并发读取是安全的。
 func (c *Cache) GetGroup(groupName string) (map[string]string, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -66,11 +72,7 @@ func (c *Cache) GetGroup(groupName string) (map[string]string, bool) {
 	if !ok {
 		return nil, false
 	}
-	result := make(map[string]string, len(group))
-	for k, v := range group {
-		result[k] = v
-	}
-	return result, ok
+	return group, true
 }
 
 // Reload 从数据库全量重新加载配置
