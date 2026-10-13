@@ -10,7 +10,17 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
+	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
 )
+
+// configEnabled 读取分组配置的 enabled 开关，供各处理器在解析整组配置前先行短路。
+//
+// 只适用于带 enabled 键的功能分组；room 组没有这个键，别拿它做开关判断。
+func configEnabled(cache *robotconfig.Cache, group string) bool {
+	enabled, ok := cache.Get(group, "enabled")
+	return ok && ptr.ParseBool(enabled)
+}
 
 // aggregateSessionStats 将指定场次时间范围内的弹幕/礼物关联到该场次，并汇总统计数据写入 live_sessions
 func aggregateSessionStats(ctx context.Context, session model.LiveSession, endAt int64, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository) error {

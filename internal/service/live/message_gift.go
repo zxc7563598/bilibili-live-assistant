@@ -294,12 +294,12 @@ func (p *giftProcessor) processGiftIn(info *giftThankInfo, roomID, botUID int64,
 	if botUID == info.UID {
 		return
 	}
+	if !configEnabled(p.configCache, "gift") {
+		return
+	}
 	var giftCfg robotconfig.GiftConfig
 	if err := p.configCache.UnmarshalGroup("gift", &giftCfg); err != nil {
 		log.Printf("[live.Gift] 加载礼物答谢配置失败: %v", err)
-		return
-	}
-	if !ptr.ParseBool(giftCfg.Enabled) {
 		return
 	}
 	if !p.checkGiftCondition(giftCfg, info, roomID, liveStatus) {

@@ -157,12 +157,12 @@ func (p *interactProcessor) processInteractIn(ctx context.Context, kind interact
 	if botUID == info.UID {
 		return
 	}
+	if !configEnabled(p.configCache, kind.group) {
+		return
+	}
 	var interactCfg robotconfig.InteractConfig
 	if err := p.configCache.UnmarshalGroup(kind.group, &interactCfg); err != nil {
 		log.Printf("[live.%s] 加载%s配置失败: %v", kind.tag, kind.label, err)
-		return
-	}
-	if !ptr.ParseBool(interactCfg.Enabled) {
 		return
 	}
 	if p.interactIntervalHit(ctx, kind, interactCfg.Interval, info) {

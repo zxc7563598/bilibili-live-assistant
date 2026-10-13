@@ -112,21 +112,27 @@ func (p *danmuProcessor) processSignIn(ctx context.Context, info *live.DanmuMsgI
 	if botUID == info.UID {
 		return
 	}
+	if !configEnabled(p.configCache, "sign") {
+		return
+	}
 	var signCfg robotconfig.SignConfig
 	if err := p.configCache.UnmarshalGroup("sign", &signCfg); err != nil {
 		log.Printf("[live.Sign] 加载签到配置失败: %v", err)
 		return
 	}
-	if !ptr.ParseBool(signCfg.Enabled) {
+	// 不含关键词的消息先挡掉，免得白跑条件校验并刷出无关日志
+	hasSign := strings.Contains(info.Msg, signCfg.Keyword)
+	hasQuery := strings.Contains(info.Msg, signCfg.QueryKeyword)
+	if !hasSign && !hasQuery {
 		return
 	}
 	if !p.checkSignCondition(signCfg, info, roomID, liveStatus) {
 		return
 	}
-	if strings.Contains(info.Msg, signCfg.Keyword) {
+	if hasSign {
 		p.handleSignIn(ctx, userID, signCfg, info)
 	}
-	if strings.Contains(info.Msg, signCfg.QueryKeyword) {
+	if hasQuery {
 		p.handleSignQuery(ctx, signCfg, info)
 	}
 }
@@ -307,34 +313,49 @@ func (p *danmuProcessor) processReplyIn(ctx context.Context, info *live.DanmuMsg
 	if botUID == info.UID {
 		return
 	}
+	if !configEnabled(p.configCache, "reply") {
+		return
+	}
 	var replyCfg robotconfig.ReplyConfig
 	if err := p.configCache.UnmarshalGroup("reply", &replyCfg); err != nil {
 		log.Printf("[live.Reply] 加载签到配置失败: %v", err)
 		return
 	}
-	if !ptr.ParseBool(replyCfg.Enabled) {
+	// 没有规则命中就不必校验条件，免得白跑并刷出无关日志
+	matched := matchReplyRules(info.Msg, replyCfg.Content)
+	if len(matched) == 0 {
 		return
 	}
 	if !p.checkReplyCondition(replyCfg, info, roomID, liveStatus) {
 		return
 	}
-	for _, reply := range replyCfg.Content {
-		keywordMatchPolicyValue := parseMatchPolicy(reply.KeywordMatchPolicy)
-		safeWordMatchPolicyValue := parseMatchPolicy(reply.SafeWordMatchPolicy)
-		if containsMatch(info.Msg, reply.Keyword, keywordMatchPolicyValue) {
-			if !containsMatch(info.Msg, reply.SafeWord, safeWordMatchPolicyValue) {
-				// 加入黑名单
-				if ptr.ParseBool(reply.MuteSender) {
-					if err := p.blockUserForReply(info.UID, roomID, info.Uname, info.Msg, reply.MuteDuration, reply.RansomAmount); err != nil {
-						log.Printf("[live.Reply] 加入黑名单失败: %v", err)
-						return
-					}
-				}
-				// 回复信息
-				p.sendReply(ctx, reply.ReplyContent, info, roomID)
+	for _, index := range matched {
+		reply := replyCfg.Content[index]
+		// 加入黑名单
+		if ptr.ParseBool(reply.MuteSender) {
+			if err := p.blockUserForReply(info.UID, roomID, info.Uname, info.Msg, reply.MuteDuration, reply.RansomAmount); err != nil {
+				log.Printf("[live.Reply] 加入黑名单失败: %v", err)
+				return
 			}
 		}
+		// 回复信息
+		p.sendReply(ctx, reply.ReplyContent, info, roomID)
 	}
+}
+
+// matchReplyRules 返回命中的规则下标，匹配语义与原循环一致：
+// 关键词按各自策略命中且安全词未命中；空关键词或空安全词列表都视为不命中。
+func matchReplyRules(msg string, rules []robotconfig.ReplyItem) []int {
+	var matched []int
+	for i, reply := range rules {
+		keywordMatchPolicyValue := parseMatchPolicy(reply.KeywordMatchPolicy)
+		safeWordMatchPolicyValue := parseMatchPolicy(reply.SafeWordMatchPolicy)
+		if containsMatch(msg, reply.Keyword, keywordMatchPolicyValue) &&
+			!containsMatch(msg, reply.SafeWord, safeWordMatchPolicyValue) {
+			matched = append(matched, i)
+		}
+	}
+	return matched
 }
 
 // checkReplyCondition 校验自动回复的 Requirement 和 Scene 是否满足

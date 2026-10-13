@@ -214,12 +214,12 @@ func (p *pkProcessor) processPkIn(ctx context.Context, info *live.PkBattlePreNew
 	if botUID == info.UID {
 		return
 	}
+	if !configEnabled(p.configCache, "pk") {
+		return
+	}
 	var pkCfg robotconfig.PkConfig
 	if err := p.configCache.UnmarshalGroup("pk", &pkCfg); err != nil {
 		log.Printf("[live.PK] 加载PK播报配置失败: %v", err)
-		return
-	}
-	if !ptr.ParseBool(pkCfg.Enabled) {
 		return
 	}
 	p.sendPkReply(ctx, pkCfg.Content, info)
