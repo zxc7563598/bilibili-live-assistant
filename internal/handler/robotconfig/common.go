@@ -20,6 +20,7 @@ func New(robotConfigSvc *robotconfigsvc.Service, liveSvc *livesvc.Service) *Hand
 
 func toRoomConfigResp(svcResp robotconfigsvc.RoomConfigResp) resp.RoomConfigResp {
 	return resp.RoomConfigResp{
+		RoomID:                svcResp.RoomID,
 		IsListening:           svcResp.IsListening,
 		MaxNameLength:         svcResp.MaxNameLength,
 		NameTrimMode:          svcResp.NameTrimMode,

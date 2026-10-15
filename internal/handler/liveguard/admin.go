@@ -104,8 +104,6 @@ func (h *Handler) Backfill(c *gin.Context) {
 		GuardLevel: req.GuardLevel,
 		OpenAt:     req.OpenAt,
 		Num:        req.Num,
-		Price:      req.Price,
-		GiftID:     req.GiftID,
 	})
 	if errCode != 0 {
 		handler.ErrorLog(

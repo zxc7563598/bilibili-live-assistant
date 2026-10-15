@@ -35,9 +35,9 @@
       </div>
       <div class="flex items-center gap-5">
         <div class="w-110 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
-          房间ID
+          房间号
         </div>
-        <n-input-number v-model:value="form.room_id" :show-button="false" :precision="0" placeholder="这次开通所在的房间ID" class="w-full" />
+        <n-input-number v-model:value="form.room_id" :show-button="false" :precision="0" placeholder="这次开通所在的房间号" class="w-full" />
       </div>
       <div class="flex items-center gap-5">
         <div class="w-110 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
@@ -59,15 +59,14 @@
       </div>
       <div class="flex items-center gap-5">
         <div class="w-110 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
-          开通价格（元）
+          礼物与价格
         </div>
-        <n-input-number v-model:value="form.price" :show-button="false" :precision="2" placeholder="单份价格，按元填写，舰长填 138" class="w-full" />
-      </div>
-      <div class="flex items-center gap-5">
-        <div class="w-110 shrink-0 text-right text-13 text-gray-500 dark:text-gray-400">
-          礼物ID
+        <div class="text-13 text-gray-700 dark:text-gray-300">
+          {{ currentGift.name }} · {{ currentGift.price }} 元 / 份
+          <span class="text-gray-400 dark:text-gray-500">
+            （礼物 ID {{ currentGift.giftID }}，按档位固定，无需填写）
+          </span>
         </div>
-        <n-input-number v-model:value="form.gift_id" :show-button="false" :precision="0" placeholder="可留空" class="w-full" />
       </div>
     </div>
     <template #footer>
@@ -92,14 +91,18 @@ const emit = defineEmits(['success'])
 // 与后端 enum.BadgeType 的取值保持一致：1 总督、2 提督、3 舰长
 const GUARD_LEVELS = [1, 2, 3]
 
+// 礼物ID与单份价格按档位固定，与后端 enum.GuardGiftByBadgeType 同源，这里只用于展示
+const GUARD_GIFTS = {
+  3: { name: '舰长', giftID: 10003, price: 198 },
+  2: { name: '提督', giftID: 10002, price: 1998 },
+  1: { name: '总督', giftID: 10001, price: 19998 },
+}
+
 const visible = ref(false)
 const saving = ref(false)
 
-const guardLevelOptions = ref([
-  { label: '舰长', value: 3 },
-  { label: '提督', value: 2 },
-  { label: '总督', value: 1 },
-])
+// 下拉按常见程度排：舰长最多，总督最少
+const guardLevelOptions = ref([3, 2, 1].map(level => ({ label: GUARD_GIFTS[level].name, value: level })))
 
 function initForm(guardLevel) {
   return {
@@ -110,16 +113,31 @@ function initForm(guardLevel) {
     guard_level: GUARD_LEVELS.includes(guardLevel) ? guardLevel : 3,
     open_at: null,
     num: 1,
-    price: null,
-    gift_id: null,
   }
 }
 const form = ref(initForm())
+
+const currentGift = computed(() => GUARD_GIFTS[form.value.guard_level] ?? GUARD_GIFTS[3])
 
 // guardLevel 由列表页传入，即当前筛选的等级
 function open(guardLevel) {
   form.value = initForm(guardLevel)
   visible.value = true
+  fillDefaultRoom()
+}
+
+// 房间号默认填当前监听的房间；取不到就留空，由用户自己填
+async function fillDefaultRoom() {
+  try {
+    const res = await api.getRoomConfig()
+    const roomID = Number(res?.data?.room_id)
+    // 已经填过就不覆盖（请求返回比用户输入慢时）
+    if (Number.isInteger(roomID) && roomID > 0 && !form.value.room_id)
+      form.value.room_id = roomID
+  }
+  catch {
+    // 提示由 http 拦截器统一处理，这里不打断补录
+  }
 }
 function close() {
   visible.value = false
@@ -130,13 +148,13 @@ function resetForm() {
 }
 
 function validate() {
-  const { uid, uname, room_id, guard_level, open_at, num, price, gift_id } = form.value
+  const { uid, uname, room_id, guard_level, open_at, num } = form.value
   if (!Number.isInteger(Number(uid)) || Number(uid) <= 0)
     return '请填写正确的用户UID'
   if (!String(uname ?? '').trim())
     return '请填写用户昵称'
   if (!Number.isInteger(Number(room_id)) || Number(room_id) <= 0)
-    return '请填写正确的房间ID'
+    return '请填写正确的房间号'
   if (!guardLevelOptions.value.some(item => item.value === Number(guard_level)))
     return '请选择大航海等级'
   if (!open_at)
@@ -145,11 +163,6 @@ function validate() {
     return '开通时间不能晚于当前时间'
   if (!Number.isInteger(Number(num)) || Number(num) < 1)
     return '开通数量必须为大于 0 的整数'
-  const priceValue = Number(price)
-  if (!Number.isFinite(priceValue) || priceValue <= 0)
-    return '请填写正确的开通价格'
-  if (gift_id && (!Number.isInteger(Number(gift_id)) || Number(gift_id) < 0))
-    return '礼物ID必须为大于 0 的整数，或留空'
   return ''
 }
 
@@ -168,9 +181,6 @@ async function save() {
       // 选择器给的是毫秒时间戳，后端按秒存
       open_at: Math.floor(form.value.open_at / 1000),
       num: Number(form.value.num),
-      // 后端按分存，与礼物记录的 price 同口径
-      price: Math.round(Number(form.value.price) * 100),
-      gift_id: form.value.gift_id ? Number(form.value.gift_id) : 0,
     })
     $message.success('补录成功', { key: 'liveguard.backfill' })
     close()

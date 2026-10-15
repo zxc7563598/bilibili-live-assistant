@@ -67,7 +67,10 @@ func (s *Service) GetRoomConfig(ctx context.Context) (RoomConfigResp, int, error
 	if !ok {
 		return RoomConfigResp{}, 0, nil
 	}
-	return toRoomConfigResp(group), 0, nil
+	resp := toRoomConfigResp(group)
+	// 房间号不在这份表单里（由直播间绑定写入），但同属房间模块，一并带出去
+	resp.RoomID = s.GetRoomID()
+	return resp, 0, nil
 }
 
 // ApplyRoomConfig 用于存储房间模块配置

@@ -108,6 +108,11 @@ func (s *Service) Backfill(ctx context.Context, req BackfillReq) (int, error) {
 	if !ok {
 		return CodeGuardLevelInvalid, errors.New("guard_level 无对应礼物名称")
 	}
+	// 礼物ID与价格按档位取，不由调用方传：三个航海礼物是固定档位
+	giftID, price, ok := enum.GuardGiftByBadgeType(level)
+	if !ok {
+		return CodeGuardLevelInvalid, errors.New("guard_level 无对应礼物ID与价格")
+	}
 	num := req.Num
 	if num < 1 {
 		num = 1
@@ -132,9 +137,9 @@ func (s *Service) Backfill(ctx context.Context, req BackfillReq) (int, error) {
 		UID:      req.UID,
 		Uname:    req.Uname,
 		GiftType: enum.GiftTypeGuard,
-		GiftID:   req.GiftID,
+		GiftID:   giftID,
 		GiftName: giftName,
-		Price:    req.Price,
+		Price:    price,
 		Num:      num,
 		SendAt:   openAt,
 		Original: enum.Yes,
@@ -142,7 +147,7 @@ func (s *Service) Backfill(ctx context.Context, req BackfillReq) (int, error) {
 		return CodeBackfillFailed, err
 	}
 	// 累计消费金额
-	if err := s.liveUserSvc.AddTotalGiftAmount(ctx, userID, req.Price*num); err != nil {
+	if err := s.liveUserSvc.AddTotalGiftAmount(ctx, userID, price*num); err != nil {
 		return CodeBackfillFailed, err
 	}
 	// 开通台账：先把新记录插进去，再后移受它影响的后续记录。
@@ -152,8 +157,8 @@ func (s *Service) Backfill(ctx context.Context, req BackfillReq) (int, error) {
 		UID:        req.UID,
 		Uname:      req.Uname,
 		GuardLevel: level,
-		GiftID:     req.GiftID,
-		Price:      req.Price,
+		GiftID:     giftID,
+		Price:      price,
 		Num:        num,
 		OpenAt:     openAt,
 		CoverFrom:  restack.CoverFrom,
@@ -171,7 +176,7 @@ func (s *Service) Backfill(ctx context.Context, req BackfillReq) (int, error) {
 		return CodeBackfillFailed, err
 	}
 	// 积分/星光奖励，与直播链路同一份金额口径
-	if err := s.liveSvc.GrantGiftReward(ctx, userID, giftName, enum.GiftTypeGuard, level, req.Price, num); err != nil {
+	if err := s.liveSvc.GrantGiftReward(ctx, userID, giftName, enum.GiftTypeGuard, level, price, num); err != nil {
 		return CodeBackfillFailed, err
 	}
 	log.Printf("[liveguard] 补录大航海成功: uid=%d guardLevel=%d openAt=%d", req.UID, req.GuardLevel, openAt)

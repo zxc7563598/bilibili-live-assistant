@@ -40,7 +40,7 @@ type ListPageItem struct {
 
 // BackfillReq 补录一次大航海开通
 //
-// Price 单位为分，与 live_gifts.price 同口径：舰长 138 元对应 13800。
+// 礼物ID与价格按档位取，不由调用方传（见 enum.GuardGiftByBadgeType）。
 type BackfillReq struct {
 	UID        int64  `json:"uid"`
 	Uname      string `json:"uname"`
@@ -48,6 +48,4 @@ type BackfillReq struct {
 	GuardLevel int    `json:"guard_level"`
 	OpenAt     int64  `json:"open_at"`
 	Num        int64  `json:"num"`
-	Price      int64  `json:"price"`
-	GiftID     int64  `json:"gift_id"`
 }

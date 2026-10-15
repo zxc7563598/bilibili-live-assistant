@@ -2,6 +2,8 @@ package resp
 
 // RoomConfigResp 房间模块配置返回
 type RoomConfigResp struct {
+	// 当前监听的直播间房间号, 0 表示未绑定
+	RoomID int64 `json:"room_id" example:"22384516"`
 	// 是否默认监听直播间, 0-否, 1-是
 	IsListening string `json:"is_listening" example:"1"`
 	// 用户名最大长度, 超过此长度则裁剪

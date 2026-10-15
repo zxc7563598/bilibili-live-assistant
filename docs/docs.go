@@ -6678,17 +6678,11 @@ const docTemplate = `{
                 "guard_level",
                 "num",
                 "open_at",
-                "price",
                 "room_id",
                 "uid",
                 "uname"
             ],
             "properties": {
-                "gift_id": {
-                    "description": "礼物ID, 可留空",
-                    "type": "integer",
-                    "example": 10003
-                },
                 "guard_level": {
                     "description": "大航海等级, 1-总督, 2-提督, 3-舰长",
                     "type": "integer",
@@ -6710,13 +6704,8 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1783000000
                 },
-                "price": {
-                    "description": "开通价格(分), 舰长 138 元填 13800",
-                    "type": "integer",
-                    "example": 13800
-                },
                 "room_id": {
-                    "description": "相关房间ID",
+                    "description": "相关房间号",
                     "type": "integer",
                     "example": 22384516
                 },
@@ -11508,6 +11497,11 @@ const docTemplate = `{
                     "description": "奖励类型, 0-星光, 1-积分",
                     "type": "string",
                     "example": "1"
+                },
+                "room_id": {
+                    "description": "当前监听的直播间房间号, 0 表示未绑定",
+                    "type": "integer",
+                    "example": 22384516
                 }
             }
         },

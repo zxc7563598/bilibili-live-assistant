@@ -36,3 +36,20 @@ func GuardNameByBadgeType(level BadgeType) (string, bool) {
 		return "", false
 	}
 }
+
+// GuardGiftByBadgeType 大航海等级 → 礼物ID与单份价格（分）
+//
+// 三个航海礼物是 B站 的固定档位，价格由档位定死，不由调用方传：
+// 舰长 10003 / 198 元，提督 10002 / 1998 元，总督 10001 / 19998 元。
+func GuardGiftByBadgeType(level BadgeType) (giftID, price int64, ok bool) {
+	switch level {
+	case BadgeTypeL1: // 舰长
+		return 10003, 19800, true
+	case BadgeTypeL2: // 提督
+		return 10002, 199800, true
+	case BadgeTypeL3: // 总督
+		return 10001, 1999800, true
+	default:
+		return 0, 0, false
+	}
+}

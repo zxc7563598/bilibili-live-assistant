@@ -13,6 +13,7 @@ type ReplyItem struct {
 
 // GetRoomConfig 请求返回
 type RoomConfigResp struct {
+	RoomID                int64  `json:"room_id"` // 当前监听的直播间房间号, 0 表示未绑定
 	IsListening           string `json:"is_listening"`
 	MaxNameLength         string `json:"max_name_length"`
 	NameTrimMode          string `json:"name_trim_mode"`

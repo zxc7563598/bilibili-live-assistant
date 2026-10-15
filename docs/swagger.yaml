@@ -756,10 +756,6 @@ definitions:
     type: object
   input.LiveGuardBackfillReq:
     properties:
-      gift_id:
-        description: 礼物ID, 可留空
-        example: 10003
-        type: integer
       guard_level:
         description: 大航海等级, 1-总督, 2-提督, 3-舰长
         enum:
@@ -777,12 +773,8 @@ definitions:
         description: 开通时间, 秒级时间戳
         example: 1783000000
         type: integer
-      price:
-        description: 开通价格(分), 舰长 138 元填 13800
-        example: 13800
-        type: integer
       room_id:
-        description: 相关房间ID
+        description: 相关房间号
         example: 22384516
         type: integer
       uid:
@@ -797,7 +789,6 @@ definitions:
     - guard_level
     - num
     - open_at
-    - price
     - room_id
     - uid
     - uname
@@ -4390,6 +4381,10 @@ definitions:
         description: 奖励类型, 0-星光, 1-积分
         example: "1"
         type: string
+      room_id:
+        description: 当前监听的直播间房间号, 0 表示未绑定
+        example: 22384516
+        type: integer
     type: object
   resp.RoomGroupOptionItem:
     properties:
