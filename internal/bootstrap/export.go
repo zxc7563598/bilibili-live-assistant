@@ -7,6 +7,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/export"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveguard"
 )
 
 // initExportService 装配导出服务并注册各业务模块的导出数据源。
@@ -30,6 +31,7 @@ func initExportService(cfg *config.Config, svc *Services) *export.Service {
 		livegift.NewGiftExporter(svc.LiveGift),
 		livegift.NewBlindBoxExporter(svc.LiveGift),
 		svc.LivePk,
+		liveguard.NewExporter(svc.LiveGuard),
 		svc.Order,
 	)
 	// 启动时列出已注册的模块
