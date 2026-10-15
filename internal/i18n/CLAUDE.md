@@ -150,7 +150,8 @@ T MM XX
 | 15 | PK 对战记录模块（LivePk） | `internal/service/livepk/code.go` |
 | 16 | 验证码模块（Altcha） | `internal/service/altcha/code.go` |
 | 17 | 导出模块（Export） | `internal/service/export/code.go` |
-| 18–99 | 未分配 | — |
+| 18 | 大航海名单模块（LiveGuard） | `internal/service/liveguard/code.go` |
+| 19–99 | 未分配 | — |
 
 新增业务模块时，分配新的 MM 编号并在此文档更新。
 

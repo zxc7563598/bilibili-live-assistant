@@ -197,6 +197,7 @@ error:
   11701: Invalid export column # Contains a column not declared by the module
   11702: Select at least one column to export
   11703: Invalid export parameters
+  11801: Invalid request parameters # Guard roster module
   20001: Login expired, please log in again # accessToken / session invalid
   20002: Too many requests, please try again later # rate limit
   20101: Login status is abnormal, please log in again
@@ -238,6 +239,7 @@ error:
   41701: Too many exports in progress, please try again later # Exceeds export.max_concurrent
   41702: Too many rows to export, please narrow the filters # Exceeds export.max_rows
   41703: No data to export # Zero rows matched
+  41801: Please select a guard level
   50101: Admin does not exist or has been deleted # Admin information not found in database
   50102: Role does not exist or has been deleted # Role information not found in database
   50201: The role does not exist or has been deleted # Failed to query role information
@@ -316,6 +318,8 @@ error:
   61501: System busy, please try again later # Database query exception (PK battle records)
   61601: System busy, please try again later
   61701: System busy, please try again later # Internal export failure (count/read/sign)
+  61801: Backfill failed, please try again later
+  61802: System busy, please try again later # Database query failure (guard roster module)
 
 
 
@@ -481,6 +485,7 @@ export:
     livegift: Gift Records
     livegiftblindbox: Blind Box Records
     livepk: PK Records
+    liveguard: Guard Roster
     order: Order Records
   column:
     room_id: Room ID
@@ -513,6 +518,11 @@ export:
     rival_votes: Rival Votes
     start_at: Started At
     settle_at: Settled At
+    guard_level: Guard Level
+    cover_from_month: Roster From
+    cover_to_month: Roster To
+    open_num: Units This Month
+    open_at: First Open This Month
     order_sn: Order No.
     product_info: Product
     pay_status: Pay Status

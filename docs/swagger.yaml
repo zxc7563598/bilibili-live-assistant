@@ -754,6 +754,94 @@ definitions:
     - pageNo
     - pageSize
     type: object
+  input.LiveGuardBackfillReq:
+    properties:
+      gift_id:
+        description: 礼物ID, 可留空
+        example: 10003
+        type: integer
+      guard_level:
+        description: 大航海等级, 1-总督, 2-提督, 3-舰长
+        enum:
+        - 1
+        - 2
+        - 3
+        example: 3
+        type: integer
+      num:
+        description: 开通数量
+        example: 1
+        minimum: 1
+        type: integer
+      open_at:
+        description: 开通时间, 秒级时间戳
+        example: 1783000000
+        type: integer
+      price:
+        description: 开通价格(分), 舰长 138 元填 13800
+        example: 13800
+        type: integer
+      room_id:
+        description: 相关房间ID
+        example: 22384516
+        type: integer
+      uid:
+        description: 用户uid
+        example: 123456
+        type: integer
+      uname:
+        description: 用户昵称
+        example: 张三
+        type: string
+    required:
+    - guard_level
+    - num
+    - open_at
+    - price
+    - room_id
+    - uid
+    - uname
+    type: object
+  input.LiveGuardListPageReq:
+    properties:
+      guard_level:
+        description: 大航海等级, 1-总督, 2-提督, 3-舰长
+        example: 3
+        type: integer
+      month:
+        description: 查询月份, 格式 2006-01
+        example: 2026-07
+        type: string
+      pageNo:
+        example: 1
+        type: integer
+      pageSize:
+        example: 20
+        type: integer
+      sortField:
+        description: 排序列, 可选 uid / uname, 其它值静默回退默认排序
+        example: uname
+        type: string
+      sortOrder:
+        enum:
+        - ascend
+        - descend
+        example: descend
+        type: string
+      uid:
+        description: 用户uid
+        example: 123456
+        type: integer
+      uname:
+        description: 用户昵称, 模糊匹配
+        example: 张三
+        type: string
+    required:
+    - guard_level
+    - month
+    - pageNo
+    - pageSize
+    type: object
   input.LivePkLogListPageReq:
     properties:
       pageNo:
@@ -1938,6 +2026,11 @@ definitions:
     type: object
   input.SceneReplyConfigReq:
     properties:
+      blacklist:
+        description: 黑名单列表（JSON 数组字符串）
+        items:
+          type: string
+        type: array
       content:
         description: 答谢内容（JSON 数组字符串）
         items:
@@ -1946,6 +2039,10 @@ definitions:
       enabled:
         description: 是否启用, 0-禁用, 1-启用
         example: "1"
+        type: string
+      interval:
+        description: 响应间隔（秒）, 同一用户在该时长内重复触发不回复, 0-不限制
+        example: "0"
         type: string
       requirement:
         description: 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
@@ -2914,6 +3011,46 @@ definitions:
         type: integer
       total_num:
         description: 礼物总数
+        type: integer
+    type: object
+  resp.LiveGuardListPageItem:
+    properties:
+      cover_from_month:
+        description: 连续覆盖段起点所在月, 格式 2006-01
+        example: 2026-07
+        type: string
+      cover_to_month:
+        description: 连续覆盖段终点所在月, 格式 2006-01, 含（中间断档的月份不算在同一段里）
+        example: 2026-09
+        type: string
+      guard_level:
+        allOf:
+        - $ref: '#/definitions/enum.BadgeType'
+        description: 大航海等级, 1-总督, 2-提督, 3-舰长
+      open_at:
+        description: 当月最早一次开通时间, 空表示当月没开通（是往月延续来的）
+        type: string
+      open_num:
+        description: 当月开通份数
+        example: 3
+        type: integer
+      uid:
+        description: 用户uid
+        type: integer
+      uname:
+        description: 用户昵称
+        type: string
+    type: object
+  resp.LiveGuardListPageResp:
+    properties:
+      pageData:
+        description: 当前页码数据
+        items:
+          $ref: '#/definitions/resp.LiveGuardListPageItem'
+        type: array
+      total:
+        description: 总计条数
+        example: 100
         type: integer
     type: object
   resp.LiveListenerStatusResp:
@@ -4275,6 +4412,11 @@ definitions:
     type: object
   resp.SceneReplyConfigResp:
     properties:
+      blacklist:
+        description: 黑名单列表
+        items:
+          type: string
+        type: array
       content:
         description: 答谢内容
         items:
@@ -4283,6 +4425,10 @@ definitions:
       enabled:
         description: 是否启用, 0-禁用, 1-启用
         example: "1"
+        type: string
+      interval:
+        description: 响应间隔（秒）, 0-不限制
+        example: "0"
         type: string
       requirement:
         description: 答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子
@@ -5457,6 +5603,67 @@ paths:
       summary: 获取全部房间ID
       tags:
       - 礼物管理
+  /api/admin/liveguard/backfill:
+    post:
+      description: 补录一条漏记的大航海开通：补齐礼物记录、累计消费金额、到期时间、开通台账与积分/星光奖励，不发弹幕、不走黑名单赎回
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveGuardBackfillReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: 补录大航海开通记录
+      tags:
+      - 大航海名单
+  /api/admin/liveguard/list:
+    post:
+      description: 按月份与大航海等级查询当月持有该身份的人员名单，粒度为「用户 × 月份」
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.LiveGuardListPageReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.LiveGuardListPageResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 分页查询大航海名单
+      tags:
+      - 大航海名单
   /api/admin/liveuser/assets:
     post:
       description: 按用户表主键（user_id，非 B站 UID）分页查询该用户的积分/星光变动流水，支持按资产类型筛选（credit_type：0-星光，1-积分），用于后台用户详情页的资产明细

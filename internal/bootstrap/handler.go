@@ -11,6 +11,7 @@ import (
 	liveHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/livedanmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/livegift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/liveguard"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/livepk"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/menu"
@@ -31,6 +32,7 @@ type Handlers struct {
 	LiveDanmu   *livedanmu.Handler
 	LiveGift    *livegift.Handler
 	LivePk      *livepk.Handler
+	LiveGuard   *liveguard.Handler
 	LiveUser    *liveuser.Handler
 	AppConfig   *appconfig.Handler
 	Product     *product.Handler
@@ -52,6 +54,7 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		LiveDanmu:   livedanmu.New(svc.LiveDanmu),
 		LiveGift:    livegift.New(svc.LiveGift),
 		LivePk:      livepk.New(svc.LivePk),
+		LiveGuard:   liveguard.New(svc.LiveGuard),
 		LiveUser:    liveuser.New(svc.LiveUser, svc.RobotConfig),
 		AppConfig:   appconfig.New(svc.AppConfig),
 		Product:     product.New(svc.Product),

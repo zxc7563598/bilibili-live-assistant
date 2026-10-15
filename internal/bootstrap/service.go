@@ -14,6 +14,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livedanmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livegift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveguard"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/livepk"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/menu"
@@ -40,6 +41,7 @@ type Services struct {
 	LiveDanmu   *livedanmu.Service
 	LiveGift    *livegift.Service
 	LivePk      *livepk.Service
+	LiveGuard   *liveguard.Service
 	LiveUser    *liveuser.Service
 	AppConfig   *appconfigsvc.Service
 	Product     *product.Service
@@ -70,6 +72,8 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		Feedback:    feedbacksvc.New(repo.Feedback),
 		Upload:      uploadsvc.New(appConfigCache, db, repo.LiveDanmu, repo.LiveGift, repo.LiveUser, liveUserSvc),
 	}
+	// 大航海名单要复用 live.Service 的奖励口径，同样在服务组装完之后再挂
+	services.LiveGuard = liveguard.New(repo.LiveGuardRecord, repo.LiveGift, liveUserSvc, services.Live)
 	// 导出服务需要消费各业务模块的导出数据源，因此在服务组装完之后再装配
 	services.Export = initExportService(cfg, services)
 	return services

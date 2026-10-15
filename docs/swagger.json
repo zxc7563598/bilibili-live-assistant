@@ -1591,6 +1591,106 @@
                 }
             }
         },
+        "/api/admin/liveguard/backfill": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "补录一条漏记的大航海开通：补齐礼物记录、累计消费金额、到期时间、开通台账与积分/星光奖励，不发弹幕、不走黑名单赎回",
+                "tags": [
+                    "大航海名单"
+                ],
+                "summary": "补录大航海开通记录",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveGuardBackfillReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/liveguard/list": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "按月份与大航海等级查询当月持有该身份的人员名单，粒度为「用户 × 月份」",
+                "tags": [
+                    "大航海名单"
+                ],
+                "summary": "分页查询大航海名单",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/input.LiveGuardListPageReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.LiveGuardListPageResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/admin/liveuser/assets": {
             "post": {
                 "security": [
@@ -6565,6 +6665,118 @@
                 }
             }
         },
+        "input.LiveGuardBackfillReq": {
+            "type": "object",
+            "required": [
+                "guard_level",
+                "num",
+                "open_at",
+                "price",
+                "room_id",
+                "uid",
+                "uname"
+            ],
+            "properties": {
+                "gift_id": {
+                    "description": "礼物ID, 可留空",
+                    "type": "integer",
+                    "example": 10003
+                },
+                "guard_level": {
+                    "description": "大航海等级, 1-总督, 2-提督, 3-舰长",
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3
+                    ],
+                    "example": 3
+                },
+                "num": {
+                    "description": "开通数量",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "open_at": {
+                    "description": "开通时间, 秒级时间戳",
+                    "type": "integer",
+                    "example": 1783000000
+                },
+                "price": {
+                    "description": "开通价格(分), 舰长 138 元填 13800",
+                    "type": "integer",
+                    "example": 13800
+                },
+                "room_id": {
+                    "description": "相关房间ID",
+                    "type": "integer",
+                    "example": 22384516
+                },
+                "uid": {
+                    "description": "用户uid",
+                    "type": "integer",
+                    "example": 123456
+                },
+                "uname": {
+                    "description": "用户昵称",
+                    "type": "string",
+                    "example": "张三"
+                }
+            }
+        },
+        "input.LiveGuardListPageReq": {
+            "type": "object",
+            "required": [
+                "guard_level",
+                "month",
+                "pageNo",
+                "pageSize"
+            ],
+            "properties": {
+                "guard_level": {
+                    "description": "大航海等级, 1-总督, 2-提督, 3-舰长",
+                    "type": "integer",
+                    "example": 3
+                },
+                "month": {
+                    "description": "查询月份, 格式 2006-01",
+                    "type": "string",
+                    "example": "2026-07"
+                },
+                "pageNo": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "pageSize": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "sortField": {
+                    "description": "排序列, 可选 uid / uname, 其它值静默回退默认排序",
+                    "type": "string",
+                    "example": "uname"
+                },
+                "sortOrder": {
+                    "type": "string",
+                    "enum": [
+                        "ascend",
+                        "descend"
+                    ],
+                    "example": "descend"
+                },
+                "uid": {
+                    "description": "用户uid",
+                    "type": "integer",
+                    "example": 123456
+                },
+                "uname": {
+                    "description": "用户昵称, 模糊匹配",
+                    "type": "string",
+                    "example": "张三"
+                }
+            }
+        },
         "input.LivePkLogListPageReq": {
             "type": "object",
             "required": [
@@ -8123,6 +8335,13 @@
                 "scene"
             ],
             "properties": {
+                "blacklist": {
+                    "description": "黑名单列表（JSON 数组字符串）",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "content": {
                     "description": "答谢内容（JSON 数组字符串）",
                     "type": "array",
@@ -8134,6 +8353,11 @@
                     "description": "是否启用, 0-禁用, 1-启用",
                     "type": "string",
                     "example": "1"
+                },
+                "interval": {
+                    "description": "响应间隔（秒）, 同一用户在该时长内重复触发不回复, 0-不限制",
+                    "type": "string",
+                    "example": "0"
                 },
                 "requirement": {
                     "description": "答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
@@ -9414,6 +9638,63 @@
                 "total_num": {
                     "description": "礼物总数",
                     "type": "integer"
+                }
+            }
+        },
+        "resp.LiveGuardListPageItem": {
+            "type": "object",
+            "properties": {
+                "cover_from_month": {
+                    "description": "连续覆盖段起点所在月, 格式 2006-01",
+                    "type": "string",
+                    "example": "2026-07"
+                },
+                "cover_to_month": {
+                    "description": "连续覆盖段终点所在月, 格式 2006-01, 含（中间断档的月份不算在同一段里）",
+                    "type": "string",
+                    "example": "2026-09"
+                },
+                "guard_level": {
+                    "description": "大航海等级, 1-总督, 2-提督, 3-舰长",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.BadgeType"
+                        }
+                    ]
+                },
+                "open_at": {
+                    "description": "当月最早一次开通时间, 空表示当月没开通（是往月延续来的）",
+                    "type": "string"
+                },
+                "open_num": {
+                    "description": "当月开通份数",
+                    "type": "integer",
+                    "example": 3
+                },
+                "uid": {
+                    "description": "用户uid",
+                    "type": "integer"
+                },
+                "uname": {
+                    "description": "用户昵称",
+                    "type": "string"
+                }
+            }
+        },
+        "resp.LiveGuardListPageResp": {
+            "type": "object",
+            "properties": {
+                "pageData": {
+                    "description": "当前页码数据",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/resp.LiveGuardListPageItem"
+                    }
+                },
+                "total": {
+                    "description": "总计条数",
+                    "type": "integer",
+                    "example": 100
                 }
             }
         },
@@ -11253,6 +11534,13 @@
         "resp.SceneReplyConfigResp": {
             "type": "object",
             "properties": {
+                "blacklist": {
+                    "description": "黑名单列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "content": {
                     "description": "答谢内容",
                     "type": "array",
@@ -11264,6 +11552,11 @@
                     "description": "是否启用, 0-禁用, 1-启用",
                     "type": "string",
                     "example": "1"
+                },
+                "interval": {
+                    "description": "响应间隔（秒）, 0-不限制",
+                    "type": "string",
+                    "example": "0"
                 },
                 "requirement": {
                     "description": "答谢门槛, 0-不限制, 1-带本直播间牌子, 2-带本直播间大航海牌子",
