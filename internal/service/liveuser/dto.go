@@ -38,6 +38,14 @@ type GuardExpire struct {
 	Governor *int64
 }
 
+// GuardWindow 一次大航海开通的有效期窗口 [StartAt, EndAt)，Unix 秒
+//
+// 只用于推导身份有效性，与名单月份无关，名单月份见 live_guard_records 的 cover_from / cover_to。
+type GuardWindow struct {
+	StartAt int64
+	EndAt   int64
+}
+
 // GuardEntry 大航海名单中的一条，Level 为 BadgeTypeL0 表示 B站 返回的档位非法
 type GuardEntry struct {
 	UID   int64

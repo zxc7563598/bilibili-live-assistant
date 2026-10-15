@@ -20,7 +20,6 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/crypto"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/jwt"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/ptr"
-	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/tokenizer"
 	"gorm.io/gorm"
 )
@@ -258,29 +257,48 @@ func (s *Service) AddTotalGiftAmount(ctx context.Context, userID int64, amount i
 	return s.liveUserRepo.AdjustField(ctx, nil, userID, "total_gift_amount", amount)
 }
 
-// ExtendGuardExpire 延长用户某档大航海的到期时间
-func (s *Service) ExtendGuardExpire(ctx context.Context, uid int64, uname string, level enum.BadgeType, recvAt time.Time) (int, error) {
+// ExtendGuardExpire 延长用户某档大航海的到期时间，并返回本次开通的覆盖窗口
+//
+// 堆叠基准取用户当前的到期时间：直播链路是大航海开通事件按时序到达，
+// 这个基准就是上一段的结束时间。乱序插入历史不要走这里，见 ExtendGuardExpireTo。
+func (s *Service) ExtendGuardExpire(ctx context.Context, uid int64, uname string, level enum.BadgeType, recvAt time.Time, num int64) (GuardWindow, int, error) {
+	field, err := guardExpireField(level)
+	if err != nil {
+		return GuardWindow{}, CodeParamInvalid, err
+	}
+	userID, user, errCode, err := s.guardExpireOwner(ctx, uid, uname)
+	if errCode != 0 {
+		return GuardWindow{}, errCode, err
+	}
+	var prevEnd int64
+	if current := guardExpireValue(level, user); current != nil {
+		prevEnd = *current
+	}
+	startAt, endAt := GuardExpireWindow(prevEnd, recvAt, num)
+	if err := s.liveUserRepo.UpdateField(ctx, nil, userID, field, endAt); err != nil {
+		return GuardWindow{}, CodeQueryFailed, fmt.Errorf("记录大航海到期时间失败：%w", err)
+	}
+	return GuardWindow{StartAt: startAt, EndAt: endAt}, 0, nil
+}
+
+// ExtendGuardExpireTo 把某档到期时间推到 endAt，已有值更晚时保持不变
+//
+// 补录按台账重排窗口后回写当前状态用它。到期时间这一列既被链路写、也可能被
+// 管理员手动调大，补录改的只是历史，把手动值顶回去会凭空缩短用户的持有期，
+// 所以这里只延长不缩短。
+func (s *Service) ExtendGuardExpireTo(ctx context.Context, uid int64, uname string, level enum.BadgeType, endAt int64) (int, error) {
 	field, err := guardExpireField(level)
 	if err != nil {
 		return CodeParamInvalid, err
 	}
-	userID, err := s.EnsureUser(ctx, uid, uname)
-	if err != nil {
-		return CodeQueryFailed, err
+	userID, user, errCode, err := s.guardExpireOwner(ctx, uid, uname)
+	if errCode != 0 {
+		return errCode, err
 	}
-	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
-	if err != nil {
-		return CodeQueryFailed, fmt.Errorf("获取用户信息失败：%w", err)
+	if current := guardExpireValue(level, user); current != nil && *current >= endAt {
+		return 0, nil
 	}
-	if user == nil {
-		return CodeUserNotFound, fmt.Errorf("用户记录缺失: id=%d", userID)
-	}
-	base := timeutil.StartOfDay(recvAt)
-	// 仍在有效期内则接着原到期时间算
-	if current := guardExpireValue(level, user); current != nil && *current > base.Unix() {
-		base = time.Unix(*current, 0).In(recvAt.Location())
-	}
-	if err := s.liveUserRepo.UpdateField(ctx, nil, userID, field, base.AddDate(0, 0, guardValidDays).Unix()); err != nil {
+	if err := s.liveUserRepo.UpdateField(ctx, nil, userID, field, endAt); err != nil {
 		return CodeQueryFailed, fmt.Errorf("记录大航海到期时间失败：%w", err)
 	}
 	return 0, nil

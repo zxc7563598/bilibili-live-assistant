@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/config"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/logger"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_danmu"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_guard_record"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_interact_word"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_pk_log"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_session"
@@ -62,6 +64,7 @@ type Service struct {
 	// 自动广告定时发送器
 	robotConfigSvc   *robotconfigsvc.Service // 机器人配置服务
 	liveUserSvc      *liveuser.Service       // 用户服务
+	configCache      *robotconfig.Cache      // 机器人配置缓存
 	autoSenderCancel context.CancelFunc      // 自动发送器取消函数
 	autoSenderDone   chan struct{}           // 自动发送器退出信号
 	// 前端 WebSocket 推送
@@ -76,13 +79,21 @@ type Service struct {
 	liveSessionRepo       live_session.Repository
 	liveUserBlacklistRepo live_user_blacklist.Repository
 	livePkLogRepo         live_pk_log.Repository
+	liveGuardRecordRepo   live_guard_record.Repository
+}
+
+// GrantGiftReward 按房间奖励配置给用户发放礼物奖励，供补录等外部入口复用
+//
+// 与直播链路共用同一份金额口径，避免两处各算一遍导致对不上。
+func (s *Service) GrantGiftReward(ctx context.Context, userID int64, giftName string, giftType enum.GiftType, badgeType enum.BadgeType, price, num int64) error {
+	return grantGiftReward(ctx, s.configCache, s.liveUserSvc, userID, giftName, giftType, badgeType, price, num)
 }
 
 // New 创建直播服务
 //
 // bilibili.Client 在此创建并持久化（整个服务生命周期内复用）
 // WithStateFile 会在启动时自动恢复之前保存的登录态
-func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUserSvc *liveuser.Service, configCache *robotconfig.Cache, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository, liveUserSignLogRepo live_user_sign_log.Repository, liveUserBlacklistRepo live_user_blacklist.Repository, liveInteractWord live_interact_word.Repository, livePkLogRepo live_pk_log.Repository) *Service {
+func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUserSvc *liveuser.Service, configCache *robotconfig.Cache, liveDanmuRepo live_danmu.Repository, liveGiftRepo live_gift.Repository, liveSessionRepo live_session.Repository, liveUserRepo live_user.Repository, liveUserSignLogRepo live_user_sign_log.Repository, liveUserBlacklistRepo live_user_blacklist.Repository, liveInteractWord live_interact_word.Repository, livePkLogRepo live_pk_log.Repository, liveGuardRecordRepo live_guard_record.Repository) *Service {
 	client := bilibili.NewClient(
 		bilibili.WithStateFile(cfg.StateFile),
 	)
@@ -93,7 +104,7 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUser
 	dispatcher := newMessageDispatcher(
 		newLiveStatusProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
 		newLiveEndProcessor(liveSessionRepo, liveDanmuRepo, liveGiftRepo, roomState),
-		newGiftProcessor(liveUserSvc, liveGiftRepo, liveUserBlacklistRepo, roomState, configCache, client, func() int64 {
+		newGiftProcessor(liveUserSvc, liveGiftRepo, liveUserBlacklistRepo, liveGuardRecordRepo, roomState, configCache, client, func() int64 {
 			if sess := client.Session(); sess != nil {
 				return sess.UID
 			}
@@ -152,7 +163,9 @@ func New(cfg config.LiveConfig, robotConfigSvc *robotconfigsvc.Service, liveUser
 		liveSessionRepo:       liveSessionRepo,
 		liveUserBlacklistRepo: liveUserBlacklistRepo,
 		livePkLogRepo:         livePkLogRepo,
+		liveGuardRecordRepo:   liveGuardRecordRepo,
 		robotConfigSvc:        robotConfigSvc,
+		configCache:           configCache,
 	}
 	enqueueFn = s.EnqueueDanmu
 	return s

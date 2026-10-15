@@ -14,6 +14,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_gift"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_guard_record"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_blacklist"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
@@ -53,6 +54,7 @@ type giftProcessor struct {
 	liveUserSvc           *liveuser.Service
 	liveGiftRepo          live_gift.Repository
 	liveUserBlacklistRepo live_user_blacklist.Repository
+	liveGuardRecordRepo   live_guard_record.Repository
 	roomState             *RoomState
 	configCache           *robotconfig.Cache
 	client                *bilibili.Client
@@ -76,11 +78,12 @@ type giftThankInfo struct {
 	BadgeType         enum.BadgeType // 牌子类型
 }
 
-func newGiftProcessor(liveUserSvc *liveuser.Service, liveGiftRepo live_gift.Repository, liveUserBlacklistRepo live_user_blacklist.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
+func newGiftProcessor(liveUserSvc *liveuser.Service, liveGiftRepo live_gift.Repository, liveUserBlacklistRepo live_user_blacklist.Repository, liveGuardRecordRepo live_guard_record.Repository, roomState *RoomState, configCache *robotconfig.Cache, client *bilibili.Client, getBotUID func() int64, enqueueDanmu func(msg string, kind string)) *giftProcessor {
 	return &giftProcessor{
 		liveUserSvc:           liveUserSvc,
 		liveGiftRepo:          liveGiftRepo,
 		liveUserBlacklistRepo: liveUserBlacklistRepo,
+		liveGuardRecordRepo:   liveGuardRecordRepo,
 		roomState:             roomState,
 		configCache:           configCache,
 		client:                client,
@@ -141,7 +144,7 @@ func (p *giftProcessor) Process(ctx context.Context, cmd live.Cmd, data any, roo
 			BadgeType: enum.BadgeType(info.GuardLevel),
 		}
 		thankInfo.OriginalGiftPrice = info.Price
-		p.recordGuardExpire(ctx, info)
+		p.recordGuardExpire(ctx, roomID, info)
 		p.processGifts(ctx, roomID, []giftPush{{gift: gift, thank: thankInfo}})
 	case live.CmdSuperDanmuMsg:
 		info, ok := data.(*live.SuperChatMessage)
@@ -238,10 +241,43 @@ type giftPush struct {
 	thank *giftThankInfo
 }
 
-// recordGuardExpire 延长用户的大航海到期时间，写入 live_users 对应的列
-func (p *giftProcessor) recordGuardExpire(ctx context.Context, info *live.GuardBuyInfo) {
-	if errCode, err := p.liveUserSvc.ExtendGuardExpire(ctx, info.UID, info.Uname, enum.BadgeType(info.GuardLevel), time.Now()); errCode != 0 {
+// recordGuardExpire 延长用户的大航海到期时间，并写入开通台账
+//
+// 到期时间与台账各管一摊、口径不同，都要写但互不推导：
+// live_users 的到期列是「身份有效到什么时候」（30 天 × 份数），台账的月份区间是
+// 「哪几个月的名单里有他」（月份 × 份数）。7 月 29 日开通一份，有效期到 8 月 28 日，
+// 但只在 7 月名单里。
+func (p *giftProcessor) recordGuardExpire(ctx context.Context, roomID int64, info *live.GuardBuyInfo) {
+	level := enum.BadgeType(info.GuardLevel)
+	now := time.Now()
+	if _, errCode, err := p.liveUserSvc.ExtendGuardExpire(ctx, info.UID, info.Uname, level, now, info.Num); errCode != 0 {
 		log.Printf("[live.Gift] 记录大航海到期时间失败: uid=%d guardLevel=%d code=%d err=%v", info.UID, info.GuardLevel, errCode, err)
+		return
+	}
+	// 顺延基准取该用户该档位最晚的一条台账：live_users 的到期时间是天数口径，替代不了它
+	latest, err := p.liveGuardRecordRepo.LatestByUIDAndLevel(ctx, nil, info.UID, level)
+	if err != nil {
+		log.Printf("[live.Gift] 查询大航海顺延基准失败: uid=%d guardLevel=%d err=%v", info.UID, info.GuardLevel, err)
+		return
+	}
+	var prevCoverTo int64
+	if latest != nil {
+		prevCoverTo = latest.CoverTo
+	}
+	coverFrom, coverTo := liveuser.GuardCoverWindow(prevCoverTo, now, info.Num)
+	if _, err := p.liveGuardRecordRepo.Create(ctx, nil, &model.LiveGuardRecord{
+		RoomID:     roomID,
+		UID:        info.UID,
+		Uname:      info.Uname,
+		GuardLevel: level,
+		GiftID:     info.GiftID,
+		Price:      info.Price,
+		Num:        info.Num,
+		OpenAt:     now.Unix(),
+		CoverFrom:  coverFrom,
+		CoverTo:    coverTo,
+	}); err != nil {
+		log.Printf("[live.Gift] 记录大航海开通台账失败: uid=%d guardLevel=%d err=%v", info.UID, info.GuardLevel, err)
 	}
 }
 
@@ -531,76 +567,8 @@ func (p *giftProcessor) processReward(ctx context.Context, userID int64, thankIn
 	if botUID == thankInfo.UID {
 		return
 	}
-	var roomCfg robotconfig.RoomConfig
-	if err := p.configCache.UnmarshalGroup("room", &roomCfg); err != nil {
-		log.Printf("[live.Gift] 加载房间配置失败: %v", err)
-		return
+	if err := grantGiftReward(ctx, p.configCache, p.liveUserSvc, userID,
+		thankInfo.GiftName, thankInfo.GiftType, thankInfo.BadgeType, thankInfo.Price, thankInfo.Num); err != nil {
+		log.Printf("[live.Gift] 奖励发放失败: %v", err)
 	}
-	switch ptr.ParseEnumInt[enum.RewardPolicy](roomCfg.ConsumeRewardEnabled) {
-	case enum.RewardPolicyBatteryReward:
-		magnification, _ := strconv.ParseInt(roomCfg.ConsumeBatteryRate, 10, 64)
-		rewardType := ptr.ParseEnumInt[enum.RewardType](roomCfg.RewardType)
-		if err := p.processBatteryReward(ctx, userID, thankInfo.GiftName, rewardType, thankInfo.Price, thankInfo.Num, magnification); err != nil {
-			log.Printf("[live.Gift] 奖励发放失败: %v", err)
-		}
-	case enum.RewardPolicyVipReward:
-		if thankInfo.GiftType == enum.GiftTypeGuard {
-			var reward int64
-			switch thankInfo.BadgeType {
-			case enum.BadgeTypeL1:
-				reward, _ = strconv.ParseInt(roomCfg.CaptainRewardAmount, 10, 64)
-			case enum.BadgeTypeL2:
-				reward, _ = strconv.ParseInt(roomCfg.CommanderRewardAmount, 10, 64)
-			case enum.BadgeTypeL3:
-				reward, _ = strconv.ParseInt(roomCfg.GovernorRewardAmount, 10, 64)
-			}
-			rewardType := ptr.ParseEnumInt[enum.RewardType](roomCfg.RewardType)
-			if err := p.processVipReward(ctx, userID, rewardType, thankInfo.BadgeType, reward); err != nil {
-				log.Printf("[live.Gift] 奖励发放失败: %v", err)
-			}
-		}
-	}
-}
-
-// processBatteryReward 按消费电池发放积分
-func (p *giftProcessor) processBatteryReward(ctx context.Context, userID int64, giftName string, rewardType enum.RewardType, price, num, magnification int64) error {
-	battery := price / 10
-	params := liveuser.AdjustCreditParams{
-		UserID:       userID,
-		ChangeType:   enum.ChangeTypeIncrease,
-		ChangeAmount: (battery * num) * magnification,
-		BizType:      "gift",
-		Remark:       fmt.Sprintf("用户赠送 %d 个价值 %d 电池的 %s (积分倍率 %d)", num, battery, giftName, magnification),
-		OperatorType: enum.OperatorTypeSystem,
-		OperatorID:   0,
-	}
-	var err error
-	switch rewardType {
-	case enum.RewardTypePoints:
-		err = p.liveUserSvc.AdjustPoints(ctx, nil, params)
-	case enum.RewardTypeStars:
-		err = p.liveUserSvc.AdjustStars(ctx, nil, params)
-	}
-	return err
-}
-
-// processVipReward 按航海类型发放积分
-func (p *giftProcessor) processVipReward(ctx context.Context, userID int64, rewardType enum.RewardType, level enum.BadgeType, reward int64) error {
-	params := liveuser.AdjustCreditParams{
-		UserID:       userID,
-		ChangeType:   enum.ChangeTypeIncrease,
-		ChangeAmount: reward,
-		BizType:      "gift",
-		Remark:       fmt.Sprintf("用户开通 %s 奖励 %d", level.Text("zh"), reward),
-		OperatorType: enum.OperatorTypeSystem,
-		OperatorID:   0,
-	}
-	var err error
-	switch rewardType {
-	case enum.RewardTypePoints:
-		err = p.liveUserSvc.AdjustPoints(ctx, nil, params)
-	case enum.RewardTypeStars:
-		err = p.liveUserSvc.AdjustStars(ctx, nil, params)
-	}
-	return err
 }

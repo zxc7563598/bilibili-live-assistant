@@ -11,8 +11,60 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
 
-// guardValidDays 一次大航海购买的有效天数
+// guardValidDays 一份大航海的有效天数
 const guardValidDays = 30
+
+// GuardExpireWindow 依据上一段的结束时间与本次开通时间，算出本次开通的有效期窗口 [startAt, endAt)
+//
+// 仍在有效期内就接着原到期时间往后堆叠，否则从当天零点重新起算；
+// 一次开通多份时按每份 30 天连着排。
+//
+// 这份算术算的是「身份有效到什么时候」，与大航海名单的月份归属无关（见 GuardCoverWindow）：
+// 7 月 29 日开通一份，有效期到 8 月 28 日，但他只在 7 月的名单里。
+func GuardExpireWindow(prevEnd int64, recvAt time.Time, num int64) (startAt, endAt int64) {
+	base := timeutil.StartOfDay(recvAt)
+	if prevEnd > base.Unix() {
+		base = time.Unix(prevEnd, 0).In(recvAt.Location())
+	}
+	if num < 1 {
+		num = 1
+	}
+	return base.Unix(), base.AddDate(0, 0, guardValidDays*int(num)).Unix()
+}
+
+// GuardCoverWindow 依据上一段覆盖到的月份与本次开通时间，算出本次开通覆盖的名单月份区间 [from, to)
+//
+// 两端都是本地月首：一次开通买 num 份就是连着排 num 个月；仍在覆盖期内就接着上一段的
+// 终点往后排，同一个月开通多次才能把后面的月份顶出去。
+//
+// 名单只认月份，不认天数：7 月 29 日开通一份，覆盖区间是 [7/1, 8/1)，他进 7 月名单、
+// 不进 8 月名单，尽管有效期到 8 月 28 日。
+func GuardCoverWindow(prevCoverTo int64, openAt time.Time, num int64) (from, to int64) {
+	if num < 1 {
+		num = 1
+	}
+	start := timeutil.StartOfMonth(openAt)
+	if prevCoverTo > start.Unix() {
+		start = time.Unix(prevCoverTo, 0).In(openAt.Location())
+	}
+	return start.Unix(), timeutil.AddMonths(start, int(num)).Unix()
+}
+
+// guardExpireOwner 注册并取回用户记录，大航海到期时间的读写都要先拿到它
+func (s *Service) guardExpireOwner(ctx context.Context, uid int64, uname string) (int64, *model.LiveUser, int, error) {
+	userID, err := s.EnsureUser(ctx, uid, uname)
+	if err != nil {
+		return 0, nil, CodeQueryFailed, err
+	}
+	user, err := s.liveUserRepo.GetByID(ctx, nil, userID)
+	if err != nil {
+		return 0, nil, CodeQueryFailed, fmt.Errorf("获取用户信息失败：%w", err)
+	}
+	if user == nil {
+		return 0, nil, CodeUserNotFound, fmt.Errorf("用户记录缺失: id=%d", userID)
+	}
+	return userID, user, 0, nil
+}
 
 // guardExpireField 大航海等级 → 到期时间列名
 func guardExpireField(level enum.BadgeType) (string, error) {
