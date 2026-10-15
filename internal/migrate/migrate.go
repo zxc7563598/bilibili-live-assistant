@@ -16,6 +16,7 @@ func Models() []any {
 		&model.LiveUser{},
 		&model.LiveDanmu{},
 		&model.LiveGift{},
+		&model.LiveGuardRecord{},
 		&model.LiveSession{},
 		&model.RobotConfig{},
 		&model.LiveUserSignLog{},
@@ -53,6 +54,10 @@ func Run(db *gorm.DB) error {
 	// 升级早期版本：为 live_users 补齐 v2.0.0 新增的 password / face 列。
 	// 必须赶在 AutoMigrate 之前，否则 ADD COLUMN 会带上 NOT NULL 而被 SQLite / PostgreSQL 拒绝
 	if err := addLiveUserPasswordFaceColumns(db); err != nil {
+		return err
+	}
+	// 升级暂存期跑过的库：大航海台账改过列名，旧表必须先删掉，否则 AutoMigrate 的 ADD COLUMN 会被拒
+	if err := dropLegacyLiveGuardRecords(db); err != nil {
 		return err
 	}
 	if err := AutoMigrate(db); err != nil {

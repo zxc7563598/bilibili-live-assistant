@@ -51,6 +51,7 @@ var tableOrder = []string{
 	"live_pk_logs",
 	"live_danmus",
 	"live_gifts",
+	"live_guard_records",
 	"live_interact_words",
 	"live_user_sign_logs",
 	"live_user_blacklists",

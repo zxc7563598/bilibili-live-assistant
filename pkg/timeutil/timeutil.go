@@ -28,6 +28,23 @@ func StartOfDay(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
+// StartOfMonth 返回 t 所在本地自然月的月首零点
+func StartOfMonth(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
+}
+
+// LocalMonthStart 返回该时间戳所在本地自然月的月首零点时间戳
+func LocalMonthStart(ts int64) int64 {
+	return StartOfMonth(time.Unix(ts, 0)).Unix()
+}
+
+// AddMonths 返回 t 之后 n 个月的同一时刻，n 可为负
+//
+// 传入月首才能得到月首：Go 会把月末归一化（1 月 31 日往后一个月会得到 3 月 3 日）。
+func AddMonths(t time.Time, n int) time.Time {
+	return t.AddDate(0, n, 0)
+}
+
 // LocalDayStart 返回该时间戳所在本地自然日的零点时间戳
 func LocalDayStart(ts int64) int64 {
 	return StartOfDay(time.Unix(ts, 0)).Unix()
