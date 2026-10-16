@@ -6,35 +6,31 @@
         补录开通
       </NButton>
     </template>
-
-    <MeCrud
-      ref="$table" v-model:query-items="query" :columns="columns" :get-data="getData" :scroll-x="1140"
-      export-module="liveguard"
-    >
+    <MeCrud ref="$table" v-model:query-items="query" :columns="columns" :get-data="getData" :scroll-x="1400" export-module="liveguard">
       <MeQueryItem label="月份" :label-width="90">
-        <n-date-picker
-          v-model:formatted-value="query.month" type="month" value-format="yyyy-MM" :clearable="false"
-          class="w-full"
-        />
+        <n-date-picker v-model:formatted-value="query.month" type="month" value-format="yyyy-MM" :clearable="false" class="w-full" />
       </MeQueryItem>
       <MeQueryItem label="大航海等级" :label-width="90">
         <n-select v-model:value="query.guard_level" :options="guardLevelOptions" :clearable="false" />
       </MeQueryItem>
     </MeCrud>
-
     <BackfillModal ref="backfillModalRef" @success="onBackfillSuccess" />
+    <OrderModal ref="orderModalRef" @success="onOrderSuccess" />
   </CommonPage>
 </template>
 
 <script setup>
-import { NButton, NTooltip } from 'naive-ui'
+import { NButton, NTag, NTooltip } from 'naive-ui'
 import { GuardTag, MeCrud, MeQueryItem } from '@/components'
+import { withPermission } from '@/directives'
 import { formatDate } from '@/utils'
 import api from './api'
 import BackfillModal from './components/BackfillModal.vue'
+import OrderModal from './components/OrderModal.vue'
 
 const $table = ref(null)
 const backfillModalRef = ref(null)
+const orderModalRef = ref(null)
 
 // 与后端 enum.BadgeType 的取值保持一致：1 总督、2 提督、3 舰长
 const guardLevelOptions = ref([
@@ -54,8 +50,6 @@ const columns = [
       return h(GuardTag, { type: row.guard_level })
     },
   },
-  // 月份两列不参与排序：展示值是连续覆盖段的端点，要在服务端合并台账后才拿得到，
-  // SQL 里只有「命中查询月的那一段」，按它排序会和显示值对不上
   { title: '起算月', key: 'cover_from_month', width: 120 },
   { title: '覆盖至月', key: 'cover_to_month', width: 120 },
   { title: '当月开通份数', key: 'open_num', width: 130 },
@@ -70,6 +64,40 @@ const columns = [
         trigger: () => h('span', { class: 'opacity-40' }, '往月延续'),
         default: () => '当月没有开通，名单是从前面的月份顺延过来的',
       })
+    },
+  },
+  {
+    title: '本月兑换',
+    key: 'redeemed_products',
+    width: 120,
+    hideInExcel: true,
+    render(row) {
+      const list = row.redeemed_products || []
+      if (!list.length)
+        return h('span', { class: 'opacity-40' }, '未兑换')
+      return h(NTooltip, { showArrow: false, trigger: 'hover' }, {
+        trigger: () => h(NTag, { size: 'small', type: 'success', bordered: false }, { default: () => '已兑换' }),
+        default: () => h('div', { class: 'space-y-4' }, list.map(item => h('div', null, `${item.product_name} ×${item.quantity}`))),
+      })
+    },
+  },
+  {
+    title: '操作',
+    key: 'actions',
+    width: 140,
+    align: 'right',
+    fixed: 'right',
+    hideInExcel: true,
+    render(row) {
+      return withPermission(
+        h(NButton, {
+          size: 'small',
+          type: 'primary',
+          secondary: true,
+          onClick: () => orderModalRef.value?.open(row),
+        }, { default: () => '帮用户下单' }),
+        'PlaceOrderForUser',
+      )
     },
   },
 ]
@@ -94,6 +122,11 @@ function handleBackfill() {
 }
 
 function onBackfillSuccess() {
+  $table.value?.handleSearch(true)
+}
+
+function onOrderSuccess() {
+  // 下单成功后刷新，让「本月兑换」立刻变为已兑换
   $table.value?.handleSearch(true)
 }
 
