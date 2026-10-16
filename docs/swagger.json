@@ -4608,6 +4608,53 @@
                 }
             }
         },
+        "/api/admin/version/info": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "返回当前运行版本与远端最新版本，供后台首页提示管理员更新；远端检查不通时只把 checkFailed 置为 true",
+                "tags": [
+                    "版本"
+                ],
+                "summary": "获取版本信息",
+                "parameters": [
+                    {
+                        "enum": [
+                            "zh",
+                            "en"
+                        ],
+                        "type": "string",
+                        "default": "zh",
+                        "description": "语言标识（zh: 中文，en: English）",
+                        "name": "Accept-Language",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "统一响应（code=0成功，其它失败）",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/resp.VersionInfoResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/shop/address/default": {
             "post": {
                 "security": [
@@ -12124,6 +12171,31 @@
                     "description": "上传后可直接访问的图片路径（本地为 /uploads/ 相对路径，同步 OSS 后为 http(s) 地址）",
                     "type": "string",
                     "example": "/uploads/login_bg/1724716800123456789_a1b2c3d4.png"
+                }
+            }
+        },
+        "resp.VersionInfoResp": {
+            "type": "object",
+            "properties": {
+                "checkFailed": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "commit": {
+                    "type": "string",
+                    "example": "a1b2c3d"
+                },
+                "latest": {
+                    "type": "string",
+                    "example": "v1.1.0"
+                },
+                "needUpdate": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "version": {
+                    "type": "string",
+                    "example": "v1.0.0"
                 }
             }
         },

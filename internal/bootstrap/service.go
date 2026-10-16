@@ -23,6 +23,7 @@ import (
 	robotconfigsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/role"
 	uploadsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/upload"
+	versionsvc "github.com/zxc7563598/bilibili-live-assistant/internal/service/version"
 	"gorm.io/gorm"
 )
 
@@ -49,6 +50,7 @@ type Services struct {
 	Feedback    *feedbacksvc.Service
 	Upload      *uploadsvc.Service
 	Export      *export.Service
+	Version     *versionsvc.Service
 }
 
 func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *config.Config, configCache *robotconfig.Cache, appConfigCache *appconfig.Cache) *Services {
@@ -71,6 +73,7 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 		Order:       order.New(db, repo.LiveUserOrder, repo.LiveUserOrderDraft, repo.LiveUserAddress, repo.Product, repo.ProductSku, repo.ProductSkuStockLog, liveUserSvc),
 		Feedback:    feedbacksvc.New(repo.Feedback),
 		Upload:      uploadsvc.New(appConfigCache, db, repo.LiveDanmu, repo.LiveGift, repo.LiveUser, liveUserSvc),
+		Version:     versionsvc.New(),
 	}
 	// 大航海名单要复用 live.Service 的奖励口径与 order.Service 的订单口径，同样在服务组装完之后再挂
 	services.LiveGuard = liveguard.New(repo.LiveGuardRecord, repo.LiveGift, liveUserSvc, services.Live, services.Order)

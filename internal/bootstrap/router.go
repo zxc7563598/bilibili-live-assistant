@@ -164,6 +164,8 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/robot/share/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyShareConfig)
 	adminApi.POST("/robot/reply/get", middleware.AdminAuth(rdb), handlers.RobotConfig.GetReplyConfig)
 	adminApi.POST("/robot/reply/apply", middleware.AdminAuth(rdb), handlers.RobotConfig.ApplyReplyConfig)
+	// 版本信息路由（所有登录用户可访问）
+	adminApi.POST("/version/info", middleware.AdminAuth(rdb), handlers.Version.GetVersionInfo)
 	// App 配置管理路由（所有登录用户可访问）
 	adminApi.POST("/appconfig/data", middleware.AdminAuth(rdb), handlers.AppConfig.GetConfig)
 	adminApi.POST("/appconfig/save", middleware.AdminAuth(rdb), handlers.AppConfig.SaveConfig)

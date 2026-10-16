@@ -20,6 +20,7 @@ import (
 	robotconfigHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/robotconfig"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/handler/role"
 	uploadHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/upload"
+	versionHdlr "github.com/zxc7563598/bilibili-live-assistant/internal/handler/version"
 )
 
 type Handlers struct {
@@ -41,6 +42,7 @@ type Handlers struct {
 	Feedback    *feedbackHdlr.Handler
 	Upload      *uploadHdlr.Handler
 	Export      *exportHdlr.Handler
+	Version     *versionHdlr.Handler
 }
 
 func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
@@ -63,5 +65,6 @@ func InitHandlers(svc *Services, rdb *redis.Client) *Handlers {
 		Feedback:    feedbackHdlr.New(svc.Feedback),
 		Upload:      uploadHdlr.New(svc.Upload),
 		Export:      exportHdlr.New(svc.Export),
+		Version:     versionHdlr.New(svc.Version),
 	}
 }

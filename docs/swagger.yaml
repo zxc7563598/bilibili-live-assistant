@@ -4730,6 +4730,24 @@ definitions:
         example: /uploads/login_bg/1724716800123456789_a1b2c3d4.png
         type: string
     type: object
+  resp.VersionInfoResp:
+    properties:
+      checkFailed:
+        example: false
+        type: boolean
+      commit:
+        example: a1b2c3d
+        type: string
+      latest:
+        example: v1.1.0
+        type: string
+      needUpdate:
+        example: true
+        type: boolean
+      version:
+        example: v1.0.0
+        type: string
+    type: object
   response.Response:
     properties:
       code:
@@ -7546,6 +7564,33 @@ paths:
       summary: 同步图片到阿里云OSS
       tags:
       - 上传
+  /api/admin/version/info:
+    post:
+      description: 返回当前运行版本与远端最新版本，供后台首页提示管理员更新；远端检查不通时只把 checkFailed 置为 true
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.VersionInfoResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 获取版本信息
+      tags:
+      - 版本
   /api/shop/address/default:
     post:
       description: 返回当前用户在指定收货地址类型（0 虚拟，1 实体）下的默认收货地址，供下单确认等页面默认回填使用；该类型下暂无默认地址时返回空对象。
