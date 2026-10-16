@@ -11,6 +11,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_guard_record"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/live"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/order"
 )
 
 type Service struct {
@@ -18,14 +19,16 @@ type Service struct {
 	liveGiftRepo  live_gift.Repository
 	liveUserSvc   *liveuser.Service
 	liveSvc       *live.Service
+	orderSvc      *order.Service
 }
 
-func New(liveGuardRepo live_guard_record.Repository, liveGiftRepo live_gift.Repository, liveUserSvc *liveuser.Service, liveSvc *live.Service) *Service {
+func New(liveGuardRepo live_guard_record.Repository, liveGiftRepo live_gift.Repository, liveUserSvc *liveuser.Service, liveSvc *live.Service, orderSvc *order.Service) *Service {
 	return &Service{
 		liveGuardRepo: liveGuardRepo,
 		liveGiftRepo:  liveGiftRepo,
 		liveUserSvc:   liveUserSvc,
 		liveSvc:       liveSvc,
+		orderSvc:      orderSvc,
 	}
 }
 
@@ -83,6 +86,18 @@ func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, 
 			items[i].OpenNum = stat.OpenNum
 			items[i].OpenAt = formatUnix(stat.OpenAt)
 		}
+	}
+	// 当月已兑换的商品：同样只作用于本页用户，用来提示管理员别重复下单
+	redeemed, code, err := s.orderSvc.ListMonthlyRedeemed(ctx, order.ListMonthlyRedeemedReq{
+		UIDs: uids,
+		From: from,
+		To:   to,
+	})
+	if err != nil || code != 0 {
+		return ListPageResp{}, CodeQueryFailed, err
+	}
+	for i := range items {
+		items[i].RedeemedProducts = toRedeemedProducts(redeemed[items[i].UID])
 	}
 	return ListPageResp{Total: total, PageData: items}, 0, nil
 }

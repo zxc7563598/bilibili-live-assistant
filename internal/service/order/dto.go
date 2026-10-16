@@ -25,6 +25,19 @@ type PlaceForUserResp struct {
 	OrderSn string `json:"order_sn"`
 }
 
+// MonthlyRedeemedItem 某用户在某区间内已兑换的商品
+type MonthlyRedeemedItem struct {
+	ProductName string `json:"product_name"`
+	Quantity    int64  `json:"quantity"`
+}
+
+// ListMonthlyRedeemedReq 批量查询兑换情况入参
+type ListMonthlyRedeemedReq struct {
+	UIDs []int64
+	From int64
+	To   int64
+}
+
 // UserOrderDraftResp 请求返回
 type UserOrderDraftResp struct {
 	ID       int64       `json:"id"`

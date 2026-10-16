@@ -18,14 +18,22 @@ func New(liveguardSvc *liveguard.Service) *Handler {
 func toLiveGuardListItems(list []liveguard.ListPageItem) []resp.LiveGuardListPageItem {
 	res := make([]resp.LiveGuardListPageItem, 0, len(list))
 	for _, v := range list {
+		redeemed := make([]resp.LiveGuardRedeemedProduct, 0, len(v.RedeemedProducts))
+		for _, p := range v.RedeemedProducts {
+			redeemed = append(redeemed, resp.LiveGuardRedeemedProduct{
+				ProductName: p.ProductName,
+				Quantity:    p.Quantity,
+			})
+		}
 		res = append(res, resp.LiveGuardListPageItem{
-			UID:            v.UID,
-			Uname:          v.Uname,
-			GuardLevel:     v.GuardLevel,
-			CoverFromMonth: v.CoverFromMonth,
-			CoverToMonth:   v.CoverToMonth,
-			OpenNum:        v.OpenNum,
-			OpenAt:         v.OpenAt,
+			UID:              v.UID,
+			Uname:            v.Uname,
+			GuardLevel:       v.GuardLevel,
+			CoverFromMonth:   v.CoverFromMonth,
+			CoverToMonth:     v.CoverToMonth,
+			OpenNum:          v.OpenNum,
+			OpenAt:           v.OpenAt,
+			RedeemedProducts: redeemed,
 		})
 	}
 	return res

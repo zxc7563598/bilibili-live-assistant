@@ -9,6 +9,7 @@ import (
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_guard_record"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/order"
 	"github.com/zxc7563598/bilibili-live-assistant/pkg/timeutil"
 )
 
@@ -118,6 +119,18 @@ func formatCoverTo(ts int64) string {
 		return ""
 	}
 	return formatMonth(timeutil.AddMonths(time.Unix(ts, 0), -1).Unix())
+}
+
+// toRedeemedProducts 兑换汇总 → 出参，没兑换过也返回空切片而不是 nil，前端不必再判空
+func toRedeemedProducts(list []order.MonthlyRedeemedItem) []RedeemedProduct {
+	items := make([]RedeemedProduct, 0, len(list))
+	for _, row := range list {
+		items = append(items, RedeemedProduct{
+			ProductName: row.ProductName,
+			Quantity:    row.Quantity,
+		})
+	}
+	return items
 }
 
 // toListPageItems 名单行 → 出参

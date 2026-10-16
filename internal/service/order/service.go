@@ -266,6 +266,22 @@ func (s *Service) CreateForUser(ctx context.Context, req PlaceForUserReq) (Place
 	return resp, 0, nil
 }
 
+// ListMonthlyRedeemed 批量查询给定 uid 在某区间内已兑换的商品，供大航海名单页提示是否已下单
+func (s *Service) ListMonthlyRedeemed(ctx context.Context, req ListMonthlyRedeemedReq) (map[int64][]MonthlyRedeemedItem, int, error) {
+	rows, err := s.liveUserOrderRepo.ListRedeemByUIDsInRange(ctx, nil, req.UIDs, req.From, req.To)
+	if err != nil {
+		return nil, CodeQueryFailed, err
+	}
+	result := make(map[int64][]MonthlyRedeemedItem, len(rows))
+	for _, row := range rows {
+		result[row.UID] = append(result[row.UID], MonthlyRedeemedItem{
+			ProductName: row.ProductName,
+			Quantity:    row.Quantity,
+		})
+	}
+	return result, 0, nil
+}
+
 // ListPage 后台分页查询全部订单，联查 live_users 返回 uid/uname
 func (s *Service) ListPage(ctx context.Context, req ListPageReq) (ListPageResp, int, error) {
 	// 获取列表数据

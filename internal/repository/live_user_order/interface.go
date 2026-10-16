@@ -62,6 +62,10 @@ type Repository interface {
 	GetByOrderSn(ctx context.Context, tx *gorm.DB, orderSn string) (*model.LiveUserOrder, error)
 	// GetDetailByID 按主键查询订单详情，联查 live_users 补充 uid/uname；不存在返回 (nil, nil)
 	GetDetailByID(ctx context.Context, tx *gorm.DB, id int64) (*model.LiveUserOrderListItem, error)
+	// ListRedeemByUIDsInRange 批量统计给定 B站 uid 在 [from, to) 内已下单的商品与数量，
+	// 按 uid + 商品名聚合（同一商品的不同规格并成一条），排除已取消的订单；
+	// 时间口径是本表 created_at（下单即支付，与 pay_at 同秒）；uids 为空返回 nil
+	ListRedeemByUIDsInRange(ctx context.Context, tx *gorm.DB, uids []int64, from, to int64) ([]model.OrderRedeemItem, error)
 }
 
 // orderBase 订单查询的基准：联查 live_users 补充 uid/uname。
@@ -160,6 +164,24 @@ func (r *gormRepo) ExportChunk(ctx context.Context, tx *gorm.DB, query model.Liv
 		db = db.Where("live_user_orders.id < ?", afterID)
 	}
 	err := db.Order("live_user_orders.id desc").Limit(limit).Find(&list).Error
+	return list, err
+}
+
+// ListRedeemByUIDsInRange 批量统计给定 B站 uid 在 [from, to) 内已下单的商品与数量
+func (r *gormRepo) ListRedeemByUIDsInRange(ctx context.Context, tx *gorm.DB, uids []int64, from, to int64) ([]model.OrderRedeemItem, error) {
+	if len(uids) == 0 {
+		return nil, nil
+	}
+	var list []model.OrderRedeemItem
+	err := r.ResolveDB(ctx, tx).Model(&model.LiveUserOrder{}).
+		Select("lu.uid AS uid, live_user_orders.product_name AS product_name, SUM(live_user_orders.quantity) AS quantity").
+		Joins("LEFT JOIN live_users lu ON lu.id = live_user_orders.user_id").
+		Where("lu.uid IN ?", uids).
+		Where("live_user_orders.created_at >= ? AND live_user_orders.created_at < ?", from, to).
+		Where("live_user_orders.order_status <> ?", enum.OrderStatusCancelled).
+		Group("lu.uid, live_user_orders.product_name").
+		Order("lu.uid asc, MAX(live_user_orders.created_at) desc").
+		Scan(&list).Error
 	return list, err
 }
 

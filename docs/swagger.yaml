@@ -114,6 +114,69 @@ definitions:
     - scene
     - send_mode
     type: object
+  input.AddressAdminListReq:
+    properties:
+      type:
+        description: 地址类型 0 虚拟 / 1 实体
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      uid:
+        description: 用户uid
+        example: 123456
+        minimum: 1
+        type: integer
+    required:
+    - uid
+    type: object
+  input.AddressAdminSaveReq:
+    properties:
+      detail:
+        example: xxxxxxxxxx
+        type: string
+      email:
+        example: xxxxx@xxx.xx
+        type: string
+      id:
+        description: 地址ID，后台只新建，传了也按新建处理
+        example: 2
+        type: integer
+      is_default:
+        description: 是否默认地址 0 否 / 1 是
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      name:
+        example: 哎呀又胖啦
+        type: string
+      phone:
+        example: "18888888888"
+        type: string
+      region:
+        example: xxx xxx xxx
+        type: string
+      region_code:
+        example: '[''370000'', ''370100'', ''370116'']'
+        type: string
+      type:
+        description: 地址类型 0 虚拟 / 1 实体
+        enum:
+        - 0
+        - 1
+        example: 1
+        type: integer
+      uid:
+        description: 用户uid
+        example: 123456
+        minimum: 1
+        type: integer
+    required:
+    - uid
+    type: object
   input.AddressDeleteAddressReq:
     properties:
       id:
@@ -1394,6 +1457,34 @@ definitions:
     required:
     - pageNo
     - pageSize
+    type: object
+  input.OrderPlaceForUserReq:
+    properties:
+      address_id:
+        description: 收货地址ID，需属于该用户且类型与商品一致
+        example: 1
+        minimum: 1
+        type: integer
+      count:
+        description: 购买数量
+        example: 1
+        minimum: 1
+        type: integer
+      sku_id:
+        description: SKU ID
+        example: 1
+        minimum: 1
+        type: integer
+      uid:
+        description: 用户uid
+        example: 123456
+        minimum: 1
+        type: integer
+    required:
+    - address_id
+    - count
+    - sku_id
+    - uid
     type: object
   input.OrderPlaceOrderReq:
     properties:
@@ -3025,6 +3116,11 @@ definitions:
         description: 当月开通份数
         example: 3
         type: integer
+      redeemed_products:
+        description: 查询月内已兑换的商品, 空数组表示没兑换过
+        items:
+          $ref: '#/definitions/resp.LiveGuardRedeemedProduct'
+        type: array
       uid:
         description: 用户uid
         type: integer
@@ -3042,6 +3138,15 @@ definitions:
       total:
         description: 总计条数
         example: 100
+        type: integer
+    type: object
+  resp.LiveGuardRedeemedProduct:
+    properties:
+      product_name:
+        description: 商品名称
+        type: string
+      quantity:
+        description: 数量
         type: integer
     type: object
   resp.LiveListenerStatusResp:
@@ -4007,6 +4112,17 @@ definitions:
         example: 100
         type: integer
     type: object
+  resp.OrderPlaceForUserResp:
+    properties:
+      id:
+        description: 订单ID
+        example: 1
+        type: integer
+      order_sn:
+        description: 订单号
+        example: P000002919238123
+        type: string
+    type: object
   resp.PkConfigResp:
     properties:
       content:
@@ -4638,6 +4754,73 @@ info:
   title: BiliLive Assistant API
   version: "1.0"
 paths:
+  /api/admin/address/list:
+    post:
+      description: 按 B站 uid 查询该用户的收货地址，type 省略表示不限类型；供后台代用户下单时选地址
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AddressAdminListReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.AddressGetAddressListResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台查询指定用户的收货地址列表
+      tags:
+      - 收货地址
+  /api/admin/address/save:
+    post:
+      description: 按 B站 uid 替用户新建一条收货地址，虚拟地址需邮箱、实体地址需手机号与地区详址；返回新地址 ID
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.AddressAdminSaveReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  format: int64
+                  type: integer
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台给指定用户新建收货地址
+      tags:
+      - 收货地址
   /api/admin/admin/delete:
     post:
       description: 根据管理员 ID 删除管理员账号（通常不允许删除当前登录管理员）
@@ -6187,6 +6370,39 @@ paths:
       security:
       - BearerAuth: []
       summary: 后台分页查询订单列表
+      tags:
+      - 订单管理
+  /api/admin/order/place-for-user:
+    post:
+      description: 替指定用户按正常下单流程兑换商品：锁库存、扣积分/星光、生成订单并快照收货地址；会放弃该用户当前已有的待兑换订单
+      parameters:
+      - default: zh
+        description: '语言标识（zh: 中文，en: English）'
+        enum:
+        - zh
+        - en
+        in: header
+        name: Accept-Language
+        type: string
+      - description: 请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/input.OrderPlaceForUserReq'
+      responses:
+        "200":
+          description: 统一响应（code=0成功，其它失败）
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/resp.OrderPlaceForUserResp'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 后台代用户下单
       tags:
       - 订单管理
   /api/admin/order/receiver:

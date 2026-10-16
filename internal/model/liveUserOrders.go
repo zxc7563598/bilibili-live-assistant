@@ -45,6 +45,15 @@ type LiveUserOrderListItem struct {
 	LiveUserOrder
 }
 
+// OrderRedeemItem 某用户在某区间内已兑换的商品汇总，不对应数据库表
+//
+// 粒度为「uid × 商品名」：同一商品的多个规格并成一条，名单页的提示不需要细到规格。
+type OrderRedeemItem struct {
+	UID         int64
+	ProductName string
+	Quantity    int64
+}
+
 // LiveUserOrderListPageQuery 订单分页查询入参，不对应数据库表
 type LiveUserOrderListPageQuery struct {
 	// UserID 本表 user_id（用户内部主键），商城端「我的订单」使用

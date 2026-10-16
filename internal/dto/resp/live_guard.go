@@ -26,4 +26,14 @@ type LiveGuardListPageItem struct {
 	OpenNum int64 `json:"open_num" example:"3"`
 	// 当月最早一次开通时间, 空表示当月没开通（是往月延续来的）
 	OpenAt string `json:"open_at"`
+	// 查询月内已兑换的商品, 空数组表示没兑换过
+	RedeemedProducts []LiveGuardRedeemedProduct `json:"redeemed_products"`
+}
+
+// LiveGuardRedeemedProduct 名单页提示用的一件已兑换商品
+type LiveGuardRedeemedProduct struct {
+	// 商品名称
+	ProductName string `json:"product_name"`
+	// 数量
+	Quantity int64 `json:"quantity"`
 }

@@ -36,6 +36,14 @@ type ListPageItem struct {
 	CoverToMonth   string         `json:"cover_to_month"`   // 连续覆盖段终点所在月, 含
 	OpenNum        int64          `json:"open_num"`         // 当月开通份数
 	OpenAt         string         `json:"open_at"`          // 当月最早一次开通时间, 空表示当月没开通
+	// RedeemedProducts 查询月内已兑换的商品，空表示没兑换过
+	RedeemedProducts []RedeemedProduct `json:"redeemed_products"`
+}
+
+// RedeemedProduct 名单页提示用的一件已兑换商品
+type RedeemedProduct struct {
+	ProductName string `json:"product_name"`
+	Quantity    int64  `json:"quantity"`
 }
 
 // BackfillReq 补录一次大航海开通
