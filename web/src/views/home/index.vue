@@ -18,7 +18,37 @@
             <i class="i-fe:arrow-right text-13" />
           </div>
         </div>
+        <n-tooltip v-if="versionInfo" trigger="hover">
+          <template #trigger>
+            <div class="shrink-0 cursor-default self-start rounded-full bg-white/15 px-10 py-4 text-12 text-white/85">
+              {{ versionInfo.version }}
+            </div>
+          </template>
+          <div class="text-12 leading-relaxed">
+            <div>当前版本 {{ versionInfo.version }}</div>
+            <div v-if="versionInfo.commit && versionInfo.commit !== 'none'">
+              提交 {{ versionInfo.commit }}
+            </div>
+            <div v-if="versionInfo.checkFailed">
+              检查更新失败，无法确认是否有新版本
+            </div>
+          </div>
+        </n-tooltip>
       </div>
+    </section>
+    <section v-if="versionInfo?.needUpdate" class="mt-12 flex items-center gap-10 border rounded-12 border-solid px-16 py-13" style="border-color: rgba(var(--primary-color), 0.25); background: rgba(var(--primary-color), 0.08)">
+      <i class="i-fe:arrow-up-circle shrink-0 text-15" style="color: rgba(var(--primary-color))" />
+      <div class="min-w-0 flex-1">
+        <div class="text-13 font-medium" style="color: rgba(var(--primary-color))">
+          发现新版本 {{ versionInfo.latest }}
+        </div>
+        <div class="mt-4 text-12 text-gray-500 leading-relaxed dark:text-gray-400">
+          当前版本 {{ versionInfo.version }}，建议前往 danmubot.top 下载更新。
+        </div>
+      </div>
+      <a href="https://danmubot.top" target="_blank" rel="noreferrer" class="shrink-0 cursor-pointer rounded-8 px-12 py-6 text-12 text-white transition-all-300 hover:opacity-88" style="background: rgba(var(--primary-color))">
+        前往下载
+      </a>
     </section>
     <section class="mt-12 flex gap-10 border border-amber-200 rounded-12 bg-amber-50 px-16 py-13 dark:border-amber-500/25 dark:bg-amber-500/10">
       <i class="i-fe:alert-triangle mt-1 shrink-0 text-15 text-amber-500" />
@@ -126,12 +156,26 @@
 
 <script setup>
 import { useUserStore } from '@/store'
+import api from './api'
 import ImportCard from './components/ImportCard.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const displayName = computed(() => userStore.nickName || userStore.username || '主播')
+
+// 当前版本与更新提示的数据来源，取不到时页面其余部分不受影响
+const versionInfo = ref(null)
+
+onMounted(async () => {
+  try {
+    const { data } = await api.getVersionInfo()
+    versionInfo.value = data
+  }
+  catch (error) {
+    console.error('获取版本信息失败', error)
+  }
+})
 
 const greeting = computed(() => {
   const hour = new Date().getHours()

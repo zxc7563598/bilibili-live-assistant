@@ -1,6 +1,8 @@
 import { request } from '@/utils'
 
 export default {
+  // 检查更新不通时不弹提示，版本信息静默降级
+  getVersionInfo: () => request.post('/version/info', {}, { needTip: false }),
   importData: (file) => {
     const fd = new FormData()
     fd.append('file', file)
