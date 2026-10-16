@@ -9,7 +9,8 @@
   之所以要在前端再放一份：internal/region 只导出了 Resolve(codes) (string, bool) 用于服务端校验，
   没有任何 HTTP 接口能把整棵树发给前端。
 
-  树的字段名 { value, label, children } 与 NCascader 的默认取值字段完全一致，所以零映射直接喂。
+  树的字段名 { value, label, children } 与 NCascader 的默认取值字段完全一致，所以零映射直接喂，
+  唯一要处理的是末级节点的空 children 数组，见 stripEmptyChildren。
 
   只能选到叶子节点：后端 internal/region.Resolve 要求 code 链至少两段且逐级是直接子节点，
   只选到省（甚至只有省）会被打回 11302「地区信息不正确」。
@@ -67,6 +68,17 @@ function findPath(nodes, value) {
   return null
 }
 
+/**
+ * 摘掉末级节点的空 children 数组。
+ *
+ * treemate 判叶子只认「没有 children 字段」（`!getChildren(rawNode)`），空数组是 truthy，
+ * 一律被当成可展开：既会多推一列空面板，又让节点永远选不中（非叶子不可选）。
+ * 数据里末级节点恰好都带 []，所以必须在这里摘掉，不能改 regions.json（三份副本要保持一致）。
+ */
+function stripEmptyChildren(nodes) {
+  return nodes.map(({ children, ...rest }) => (children?.length ? { ...rest, children: stripEmptyChildren(children) } : rest))
+}
+
 function handleUpdate(value) {
   const path = findPath(options.value, value)
   // 解不出路径时不 emit：绝不能把 code 链清成 []，否则提交时地区为空会被后端打回 11306；
@@ -77,7 +89,7 @@ function handleUpdate(value) {
 
 onMounted(async () => {
   try {
-    options.value = (await import('@/data/regions.json')).default
+    options.value = stripEmptyChildren((await import('@/data/regions.json')).default)
     ready.value = true
   }
   catch {
