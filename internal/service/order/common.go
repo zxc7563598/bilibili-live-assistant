@@ -241,6 +241,36 @@ func (s *Service) scheduleDraftExpiry(draftID int64) {
 	})
 }
 
+// checkAddressMatch 校验 SKU、商品与地址可用，且地址类型与商品类型一致，返回 0 表示通过
+func (s *Service) checkAddressMatch(ctx context.Context, userID int64, req PlaceForUserReq) (int, error) {
+	sku, err := s.productSkuRepo.GetByID(ctx, nil, req.SkuID)
+	if err != nil {
+		return CodeQueryFailed, err
+	}
+	if sku == nil {
+		return CodeProductNotFound, errors.New("SKU 不存在")
+	}
+	product, err := s.productRepo.GetByID(ctx, nil, sku.ProductID)
+	if err != nil {
+		return CodeQueryFailed, err
+	}
+	if product == nil {
+		return CodeProductNotFound, errors.New("商品不存在")
+	}
+	address, err := s.liveUserAddress.GetByID(ctx, nil, req.AddressID)
+	if err != nil {
+		return CodeQueryFailed, err
+	}
+	if address == nil || address.UserID != userID {
+		return CodeAddressNotFound, errors.New("收货地址不存在或不属于该用户")
+	}
+	// 两种类型的数值刻意对齐，商城端靠 UI 过滤保证一致，后端不校验就会写脏订单快照
+	if enum.AddressType(product.ProductType) != address.Type {
+		return CodeAddressTypeMismatch, errors.New("收货地址类型与商品类型不匹配")
+	}
+	return 0, nil
+}
+
 // ExpireDrafts 定时任务（兜底）：扫描并取消所有已过期的 Active 草稿、归还库存。
 // 用于进程重启后 AfterFunc 丢失的场景；每条草稿独立事务，单条失败仅记日志不中断。
 func (s *Service) ExpireDrafts(ctx context.Context) error {

@@ -234,6 +234,7 @@ error:
   41106: This item requires captain or above # Item requires captain tier
   41107: This item requires admiral or above # Item requires admiral tier
   41108: This item requires governor only # Item requires governor tier
+  41109: Address type does not match product type # Proxy order address type mismatch
   41601: Captcha verification failed
   41602: Captcha expired, please refresh and try again
   41701: Too many exports in progress, please try again later # Exceeds export.max_concurrent
@@ -255,8 +256,10 @@ error:
   51104: The current order has expired # The current order has expired
   51105: Order does not exist # Order not found (Order admin)
   51106: Address not found
+  51107: User does not exist # Bilibili uid not registered (Order admin)
   51201: Feedback record does not exist # Feedback record not found (Feedback admin)
   51301: Address not found # Address does not exist or does not belong to the user
+  51302: User does not exist # Bilibili uid not registered (Address admin)
   51701: Export module not found # Module name not in the export registry
   60001: System busy, please try again later # RSA key initialization failed
   60101: System busy, please try again later # Database query exception

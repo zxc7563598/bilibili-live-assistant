@@ -270,3 +270,56 @@ func (h *Handler) UpdateReceiverInfo(c *gin.Context) {
 	// 返回结果
 	response.Success(c, lang, nil)
 }
+
+// @Summary 后台代用户下单
+// @Description 替指定用户按正常下单流程兑换商品：锁库存、扣积分/星光、生成订单并快照收货地址；会放弃该用户当前已有的待兑换订单
+// @Tags 订单管理
+// @Security BearerAuth
+// @Param Accept-Language header string false "语言标识（zh: 中文，en: English）" enums(zh,en) default(zh)
+// @Param data body input.OrderPlaceForUserReq true "请求参数"
+// @Success 200 {object} response.Response{data=resp.OrderPlaceForUserResp} "统一响应（code=0成功，其它失败）"
+// @Router /api/admin/order/place-for-user [post]
+func (h *Handler) PlaceForUser(c *gin.Context) {
+	ctx := c.Request.Context()
+	lang := i18n.GetLang(ctx)
+	// 获取管理员信息
+	adminInfo, ok := handler.GetAdminInfo(c)
+	if !ok {
+		response.Error(c, lang, i18n.CodeTokenExpired)
+		return
+	}
+	// 获取参数
+	var req input.OrderPlaceForUserReq
+	if code, ok, err := handler.BindAndValidate(c, &req); !ok {
+		handler.ErrorLog(logger.OrderLogger, "PlaceForUser 参数异常", code, err)
+		response.Error(c, lang, code)
+		return
+	}
+	// 执行请求
+	svcResp, errCode, err := h.orderSvc.CreateForUser(ctx, order.PlaceForUserReq{
+		UID:       req.UID,
+		SkuID:     req.SkuID,
+		Count:     req.Count,
+		AddressID: req.AddressID,
+	})
+	if errCode != 0 {
+		handler.ErrorLog(
+			logger.OrderLogger,
+			"orderSvc.CreateForUser 调用失败",
+			errCode,
+			err,
+			zap.Any("adminInfo", adminInfo),
+			zap.Int64("req.uid", req.UID),
+			zap.Int64("req.sku_id", req.SkuID),
+			zap.Int64("req.count", req.Count),
+			zap.Int64("req.address_id", req.AddressID),
+		)
+		response.Error(c, lang, errCode)
+		return
+	}
+	// 返回结果
+	response.Success(c, lang, resp.OrderPlaceForUserResp{
+		ID:      svcResp.ID,
+		OrderSn: svcResp.OrderSn,
+	})
+}

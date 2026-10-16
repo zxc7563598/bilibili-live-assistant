@@ -26,11 +26,13 @@ const (
 	CodeGuardCaptainRequired   = 41106 // 该商品仅限舰长及以上购买
 	CodeGuardAdmiralRequired   = 41107 // 该商品仅限提督及以上购买
 	CodeGuardGovernorRequired  = 41108 // 该商品仅限总督购买
+	CodeAddressTypeMismatch    = 41109 // 收货地址类型与商品类型不匹配
 	CodeProductNotFound        = 51101 // 未能查询到商品（商品或SKU不存在）
 	CodeNoPendingDraft         = 51102 // 无待支付订单（无待支付订单草稿）
 	CodeDraftNotFound          = 51103 // 待重新购买的订单不存在（历史草稿不存在或不属于当前用户）
 	CodeDraftExpired           = 51104 // 当前订单已过期（当前订单已过期）
 	CodeOrderNotFound          = 51105 // 未能查询到订单（订单不存在（订单模块-后台管理））
 	CodeAddressNotFound        = 51106 // 收货地址不存在
+	CodeUserNotFound           = 51107 // 用户不存在（该 B站 uid 未注册用户）
 	CodeQueryFailed            = 61101 // 系统繁忙，请稍后重试（数据库异常（订单模块））
 )

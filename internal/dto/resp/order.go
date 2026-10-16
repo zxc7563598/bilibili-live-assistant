@@ -2,6 +2,14 @@ package resp
 
 import "github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 
+// OrderPlaceForUserResp 后台代用户下单返回
+type OrderPlaceForUserResp struct {
+	// 订单ID
+	ID int64 `json:"id" example:"1"`
+	// 订单号
+	OrderSn string `json:"order_sn" example:"P000002919238123"`
+}
+
 // OrderGetDraftResp 获取下单确认页数据返回
 //
 // 对应下单草稿：草稿在 ExpireAt 之前有效，超时会被自动回收。

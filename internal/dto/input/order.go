@@ -14,6 +14,18 @@ type OrderReOrderReq struct {
 	ID int64 `json:"id" binding:"required,min=1" err:"required=11101,min=11101" example:"0"`
 }
 
+// OrderPlaceForUserReq 后台代用户下单请求
+type OrderPlaceForUserReq struct {
+	// 用户uid
+	UID int64 `json:"uid" binding:"required,min=1" err:"required=11101,min=11101" example:"123456"`
+	// SKU ID
+	SkuID int64 `json:"sku_id" binding:"required,min=1" err:"required=11101,min=11101" example:"1"`
+	// 购买数量
+	Count int64 `json:"count" binding:"required,min=1" err:"required=11101,min=11101" example:"1"`
+	// 收货地址ID，需属于该用户且类型与商品一致
+	AddressID int64 `json:"address_id" binding:"required,min=1" err:"required=11101,min=11101" example:"1"`
+}
+
 // OrderConfirmPaymentReq 用户确认支付请求
 type OrderConfirmPaymentReq struct {
 	// 历史草稿ID

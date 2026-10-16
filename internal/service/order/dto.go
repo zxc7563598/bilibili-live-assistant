@@ -11,6 +11,20 @@ type PlaceOrderReq struct {
 	Count int64 `json:"count"`
 }
 
+// PlaceForUserReq 管理员代用户下单入参
+type PlaceForUserReq struct {
+	UID       int64 `json:"uid"`
+	SkuID     int64 `json:"sku_id"`
+	Count     int64 `json:"count"`
+	AddressID int64 `json:"address_id"`
+}
+
+// PlaceForUserResp 代下单返回
+type PlaceForUserResp struct {
+	ID      int64  `json:"id"`
+	OrderSn string `json:"order_sn"`
+}
+
 // UserOrderDraftResp 请求返回
 type UserOrderDraftResp struct {
 	ID       int64       `json:"id"`

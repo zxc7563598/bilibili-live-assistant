@@ -2,23 +2,58 @@ package address
 
 import (
 	"context"
+	"errors"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/model"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user"
 	"github.com/zxc7563598/bilibili-live-assistant/internal/repository/live_user_address"
+	"github.com/zxc7563598/bilibili-live-assistant/internal/service/liveuser"
 	"gorm.io/gorm"
 )
 
 type Service struct {
 	db                  *gorm.DB
 	liveUserAddressRepo live_user_address.Repository
+	liveUserSvc         *liveuser.Service
 }
 
-func New(db *gorm.DB, liveUserAddressRepo live_user_address.Repository) *Service {
+func New(db *gorm.DB, liveUserAddressRepo live_user_address.Repository, liveUserSvc *liveuser.Service) *Service {
 	return &Service{
 		db:                  db,
 		liveUserAddressRepo: liveUserAddressRepo,
+		liveUserSvc:         liveUserSvc,
 	}
+}
+
+// ListAddressesByUID 后台按 B站 uid 查用户收货地址列表
+func (s *Service) ListAddressesByUID(ctx context.Context, uid int64, addressType *int) ([]AddressItem, int, error) {
+	userID, code, err := s.resolveUserID(ctx, uid)
+	if code != 0 {
+		return []AddressItem{}, code, err
+	}
+	return s.ListAddresses(ctx, userID, addressType)
+}
+
+// SaveAddressByUID 后台按 B站 uid 给用户新建收货地址，返回地址 ID
+func (s *Service) SaveAddressByUID(ctx context.Context, uid int64, req AddressReq) (int64, int, error) {
+	userID, code, err := s.resolveUserID(ctx, uid)
+	if code != 0 {
+		return 0, code, err
+	}
+	return s.SaveAddress(ctx, userID, req)
+}
+
+// resolveUserID 把 B站 uid 解析成用户内部主键
+func (s *Service) resolveUserID(ctx context.Context, uid int64) (int64, int, error) {
+	userID, err := s.liveUserSvc.GetUserIDByUID(ctx, uid)
+	if err != nil {
+		if errors.Is(err, live_user.ErrUserNotFound) {
+			return 0, CodeUserNotFound, err
+		}
+		return 0, CodeQueryFailed, err
+	}
+	return userID, 0, nil
 }
 
 // GetDefaultAddress 获取用户指定类型的默认收货地址

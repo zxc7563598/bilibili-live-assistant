@@ -37,6 +37,34 @@ type AddressSaveAddressReq struct {
 	IsDefault *int `json:"is_default" binding:"omitempty,oneof=0 1" err:"oneof=11301" example:"1" enums:"0,1"`
 }
 
+// AddressAdminListReq 后台查指定用户的收货地址列表请求入参
+type AddressAdminListReq struct {
+	// 用户uid
+	UID int64 `json:"uid" binding:"required,min=1" err:"required=11301,min=11301" example:"123456"`
+	// 地址类型 0 虚拟 / 1 实体
+	Type *int `json:"type" binding:"omitempty,oneof=0 1" err:"oneof=11301" example:"1" enums:"0,1"`
+}
+
+// AddressAdminSaveReq 后台给指定用户新建收货地址请求入参
+//
+// 字段语义与 AddressSaveAddressReq 一致，只是把用户从登录态换成请求里的 uid。
+type AddressAdminSaveReq struct {
+	// 用户uid
+	UID int64 `json:"uid" binding:"required,min=1" err:"required=11301,min=11301" example:"123456"`
+	// 地址ID，后台只新建，传了也按新建处理
+	ID         *int64  `json:"id"  example:"2"`
+	Name       *string `json:"name" example:"哎呀又胖啦"`
+	Phone      *string `json:"phone" example:"18888888888"`
+	RegionCode *string `json:"region_code" example:"['370000', '370100', '370116']"`
+	Region     *string `json:"region" example:"xxx xxx xxx"`
+	Detail     *string `json:"detail" example:"xxxxxxxxxx"`
+	Email      *string `json:"email" example:"xxxxx@xxx.xx"`
+	// 地址类型 0 虚拟 / 1 实体
+	Type *int `json:"type" binding:"omitempty,oneof=0 1" err:"oneof=11301" example:"1" enums:"0,1"`
+	// 是否默认地址 0 否 / 1 是
+	IsDefault *int `json:"is_default" binding:"omitempty,oneof=0 1" err:"oneof=11301" example:"1" enums:"0,1"`
+}
+
 // AddressDeleteAddressReq 删除收货地址请求入参
 type AddressDeleteAddressReq struct {
 	ID int64 `json:"id" binding:"required" err:"required=11301" example:"1"`

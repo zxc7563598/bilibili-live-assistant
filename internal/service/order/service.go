@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/zxc7563598/bilibili-live-assistant/internal/enum"
@@ -223,6 +224,46 @@ func (s *Service) ConfirmPayment(ctx context.Context, userID, draftID, addressID
 		}
 	}
 	return orderID, 0, nil
+}
+
+// CreateForUser 管理员代用户下单
+//
+// 完全复用用户自助下单的两段式（锁库存建草稿 → 扣款建订单），不改口径：
+// 目标用户已有的 Active 草稿会被顶掉，限购也照常生效，等于模拟他自己下单。
+//
+// ConfirmPayment 失败时草稿还锁着库存，必须立刻取消归还，否则要等到过期才释放。
+func (s *Service) CreateForUser(ctx context.Context, req PlaceForUserReq) (PlaceForUserResp, int, error) {
+	userID, err := s.liveUserSvc.GetUserIDByUID(ctx, req.UID)
+	if err != nil {
+		if errors.Is(err, live_user.ErrUserNotFound) {
+			return PlaceForUserResp{}, CodeUserNotFound, err
+		}
+		return PlaceForUserResp{}, CodeQueryFailed, err
+	}
+	// 正式下单只校验地址归属，不校验地址类型，这里补一道
+	if code, err := s.checkAddressMatch(ctx, userID, req); code != 0 {
+		return PlaceForUserResp{}, code, err
+	}
+	draftID, code, err := s.placeOrder(ctx, userID, req.SkuID, req.Count)
+	if code != 0 {
+		return PlaceForUserResp{}, code, err
+	}
+	orderID, code, err := s.ConfirmPayment(ctx, userID, draftID, req.AddressID)
+	if code != 0 {
+		if rollbackErr := s.expireDraftByID(ctx, draftID); rollbackErr != nil {
+			log.Printf("[order.CreateForUser] 取消草稿失败: draftID=%d err=%v", draftID, rollbackErr)
+		}
+		return PlaceForUserResp{}, code, err
+	}
+	resp := PlaceForUserResp{ID: orderID}
+	order, err := s.liveUserOrderRepo.GetByID(ctx, nil, orderID)
+	if err != nil {
+		return PlaceForUserResp{}, CodeQueryFailed, err
+	}
+	if order != nil {
+		resp.OrderSn = order.OrderSn
+	}
+	return resp, 0, nil
 }
 
 // ListPage 后台分页查询全部订单，联查 live_users 返回 uid/uname

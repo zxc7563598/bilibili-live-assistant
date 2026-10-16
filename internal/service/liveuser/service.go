@@ -247,6 +247,20 @@ func (s *Service) GetUserBalance(ctx context.Context, uid int64) (*UserBalance, 
 	}, nil
 }
 
+// GetUserIDByUID 按 B站 uid 取用户内部主键，用户不存在返回 live_user.ErrUserNotFound
+//
+// 只读，不会像 EnsureUser 那样自动注册：后台按 uid 操作时，未注册的用户本就没有余额可用。
+func (s *Service) GetUserIDByUID(ctx context.Context, uid int64) (int64, error) {
+	user, err := s.liveUserRepo.GetByUID(ctx, nil, uid)
+	if err != nil {
+		return 0, fmt.Errorf("获取用户ID信息失败：%w", err)
+	}
+	if user == nil {
+		return 0, live_user.ErrUserNotFound
+	}
+	return user.ID, nil
+}
+
 // AddTotalDanmuCount 增加用户累计发送弹幕数
 func (s *Service) AddTotalDanmuCount(ctx context.Context, userID int64) error {
 	return s.liveUserRepo.AdjustField(ctx, nil, userID, "total_danmu_count", 1)

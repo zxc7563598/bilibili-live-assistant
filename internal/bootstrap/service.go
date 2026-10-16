@@ -55,7 +55,7 @@ func InitServices(repo *Repositories, db *gorm.DB, rdb *redis.Client, cfg *confi
 	robotConfigSvc := robotconfigsvc.New(repo.RobotConfig, configCache, db)
 	liveUserSvc := liveuser.New(db, rdb, appConfigCache, repo.LiveUser, repo.LiveUserCreditLog, repo.LiveDanmu, repo.LiveGift, repo.LiveSession)
 	services := &Services{
-		Address:     address.New(db, repo.LiveUserAddress),
+		Address:     address.New(db, repo.LiveUserAddress, liveUserSvc),
 		Admin:       admin.New(repo.Admin, repo.AdminRole, repo.Role, db, rdb),
 		Role:        role.New(repo.Role, repo.Admin, repo.RoleMenu, repo.AdminRole, repo.Menu, db, rdb),
 		Menu:        menu.New(repo.Menu),

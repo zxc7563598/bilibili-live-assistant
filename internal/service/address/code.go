@@ -19,5 +19,6 @@ const (
 	CodeDetailRequired     = 11307 // 请填写详细地址（实体地址详细地址为空）
 	CodeEmailRequired      = 11308 // 请填写电子邮箱（虚拟地址电子邮箱为空）
 	CodeNotFound           = 51301 // 收货地址不存在（地址不存在或不属于该用户）
+	CodeUserNotFound       = 51302 // 用户不存在（该 B站 uid 未注册用户）
 	CodeQueryFailed        = 61301 // 系统繁忙，请稍后重试（数据库异常（地址模块））
 )

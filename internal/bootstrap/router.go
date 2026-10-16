@@ -208,6 +208,11 @@ func RouteRegister(r *gin.Engine, rdb *redis.Client, handlers *Handlers, corsCfg
 	adminApi.POST("/order/ship-status", middleware.AdminAuth(rdb), handlers.Order.UpdateShipStatus)
 	adminApi.POST("/order/status", middleware.AdminAuth(rdb), handlers.Order.UpdateOrderStatus)
 	adminApi.POST("/order/receiver", middleware.AdminAuth(rdb), handlers.Order.UpdateReceiverInfo)
+	// 后台代用户下单
+	adminApi.POST("/order/place-for-user", middleware.AdminAuth(rdb), handlers.Order.PlaceForUser)
+	// 后台查/建指定用户的收货地址（代下单选地址用）
+	adminApi.POST("/address/list", middleware.AdminAuth(rdb), handlers.Address.AdminListAddresses)
+	adminApi.POST("/address/save", middleware.AdminAuth(rdb), handlers.Address.AdminSaveAddress)
 	// 投诉管理路由
 	adminApi.POST("/feedback/list", middleware.AdminAuth(rdb), handlers.Feedback.ListPage)
 	adminApi.POST("/feedback/details", middleware.AdminAuth(rdb), handlers.Feedback.Details)
