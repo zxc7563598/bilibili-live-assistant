@@ -114,7 +114,8 @@ func main() {
 	docs.SwaggerInfo.Host = fmt.Sprintf("localhost:%d", serverPort)
 	// 启动服务
 	go func() {
-		remoteVersion, needUpdate, err := version.CheckUpdate()
+		// 用带缓存的方法：启动这次检查顺带预热缓存，管理员随后打开后台不必再打一次远端
+		remoteVersion, needUpdate, err := version.CheckUpdateCached()
 		banner("服务在 %s 启动 (版本: %s, 提交: %s)", addr, version.Version, version.Commit)
 		banner("打开浏览器，前往：http://127.0.0.1%s/admin 访问后台", addr)
 		banner("默认账号：admin")

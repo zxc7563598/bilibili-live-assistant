@@ -28,6 +28,7 @@ var (
 	FeedbackLogger    *zap.Logger
 	UploadLogger      *zap.Logger
 	ExportLogger      *zap.Logger
+	VersionLogger     *zap.Logger
 )
 
 // logDir 日志根目录，由 InitAll 按配置注入；未注入时使用工作目录下的 logs
@@ -68,6 +69,7 @@ func InitAll(dir string) {
 	FeedbackLogger = InitLogger("feedback", zapcore.InfoLevel)
 	UploadLogger = InitLogger("upload", zapcore.InfoLevel)
 	ExportLogger = InitLogger("export", zapcore.InfoLevel)
+	VersionLogger = InitLogger("version", zapcore.InfoLevel)
 	initedDir = logDir
 }
 
