@@ -520,6 +520,21 @@ func seedMenus(db *gorm.DB) error {
 			Component: "",
 			Order:     0,
 		},
+		{
+			ID:        32,
+			Code:      "PlaceOrderForUser",
+			Enable:    enum.EnableEnable,
+			Show:      enum.Yes,
+			KeepAlive: enum.No,
+			Layout:    "",
+			Type:      "BUTTON",
+			ParentID:  30,
+			Name:      "帮用户下单",
+			Icon:      "",
+			Path:      "",
+			Component: "",
+			Order:     0,
+		},
 	}
 	// 不限定冲突列：种子菜单写死了主键 ID，用户自建的菜单若占用了同一个 ID，
 	// 这一条就跳过而不是让启动失败（该菜单会缺失，需要用户自行调整 ID）
